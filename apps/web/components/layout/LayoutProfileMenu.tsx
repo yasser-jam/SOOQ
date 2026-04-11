@@ -16,11 +16,11 @@ import {
   export default function LayoutProfileMenu() {
     return (
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="rounded-full">
+        <DropdownMenuTrigger asChild className="flex"> 
+          <Button variant="ghost" size="icon">
             <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" alt="shadcn" />
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarImage src="https://randomuser.me/api/portraits/men/1.jpg" className="border border-2 border-gray-500" alt="shadcn" />
+              <AvatarFallback>YJ</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
