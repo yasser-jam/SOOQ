@@ -69,7 +69,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <div className="flex flex-col gap-4 text-start">
                 <span className="text-2xl truncate font-medium ">لوحة تحكم المتجر</span>
 
-                <span className="text-sm text-gray-200">عال الأداء</span>
+                <span className="text-sm text-gray-200">لوحة التاجر</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
