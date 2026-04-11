@@ -1,14 +1,20 @@
 import { Geist, Geist_Mono } from "next/font/google"
+import { Noto_Sans_Arabic } from "next/font/google"
 
 import "@workspace/ui/globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@workspace/ui/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'})
+import Providers from "@/components/Providers";
+
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
+})
+
+const fontSans = Noto_Sans_Arabic({
+  subsets: ["arabic"],
+  variable: "--font-sans",
 })
 
 export default function RootLayout({
@@ -18,12 +24,13 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="ar"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
+      dir="rtl"
+      className={fontSans.variable}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )
