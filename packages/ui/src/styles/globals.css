@@ -83,6 +83,9 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+    --text: #122640;
+    --text-secondary: #44474D;
+    --card-shadow: 0 16px 32px 0 #293C57;
 }
 
 .dark {
