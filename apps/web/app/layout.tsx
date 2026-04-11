@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Noto_Sans_Arabic } from "next/font/google"
 
 import "@workspace/ui/globals.css"
+import "@/styles/style.scss"
 
 import Providers from "@/components/Providers";
 

@@ -1,0 +1,9 @@
+@import "@workspace/ui/globals.css";
+
+.container {
+    @apply max-w-7xl md:max-w-none mx-auto px-4;
+}
+
+.page-title {
+    @apply text-4xl font-bold text-muted-foreground mb-4;
+}
