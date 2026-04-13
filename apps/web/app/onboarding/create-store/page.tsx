@@ -23,6 +23,31 @@ import * as React from "react"
 
 const TOTAL_STEPS = 3
 
+type OnboardingStepHeader = {
+  title: string
+  description: string
+  descriptionClassName?: string
+}
+
+const ONBOARDING_STEP_HEADERS: OnboardingStepHeader[] = [
+  {
+    title: "اختر تصنيف متجرك",
+    description:
+      "أخبرنا بنوع المنتجات التي سستقوم ببيعها لنتمكن من تخصيص تجربتك بشكل أفضل.",
+    descriptionClassName: "text-gray-500",
+  },
+  {
+    title: "هوية المتجر",
+    description:
+      "قم بتخصيص العلامة التجارية لمتجرك لتظهر بشكل احترافي أمام عملائك.",
+  },
+  {
+    title: "الرابط والعملة",
+    description:
+      "حدّد عنوان متجرك على SOOQ والعملة الافتراضية للأسعار",
+  },
+]
+
 export default function CreateStorePage() {
   const [step, setStep] = React.useState(0)
   const [categoryId, setCategoryId] = React.useState<string | null>(null)
@@ -49,9 +74,11 @@ export default function CreateStorePage() {
     e.preventDefault()
   }
 
+  const stepHeader = ONBOARDING_STEP_HEADERS[step]!
+
   return (
     <Card className="w-full max-w-xl">
-      <CardHeader className="mb-2 text-center">
+      <CardHeader className="mb-2 space-y-1 text-center">
         <Avatar className="mx-auto mb-2 rounded-lg bg-primary p-8 text-5xl">
           <AvatarImage src="/logo.png" alt="logo" />
           <AvatarFallback className="font-bold text-primary-foreground">
@@ -59,12 +86,12 @@ export default function CreateStorePage() {
           </AvatarFallback>
         </Avatar>
 
-        <CardTitle>إنشاء متجر</CardTitle>
-        <CardDescription>
-          أكمل الخطوات التالية للبدء في البيع عبر SOOQ
+        <CardTitle className="text-xl">{stepHeader.title}</CardTitle>
+        <CardDescription className={stepHeader.descriptionClassName}>
+          {stepHeader.description}
         </CardDescription>
 
-        <div className="mt-4 flex justify-center">
+        <div className="mt-4 mb-8 flex justify-center">
           <OnboardingProgress currentStep={step} />
         </div>
       </CardHeader>

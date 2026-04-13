@@ -5,17 +5,10 @@ import {
   AvatarFallback,
 } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
-import {
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+import { CardContent, CardFooter } from "@workspace/ui/components/card"
 import { cn } from "@workspace/ui/lib/utils"
 import {
   ArrowLeftIcon,
-  ArrowRightIcon,
   Dumbbell,
   Home,
   Shirt,
@@ -53,13 +46,6 @@ export function CategoryStep({
 
   return (
     <>
-      <CardHeader className="space-y-1 pt-0 text-center">
-        <CardTitle className="text-xl">اختر تصنيف متجرك</CardTitle>
-        <CardDescription className="text-gray-500">
-          أخبرنا بنوع المنتجات التي سستقوم ببيعها لنتمكن من تخصيص تجربتك بشكل
-          أفضل.
-        </CardDescription>
-      </CardHeader>
       <CardContent>
         <div
           className="grid grid-cols-2 gap-3 sm:grid-cols-3"
@@ -83,13 +69,13 @@ export function CategoryStep({
               >
                 <Avatar
                   className={cn(
-                    "size-16 rounded-xl border border-border bg-muted/80",
+                    "size-16 rounded-full border border-border bg-muted/80",
                     selected && "border-primary/40 bg-primary/10"
                   )}
                 >
                   <AvatarFallback
                     className={cn(
-                      "rounded-xl text-primary",
+                      "rounded-full text-primary",
                       selected && "bg-primary/15"
                     )}
                   >
@@ -102,22 +88,11 @@ export function CategoryStep({
           })}
         </div>
       </CardContent>
-      <CardFooter className="onboarding-step-footer">
+      <CardFooter className="onboarding-step-footer !mx-auto">
         <Button
           type="button"
-          variant="outline"
-          size="sm"
-          className="flex-1 sm:flex-none"
-          disabled
-          aria-label="السابق — غير متاح في هذه الخطوة"
-        >
-          السابق
-          <ArrowRightIcon className="size-3.5" />
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          className="flex-1 sm:flex-none"
+          variant="secondary"
+          size="lg"
           disabled={!canGoNext}
           onClick={onNext}
         >

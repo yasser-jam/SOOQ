@@ -5,16 +5,10 @@ import {
   type CurrencyCode,
 } from "@/components/onboarding/currency-button-group"
 import { Button } from "@workspace/ui/components/button"
-import {
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+import { CardContent, CardFooter } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import { ArrowLeftIcon, ArrowRightIcon, Link2 } from "lucide-react"
+import { ArrowLeftIcon, ArrowRightIcon, Check, Link2 } from "lucide-react"
 import * as React from "react"
 
 type DomainCurrencyStepProps = {
@@ -38,12 +32,6 @@ export function DomainCurrencyStep({
 }: DomainCurrencyStepProps) {
   return (
     <form onSubmit={onSubmit}>
-      <CardHeader className="space-y-1 pt-0 text-center">
-        <CardTitle className="text-xl">الرابط والعملة</CardTitle>
-        <CardDescription>
-          حدّد عنوان متجرك على SOOQ والعملة الافتراضية للأسعار
-        </CardDescription>
-      </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-6">
           <div className="rounded-xl border bg-muted/30 p-3 text-start">
@@ -65,7 +53,7 @@ export function DomainCurrencyStep({
                   e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "")
                 )
               }
-              placeholder="my-store"
+              placeholder="https://sooq.com/my-store"
               pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
               autoCapitalize="none"
               autoCorrect="off"
@@ -89,16 +77,17 @@ export function DomainCurrencyStep({
         <Button
           type="button"
           variant="outline"
-          size="sm"
+          size="lg"
           className="w-full sm:w-auto"
           onClick={onPrevious}
         >
           السابق
           <ArrowRightIcon className="size-3.5" />
         </Button>
-        <Button type="submit" size="sm" className="w-full sm:w-auto">
-          إنهاء الإعداد
-          <ArrowLeftIcon className="size-3.5" />
+
+        <Button type="submit" variant="secondary" size="lg">
+          إنهاء
+          <Check />
         </Button>
       </CardFooter>
     </form>

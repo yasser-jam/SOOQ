@@ -37,6 +37,7 @@ export function CurrencyButtonGroup({
         <Coins className="size-4 shrink-0" aria-hidden />
         العملة الافتراضية
       </span>
+
       <div
         className="grid grid-cols-2 gap-2"
         role="group"
@@ -50,15 +51,12 @@ export function CurrencyButtonGroup({
               type="button"
               variant={selected ? "default" : "outline"}
               size="sm"
-              className="h-auto min-h-0 flex-col gap-0.5 py-2"
+              className="h-auto min-h-0 flex items-center gap-2 py-2"
               aria-pressed={selected}
               onClick={() => onValueChange(code)}
             >
-              <Icon className="size-3.5" strokeWidth={2} />
               <span className="text-xs font-medium leading-tight">{shortLabel}</span>
-              <span className="text-muted-foreground text-[0.6rem] font-normal leading-none">
-                {code}
-              </span>
+              <Icon className="size-3.5" strokeWidth={2} />
             </Button>
           )
         })}

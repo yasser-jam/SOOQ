@@ -24,7 +24,7 @@ export function OnboardingProgress({
       <div className="flex w-full items-center">
         {STEPS.map((step, index) => (
           <React.Fragment key={step.title}>
-            <div className="flex shrink-0 flex-col items-center gap-2">
+            <div className="relative flex shrink-0 flex-col items-center gap-2">
               <span
                 className={cn(
                   "flex size-10 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors",
@@ -37,7 +37,7 @@ export function OnboardingProgress({
               </span>
               <span
                 className={cn(
-                  "max-w-[4.75rem] text-center text-[0.7rem] leading-tight sm:text-xs sm:leading-tight",
+                  "absolute top-12 max-w-[4.75rem] text-center text-[0.7rem] leading-tight sm:text-xs sm:leading-tight",
                   index === currentStep
                     ? "font-medium text-foreground"
                     : "text-muted-foreground"
