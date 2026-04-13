@@ -1,5 +1,7 @@
 "use client"
 
+import { api } from "@/lib/api"
+import { useMutation } from "@tanstack/react-query"
 import {
   Avatar,
   AvatarFallback,
@@ -21,11 +23,47 @@ import {
 } from "@workspace/ui/components/input-otp"
 import { Label } from "@workspace/ui/components/label"
 import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import type { FormEvent } from "react"
+import { Suspense, useEffect, useState } from "react"
 
-export default function VerifyOtpPage() {
+function VerifyOtpForm() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const phoneNumber = searchParams.get("phoneNumber")?.trim() ?? ""
+
+  const [otp, setOtp] = useState("")
+
+  useEffect(() => {
+    if (!phoneNumber) {
+      router.replace("/request-otp")
+    }
+  }, [phoneNumber, router])
+
+  const { isPending, mutate } = useMutation({
+    mutationFn: (payload: { phone: string; otpCode: string }) =>
+      api("/auth/otp/verify", {
+        method: "POST",
+        body: {
+          phone: payload.phone,
+          otpCode: payload.otpCode,
+        },
+      }),
+  })
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!phoneNumber || otp.length !== 6) return
+    mutate({ phone: phoneNumber, otpCode: otp })
+  }
+
+  if (!phoneNumber) {
+    return null
+  }
+
   return (
     <Card className="w-full max-w-1/3">
-      <form>
+      <form onSubmit={handleSubmit}>
         <CardHeader className="mb-4 text-center">
           <Avatar className="mx-auto mb-2 rounded-lg bg-primary p-8 text-5xl">
             <AvatarImage src="/logo.png" alt="logo" />
@@ -36,19 +74,29 @@ export default function VerifyOtpPage() {
 
           <CardTitle>تأكيد الرمز</CardTitle>
           <CardDescription>
-            أدخل الرمز المكوّن من 6 أرقام الذي أرسلناه إلى بريدك
+            أدخل الرمز المكوّن من 6 أرقام الذي أرسلناه إلى هاتفك
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">
+              <p className="text-muted-foreground text-center text-sm" dir="ltr">
+                {phoneNumber}
+              </p>
               <Label htmlFor="otp" className="justify-center gap-2">
                 <ShieldCheckIcon className="size-4" />
                 رمز التحقق
               </Label>
 
-              <div className="flex justify-center py-1 mt-2" dir="ltr">
-                <InputOTP maxLength={6} id="otp" name="otp" required>
+              <div className="mt-2 flex justify-center py-1" dir="ltr">
+                <InputOTP
+                  maxLength={6}
+                  id="otp"
+                  name="otp"
+                  value={otp}
+                  onChange={setOtp}
+                  required
+                >
                   <InputOTPGroup>
                     <InputOTPSlot index={0} className="h-12 w-10 text-base" />
                     <InputOTPSlot index={1} className="h-12 w-10 text-base" />
@@ -62,13 +110,33 @@ export default function VerifyOtpPage() {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex-col gap-2 px-4 mt-12">
-          <Button type="submit" size="lg" className="w-full">
+        <CardFooter className="mt-12 flex-col gap-2 px-4">
+          <Button
+            type="submit"
+            size="lg"
+            loading={isPending}
+            disabled={otp.length !== 6}
+            className="w-full"
+          >
             تأكيد
             <ArrowLeftIcon />
           </Button>
         </CardFooter>
       </form>
     </Card>
+  )
+}
+
+export default function VerifyOtpPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card className="w-full max-w-1/3 p-8 text-center text-muted-foreground">
+          جاري التحميل…
+        </Card>
+      }
+    >
+      <VerifyOtpForm />
+    </Suspense>
   )
 }

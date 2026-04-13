@@ -19,9 +19,11 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { ArrowLeftIcon, PhoneIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 export default function RequestOtpPage() {
+  const router = useRouter()
   const [phone, setPhone] = useState("")
 
   const { isPending, mutate } = useMutation({
@@ -34,7 +36,10 @@ export default function RequestOtpPage() {
         },
       }),
 
-    onSuccess: () => {},
+    onSuccess: () => {
+      const q = encodeURIComponent(phone.trim())
+      router.push(`/verify-otp?phoneNumber=${q}`)
+    },
   })
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
