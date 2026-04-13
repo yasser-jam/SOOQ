@@ -29,7 +29,7 @@ export function OnboardingProgress({
                 className={cn(
                   "flex size-10 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors",
                   index <= currentStep
-                    ? "border-primary bg-primary text-primary-foreground"
+                    ? "border-secondary bg-secondary text-secondary-foreground"
                     : "border-muted-foreground/30 bg-background text-muted-foreground"
                 )}
               >
@@ -50,7 +50,7 @@ export function OnboardingProgress({
               <div
                 className={cn(
                   "mx-1 h-1 min-h-px min-w-[0.75rem] flex-1 rounded-full transition-colors sm:mx-2",
-                  currentStep > index ? "bg-primary" : "bg-muted-foreground/25"
+                  currentStep > index ? "bg-secondary" : "bg-muted-foreground/25"
                 )}
                 aria-hidden
               />
