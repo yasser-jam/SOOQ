@@ -23,6 +23,9 @@
   },
   "dependencies": {
     "@radix-ui/react-direction": "^1.1.1",
+    "@tanstack/react-query": "^5.99.0",
+    "axios": "^1.15.0",
+    "js-cookie": "^3.0.5",
     "ui": "^0.2.4",
     "web": "^0.0.2"
   }

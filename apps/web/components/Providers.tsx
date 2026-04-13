@@ -1,27 +1,33 @@
-'use client'
-import { DirectionProvider } from "@radix-ui/react-direction";
-import { AppSidebar } from "@workspace/ui/components/app-sidebar";
-import { Separator } from "@workspace/ui/components/separator";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@workspace/ui/components/sidebar";
-import { ThemeProvider } from "next-themes";
-import LayoutHeader from "./layout/LayoutHeader";
+"use client"
+import { DirectionProvider } from "@radix-ui/react-direction"
+import { AppSidebar } from "@workspace/ui/components/app-sidebar"
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@workspace/ui/components/sidebar"
+import { ThemeProvider } from "next-themes"
+import LayoutHeader from "./layout/LayoutHeader"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 export default function Providers({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient()
+
   return (
     <>
       <ThemeProvider>
-        <DirectionProvider dir="rtl">
-          <SidebarProvider>
+        <QueryClientProvider client={queryClient}>
+          <DirectionProvider dir="rtl">
+            <SidebarProvider>
+              <AppSidebar />
 
-            <AppSidebar />
+              <SidebarInset>
+                <LayoutHeader />
 
-            <SidebarInset>
-              <LayoutHeader />
-              
-              {children}
-            </SidebarInset>
-          </SidebarProvider>
-        </DirectionProvider>
+                {children}
+              </SidebarInset>
+            </SidebarProvider>
+          </DirectionProvider>
+        </QueryClientProvider>
       </ThemeProvider>
     </>
   )
