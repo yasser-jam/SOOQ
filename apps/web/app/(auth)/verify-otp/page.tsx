@@ -47,7 +47,7 @@ export default function VerifyOtpPage() {
                 رمز التحقق
               </Label>
 
-              <div className="flex justify-center py-1" dir="ltr">
+              <div className="flex justify-center py-1 mt-2" dir="ltr">
                 <InputOTP maxLength={6} id="otp" name="otp" required>
                   <InputOTPGroup>
                     <InputOTPSlot index={0} className="h-12 w-10 text-base" />
@@ -62,7 +62,7 @@ export default function VerifyOtpPage() {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex-col gap-2">
+        <CardFooter className="flex-col gap-2 px-4 mt-12">
           <Button type="submit" size="lg" className="w-full">
             تأكيد
             <ArrowLeftIcon />
