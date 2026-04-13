@@ -7,3 +7,7 @@
 .page-title {
     @apply text-4xl font-bold text-muted-foreground mb-4;
 }
+
+.onboarding-step-footer {
+    @apply mx-5 mb-6 mt-2 flex flex-row items-center justify-between gap-4 px-1 sm:mx-7;
+}
