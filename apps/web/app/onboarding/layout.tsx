@@ -1,3 +1,4 @@
+import { OnboardingQueryProvider } from "@/components/onboarding/onboarding-query-provider"
 import { Info, ShoppingCart, Star } from "lucide-react"
 
 export default function OnboardingLayout({
@@ -6,7 +7,7 @@ export default function OnboardingLayout({
   children: React.ReactNode
 }) {
   return (
-    <>
+    <OnboardingQueryProvider>
       <header>
         <div className="container flex items-center justify-between py-4 text-sm text-primary">
           <h1 className="text-3xl font-bold text-primary">SOOQ</h1>
@@ -30,6 +31,6 @@ export default function OnboardingLayout({
 
         {children}
       </div>
-    </>
+    </OnboardingQueryProvider>
   )
 }

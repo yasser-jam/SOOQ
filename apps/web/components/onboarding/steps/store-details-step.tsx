@@ -10,12 +10,16 @@ import * as React from "react"
 
 type StoreDetailsStepProps = {
   categoryId: string | null
+  storeName: string
+  onStoreNameChange: (value: string) => void
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   onPrevious: () => void
 }
 
 export function StoreDetailsStep({
   categoryId,
+  storeName,
+  onStoreNameChange,
   onSubmit,
   onPrevious,
 }: StoreDetailsStepProps) {
@@ -32,6 +36,8 @@ export function StoreDetailsStep({
             <Input
               id="storeName"
               name="storeName"
+              value={storeName}
+              onChange={(e) => onStoreNameChange(e.target.value)}
               placeholder="متجري"
               required
               autoComplete="organization"

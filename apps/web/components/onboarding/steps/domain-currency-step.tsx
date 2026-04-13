@@ -8,7 +8,7 @@ import { Button } from "@workspace/ui/components/button"
 import { CardContent, CardFooter } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import { ArrowLeftIcon, ArrowRightIcon, Check, Link2 } from "lucide-react"
+import { ArrowRightIcon, Check, Link2 } from "lucide-react"
 import * as React from "react"
 
 type DomainCurrencyStepProps = {
@@ -19,6 +19,7 @@ type DomainCurrencyStepProps = {
   onPrimaryCurrencyChange: (code: CurrencyCode) => void
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   onPrevious: () => void
+  isSubmitting?: boolean
 }
 
 export function DomainCurrencyStep({
@@ -29,6 +30,7 @@ export function DomainCurrencyStep({
   onPrimaryCurrencyChange,
   onSubmit,
   onPrevious,
+  isSubmitting = false,
 }: DomainCurrencyStepProps) {
   return (
     <form onSubmit={onSubmit}>
@@ -85,7 +87,12 @@ export function DomainCurrencyStep({
           <ArrowRightIcon className="size-3.5" />
         </Button>
 
-        <Button type="submit" variant="secondary" size="lg">
+        <Button
+          type="submit"
+          variant="secondary"
+          size="lg"
+          loading={isSubmitting}
+        >
           إنهاء
           <Check />
         </Button>

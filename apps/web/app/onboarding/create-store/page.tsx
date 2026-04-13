@@ -8,6 +8,9 @@ import {
 } from "@/components/onboarding/steps/category-step"
 import { DomainCurrencyStep } from "@/components/onboarding/steps/domain-currency-step"
 import { StoreDetailsStep } from "@/components/onboarding/steps/store-details-step"
+import { api } from "@/lib/api"
+import { categoryIdToStoreCategory } from "@/lib/store-category"
+import { useMutation } from "@tanstack/react-query"
 import {
   Avatar,
   AvatarFallback,
@@ -19,9 +22,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { useRouter } from "next/navigation"
 import * as React from "react"
 
 const TOTAL_STEPS = 3
+
+type CreateStoreBody = {
+  storeName: string
+  slug: string
+  primaryCurrencyCode: CurrencyCode
+  storeCategory: string
+  themeCode: "DEFAULT"
+}
 
 type OnboardingStepHeader = {
   title: string
@@ -49,13 +61,26 @@ const ONBOARDING_STEP_HEADERS: OnboardingStepHeader[] = [
 ]
 
 export default function CreateStorePage() {
+  const router = useRouter()
   const [step, setStep] = React.useState(0)
   const [categoryId, setCategoryId] = React.useState<string | null>(null)
+  const [storeName, setStoreName] = React.useState("")
   const [primaryCurrencyCode, setPrimaryCurrencyCode] =
     React.useState<CurrencyCode>("SYP")
   const [slug, setSlug] = React.useState("")
 
   const selectedCategory = STORE_CATEGORIES.find((c) => c.id === categoryId)
+
+  const { isPending, mutate } = useMutation({
+    mutationFn: (body: CreateStoreBody) =>
+      api("/auth/stores", {
+        method: "POST",
+        body,
+      }),
+    onSuccess: () => {
+      router.push("/")
+    },
+  })
 
   function goNext() {
     setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1))
@@ -70,8 +95,19 @@ export default function CreateStorePage() {
     goNext()
   }
 
-  function handleDomainCurrencySubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleDomainCurrencySubmit(e: React.FormEvent) {
     e.preventDefault()
+    const name = storeName.trim()
+    const storeSlug = slug.trim()
+    if (!categoryId || !name || !storeSlug) return
+
+    mutate({
+      storeName: name,
+      slug: storeSlug,
+      primaryCurrencyCode,
+      storeCategory: categoryIdToStoreCategory(categoryId),
+      themeCode: "DEFAULT",
+    })
   }
 
   const stepHeader = ONBOARDING_STEP_HEADERS[step]!
@@ -107,6 +143,8 @@ export default function CreateStorePage() {
       {step === 1 && (
         <StoreDetailsStep
           categoryId={categoryId}
+          storeName={storeName}
+          onStoreNameChange={setStoreName}
           onSubmit={handleStoreDetailsSubmit}
           onPrevious={goPrevious}
         />
@@ -121,6 +159,7 @@ export default function CreateStorePage() {
           onPrimaryCurrencyChange={setPrimaryCurrencyCode}
           onSubmit={handleDomainCurrencySubmit}
           onPrevious={goPrevious}
+          isSubmitting={isPending}
         />
       )}
     </Card>
