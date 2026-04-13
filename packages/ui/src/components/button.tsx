@@ -1,5 +1,6 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import { Loader2Icon } from "lucide-react"
 import { Slot } from "radix-ui"
 
 import { cn } from "@workspace/ui/lib/utils"
@@ -36,26 +37,60 @@ const buttonVariants = cva(
   }
 )
 
+const spinnerSizeClass: Record<
+  NonNullable<VariantProps<typeof buttonVariants>["size"]>,
+  string
+> = {
+  default: "size-4",
+  xs: "size-3",
+  sm: "size-3.5",
+  lg: "size-5",
+  icon: "size-5",
+}
+
 function Button({
   className,
   variant = "default",
   size = "default",
   asChild = false,
+  loading = false,
+  disabled,
+  children,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
+    loading?: boolean
   }) {
   const Comp = asChild ? Slot.Root : "button"
+  const isLoading = Boolean(loading)
+  const showSpinner = isLoading && !asChild
 
   return (
     <Comp
       data-slot="button"
       data-variant={variant}
       data-size={size}
-      className={cn(buttonVariants({ variant, size, className }))}
+      data-loading={showSpinner ? "" : undefined}
+      disabled={asChild ? disabled : Boolean(disabled || isLoading)}
+      aria-busy={isLoading || undefined}
+      className={cn(
+        buttonVariants({ variant, size, className }),
+        isLoading && !asChild && "cursor-wait"
+      )}
       {...props}
-    />
+    >
+      {showSpinner && (
+        <Loader2Icon
+          className={cn(
+            spinnerSizeClass[size ?? "default"],
+            "shrink-0 animate-spin"
+          )}
+          aria-hidden
+        />
+      )}
+      {children}
+    </Comp>
   )
 }
 

@@ -1,4 +1,4 @@
-'use client'
+"use client"
 import {
   Avatar,
   AvatarFallback,
@@ -16,10 +16,9 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { ArrowLeftIcon, LockIcon, MailIcon } from "lucide-react"
-import { redirect } from "next/navigation";
+import { redirect } from "next/navigation"
 
 export default function LoginPage() {
-
   return (
     <Card className="w-full max-w-1/3">
       <CardHeader className="mb-4 text-center">
@@ -81,8 +80,12 @@ export default function LoginPage() {
 
         <div className="flex items-center text-sm">
           ليس لديك حساب؟
-          <Button variant="link" onClick={() => redirect("/signup")}>
+          {/* <Button variant="link" onClick={() => redirect("/signup")}>
             أنشئ حسابك الآن
+          </Button>
+          أو */}
+          <Button variant="link" onClick={() => redirect("/request-otp")}>
+            سجل باستخدام رقم الهاتف
           </Button>
         </div>
         {/* <Button variant="outline" className="w-full">
