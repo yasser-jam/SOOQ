@@ -26,8 +26,9 @@ import {
 const navItems = [
   {
     title: "لوحة التحكم",
-    url: "/dashboard",
+    url: "/",
     icon: LayoutDashboard,
+    isActive: true
   },
   {
     title: "المنتجات",
@@ -57,6 +58,16 @@ const navItems = [
 ] as const
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  
+  const isActive = (url: string) => {
+    const pathname =
+      typeof window !== "undefined" ? window.location.pathname : ""
+    return (
+      pathname === url ||
+      (url !== "/" && pathname.startsWith(`${url}/`))
+    )
+  }
+  
   return (
     <Sidebar {...props} side="right" dir="rtl">
       <SidebarHeader>
@@ -84,8 +95,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {navItems.map((item) => {
                 const Icon = item.icon
                 return (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild>
+                  <SidebarMenuItem  key={item.url}>
+                    <SidebarMenuButton isActive={isActive(item.url)} asChild>
                       <a href={item.url}>
                         <Icon />
                         <span>{item.title}</span>
