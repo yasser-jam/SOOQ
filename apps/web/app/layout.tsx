@@ -1,6 +1,8 @@
 import { Almarai } from "next/font/google"
 
+// @ts-ignore
 import "@workspace/ui/globals.css"
+// @ts-ignore
 import "@/styles/style.scss"
 import { Metadata } from "next";
 
