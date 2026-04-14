@@ -1,26 +1,27 @@
-import Cookies from "js-cookie"
+import { environmentManager } from "@tanstack/react-query";
+import Cookies from "js-cookie";
+import { cookies } from "next/headers";
 
-import { cookies } from "@/config/cookies"
-import { environmentManager } from "@tanstack/react-query"
-
-export function getCookie(name: string) {
-  if (environmentManager.isServer()) {
-    // Server side
-    return (async () => {
-      const { cookies } = await import("next/headers")
-      const cookieStore = await cookies()
-      return cookieStore.get(name)?.value
-    })()
-  }
-
-  // Client side
-  return Cookies.get(name)
+export const getCookie = async (name: string) => {
+    if (environmentManager.isServer()) {
+        const cookieStore = await cookies()
+        return cookieStore.get(name)?.value
+    } else {
+        return Cookies.get(name)
+    }
 }
 
-export function setCookie(name: string, value: string) {
-  Cookies.set(name, value, cookies.options)
+
+export const addCookie = async (name: string, value: string) => {
+    
+    if (environmentManager.isServer()) {
+        const cookieStore = await cookies()
+        cookieStore.set(name, value)
+    } else {
+        Cookies.set(name, value)
+    }
 }
 
-export function removeCookie(name: string) {
-  Cookies.remove(name)
+export const removeCookie = (name: string) => {
+    return Cookies.remove(name)
 }
