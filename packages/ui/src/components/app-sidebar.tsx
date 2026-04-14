@@ -1,10 +1,13 @@
+"use client"
+
 import * as React from "react"
 import {
+  ChevronDown,
+  Circle,
   CircleDollarSign,
   LayoutDashboard,
   Package,
   Palette,
-  Store,
   Truck,
   Users,
 } from "lucide-react"
@@ -20,20 +23,40 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
+import { cn } from "@workspace/ui/lib/utils"
 
-const navItems = [
+type NavChild = {
+  title: string
+  url: string
+}
+
+type NavItem = {
+  title: string
+  url: string
+  icon: React.ComponentType<{ className?: string }>
+  children?: readonly NavChild[]
+}
+
+const navItems: readonly NavItem[] = [
   {
     title: "لوحة التحكم",
     url: "/",
     icon: LayoutDashboard,
-    isActive: true
   },
   {
     title: "المنتجات",
     url: "/products",
     icon: Package,
+    children: [
+      { title: "المنتجات", url: "/products" },
+      { title: "الوسوم", url: "/products/tags" },
+      { title: "الفئات", url: "/products/categories" },
+    ],
   },
   {
     title: "الخدمات اللوجستية",
@@ -55,19 +78,126 @@ const navItems = [
     url: "/finance",
     icon: CircleDollarSign,
   },
-] as const
+]
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  
-  const isActive = (url: string) => {
-    const pathname =
-      typeof window !== "undefined" ? window.location.pathname : ""
+/** Matches `SidebarMenuButton` default variant hover/active tokens */
+const subNavLinkClass =
+  "mb-0.5 h-12 min-h-12 w-full translate-x-0 rounded-none border-secondary px-4 text-sm ring-sidebar-ring outline-hidden transition-all duration-300 hover:border-r-3 hover:bg-primary/5 hover:bg-white/5 hover:text-secondary focus-visible:ring-2 data-active:border-r-3 data-active:bg-primary/5 data-active:bg-white/5 data-active:font-normal data-active:text-secondary [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-current"
+
+function useFallbackPathname() {
+  const [pathname, setPathname] = React.useState("")
+  React.useEffect(() => {
+    const read = () => setPathname(window.location.pathname)
+    read()
+    window.addEventListener("popstate", read)
+    return () => window.removeEventListener("popstate", read)
+  }, [])
+  return pathname
+}
+
+function isRouteActive(pathname: string, url: string) {
+  if (pathname === url) return true
+  if (url !== "/" && pathname.startsWith(`${url}/`)) return true
+  return false
+}
+
+function NavMenuItem({
+  item,
+  pathname,
+}: {
+  item: NavItem
+  pathname: string
+}) {
+  const Icon = item.icon
+  const children = item.children
+  const hasChildren = Boolean(children?.length)
+
+  const hasActiveChild = Boolean(
+    children?.some((c) => isRouteActive(pathname, c.url))
+  )
+
+  const [open, setOpen] = React.useState(hasActiveChild)
+
+  React.useEffect(() => {
+    if (hasActiveChild) setOpen(true)
+  }, [hasActiveChild])
+
+  const parentRowActive =
+    isRouteActive(pathname, item.url) || hasActiveChild
+
+  if (!hasChildren) {
     return (
-      pathname === url ||
-      (url !== "/" && pathname.startsWith(`${url}/`))
+      <SidebarMenuItem>
+        <SidebarMenuButton isActive={isRouteActive(pathname, item.url)} asChild>
+          <a href={item.url}>
+            <Icon />
+            <span>{item.title}</span>
+          </a>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
     )
   }
-  
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        type="button"
+        isActive={parentRowActive}
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className="w-full justify-between gap-2"
+      >
+        <span className="flex min-w-0 flex-1 items-center gap-2">
+          <Icon />
+          <span className="truncate">{item.title}</span>
+        </span>
+        <ChevronDown
+          className={cn(
+            "size-4 shrink-0 transition-transform duration-300",
+            open && "rotate-180"
+          )}
+          aria-hidden
+        />
+      </SidebarMenuButton>
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <SidebarMenuSub className="mx-0 border-none px-2 py-1">
+            {children!.map((child) => (
+              <SidebarMenuSubItem key={child.url}>
+                <SidebarMenuSubButton
+                  asChild
+                  isActive={isRouteActive(pathname, child.url)}
+                  className={subNavLinkClass}
+                >
+                  <a href={child.url}>
+                    <Circle
+                      className="shrink-0 fill-current w-[1px] h-[10px]!"
+                      aria-hidden
+                    />
+                    <span>{child.title}</span>
+                  </a>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        </div>
+      </div>
+    </SidebarMenuItem>
+  )
+}
+
+export type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
+  /** When set (e.g. `usePathname()` in the Next.js app), active state updates on client navigation. */
+  pathname?: string
+}
+
+export function AppSidebar({ pathname: pathnameProp, ...props }: AppSidebarProps) {
+  const fallbackPathname = useFallbackPathname()
+  const pathname = pathnameProp ?? fallbackPathname
+
   return (
     <Sidebar {...props} side="right" dir="rtl">
       <SidebarHeader>
@@ -78,7 +208,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="pointer-events-none cursor-default py-16"
             >
               <div className="flex flex-col gap-4 text-start">
-                <span className="text-2xl truncate font-medium ">لوحة تحكم المتجر</span>
+                <span className="truncate text-2xl font-medium">
+                  لوحة تحكم المتجر
+                </span>
 
                 <span className="text-sm text-gray-200">لوحة التاجر</span>
               </div>
@@ -92,19 +224,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {/* <SidebarGroupLabel>قسم</SidebarGroupLabel> */}
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => {
-                const Icon = item.icon
-                return (
-                  <SidebarMenuItem  key={item.url}>
-                    <SidebarMenuButton isActive={isActive(item.url)} asChild>
-                      <a href={item.url}>
-                        <Icon />
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
+              {navItems.map((item) => (
+                <NavMenuItem
+                  key={item.url}
+                  item={item}
+                  pathname={pathname}
+                />
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
