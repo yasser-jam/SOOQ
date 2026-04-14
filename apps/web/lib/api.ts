@@ -5,7 +5,7 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { getCookie, removeCookie } from "./cookies";
 
 // ==============================
-const api: AxiosInstance = axios.create({
+const apiInstance: AxiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
     headers: {
       "Content-Type": "application/json",
@@ -15,7 +15,7 @@ const api: AxiosInstance = axios.create({
   // ==============================
   // Request Interceptor
   // ==============================
-  api.interceptors.request.use(
+  apiInstance.interceptors.request.use(
     (config) => {
       const token = getCookie('sooq-access-token');
   
@@ -31,7 +31,7 @@ const api: AxiosInstance = axios.create({
   // ==============================
   // Response Interceptor
   // ==============================
-  api.interceptors.response.use(
+  apiInstance.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
       // Handle 401 globally
@@ -53,11 +53,11 @@ const api: AxiosInstance = axios.create({
   // ==============================
   const handleError = (error: AxiosError) => {
     if (error.response) {
+      const responseData = error.response.data as { message?: string } | undefined;
+
       return {
         status: error.response.status,
-        message:
-          (error.response.data as any)?.message ||
-          "Something went wrong",
+        message: responseData?.message || "Something went wrong",
         data: error.response.data,
       };
     }
@@ -78,15 +78,27 @@ const api: AxiosInstance = axios.create({
   // ==============================
   // Generic Request Function
   // ==============================
-  export const apiRequest = async <T = any>(
-    config: AxiosRequestConfig
-  ): Promise<T> => {
-    try {
-      const response = await api.request<T>(config);
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
-    
-  };
-  export default api;
+export type ApiOptions = Omit<AxiosRequestConfig, "url" | "data"> & {
+  body?: AxiosRequestConfig["data"];
+};
+
+export const api = async <T = unknown>(
+  url: string,
+  options: ApiOptions = {}
+): Promise<T> => {
+  const { body, headers, method = "GET", ...restOptions } = options;
+
+  const response = await apiInstance.request<T>({
+    url,
+    method,
+    data: body,
+    headers: {
+      ...headers,
+    },
+    ...restOptions,
+  });
+
+  return response.data;
+};
+
+export default api;
