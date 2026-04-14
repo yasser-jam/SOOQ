@@ -1,6 +1,7 @@
 "use client"
 
-import { api } from "@/lib/api"
+import api from "@/lib/api"
+import { addCookie } from "@/lib/cookies"
 import { useMutation } from "@tanstack/react-query"
 import {
   Avatar,
@@ -41,20 +42,24 @@ function VerifyOtpForm() {
   }, [phoneNumber, router])
 
   const { isPending, mutate } = useMutation({
-    mutationFn: (payload: { phone: string; otpCode: string }) =>
+    mutationFn: () =>
       api("/auth/otp/verify", {
         method: "POST",
         body: {
-          phone: payload.phone,
-          otpCode: payload.otpCode,
-        },
+          phone: phoneNumber,
+          otpCode: otp,
+        }
       }),
+    onSuccess: (response: any) => {
+      addCookie('sooq-access-token', response.accessToken)
+      router.push("/")
+    },
   })
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!phoneNumber || otp.length !== 6) return
-    mutate({ phone: phoneNumber, otpCode: otp })
+    mutate()
   }
 
   if (!phoneNumber) {
