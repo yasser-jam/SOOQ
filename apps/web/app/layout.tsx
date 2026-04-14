@@ -1,12 +1,13 @@
-import { Noto_Sans_Arabic } from "next/font/google"
+import { Almarai } from "next/font/google"
 
 import "@workspace/ui/globals.css"
 import "@/styles/style.scss"
 import { Metadata } from "next";
 
 
-const fontSans = Noto_Sans_Arabic({
+const fontSans = Almarai({
   subsets: ["arabic"],
+  weight: ["300", "400", "700", "800"],
   variable: "--font-sans",
 })
 

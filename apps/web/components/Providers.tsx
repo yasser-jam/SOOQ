@@ -8,6 +8,7 @@ import {
 import { ThemeProvider } from "next-themes"
 import LayoutHeader from "./layout/LayoutHeader"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { Toaster } from "sonner";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient()
@@ -28,6 +29,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             </SidebarProvider>
           </DirectionProvider>
         </QueryClientProvider>
+
+        <Toaster position="top-right" />
       </ThemeProvider>
     </>
   )
