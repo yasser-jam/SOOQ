@@ -1,5 +1,6 @@
 "use client"
 
+import { HomeMockDashboard } from "@/components/home-mock-dashboard"
 import {
   FullPageLoader,
   SESSION_SHOW_STORE_SETUP_LOADER,
@@ -33,8 +34,8 @@ export default function HomePage() {
     <>
       <FullPageLoader active={showPostSetupLoader} loopMessages={false} />
 
-      <div className="container">
-        <div className="page-title">الرئيسية</div>
+      <div className="container py-6">
+        <HomeMockDashboard />
       </div>
     </>
   )
