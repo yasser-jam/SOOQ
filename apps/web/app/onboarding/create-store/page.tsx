@@ -22,9 +22,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { SESSION_SHOW_STORE_SETUP_LOADER } from "@/components/full-page-loader"
 import { useRouter } from "next/navigation"
 import * as React from "react"
-import { toast } from "sonner";
 
 const TOTAL_STEPS = 3
 
@@ -79,9 +79,10 @@ export default function CreateStorePage() {
         body,
       }),
     onSuccess: () => {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(SESSION_SHOW_STORE_SETUP_LOADER, "1")
+      }
       router.push("/")
-
-      toast.success("تم إنشاء المتجر بنجاح")
     },
   })
 
