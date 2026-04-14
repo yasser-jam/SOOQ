@@ -5,10 +5,16 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@workspace/ui/components/sidebar"
+import { usePathname } from "next/navigation"
 import { ThemeProvider } from "next-themes"
 import LayoutHeader from "./layout/LayoutHeader"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Toaster } from "./toaster"
+
+function AppSidebarWithPathname() {
+  const pathname = usePathname()
+  return <AppSidebar pathname={pathname} />
+}
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient()
@@ -19,7 +25,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
           <DirectionProvider dir="rtl">
             <SidebarProvider>
-              <AppSidebar />
+              <AppSidebarWithPathname />
 
               <SidebarInset>
                 <LayoutHeader />
