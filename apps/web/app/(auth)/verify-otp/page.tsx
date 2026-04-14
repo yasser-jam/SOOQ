@@ -26,14 +26,21 @@ import { Label } from "@workspace/ui/components/label"
 import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { FormEvent } from "react"
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 
 function VerifyOtpForm() {
+  type VerifyOtpResponse = {
+    data?: {
+      accessToken?: string
+    }
+  }
+
   const router = useRouter()
   const searchParams = useSearchParams()
   const phoneNumber = searchParams.get("phoneNumber")?.trim() ?? ""
 
   const [otp, setOtp] = useState("")
+  const otpContainerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (!phoneNumber) {
@@ -41,18 +48,26 @@ function VerifyOtpForm() {
     }
   }, [phoneNumber, router])
 
+  useEffect(() => {
+    const firstOtpInput = otpContainerRef.current?.querySelector("input")
+    firstOtpInput?.focus()
+  }, [])
+
   const { isPending, mutate } = useMutation({
     mutationFn: () =>
-      api("/auth/otp/verify", {
+      api<VerifyOtpResponse>("/auth/otp/verify", {
         method: "POST",
         body: {
           phone: phoneNumber,
           otpCode: otp,
         }
       }),
-    onSuccess: (response: any) => {
-      addCookie('sooq-access-token', response.accessToken)
-      router.push("/")
+    onSuccess: (response: VerifyOtpResponse) => {
+      const accessToken = response?.data?.accessToken
+      if (accessToken) {
+        addCookie('sooq-access-token', accessToken)
+      }
+      router.push("/onboarding/create-store")
     },
   })
 
@@ -93,7 +108,7 @@ function VerifyOtpForm() {
                 رمز التحقق
               </Label>
 
-              <div className="mt-2 flex justify-center py-1" dir="ltr">
+              <div ref={otpContainerRef} className="mt-2 flex justify-center py-1" dir="ltr">
                 <InputOTP
                   maxLength={6}
                   id="otp"
@@ -102,8 +117,8 @@ function VerifyOtpForm() {
                   onChange={setOtp}
                   required
                 >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} className="h-12 w-10 text-base" />
+                  <InputOTPGroup >
+                    <InputOTPSlot index={0} className="h-12 w-10 text-base"  />
                     <InputOTPSlot index={1} className="h-12 w-10 text-base" />
                     <InputOTPSlot index={2} className="h-12 w-10 text-base" />
                     <InputOTPSlot index={3} className="h-12 w-10 text-base" />

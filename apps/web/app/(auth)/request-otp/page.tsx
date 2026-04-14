@@ -2,6 +2,9 @@
 
 import { api } from "@/lib/api"
 import { useMutation } from "@tanstack/react-query"
+
+import { toast } from "sonner"
+
 import {
   Avatar,
   AvatarFallback,
@@ -39,6 +42,7 @@ export default function RequestOtpPage() {
     onSuccess: () => {
       const q = encodeURIComponent(phone.trim())
       router.push(`/verify-otp?phoneNumber=${q}`)
+      toast.success("تم إرسال رمز التحقق بنجاح")
     },
   })
 
