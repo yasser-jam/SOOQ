@@ -24,6 +24,7 @@ import {
 } from "@workspace/ui/components/card"
 import { useRouter } from "next/navigation"
 import * as React from "react"
+import { toast } from "sonner";
 
 const TOTAL_STEPS = 3
 
@@ -79,6 +80,8 @@ export default function CreateStorePage() {
       }),
     onSuccess: () => {
       router.push("/")
+
+      toast.success("تم إنشاء المتجر بنجاح")
     },
   })
 

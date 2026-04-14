@@ -3,6 +3,9 @@ export default function HomePage() {
     <>
       <div className="container">
         <div className="page-title">الرئيسية</div>
+      
+
+
       </div>
     </>
   )

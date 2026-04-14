@@ -1,5 +1,6 @@
 import { OnboardingQueryProvider } from "@/components/onboarding/onboarding-query-provider"
 import { Info, ShoppingCart, Star } from "lucide-react"
+import { Toaster } from "@/components/toaster"
 
 export default function OnboardingLayout({
   children,
@@ -8,6 +9,9 @@ export default function OnboardingLayout({
 }) {
   return (
     <OnboardingQueryProvider>
+
+      <Toaster />
+
       <header>
         <div className="container flex items-center justify-between py-4 text-sm text-primary">
           <h1 className="text-3xl font-bold text-primary">SOOQ</h1>

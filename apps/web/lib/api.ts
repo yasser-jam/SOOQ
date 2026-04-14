@@ -3,6 +3,7 @@
 
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { getCookie, removeCookie } from "./cookies";
+import { toast } from "sonner";
 
 // ==============================
 const apiInstance: AxiosInstance = axios.create({
@@ -51,7 +52,12 @@ const apiInstance: AxiosInstance = axios.create({
   // ==============================
   // Error Handler
   // ==============================
-  const handleError = (error: AxiosError) => {
+  const handleError = (error: AxiosError<any>) => {
+    
+    // Show toast error
+    toast.error(error.response?.data?.message || "حدث خطأ ما");
+
+
     if (error.response) {
       const responseData = error.response.data as { message?: string } | undefined;
 

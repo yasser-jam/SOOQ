@@ -8,7 +8,7 @@ import {
 import { ThemeProvider } from "next-themes"
 import LayoutHeader from "./layout/LayoutHeader"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { Toaster } from "sonner";
+import { Toaster } from "./toaster"
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient()
