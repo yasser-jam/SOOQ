@@ -1,12 +1,13 @@
-import ProductTagTable from "@/modules/product/tag/components/table";
+import ProductTagTable from "@/modules/product/tag/components/table"
 
 export default function ProductsTagsPage() {
-    return (
-        <div className="container">
-            <div className="page-title">Product Tags</div>
+  return (
+    <div className="container">
+      <div className="my-6">
+        <div className="page-title">وسوم المنتجات</div>
+      </div>
 
-            <ProductTagTable />
-
-        </div>
-    )
+      <ProductTagTable />
+    </div>
+  )
 }
