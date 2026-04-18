@@ -28,6 +28,7 @@ export default function EditTagPage() {
           <DialogClose asChild>
             <Button variant="outline">إلغاء</Button>
           </DialogClose>
+          
           <Button type="button">حفظ</Button>
         </>
       }
