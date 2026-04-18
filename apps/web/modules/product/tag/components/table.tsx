@@ -9,6 +9,7 @@ import { getInitials } from "@/lib/initials"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 
 import type { ProductTag } from "../types"
+import { LucidePuzzle, Puzzle, PuzzleIcon } from "lucide-react"
 
 const columns: ColumnDef<ProductTag>[] = [
   {
@@ -22,7 +23,9 @@ const columns: ColumnDef<ProductTag>[] = [
       return (
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarFallback>{initials || "T"}</AvatarFallback>
+            <AvatarFallback>
+              <LucidePuzzle size="18" />
+            </AvatarFallback>
           </Avatar>
           <div className="flex flex-col gap-0.5">
             <span>

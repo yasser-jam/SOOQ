@@ -3,22 +3,22 @@ import { ProductTag } from "./types";
 export const productTags: ProductTag[] = [
     {
         id: "1",
-        tagName: 'Tag 1',
-        slug: 'tag-1',
+        tagName: 'إلكترونيات',
+        slug: 'electronics',
     },
     {
         id: "2",
-        tagName: 'Tag 2',
-        slug: 'tag-2',
+        tagName: 'أزياء',
+        slug: 'clothing',
     },
     {
         id: "3",
-        tagName: 'Tag 3',
-        slug: 'tag-3',
+        tagName: 'أدوات منزلية',
+        slug: 'home-appliances',
     },
     {
         id: "4",
-        tagName: 'Tag 4',
-        slug: 'tag-4',
+        tagName: 'كتب وقرطاسية',
+        slug: 'books-and-stationery',
     },
 ]
