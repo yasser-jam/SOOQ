@@ -101,6 +101,10 @@ function isRouteActive(pathname: string, url: string) {
   return false
 }
 
+function isExactMatch(pathname: string, url: string) {
+  return pathname === url
+}
+
 function NavMenuItem({
   item,
   pathname,
@@ -169,7 +173,7 @@ function NavMenuItem({
               <SidebarMenuSubItem key={child.url}>
                 <SidebarMenuSubButton
                   asChild
-                  isActive={isRouteActive(pathname, child.url)}
+                  isActive={isExactMatch(pathname, child.url)}
                   className={subNavLinkClass}
                 >
                   <a href={child.url}>
