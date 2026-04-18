@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { ColumnDef } from "@tanstack/react-table"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
@@ -11,12 +11,26 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import type { ProductTag } from "../types"
 import { LucidePuzzle } from "lucide-react"
 import { useRouter } from "next/navigation"
+import {
+  deleteProductTagMutationOptions,
+  listProductTagsQueryOptions,
+  productTagKeys,
+} from "../actions"
 
 
 
 export default function Table() {
 
   const router = useRouter()
+  const queryClient = useQueryClient()
+
+  const { mutate: deleteTag } = useMutation({
+    ...deleteProductTagMutationOptions(),
+    onSuccess: ({ id }) => {
+      queryClient.invalidateQueries({ queryKey: productTagKeys.all })
+      queryClient.removeQueries({ queryKey: productTagKeys.detail(id) })
+    },
+  })
 
   const columns: ColumnDef<ProductTag>[] = [
   {
@@ -47,20 +61,26 @@ export default function Table() {
     id: "actions",
     enableSorting: false,
     header: () => <div></div>,
-    cell: (tag) => (
-      <TableActions onUpdate={() => router.push(`/products/tags/${tag.row.id}`)} />
-    ),
+    cell: (tag) => {
+      const tagId = tag.row.original.id
+
+      return (
+        <TableActions
+          onUpdate={() => {
+            if (!tagId) return
+            router.push(`/products/tags/${tagId}`)
+          }}
+          onDelete={() => {
+            if (!tagId) return
+            deleteTag(tagId)
+          }}
+        />
+      )
+    },
   },
 ]
 
-  const { data: tags } = useQuery({
-    queryKey: ["tags"],
-    queryFn: async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      const { productTags } = await import("../data")
-      return productTags
-    },
-  })
+  const { data: tags } = useQuery(listProductTagsQueryOptions())
 
   const pageSize = 10
   const [pageIndex, setPageIndex] = React.useState(0)
