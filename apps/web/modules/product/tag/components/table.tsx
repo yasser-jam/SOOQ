@@ -13,6 +13,7 @@ import type { ProductTag } from "../types"
 const columns: ColumnDef<ProductTag>[] = [
   {
     accessorKey: "tagName",
+    enableSorting: true,
     header: "الاسم",
     cell: ({ row }) => {
       const tag = row.original
@@ -35,6 +36,7 @@ const columns: ColumnDef<ProductTag>[] = [
   },
   {
     id: "actions",
+    enableSorting: false,
     header: () => <div></div>,
     cell: () => (
       <TableActions />
