@@ -12,6 +12,8 @@ type UpdateProductTagInput = {
 	data: Pick<ProductTag, "tagName" | "slug">
 }
 
+type CreateProductTagInput = Pick<ProductTag, "tagName" | "slug">
+
 const SIMULATED_DELAY_MS = 1000
 
 let productTagsStore: ProductTag[] | null = null
@@ -79,6 +81,30 @@ export const updateProductTag = async ({ id, data }: UpdateProductTagInput): Pro
 export const updateProductTagMutationOptions = () =>
 	mutationOptions({
 		mutationFn: updateProductTag,
+	})
+
+export const createProductTag = async (
+	data: CreateProductTagInput
+): Promise<ProductTag> => {
+	await wait(SIMULATED_DELAY_MS)
+	const tags = await getProductTagsStore()
+	const nextId = String(
+		Math.max(0, ...tags.map((tag) => Number(tag.id ?? 0))) + 1
+	)
+
+	const createdTag: ProductTag = {
+		id: nextId,
+		...data,
+	}
+
+	tags.unshift(createdTag)
+
+	return { ...createdTag }
+}
+
+export const createProductTagMutationOptions = () =>
+	mutationOptions({
+		mutationFn: createProductTag,
 	})
 
 export const deleteProductTag = async (id: string): Promise<{ id: string }> => {
