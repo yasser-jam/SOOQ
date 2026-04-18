@@ -20,7 +20,7 @@ export default function LayoutHeader() {
         </div>
 
         <div className="relative text-primary">
-          <Button variant={"ghost"} size={"icon"} className="relative">
+          <Button variant="ghost" size={"icon"} className="relative">
             <Bell />
             <span className="absolute -top-0 -right-0 w-1.5 h-1.5 rounded-full bg-destructive"></span>
           </Button>
