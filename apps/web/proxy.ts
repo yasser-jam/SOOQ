@@ -10,6 +10,8 @@ const PUBLIC_ROUTES = ["/login", "/verify-otp", "/request-otp", "/_next", "/favi
 // ==============================
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+// Todo: Remove this in production, it's only for testing purposes to bypass auth
+    return NextResponse.next();
 
   // Allow public routes
   const isPublic = PUBLIC_ROUTES.some((route) =>

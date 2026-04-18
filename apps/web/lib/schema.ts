@@ -1,5 +1,11 @@
 import * as z from "zod"
 
+export const requiredString = (fieldName: string) =>
+  z.string().trim().min(1, `${fieldName} مطلوب`)
+
+export const optionalString = () =>
+  z.string().trim().optional()
+
 const phoneRegex = /^\+9639\d{8}$/
 
 export const phoneSchema = z
