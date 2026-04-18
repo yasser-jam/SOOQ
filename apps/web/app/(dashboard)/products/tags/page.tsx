@@ -1,3 +1,4 @@
+'use client'
 import ProductTagTable from "@/modules/product/tag/components/table"
 import FilterMenu from "@/components/system/filter-menu"
 import {
@@ -9,8 +10,12 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Plus } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function ProductsTagsPage() {
+
+  const router = useRouter()
+
   return (
     <div className="container">
       <div className="my-6 flex justify-between">
@@ -32,7 +37,7 @@ export default function ProductsTagsPage() {
             </FieldGroup>
           </FilterMenu>
 
-          <Button size="md" variant="secondary">
+          <Button size="md" variant="secondary" onClick={() => router.push('/products/tags/create')}>
             إضافة وسم
             <Plus data-icon="inline-end" />
           </Button>
