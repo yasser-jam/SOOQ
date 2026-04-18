@@ -10,8 +10,15 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 
 import type { ProductTag } from "../types"
 import { LucidePuzzle } from "lucide-react"
+import { useRouter } from "next/navigation"
 
-const columns: ColumnDef<ProductTag>[] = [
+
+
+export default function Table() {
+
+  const router = useRouter()
+
+  const columns: ColumnDef<ProductTag>[] = [
   {
     accessorKey: "tagName",
     enableSorting: true,
@@ -40,13 +47,12 @@ const columns: ColumnDef<ProductTag>[] = [
     id: "actions",
     enableSorting: false,
     header: () => <div></div>,
-    cell: () => (
-      <TableActions />
+    cell: (tag) => (
+      <TableActions onUpdate={() => router.push(`/products/tags/${tag.row.id}`)} />
     ),
   },
 ]
 
-export default function Table() {
   const { data: tags } = useQuery({
     queryKey: ["tags"],
     queryFn: async () => {
