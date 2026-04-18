@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { useQuery } from "@tanstack/react-query"
 
@@ -55,9 +56,29 @@ export default function Table() {
     },
   })
 
+  const pageSize = 10
+  const [pageIndex, setPageIndex] = React.useState(0)
+  const totalCount = tags?.length ?? 0
+  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize))
+
+  React.useEffect(() => {
+    setPageIndex((current) => Math.min(current, pageCount - 1))
+  }, [pageCount])
+
+  const pagedTags = React.useMemo(() => {
+    if (!tags?.length) return []
+    const start = pageIndex * pageSize
+    return tags.slice(start, start + pageSize)
+  }, [pageIndex, pageSize, tags])
+
   return (
     <div className="w-full overflow-hidden rounded-lg border">
-      <DataTable columns={columns} data={tags ?? []} />
+      <DataTable
+        columns={columns}
+        data={pagedTags}
+        pagination={{ pageIndex, pageSize, pageCount }}
+        onPageChange={setPageIndex}
+      />
     </div>
   )
 }
