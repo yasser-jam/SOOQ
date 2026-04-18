@@ -12,11 +12,12 @@ import Field from "@/components/system/Field"
 import { Button } from "@workspace/ui/components/button"
 import { DialogClose } from "@workspace/ui/components/dialog"
 import {
-  createProductTagMutationOptions,
+  createProductTag,
   getProductTagQueryOptions,
   productTagKeys,
-  updateProductTagMutationOptions,
+  updateProductTag,
 } from "@/modules/product/tag/actions"
+import { initTag } from "@/modules/product/tag/init"
 import { productTagSchema } from "@/modules/product/tag/schema"
 
 const tagFormSchema = productTagSchema.omit({
@@ -66,7 +67,7 @@ export default function EditTagPage() {
   }, [form, isEdit, tag])
 
   const { isPending: isUpdating, mutate: updateTag } = useMutation({
-    ...updateProductTagMutationOptions(),
+    mutationFn: updateProductTag,
     onSuccess: (updatedTag) => {
       queryClient.setQueryData(productTagKeys.detail(updatedTag.id ?? tagId), updatedTag)
       queryClient.invalidateQueries({ queryKey: productTagKeys.all })
@@ -75,7 +76,7 @@ export default function EditTagPage() {
   })
 
   const { isPending: isCreating, mutate: createTag } = useMutation({
-    ...createProductTagMutationOptions(),
+    mutationFn: createProductTag,
     onSuccess: (createdTag) => {
       queryClient.setQueryData(productTagKeys.detail(createdTag.id ?? ""), createdTag)
       queryClient.invalidateQueries({ queryKey: productTagKeys.all })
@@ -88,10 +89,7 @@ export default function EditTagPage() {
       if (isEdit) {
         if (!tagId) return
 
-        updateTag({
-          id: tagId,
-          data: values,
-        })
+        updateTag(initTag(tagId, values))
 
         return
       }

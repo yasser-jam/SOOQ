@@ -12,7 +12,7 @@ import type { ProductTag } from "../types"
 import { LucidePuzzle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import {
-  deleteProductTagMutationOptions,
+  deleteProductTag,
   listProductTagsQueryOptions,
   productTagKeys,
 } from "../actions"
@@ -25,7 +25,7 @@ export default function Table() {
   const queryClient = useQueryClient()
 
   const { mutate: deleteTag } = useMutation({
-    ...deleteProductTagMutationOptions(),
+    mutationFn: deleteProductTag,
     onSuccess: ({ id }) => {
       queryClient.invalidateQueries({ queryKey: productTagKeys.all })
       queryClient.removeQueries({ queryKey: productTagKeys.detail(id) })

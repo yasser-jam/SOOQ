@@ -1,4 +1,4 @@
-import { mutationOptions, queryOptions } from "@tanstack/react-query"
+import { queryOptions } from "@tanstack/react-query"
 
 import type { ProductTag } from "./types"
 
@@ -7,12 +7,12 @@ export const productTagKeys = {
 	detail: (id: string) => [...productTagKeys.all, id] as const,
 }
 
-type UpdateProductTagInput = {
+export type UpdateProductTagInput = {
 	id: string
 	data: Pick<ProductTag, "tagName" | "slug">
 }
 
-type CreateProductTagInput = Pick<ProductTag, "tagName" | "slug">
+export type CreateProductTagInput = Pick<ProductTag, "tagName" | "slug">
 
 const SIMULATED_DELAY_MS = 1000
 
@@ -78,11 +78,6 @@ export const updateProductTag = async ({ id, data }: UpdateProductTagInput): Pro
 	return { ...updatedTag }
 }
 
-export const updateProductTagMutationOptions = () =>
-	mutationOptions({
-		mutationFn: updateProductTag,
-	})
-
 export const createProductTag = async (
 	data: CreateProductTagInput
 ): Promise<ProductTag> => {
@@ -101,12 +96,6 @@ export const createProductTag = async (
 
 	return { ...createdTag }
 }
-
-export const createProductTagMutationOptions = () =>
-	mutationOptions({
-		mutationFn: createProductTag,
-	})
-
 export const deleteProductTag = async (id: string): Promise<{ id: string }> => {
 	await wait(SIMULATED_DELAY_MS)
 	const tags = await getProductTagsStore()
@@ -121,8 +110,4 @@ export const deleteProductTag = async (id: string): Promise<{ id: string }> => {
 	return { id }
 }
 
-export const deleteProductTagMutationOptions = () =>
-	mutationOptions({
-		mutationFn: deleteProductTag,
-	})
 
