@@ -5,11 +5,10 @@ import { useQuery } from "@tanstack/react-query"
 
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
-import { getInitials } from "@/lib/initials"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 
 import type { ProductTag } from "../types"
-import { LucidePuzzle, Puzzle, PuzzleIcon } from "lucide-react"
+import { LucidePuzzle } from "lucide-react"
 
 const columns: ColumnDef<ProductTag>[] = [
   {
@@ -18,7 +17,6 @@ const columns: ColumnDef<ProductTag>[] = [
     header: "الاسم",
     cell: ({ row }) => {
       const tag = row.original
-      const initials = getInitials(tag.tagName)
 
       return (
         <div className="flex items-center gap-3">
