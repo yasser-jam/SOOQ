@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@tanstack/react-table": "^8.21.3",
     "@workspace/ui": "workspace:*",
     "js-cookie": "^3.0.5",
     "lucide-react": "^1.8.0",
