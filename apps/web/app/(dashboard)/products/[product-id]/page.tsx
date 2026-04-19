@@ -303,7 +303,7 @@ export default function ProductDetailsPage() {
 						</CardContent>
 					</Card>
 
-					<Card>
+					<Card className="h-full">
 						<CardHeader>
 							<CardTitle className="text-2xl">التسعير</CardTitle>
 						</CardHeader>
