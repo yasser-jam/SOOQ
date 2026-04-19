@@ -21,7 +21,7 @@ export default function LayoutProfileMenu() {
 
   const logout = () => {
     removeCookie("sooq-access-token")
-    router.push("/login")
+    router.push("/request-otp")
   }
 
   return (
