@@ -1,0 +1,58 @@
+import type { ProductCategory } from "./types"
+
+const timestamp = "2026-04-19T00:00:00.000Z"
+
+export const productCategories: ProductCategory[] = [
+	{
+		id: "1",
+		nameAr: "ملابس",
+		nameEn: "Clothing",
+		slug: "clothing-test",
+		descriptionAr: "جميع أنواع الملابس",
+		descriptionEn: "All types of clothing",
+		parentCategoryId: null,
+		sortOrder: 0,
+		isActive: true,
+		createdAt: timestamp,
+		updatedAt: timestamp,
+	},
+	{
+		id: "2",
+		nameAr: "ملابس رجالية",
+		nameEn: "Men Clothing",
+		slug: "men-clothing",
+		descriptionAr: "الملابس الخاصة بالرجال",
+		descriptionEn: "Clothing for men",
+		parentCategoryId: "1",
+		sortOrder: 1,
+		isActive: true,
+		createdAt: timestamp,
+		updatedAt: timestamp,
+	},
+	{
+		id: "3",
+		nameAr: "ملابس نسائية",
+		nameEn: "Women Clothing",
+		slug: "women-clothing",
+		descriptionAr: "الملابس الخاصة بالنساء",
+		descriptionEn: "Clothing for women",
+		parentCategoryId: "1",
+		sortOrder: 2,
+		isActive: true,
+		createdAt: timestamp,
+		updatedAt: timestamp,
+	},
+	{
+		id: "4",
+		nameAr: "إكسسوارات",
+		nameEn: "Accessories",
+		slug: "accessories",
+		descriptionAr: "مكملات وأكسسوارات متنوعة",
+		descriptionEn: "Various add-ons and accessories",
+		parentCategoryId: null,
+		sortOrder: 3,
+		isActive: false,
+		createdAt: timestamp,
+		updatedAt: timestamp,
+	},
+]
