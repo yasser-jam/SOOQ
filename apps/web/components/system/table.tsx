@@ -103,22 +103,26 @@ export default function DataTable<TData, TValue>({
                     : sortState === "desc"
                       ? ChevronDownIcon
                       : ChevronUpIcon
+                const headerLabel = flexRender(
+                  header.column.columnDef.header,
+                  header.getContext()
+                )
 
                 return (
                   <TableHead key={header.id}>
-                    {canSort ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-auto gap-2 px-0 hover:bg-transparent data-[state=sorted]:bg-transparent"
-                        onClick={header.column.getToggleSortingHandler()}
-                        aria-label="Sort column"
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "h-auto gap-2 px-0 hover:bg-transparent data-[state=sorted]:bg-transparent",
+                        !canSort && "pointer-events-none"
+                      )}
+                      onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
+                      aria-label={canSort ? "Sort column" : undefined}
+                    >
+                      {headerLabel}
+                      {canSort ? (
                         <SortIcon
                           data-icon="inline-end"
                           className={cn(
@@ -128,13 +132,8 @@ export default function DataTable<TData, TValue>({
                               : "opacity-0 text-muted-foreground group-hover/button:opacity-100"
                           )}
                         />
-                      </Button>
-                    ) : (
-                      flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )
-                    )}
+                      ) : null}
+                    </Button>
                   </TableHead>
                 )
               })}

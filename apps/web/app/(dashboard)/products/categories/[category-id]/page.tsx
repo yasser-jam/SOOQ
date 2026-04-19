@@ -199,19 +199,6 @@ export default function EditCategoryPage() {
 					<FieldError errors={[form.formState.errors.descriptionEn]} />
 				</UiField>
 
-				<Field<CategoryFormValues>
-					name="sortOrder"
-					control={form.control}
-					label="الترتيب"
-					placeholder="أدخل الترتيب"
-					inputProps={{
-						type: "number",
-						min: 0,
-						step: 1,
-						disabled: isSubmitting,
-					}}
-				/>
-
 				<UiField
 					data-invalid={Boolean(form.formState.errors.isActive)}
 					className="rounded-lg border p-4 md:col-span-2"
