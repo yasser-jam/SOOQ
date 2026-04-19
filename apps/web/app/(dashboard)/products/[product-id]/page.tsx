@@ -211,7 +211,7 @@ export default function ProductDetailsPage() {
 				onSubmit={form.handleSubmit(handleSubmit)}
 			>
 				<div className="flex flex-col gap-4 xl:col-span-2">
-					<Card>
+					<Card className="h-full">
 						<CardHeader>
 							<CardTitle className="text-2xl">معلومات أساسية</CardTitle>
 						</CardHeader>
@@ -272,9 +272,11 @@ export default function ProductDetailsPage() {
 										render={({ field }) => (
 											<Textarea
 												{...field}
+												value={field.value ?? ""}
 												id="descriptionAr"
 												placeholder="أدخل الوصف بالعربية"
 												disabled={isSubmitting}
+												rows={4}
 												className="min-h-24"
 											/>
 										)}
@@ -290,9 +292,11 @@ export default function ProductDetailsPage() {
 										render={({ field }) => (
 											<Textarea
 												{...field}
+												value={field.value ?? ""}
 												id="descriptionEn"
 												placeholder="أدخل الوصف بالإنجليزية"
 												disabled={isSubmitting}
+												rows={4}
 												className="min-h-24"
 											/>
 										)}
