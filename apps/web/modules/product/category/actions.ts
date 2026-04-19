@@ -1,3 +1,4 @@
+import type { QueryClient } from "@tanstack/react-query"
 import { queryOptions } from "@tanstack/react-query"
 
 import type { ProductCategory } from "./types"
@@ -137,3 +138,41 @@ export const deleteProductCategory = async (id: string): Promise<{ id: string }>
 
 	return { id }
 }
+
+export const getUpdateCategoryMutationOptions = ({
+	categoryId,
+	queryClient,
+	onSuccess,
+}: {
+	categoryId: string
+	queryClient: QueryClient
+	onSuccess?: () => void
+}) => ({
+	mutationFn: updateProductCategory,
+	onSuccess: (updatedCategory: ProductCategory) => {
+		queryClient.setQueryData(
+			productCategoryKeys.detail(updatedCategory.id ?? categoryId),
+			updatedCategory
+		)
+		queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
+		onSuccess?.()
+	},
+})
+
+export const getCreateCategoryMutationOptions = ({
+	queryClient,
+	onSuccess,
+}: {
+	queryClient: QueryClient
+	onSuccess?: () => void
+}) => ({
+	mutationFn: createProductCategory,
+	onSuccess: (createdCategory: ProductCategory) => {
+		queryClient.setQueryData(
+			productCategoryKeys.detail(createdCategory.id ?? ""),
+			createdCategory
+		)
+		queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
+		onSuccess?.()
+	},
+})
