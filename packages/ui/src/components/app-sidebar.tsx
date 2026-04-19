@@ -53,6 +53,7 @@ const navItems: readonly NavItem[] = [
     url: "/products",
     icon: Package,
     children: [
+      { title: "المجموعات", url: "/products/collections" },
       { title: "المنتجات", url: "/products" },
       { title: "الوسوم", url: "/products/tags" },
       { title: "الفئات", url: "/products/categories" },
