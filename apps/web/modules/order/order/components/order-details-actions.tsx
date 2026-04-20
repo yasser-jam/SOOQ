@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { CircleCheck, PenLine } from "lucide-react"
+import { CircleCheck, PenLine, Router } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import OrderEditDialog from "./order-edit-dialog"
+import { useRouter } from "next/navigation"
 
 interface OrderDetailsActionsProps {
   orderId: string
@@ -15,10 +16,12 @@ export default function OrderDetailsActions({
 }: OrderDetailsActionsProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
+  const router = useRouter()
+
   return (
     <>
       <div className="flex flex-wrap items-center justify-end gap-3">
-        <Button type="button" size="md" variant="outline">
+        <Button type="button" size="md" variant="outline" onClick={() => router.push('/orders/${orderId}/returns')}>
           رد الأموال
         </Button>
 

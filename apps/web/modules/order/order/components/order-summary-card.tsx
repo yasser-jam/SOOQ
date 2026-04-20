@@ -52,7 +52,7 @@ const DUMMY_PRICING: OrderPricingModel = {
   totalLabel: "240 ر.س",
 }
 
-function OrderLineItemRow({
+export function OrderLineItemRow({
   item,
   isLoading,
 }: {
@@ -76,12 +76,12 @@ function OrderLineItemRow({
                 className="rounded-xl"
               />
             ) : null}
-            <AvatarFallback className="rounded-xl bg-muted">
+            <AvatarFallback className="rounded-full">
               <Package />
             </AvatarFallback>
           </Avatar>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <p className="text-text text-lg font-semibold">{itemTitle}</p>
             <p className="text-sm text-muted-foreground">{itemSkuLabel}</p>
             <div className="flex items-center gap-2">
@@ -150,7 +150,7 @@ export default function OrderSummaryCard({
         <div className="flex items-center justify-between gap-4">
           <CardTitle className="text-xl">بيان الطلب</CardTitle>
 
-          <Badge variant="outline" className="text-sm">
+          <Badge className="text-base">
             {itemsCount} عناصر
           </Badge>
         </div>

@@ -6,6 +6,10 @@ export interface OrderDetailsPageRouteProps {
 	params: Promise<OrderRouteParams>
 }
 
+export interface OrderReturnsPageRouteProps {
+	params: Promise<OrderRouteParams>
+}
+
 export interface OrderCustomerContactModel {
 	phone?: string
 	email?: string
