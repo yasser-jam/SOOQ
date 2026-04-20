@@ -4,14 +4,13 @@ import * as React from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ColumnDef } from "@tanstack/react-table"
 import { useRouter } from "next/navigation"
-import { Layers3, PencilIcon, Trash2Icon } from "lucide-react"
+import { Layers3 } from "lucide-react"
 
-import ConfirmAlert from "@/components/system/confirm-alert"
+import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
 import { getInitials } from "@/lib/initials"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
 
 import {
 	deleteProductCategory,
@@ -20,58 +19,13 @@ import {
 } from "../actions"
 import type { ProductCategory } from "../types"
 
-function CategoryActions({
-	onUpdate,
-	onDelete,
-}: {
-	onUpdate?: () => void
-	onDelete?: () => void
-}) {
-	const [open, setOpen] = React.useState(false)
-
-	return (
-		<div className="flex items-center justify-end gap-2">
-			<Button
-				variant="primary"
-				className="rounded-lg"
-				size="icon"
-				aria-label="Edit category"
-				onClick={onUpdate}
-			>
-				<PencilIcon data-icon="inline-start" className="p-0.5" />
-			</Button>
-
-			<Button
-				variant="destructive"
-				className="rounded-lg"
-				size="icon"
-				aria-label="Delete category"
-				onClick={() => setOpen(true)}
-			>
-				<Trash2Icon data-icon="inline-start" className="p-0.5" />
-			</Button>
-
-			<ConfirmAlert
-				open={open}
-				onOpenChange={setOpen}
-				variant="destructive"
-				title="حذف الفئة"
-				description="سيتم حذف الفئة نهائيا ولا يمكن التراجع عن هذا الإجراء."
-				actionLabel="حذف"
-				onAction={onDelete}
-				icon={<Trash2Icon data-icon="inline-start" />}
-			/>
-		</div>
-	)
-}
-
 export default function ProductCategoryTable() {
 	const router = useRouter()
 	const queryClient = useQueryClient()
 
 	const { mutate: deleteCategory } = useMutation({
 		mutationFn: deleteProductCategory,
-		onSuccess: ({ id }) => {
+		onSuccess: (_data, id) => {
 			queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
 			queryClient.removeQueries({ queryKey: productCategoryKeys.detail(id) })
 		},
@@ -151,7 +105,7 @@ export default function ProductCategoryTable() {
 				const categoryId = category.row.original.id
 
 				return (
-					<CategoryActions
+					<TableActions
 						onUpdate={() => {
 							if (!categoryId) return
 							router.push(`/products/categories/${categoryId}`)

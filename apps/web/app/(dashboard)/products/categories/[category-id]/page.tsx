@@ -16,9 +16,10 @@ import {
 	initCategoryFormValues,
 } from "@/modules/product/category/init"
 import {
-	getCreateCategoryMutationOptions,
+	createProductCategory,
 	getProductCategoryQueryOptions,
-	getUpdateCategoryMutationOptions,
+	productCategoryKeys,
+	updateProductCategory,
 } from "@/modules/product/category/actions"
 import { productCategorySchema } from "@/modules/product/category/schema"
 import { Button } from "@workspace/ui/components/button"
@@ -69,18 +70,19 @@ export default function EditCategoryPage() {
 	}, [category, form, isEdit])
 
 	const { isPending: isUpdating, mutate: updateCategory } = useMutation({
-		...getUpdateCategoryMutationOptions({
-			categoryId,
-			queryClient,
-			onSuccess: () => router.back(),
-		}),
+		mutationFn: updateProductCategory,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
+			router.push('/products/categories')
+		},
 	})
 
 	const { isPending: isCreating, mutate: createCategory } = useMutation({
-		...getCreateCategoryMutationOptions({
-			queryClient,
-			onSuccess: () => router.back(),
-		}),
+		mutationFn: createProductCategory,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
+			router.push('/products/categories')
+		},
 	})
 
 	const handleSubmit = React.useCallback(
