@@ -8,6 +8,7 @@ import { toast } from "sonner";
 // ==============================
 const apiInstance: AxiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
+    withCredentials: true,
     headers: {
       "Content-Type": "application/json",
     },
@@ -21,7 +22,13 @@ const apiInstance: AxiosInstance = axios.create({
       const token = getCookie('sooq-access-token');
   
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        config.headers = config.headers ?? {};
+
+        if (typeof config.headers.set === "function") {
+          config.headers.set("Authorization", `Bearer ${token}`);
+        } else {
+          (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
+        }
       }
   
       return config;
@@ -97,6 +104,7 @@ export const api = async <T = unknown>(
   const response = await apiInstance.request<T>({
     url,
     method,
+    withCredentials: true,
     data: body,
     headers: {
       ...headers,

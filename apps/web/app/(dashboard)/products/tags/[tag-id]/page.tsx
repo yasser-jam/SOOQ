@@ -60,6 +60,7 @@ export default function EditTagPage() {
 
     if (!tag) return
 
+    console.log('tet', tag)
     form.reset({
       tagName: tag.tagName,
       slug: tag.slug,
@@ -68,19 +69,17 @@ export default function EditTagPage() {
 
   const { isPending: isUpdating, mutate: updateTag } = useMutation({
     mutationFn: updateProductTag,
-    onSuccess: (updatedTag) => {
-      queryClient.setQueryData(productTagKeys.detail(updatedTag.id ?? tagId), updatedTag)
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productTagKeys.all })
-      router.back()
+      router.push('/products/tags')
     },
   })
 
   const { isPending: isCreating, mutate: createTag } = useMutation({
     mutationFn: createProductTag,
-    onSuccess: (createdTag) => {
-      queryClient.setQueryData(productTagKeys.detail(createdTag.id ?? ""), createdTag)
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productTagKeys.all })
-      router.back()
+      router.push('/products/tags')
     },
   })
 

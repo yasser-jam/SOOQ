@@ -26,7 +26,7 @@ export default function Table() {
 
   const { mutate: deleteTag } = useMutation({
     mutationFn: deleteProductTag,
-    onSuccess: ({ id }) => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: productTagKeys.all })
       queryClient.removeQueries({ queryKey: productTagKeys.detail(id) })
     },
