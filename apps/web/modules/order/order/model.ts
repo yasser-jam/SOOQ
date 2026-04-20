@@ -75,3 +75,44 @@ export interface OrderDetailsModel {
 	auditTrail?: OrderAuditEventModel[]
 	notes?: OrderNotesModel
 }
+
+export type OrderListStatus =
+	| "NEW"
+	| "PROCESSING"
+	| "DELIVERED"
+	| "RETURN_REQUESTED"
+
+export interface OrderListClientModel {
+	name: string
+	avatarUrl?: string | null
+}
+
+export interface OrderListItemModel {
+	id: string
+	orderNumber: string
+	client: OrderListClientModel
+	dateLabel: string
+	status: OrderListStatus
+}
+
+export const ORDER_LIST_STATUS_META: Record<
+	OrderListStatus,
+	{ label: string; badgeVariant: "secondary" | "secondary-tonal" | "outline" | "destructive" }
+> = {
+	NEW: {
+		label: "جديد",
+		badgeVariant: "secondary",
+	},
+	PROCESSING: {
+		label: "قيد المعالجة",
+		badgeVariant: "secondary-tonal",
+	},
+	DELIVERED: {
+		label: "تم التسليم",
+		badgeVariant: "outline",
+	},
+	RETURN_REQUESTED: {
+		label: "طلب إرجاع",
+		badgeVariant: "destructive",
+	},
+}
