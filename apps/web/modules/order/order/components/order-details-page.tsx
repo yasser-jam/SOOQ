@@ -17,7 +17,11 @@ export default function OrderDetailsPageView({
 }: OrderDetailsPageViewProps) {
   return (
     <div className="container my-6 flex flex-col gap-6">
-      <OrderDetailsActions orderId={orderId} />
+      <div className="flex items-center justify-between">
+        <h1 className="page-title">تفاصيل الطلب</h1>
+
+        <OrderDetailsActions orderId={orderId} />
+      </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <div className="xl:col-span-8">
