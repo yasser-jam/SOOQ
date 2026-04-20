@@ -1,0 +1,8 @@
+1- if components inside module are too many => separate in folder
+Naming Convension:
+article-create, article-details  (without folder)
+with folder: article folder => create.tsx, details.tsx (but component name stays the same ex: ArticleDetails)
+
+
+2- separate logic from template, any long logic or conditional logic to set some classes should be separated from template
+with method inside this component like : getTestClass (and here you may add switch to show the right classes)
