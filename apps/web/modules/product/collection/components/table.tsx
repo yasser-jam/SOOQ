@@ -24,7 +24,7 @@ export default function ProductCollectionTable() {
 
 	const { mutate: deleteCollection } = useMutation({
 		mutationFn: deleteProductCollection,
-		onSuccess: ({ id }) => {
+		onSuccess: (_data, id) => {
 			queryClient.invalidateQueries({ queryKey: productCollectionKeys.all })
 			queryClient.removeQueries({ queryKey: productCollectionKeys.detail(id) })
 		},
