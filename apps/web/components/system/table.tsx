@@ -28,6 +28,7 @@ import {
   PaginationPrevious,
 } from "@workspace/ui/components/pagination"
 import { Button } from "@workspace/ui/components/button"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { cn } from "@workspace/ui/lib/utils"
 
 type PaginationConfig = {
@@ -41,6 +42,7 @@ type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[]
   pagination?: PaginationConfig
   onPageChange?: (pageIndex: number) => void
+  isLoading?: boolean
 }
 
 export default function DataTable<TData, TValue>({
@@ -48,6 +50,7 @@ export default function DataTable<TData, TValue>({
   columns,
   pagination,
   onPageChange,
+  isLoading,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
 
@@ -142,7 +145,17 @@ export default function DataTable<TData, TValue>({
         </TableHeader>
 
         <TableBody>
-          {table.getRowModel().rows.length ? (
+          {isLoading ? (
+            Array.from({ length: pagination?.pageSize ?? 5 }).map((_, rowIndex) => (
+              <TableRow key={rowIndex}>
+                {columns.map((_, colIndex) => (
+                  <TableCell key={colIndex}>
+                    <Skeleton className="h-6 w-full" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                 {row.getVisibleCells().map((cell) => (

@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import { useCallback, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -13,12 +13,13 @@ import { Button } from "@workspace/ui/components/button"
 import { DialogClose } from "@workspace/ui/components/dialog"
 import {
   createProductTag,
-  getProductTagQueryOptions,
-  productTagKeys,
+  getProductTag,
   updateProductTag,
 } from "@/modules/product/tag/actions"
 import { initTag } from "@/modules/product/tag/init"
 import { productTagSchema } from "@/modules/product/tag/schema"
+import { tagQueryKeys } from "@/modules/product/tag/queryKeys"
+import { ProductTag } from "@/modules/product/tag/types"
 
 const tagFormSchema = productTagSchema.omit({
   id: true,
@@ -26,16 +27,15 @@ const tagFormSchema = productTagSchema.omit({
   updatedAt: true,
 })
 
-type TagFormValues = z.infer<typeof tagFormSchema>
-
 export default function EditTagPage() {
+
   const router = useRouter()
   const queryClient = useQueryClient()
   const params = useParams()
   const tagId = params?.["tag-id"]?.toString() ?? ""
   const isEdit = tagId !== "create"
 
-  const form = useForm<TagFormValues>({
+  const form = useForm<ProductTag>({
     resolver: zodResolver(tagFormSchema),
     defaultValues: {
       tagName: "",
@@ -44,11 +44,12 @@ export default function EditTagPage() {
   })
 
   const { data: tag, isLoading } = useQuery({
-    ...getProductTagQueryOptions(tagId),
+    queryKey: tagQueryKeys.detail(tagId),
+    queryFn: () => getProductTag(tagId),
     enabled: isEdit,
   })
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isEdit) {
       form.reset({
         tagName: "",
@@ -58,33 +59,30 @@ export default function EditTagPage() {
       return
     }
 
-    if (!tag) return
-
-    console.log('tet', tag)
     form.reset({
-      tagName: tag.tagName,
-      slug: tag.slug,
+      tagName: tag?.tagName,
+      slug: tag?.slug,
     })
   }, [form, isEdit, tag])
 
   const { isPending: isUpdating, mutate: updateTag } = useMutation({
     mutationFn: updateProductTag,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: productTagKeys.all })
-      router.push('/products/tags')
+      queryClient.invalidateQueries({ queryKey: tagQueryKeys.all })
+      router.push("/products/tags")
     },
   })
 
   const { isPending: isCreating, mutate: createTag } = useMutation({
     mutationFn: createProductTag,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: productTagKeys.all })
-      router.push('/products/tags')
+      queryClient.invalidateQueries({ queryKey: tagQueryKeys.all })
+      router.push("/products/tags")
     },
   })
 
-  const handleSubmit = React.useCallback(
-    (values: TagFormValues) => {
+  const handleSubmit = useCallback(
+    (values: ProductTag) => {
       if (isEdit) {
         if (!tagId) return
 
@@ -104,9 +102,7 @@ export default function EditTagPage() {
     <PageDialog
       open
       onOpenChange={(open) => {
-        if (!open) {
-          router.back()
-        }
+        if (!open) router.back()
       }}
       size="sm"
       title={isEdit ? "تعديل الوسم" : "إضافة وسم"}
@@ -122,8 +118,12 @@ export default function EditTagPage() {
         </>
       }
     >
-      <form id="tag-form" className="grid gap-4" onSubmit={form.handleSubmit(handleSubmit)}>
-        <Field<TagFormValues>
+      <form
+        id="tag-form"
+        className="grid gap-4"
+        onSubmit={form.handleSubmit(handleSubmit)}
+      >
+        <Field
           name="tagName"
           control={form.control}
           label="الاسم"
@@ -131,7 +131,7 @@ export default function EditTagPage() {
           inputProps={{ disabled: isSubmitting }}
         />
 
-        <Field<TagFormValues>
+        <Field
           name="slug"
           control={form.control}
           label="الرابط"
