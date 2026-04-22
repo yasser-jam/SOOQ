@@ -1,0 +1,368 @@
+{
+  "info": {
+    "_postman_id": "8d22fbe2-3ec0-4bca-91fd-eafb889ab9d8",
+    "name": "ShopEngine API",
+    "description": "Complete API collection for ShopEngine e-commerce platform.\n\n**Setup:** Run 'Request OTP' → 'Verify OTP' first to auto-set access_token and tenant_id.\n\n**Modules:** AUTH, PRD (Product), ORD (Order), PAY (Payment), APP (Mobile App Builder)\n\nLast updated: 2026-04-21",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "AUTH",
+      "description": "Authentication, sessions, TOTP, tenant management",
+      "item": [
+        {
+          "name": "Public",
+          "item": [
+            {
+              "name": "Request OTP",
+              "request": {
+                "auth": { "type": "noauth" },
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"phone\": \"{{phone}}\",\n  \"tenantSlug\": \"{{tenant_slug}}\",\n  \"role\": \"{{role}}\"\n}" },
+                "url": "{{base_url}}/api/v1/auth/otp/request"
+              }
+            },
+            {
+              "name": "Verify OTP",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                "const r = pm.response.json();",
+                "if (r?.data?.accessToken) pm.collectionVariables.set('access_token', r.data.accessToken);",
+                "if (r?.data?.tenantId) pm.collectionVariables.set('tenant_id', r.data.tenantId);",
+                "if (r?.data?.userId) pm.collectionVariables.set('user_id', r.data.userId);"
+              ] } }],
+              "request": {
+                "auth": { "type": "noauth" },
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"phone\": \"{{phone}}\",\n  \"tenantSlug\": \"{{tenant_slug}}\",\n  \"otpCode\": \"{{otp_code}}\"\n}" },
+                "url": "{{base_url}}/api/v1/auth/otp/verify"
+              }
+            },
+            {
+              "name": "Google OAuth Login",
+              "request": {
+                "auth": { "type": "noauth" },
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"providerUserId\": \"google-sub-123\",\n  \"email\": \"owner@example.com\",\n  \"tenantSlug\": \"{{tenant_slug}}\",\n  \"phone\": \"{{phone}}\",\n  \"fullName\": \"Shop Owner\",\n  \"role\": \"OWNER\"\n}" },
+                "url": "{{base_url}}/api/v1/auth/oauth/google"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sessions & Security",
+          "item": [
+            { "name": "List Sessions", "request": { "method": "GET", "url": "{{base_url}}/api/v1/auth/sessions" } },
+            { "name": "Revoke Session", "request": { "method": "POST", "url": "{{base_url}}/api/v1/auth/sessions/{{session_jti}}/revoke" } },
+            { "name": "Setup TOTP", "request": { "method": "POST", "url": "{{base_url}}/api/v1/auth/totp/setup" } },
+            { "name": "Enable TOTP", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"code\": \"{{totp_code}}\" }" }, "url": "{{base_url}}/api/v1/auth/totp/enable" } },
+            { "name": "Disable TOTP", "request": { "method": "POST", "url": "{{base_url}}/api/v1/auth/totp/disable" } },
+            { "name": "Request Phone Change", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"newPhone\": \"{{new_phone}}\" }" }, "url": "{{base_url}}/api/v1/auth/phone/change/request" } },
+            { "name": "Verify Phone Change", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"newPhone\": \"{{new_phone}}\", \"otpCode\": \"{{otp_code}}\" }" }, "url": "{{base_url}}/api/v1/auth/phone/change/verify" } },
+            { "name": "List Audit Logs", "request": { "method": "GET", "url": "{{base_url}}/api/v1/auth/audit-logs" } }
+          ]
+        },
+        {
+          "name": "Tenant Management",
+          "item": [
+            { "name": "Create Store", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"storeName\": \"My Store\",\n  \"slug\": \"my-store\",\n  \"primaryCurrencyCode\": \"SYP\",\n  \"storeCategory\": \"GENERAL\",\n  \"themeCode\": \"DEFAULT\"\n}" }, "url": "{{base_url}}/api/v1/auth/stores" } },
+            { "name": "Update Store Status", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"status\": \"ACTIVE\" }" }, "url": "{{base_url}}/api/v1/auth/stores/{{target_tenant_id}}/status" } },
+            { "name": "Update Rate Limit", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"requestsPerMinute\": 120 }" }, "url": "{{base_url}}/api/v1/auth/stores/{{target_tenant_id}}/rate-limit" } },
+            { "name": "List Platform Tenants", "request": { "method": "GET", "url": "{{base_url}}/api/v1/auth/platform/tenants" } },
+            { "name": "Disable Tenant", "request": { "method": "POST", "url": "{{base_url}}/api/v1/auth/platform/tenants/{{target_tenant_id}}/disable" } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PRD (Product)",
+      "description": "Product CRUD, variants, categories, tags, images, inventory, collections, import, storefront",
+      "item": [
+        {
+          "name": "Admin - Products",
+          "item": [
+            {
+              "name": "Create Product (full)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const r = pm.response.json(); if (r?.data?.product?.productId) pm.collectionVariables.set('product_id', r.data.product.productId);"] } }],
+              "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"titleAr\": \"قميص قطني كلاسيكي\",\n  \"titleEn\": \"Classic Cotton Shirt\",\n  \"descriptionAr\": \"قميص رجالي قطني 100%\",\n  \"descriptionEn\": \"Men's 100% cotton shirt\",\n  \"slug\": \"classic-cotton-shirt-test\",\n  \"basePrice\": 85000,\n  \"compareAtPrice\": 120000,\n  \"currencyCode\": \"SYP\",\n  \"status\": \"DRAFT\",\n  \"seoTitle\": \"قميص قطني - متجر سوق\",\n  \"seoDescription\": \"اشتري قميص قطني بأفضل سعر\",\n  \"allowOversell\": false,\n  \"defaultCategoryId\": \"{{category_id}}\",\n  \"categoryIds\": [\"{{category_id}}\"],\n  \"tagIds\": [\"{{tag_id}}\"],\n  \"options\": [\n    {\n      \"optionNameAr\": \"��لمقاس\", \"optionNameEn\": \"Size\", \"sortOrder\": 0,\n      \"values\": [\n        { \"valueAr\": \"S\", \"valueEn\": \"S\", \"sortOrder\": 0 },\n        { \"valueAr\": \"M\", \"valueEn\": \"M\", \"sortOrder\": 1 },\n        { \"valueAr\": \"L\", \"valueEn\": \"L\", \"sortOrder\": 2 }\n      ]\n    },\n    {\n      \"optionNameAr\": \"اللون\", \"optionNameEn\": \"Color\", \"sortOrder\": 1,\n      \"values\": [\n        { \"valueAr\": \"أحمر\", \"valueEn\": \"Red\", \"colorHex\": \"#CC0000\", \"sortOrder\": 0 },\n        { \"valueAr\": \"أزرق\", \"valueEn\": \"Blue\", \"colorHex\": \"#0066CC\", \"sortOrder\": 1 }\n      ]\n    }\n  ],\n  \"variantOverrides\": {\n    \"S-Red\": { \"sku\": \"SHIRT-S-RED\", \"price\": 85000, \"stockQty\": 25, \"isActive\": true },\n    \"M-Blue\": { \"sku\": \"SHIRT-M-BLU\", \"price\": 90000, \"stockQty\": 10, \"isActive\": true }\n  }\n}" }, "url": "{{base_url}}/api/v1/admin/products" }
+            },
+            {
+              "name": "Create Simple Product",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const r = pm.response.json(); if (r?.data?.product?.productId) pm.collectionVariables.set('product_id', r.data.product.productId);"] } }],
+              "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"titleAr\": \"منتج بسيط\",\n  \"titleEn\": \"Simple Product\",\n  \"slug\": \"simple-product-test\",\n  \"basePrice\": 50000,\n  \"currencyCode\": \"SYP\",\n  \"status\": \"DRAFT\",\n  \"allowOversell\": false\n}" }, "url": "{{base_url}}/api/v1/admin/products" }
+            },
+            { "name": "Get Product Detail", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/products/{{product_id}}" } },
+            { "name": "Get Product (select blocks)", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/admin/products/{{product_id}}?include=PRICING&include=IMAGES&include=INVENTORY", "host": ["{{base_url}}"], "path": ["api","v1","admin","products","{{product_id}}"], "query": [{"key":"include","value":"PRICING"},{"key":"include","value":"IMAGES"},{"key":"include","value":"INVENTORY"}] } } },
+            { "name": "List Products", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/admin/products?page=0&size=20", "host": ["{{base_url}}"], "path": ["api","v1","admin","products"], "query": [{"key":"page","value":"0"},{"key":"size","value":"20"}] } } },
+            { "name": "Update Product", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"titleAr\": \"قميص محدث\",\n  \"titleEn\": \"Updated Shirt\",\n  \"slug\": \"classic-cotton-shirt-test\",\n  \"basePrice\": 90000,\n  \"currencyCode\": \"SYP\",\n  \"status\": \"ACTIVE\",\n  \"allowOversell\": false,\n  \"categoryIds\": [\"{{category_id}}\"],\n  \"tagIds\": [\"{{tag_id}}\"]\n}" }, "url": "{{base_url}}/api/v1/admin/products/{{product_id}}" } },
+            { "name": "Delete Product", "request": { "method": "DELETE", "url": "{{base_url}}/api/v1/admin/products/{{product_id}}" } }
+          ]
+        },
+        {
+          "name": "Admin - Variants",
+          "item": [
+            { "name": "Get Variant Matrix", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/products/{{product_id}}/variants" } },
+            { "name": "Save Variant Matrix", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"options\": [\n    {\n      \"optionNameAr\": \"المقاس\", \"optionNameEn\": \"Size\", \"sortOrder\": 0,\n      \"values\": [\n        { \"valueAr\": \"S\", \"valueEn\": \"S\", \"sortOrder\": 0 },\n        { \"valueAr\": \"M\", \"valueEn\": \"M\", \"sortOrder\": 1 }\n      ]\n    }\n  ],\n  \"variantOverrides\": {\n    \"S\": { \"sku\": \"SHIRT-S\", \"price\": 85000, \"stockQty\": 25, \"isActive\": true }\n  }\n}" }, "url": "{{base_url}}/api/v1/admin/products/{{product_id}}/variants" } },
+            { "name": "Update Single Variant", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"sku\": \"SHIRT-M-RED\",\n  \"price\": 90000,\n  \"stockQty\": 25,\n  \"isActive\": true\n}" }, "url": "{{base_url}}/api/v1/admin/products/{{product_id}}/variants/{{variant_id}}" } }
+          ]
+        },
+        {
+          "name": "Admin - Categories",
+          "item": [
+            { "name": "Get Category Tree", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/categories" } },
+            { "name": "Get Category", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/categories/{{category_id}}" } },
+            {
+              "name": "Create Category",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const r = pm.response.json(); if (r?.data?.categoryId) pm.collectionVariables.set('category_id', r.data.categoryId);"] } }],
+              "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nameAr\": \"ملابس\",\n  \"nameEn\": \"Clothing\",\n  \"slug\": \"clothing-test\",\n  \"descriptionAr\": \"جميع أنواع الملابس\",\n  \"descriptionEn\": \"All types of clothing\",\n  \"parentCategoryId\": null,\n  \"sortOrder\": 0,\n  \"isActive\": true\n}" }, "url": "{{base_url}}/api/v1/admin/categories" }
+            },
+            { "name": "Update Category", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"nameAr\": \"ملابس محدثة\",\n  \"nameEn\": \"Updated Clothing\",\n  \"slug\": \"clothing-test\",\n  \"sortOrder\": 0,\n  \"isActive\": true\n}" }, "url": "{{base_url}}/api/v1/admin/categories/{{category_id}}" } },
+            { "name": "Delete Category", "request": { "method": "DELETE", "url": "{{base_url}}/api/v1/admin/categories/{{category_id}}" } }
+          ]
+        },
+        {
+          "name": "Admin - Tags",
+          "item": [
+            { "name": "List Tags", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/tags" } },
+            {
+              "name": "Create Tag",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const r = pm.response.json(); if (r?.data?.productTagId) pm.collectionVariables.set('tag_id', r.data.productTagId);"] } }],
+              "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"tagName\": \"تخفيضات\",\n  \"slug\": \"sale\"\n}" }, "url": "{{base_url}}/api/v1/admin/tags" }
+            },
+            { "name": "Update Tag", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"tagName\": \"عروض خاصة\",\n  \"slug\": \"special-offers\"\n}" }, "url": "{{base_url}}/api/v1/admin/tags/{{tag_id}}" } },
+            { "name": "Delete Tag", "request": { "method": "DELETE", "url": "{{base_url}}/api/v1/admin/tags/{{tag_id}}" } }
+          ]
+        },
+        {
+          "name": "Admin - Images",
+          "item": [
+            { "name": "Upload Images", "request": { "method": "POST", "body": { "mode": "formdata", "formdata": [{ "key": "files", "type": "file", "src": "" }] }, "url": "{{base_url}}/api/v1/admin/products/{{product_id}}/images" } },
+            { "name": "List Images", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/products/{{product_id}}/images" } },
+            { "name": "Set Primary Image", "request": { "method": "PUT", "url": "{{base_url}}/api/v1/admin/products/{{product_id}}/images/primary/{{media_asset_id}}" } },
+            { "name": "Reorder Images", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"mediaAssetIds\": [\"{{media_asset_id}}\"] }" }, "url": "{{base_url}}/api/v1/admin/products/{{product_id}}/images/reorder" } },
+            { "name": "Replace Image", "request": { "method": "PUT", "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": "" }] }, "url": "{{base_url}}/api/v1/admin/products/{{product_id}}/images/{{media_asset_id}}/replace" } },
+            { "name": "Delete Image", "request": { "method": "DELETE", "url": "{{base_url}}/api/v1/admin/products/{{product_id}}/images/{{media_asset_id}}" } }
+          ]
+        },
+        {
+          "name": "Admin - Inventory",
+          "item": [
+            { "name": "Adjust Stock", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"variantId\": \"{{variant_id}}\",\n  \"quantityDelta\": -3,\n  \"reasonCode\": \"MANUAL_ADJUSTMENT\"\n}" }, "url": "{{base_url}}/api/v1/admin/inventory/adjust" } },
+            { "name": "Bulk Adjust Stock", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"adjustments\": [\n    { \"variantId\": \"{{variant_id}}\", \"quantityDelta\": 10, \"reasonCode\": \"IMPORT\" }\n  ]\n}" }, "url": "{{base_url}}/api/v1/admin/inventory/adjust/bulk" } },
+            { "name": "Movement History", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/inventory/variants/{{variant_id}}/movements?page=0&size=20" } },
+            { "name": "Inventory Status", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/inventory/products/{{product_id}}/status" } },
+            { "name": "Set Low-Stock Threshold", "request": { "method": "PUT", "url": "{{base_url}}/api/v1/admin/inventory/variants/{{variant_id}}/threshold?threshold=5" } },
+            { "name": "Low-Stock Variants", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/inventory/products/{{product_id}}/low-stock" } }
+          ]
+        },
+        {
+          "name": "Admin - Collections",
+          "item": [
+            {
+              "name": "Create Manual Collection",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const r = pm.response.json(); if (r?.data?.collectionId) pm.collectionVariables.set('collection_id', r.data.collectionId);"] } }],
+              "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"collectionName\": \"Summer Sale\",\n  \"collectionSlug\": \"summer-sale\",\n  \"collectionType\": \"MANUAL\",\n  \"descriptionAr\": \"تخفيضات الصيف\",\n  \"descriptionEn\": \"Summer discounts\",\n  \"isActive\": true\n}" }, "url": "{{base_url}}/api/v1/admin/collections" }
+            },
+            { "name": "Create Automated Collection", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"collectionName\": \"New Arrivals\",\n  \"collectionSlug\": \"new-arrivals\",\n  \"collectionType\": \"AUTOMATED\",\n  \"descriptionAr\": \"وصل حديثاً\",\n  \"descriptionEn\": \"New arrivals\",\n  \"isActive\": true\n}" }, "url": "{{base_url}}/api/v1/admin/collections" } },
+            { "name": "List Collections", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/collections?page=0&size=20" } },
+            { "name": "Get Collection Detail", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/collections/{{collection_id}}" } },
+            { "name": "Add Product to Collection", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"productId\": \"{{product_id}}\", \"sortOrder\": 0 }" }, "url": "{{base_url}}/api/v1/admin/collections/{{collection_id}}/products" } },
+            { "name": "List Collection Products", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/collections/{{collection_id}}/products" } },
+            { "name": "Add Rule", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"fieldKey\": \"tag\",\n  \"operator\": \"equals\",\n  \"value\": \"sale\",\n  \"logicGroup\": \"AND\"\n}" }, "url": "{{base_url}}/api/v1/admin/collections/{{collection_id}}/rules" } },
+            { "name": "Evaluate Rules", "request": { "method": "POST", "url": "{{base_url}}/api/v1/admin/collections/{{collection_id}}/evaluate" } },
+            { "name": "Preview Rules", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/collections/{{collection_id}}/preview" } },
+            { "name": "Delete Collection", "request": { "method": "DELETE", "url": "{{base_url}}/api/v1/admin/collections/{{collection_id}}" } }
+          ]
+        },
+        {
+          "name": "Admin - Import",
+          "item": [
+            { "name": "Import CSV", "request": { "method": "POST", "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": "" }] }, "url": "{{base_url}}/api/v1/admin/imports/products" } },
+            { "name": "Import CSV (Dry Run)", "request": { "method": "POST", "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": "" }] }, "url": "{{base_url}}/api/v1/admin/imports/products?dryRun=true" } },
+            { "name": "Preview Import File", "request": { "method": "POST", "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": "" }] }, "url": "{{base_url}}/api/v1/admin/imports/products/preview" } },
+            { "name": "Get Import Batch", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/imports/products/{{import_batch_id}}" } },
+            { "name": "List Import Batches", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/imports/products?page=0&size=20" } }
+          ]
+        },
+        {
+          "name": "Public - Storefront",
+          "item": [
+            { "name": "Browse Products", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{base_url}}/api/v1/public/products?page=0&size=20" } },
+            { "name": "Search Products", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{base_url}}/api/v1/public/products/search?q=%D8%AD%D8%B0%D8%A7%D8%A1&page=0&size=20" } },
+            { "name": "Search with Filters", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{base_url}}/api/v1/public/products/search?q=&minPrice=10000&maxPrice=50000&inStockOnly=true&page=0&size=20" } },
+            { "name": "Autocomplete", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{base_url}}/api/v1/public/products/autocomplete?q=%D8%AD%D8%B0%D8%A7" } },
+            { "name": "Product Detail by Slug", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{base_url}}/api/v1/public/products/cotton-shirt" } },
+            { "name": "Category Tree", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{base_url}}/api/v1/public/categories" } },
+            { "name": "Category Products", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{base_url}}/api/v1/public/categories/clothing/products?page=0&size=20" } },
+            { "name": "List Collections", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{base_url}}/api/v1/public/collections" } },
+            { "name": "Collection Products", "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{base_url}}/api/v1/public/collections/summer-sale/products?page=0&size=20" } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ORD (Order)",
+      "description": "Checkout, order management, discount codes, invoices",
+      "item": [
+        {
+          "name": "Public - Checkout",
+          "item": [
+            {
+              "name": "Checkout (COD)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const r = pm.response.json(); if (r?.data?.orderId) pm.collectionVariables.set('order_id', r.data.orderId);"] } }],
+              "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Tenant-Id", "value": "{{tenant_id}}" }], "body": { "mode": "raw", "raw": "{\n  \"items\": [{ \"variantId\": \"{{variant_id}}\", \"quantity\": 2 }],\n  \"shippingAddress\": {\n    \"governorate\": \"Damascus\",\n    \"city\": \"Damascus City\",\n    \"street\": \"Al-Hamra Street, Building 5\",\n    \"phone\": \"+963944000001\",\n    \"name\": \"Ahmad Ali\"\n  },\n  \"paymentMethod\": \"COD\",\n  \"checkoutToken\": \"{{$guid}}\",\n  \"guestEmail\": \"guest@example.com\"\n}" }, "url": "{{base_url}}/api/v1/public/checkout" }
+            },
+            {
+              "name": "Checkout (Paymera Online)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const r = pm.response.json(); if (r?.data?.orderId) pm.collectionVariables.set('order_id', r.data.orderId);"] } }],
+              "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Tenant-Id", "value": "{{tenant_id}}" }], "body": { "mode": "raw", "raw": "{\n  \"items\": [{ \"variantId\": \"{{variant_id}}\", \"quantity\": 1 }],\n  \"shippingAddress\": {\n    \"governorate\": \"Aleppo\",\n    \"city\": \"Aleppo City\",\n    \"street\": \"Baron Street\",\n    \"phone\": \"+963955000001\",\n    \"name\": \"Guest User\"\n  },\n  \"paymentMethod\": \"PAYMERA\",\n  \"checkoutToken\": \"{{$guid}}\",\n  \"guestEmail\": \"online@example.com\"\n}" }, "url": "{{base_url}}/api/v1/public/checkout" }
+            },
+            { "name": "Validate Discount Code", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "X-Tenant-Id", "value": "{{tenant_id}}" }], "url": { "raw": "{{base_url}}/api/v1/public/checkout/validate-discount?code=10OFF&subtotal=100000&shippingCost=5000", "host": ["{{base_url}}"], "path": ["api","v1","public","checkout","validate-discount"], "query": [{"key":"code","value":"10OFF"},{"key":"subtotal","value":"100000"},{"key":"shippingCost","value":"5000"}] } } },
+            { "name": "Guest Order Lookup", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "X-Tenant-Id", "value": "{{tenant_id}}" }], "url": { "raw": "{{base_url}}/api/v1/public/checkout/orders/lookup?orderNumber=ORD-001&email=guest@example.com", "host": ["{{base_url}}"], "path": ["api","v1","public","checkout","orders","lookup"], "query": [{"key":"orderNumber","value":"ORD-001"},{"key":"email","value":"guest@example.com"}] } } }
+          ]
+        },
+        {
+          "name": "Admin - Orders",
+          "item": [
+            { "name": "Dashboard Summary", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/orders/summary" } },
+            { "name": "List Orders (Paginated)", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/admin/orders?page=0&size=20&sort=placedAt,desc", "host": ["{{base_url}}"], "path": ["api","v1","admin","orders"], "query": [{"key":"page","value":"0"},{"key":"size","value":"20"},{"key":"sort","value":"placedAt,desc"}] } } },
+            { "name": "List Orders (by Status)", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/admin/orders?status=PENDING&page=0&size=20", "host": ["{{base_url}}"], "path": ["api","v1","admin","orders"], "query": [{"key":"status","value":"PENDING"},{"key":"page","value":"0"},{"key":"size","value":"20"}] } } },
+            { "name": "Get Order Detail", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/orders/{{order_id}}" } },
+            { "name": "Transition Status", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"targetStatus\": \"CONFIRMED\" }" }, "url": "{{base_url}}/api/v1/admin/orders/{{order_id}}/transition" } },
+            { "name": "Cancel Order", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"reason\": \"Customer requested cancellation\" }" }, "url": "{{base_url}}/api/v1/admin/orders/{{order_id}}/cancel" } },
+            { "name": "Update Notes", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"notesInternal\": \"VIP customer\",\n  \"notesCustomer\": \"Your order is being prepared!\"\n}" }, "url": "{{base_url}}/api/v1/admin/orders/{{order_id}}/notes" } },
+            { "name": "Edit Order (pre-fulfillment)", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"items\": [{ \"variantId\": \"{{variant_id}}\", \"quantity\": 3 }],\n  \"shippingAddress\": {\n    \"governorate\": \"Aleppo\",\n    \"city\": \"Aleppo City\",\n    \"street\": \"New Street\",\n    \"phone\": \"+963888888888\",\n    \"name\": \"Updated Name\"\n  }\n}" }, "url": "{{base_url}}/api/v1/admin/orders/{{order_id}}/edit" } },
+            { "name": "Get Timeline", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/orders/{{order_id}}/timeline" } }
+          ]
+        },
+        {
+          "name": "Customer - My Orders",
+          "item": [
+            { "name": "List My Orders", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/customer/orders?page=0&size=20", "host": ["{{base_url}}"], "path": ["api","v1","customer","orders"], "query": [{"key":"page","value":"0"},{"key":"size","value":"20"}] } } },
+            { "name": "List My Orders (by Status)", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/customer/orders?status=PENDING&page=0&size=20", "host": ["{{base_url}}"], "path": ["api","v1","customer","orders"], "query": [{"key":"status","value":"PENDING"},{"key":"page","value":"0"},{"key":"size","value":"20"}] } } },
+            { "name": "Get My Order Detail", "request": { "method": "GET", "url": "{{base_url}}/api/v1/customer/orders/{{order_id}}" } },
+            { "name": "Cancel My Order", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"reason\": \"Changed my mind\" }" }, "url": "{{base_url}}/api/v1/customer/orders/{{order_id}}/cancel" } },
+            { "name": "Get My Invoice", "request": { "method": "GET", "url": "{{base_url}}/api/v1/customer/orders/{{order_id}}/invoice" } }
+          ]
+        },
+        {
+          "name": "Admin - Discount Codes",
+          "item": [
+            {
+              "name": "Create Discount Code",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const r = pm.response.json(); if (r?.data?.discountCodeId) pm.collectionVariables.set('discount_code_id', r.data.discountCodeId);"] } }],
+              "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"code\": \"10OFF\",\n  \"discountType\": \"PERCENTAGE\",\n  \"discountValue\": 10,\n  \"minOrderAmount\": 50000,\n  \"maxDiscountCap\": 50000,\n  \"usageLimit\": 100,\n  \"perCustomerMax\": 1,\n  \"applicableScope\": \"ALL\",\n  \"startsAt\": \"2026-04-01T00:00:00\",\n  \"expiresAt\": \"2026-12-31T23:59:59\"\n}" }, "url": "{{base_url}}/api/v1/admin/discount-codes" }
+            },
+            { "name": "List Discount Codes", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/discount-codes" } },
+            { "name": "Get Discount Code", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/discount-codes/{{discount_code_id}}" } },
+            { "name": "Update Discount Code", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"discountValue\": 15, \"isActive\": true }" }, "url": "{{base_url}}/api/v1/admin/discount-codes/{{discount_code_id}}" } },
+            { "name": "Delete Discount Code", "request": { "method": "DELETE", "url": "{{base_url}}/api/v1/admin/discount-codes/{{discount_code_id}}" } }
+          ]
+        },
+        {
+          "name": "Admin - Invoices",
+          "item": [
+            { "name": "Generate Invoice", "request": { "method": "POST", "url": "{{base_url}}/api/v1/admin/invoices/generate/{{order_id}}" } },
+            { "name": "Regenerate Invoice", "request": { "method": "POST", "url": "{{base_url}}/api/v1/admin/invoices/regenerate/{{order_id}}" } },
+            { "name": "List All Invoices", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/invoices" } }
+          ]
+        },
+        {
+          "name": "Admin - Invoice Layout Profiles",
+          "item": [
+            {
+              "name": "Create Layout Profile",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const r = pm.response.json(); if (r?.data?.profileId) pm.collectionVariables.set('invoice_layout_profile_id', r.data.profileId);"] } }],
+              "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"profileName\": \"Default Invoice\",\n  \"visibleFieldsJson\": \"{\\\"showLogo\\\":true,\\\"showStoreName\\\":true,\\\"showOrderNumber\\\":true,\\\"showOrderDate\\\":true,\\\"showCustomerName\\\":true,\\\"showCustomerPhone\\\":true,\\\"showShippingAddress\\\":true,\\\"showSku\\\":true,\\\"showUnitPrice\\\":true,\\\"showQuantity\\\":true,\\\"showItemDiscount\\\":true,\\\"showSubtotal\\\":true,\\\"showTaxBreakdown\\\":true,\\\"showShippingCost\\\":true,\\\"showDiscountTotal\\\":true,\\\"showPaymentMethod\\\":true,\\\"showPaymentStatus\\\":true,\\\"showNotes\\\":true,\\\"headerText\\\":\\\"شكراً لطلبكم\\\",\\\"footerText\\\":\\\"Thank you!\\\",\\\"colorScheme\\\":\\\"#1a73e8\\\",\\\"storeName\\\":\\\"سوق دمشق\\\"}\",\n  \"isDefault\": true\n}" }, "url": "{{base_url}}/api/v1/admin/invoice-layout-profiles" }
+            },
+            { "name": "List Layout Profiles", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/invoice-layout-profiles" } },
+            { "name": "Get Layout Profile", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/invoice-layout-profiles/{{invoice_layout_profile_id}}" } },
+            { "name": "Update Layout Profile", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"profileName\": \"Updated\", \"isDefault\": true }" }, "url": "{{base_url}}/api/v1/admin/invoice-layout-profiles/{{invoice_layout_profile_id}}" } },
+            { "name": "Delete Layout Profile", "request": { "method": "DELETE", "url": "{{base_url}}/api/v1/admin/invoice-layout-profiles/{{invoice_layout_profile_id}}" } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PAY (Payment)",
+      "description": "Dynamic payment provider architecture: COD, Paymera, extensible",
+      "item": [
+        {
+          "name": "Admin - Provider Config",
+          "item": [
+            {
+              "name": "Add Provider (Paymera)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const r = pm.response.json(); if (r?.data?.configId) pm.collectionVariables.set('payment_provider_config_id', r.data.configId);"] } }],
+              "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"providerCode\": \"PAYMERA\",\n  \"displayName\": \"Credit Card (Paymera)\",\n  \"credentialsJson\": \"{\\\"terminalId\\\":\\\"TEST-001\\\",\\\"username\\\":\\\"test\\\",\\\"password\\\":\\\"test\\\"}\",\n  \"settingsJson\": \"{\\\"environment\\\":\\\"test\\\",\\\"lang\\\":\\\"ar\\\"}\",\n  \"isActive\": true,\n  \"sortOrder\": 1\n}" }, "url": "{{base_url}}/api/v1/admin/payment-providers" }
+            },
+            {
+              "name": "Add Provider (COD)",
+              "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"providerCode\": \"COD\",\n  \"displayName\": \"Cash on Delivery\",\n  \"isActive\": true,\n  \"sortOrder\": 0\n}" }, "url": "{{base_url}}/api/v1/admin/payment-providers" }
+            },
+            { "name": "List Providers", "request": { "method": "GET", "url": "{{base_url}}/api/v1/admin/payment-providers" } },
+            { "name": "Update Provider", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"displayName\": \"Updated\", \"isActive\": false }" }, "url": "{{base_url}}/api/v1/admin/payment-providers/{{payment_provider_config_id}}" } },
+            { "name": "Delete Provider", "request": { "method": "DELETE", "url": "{{base_url}}/api/v1/admin/payment-providers/{{payment_provider_config_id}}" } }
+          ]
+        },
+        {
+          "name": "Public - Payment Methods",
+          "item": [
+            { "name": "List Available Methods", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "X-Tenant-Id", "value": "{{tenant_id}}" }], "url": "{{base_url}}/api/v1/public/payments/methods" } },
+            { "name": "Poll Payment Status", "request": { "auth": { "type": "noauth" }, "method": "GET", "header": [{ "key": "X-Tenant-Id", "value": "{{tenant_id}}" }], "url": "{{base_url}}/api/v1/public/payments/{{payment_txn_id}}/status" } }
+          ]
+        },
+        {
+          "name": "Webhooks",
+          "item": [
+            { "name": "Paymera Webhook", "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"paymentId\": \"PAY-123\",\n  \"status\": \"A\",\n  \"rrn\": \"123456789\",\n  \"amount\": 100000\n}" }, "url": "{{base_url}}/api/v1/webhooks/payments/PAYMERA" } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "APP (Mobile Builder)",
+      "description": "APK build initiation, status tracking, GitHub Actions webhook",
+      "item": [
+        { "name": "Initiate Build", "request": { "method": "POST", "header": [{ "key": "X-Tenant-ID", "value": "{{tenant_id}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"appTarget\": \"CLIENT_APP\",\n  \"buildChannel\": \"BETA\",\n  \"configVersionId\": \"{{config_version_id}}\"\n}" }, "url": "{{base_url}}/api/v1/app-builds" } },
+        { "name": "Get Build Status", "request": { "method": "GET", "header": [{ "key": "X-Tenant-ID", "value": "{{tenant_id}}" }], "url": "{{base_url}}/api/v1/app-builds/{{app_build_job_id}}" } },
+        { "name": "GitHub Actions Webhook", "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Hub-Signature-256", "value": "{{webhook_signature}}" }], "body": { "mode": "raw", "raw": "{\n  \"ciRunId\": \"123456789\",\n  \"buildStatus\": \"SUCCESS\",\n  \"artifactUrl\": \"https://github.com/example/actions/runs/123456789\",\n  \"fileHash\": \"abc123\",\n  \"completedAt\": \"2026-04-12T12:00:00Z\"\n}" }, "url": "{{base_url}}/api/v1/webhooks/github-actions/build-status" } }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "https://ShopEngine-production.up.railway.app" },
+    { "key": "phone", "value": "+963992040386" },
+    { "key": "new_phone", "value": "+963992040387" },
+    { "key": "role", "value": "OWNER" },
+    { "key": "tenant_slug", "value": "registration-hub" },
+    { "key": "otp_code", "value": "123456" },
+    { "key": "access_token", "value": "" },
+    { "key": "tenant_id", "value": "" },
+    { "key": "user_id", "value": "" },
+    { "key": "session_jti", "value": "" },
+    { "key": "totp_code", "value": "" },
+    { "key": "target_tenant_id", "value": "" },
+    { "key": "product_id", "value": "" },
+    { "key": "variant_id", "value": "" },
+    { "key": "category_id", "value": "" },
+    { "key": "tag_id", "value": "" },
+    { "key": "collection_id", "value": "" },
+    { "key": "media_asset_id", "value": "" },
+    { "key": "import_batch_id", "value": "" },
+    { "key": "order_id", "value": "" },
+    { "key": "discount_code_id", "value": "" },
+    { "key": "invoice_layout_profile_id", "value": "" },
+    { "key": "payment_provider_config_id", "value": "" },
+    { "key": "payment_txn_id", "value": "" },
+    { "key": "config_version_id", "value": "" },
+    { "key": "app_build_job_id", "value": "" },
+    { "key": "webhook_signature", "value": "sha256=" }
+  ]
+}
