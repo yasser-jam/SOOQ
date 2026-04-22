@@ -16,6 +16,7 @@ export function proxy(request: NextRequest) {
     pathname.startsWith(route)
   );
 
+    return NextResponse.next();
   if (isPublic) {
     return NextResponse.next();
   }

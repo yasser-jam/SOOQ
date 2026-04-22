@@ -16,9 +16,10 @@ import {
 	initCollectionPayload,
 } from "@/modules/product/collection/init"
 import {
-	getCreateCollectionMutationOptions,
+	createProductCollection,
 	getProductCollectionQueryOptions,
-	getUpdateCollectionMutationOptions,
+	productCollectionKeys,
+	updateProductCollection,
 } from "@/modules/product/collection/actions"
 import { productCollectionSchema } from "@/modules/product/collection/schema"
 import { Button } from "@workspace/ui/components/button"
@@ -76,18 +77,19 @@ export default function EditCollectionPage() {
 	}, [collection, form, isEdit])
 
 	const { isPending: isUpdating, mutate: updateCollection } = useMutation({
-		...getUpdateCollectionMutationOptions({
-			collectionId,
-			queryClient,
-			onSuccess: () => router.back(),
-		}),
+		mutationFn: updateProductCollection,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: productCollectionKeys.all })
+			router.push('/products/collections')
+		},
 	})
 
 	const { isPending: isCreating, mutate: createCollection } = useMutation({
-		...getCreateCollectionMutationOptions({
-			queryClient,
-			onSuccess: () => router.back(),
-		}),
+		mutationFn: createProductCollection,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: productCollectionKeys.all })
+			router.push('/products/collections')
+		},
 	})
 
 	const handleSubmit = React.useCallback(
