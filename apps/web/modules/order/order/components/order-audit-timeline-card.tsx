@@ -1,4 +1,5 @@
-import type { OrderAuditEventModel } from "@/modules/order/order/model"
+import type { AdminOrderTimelineEvent } from "@/modules/order/order/types"
+import { formatOrderDateTime } from "@/modules/order/order/utils"
 import {
   Card,
   CardContent,
@@ -8,17 +9,17 @@ import {
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
 interface OrderAuditTimelineCardProps {
-  events?: OrderAuditEventModel[]
+  events?: AdminOrderTimelineEvent[]
   isLoading?: boolean
 }
 
 interface OrderAuditTimelineRowProps {
-  event?: OrderAuditEventModel
+  event?: AdminOrderTimelineEvent
   isLast?: boolean
   isLoading: boolean
 }
 
-const MOCK_EVENTS: OrderAuditEventModel[] = [
+const MOCK_EVENTS: AdminOrderTimelineEvent[] = [
   {
     id: "audit-mock-1",
     timestampLabel: "10:45AM",
@@ -67,15 +68,18 @@ function OrderAuditTimelineRow({
             <div className="flex justify-between w-full">
               <div>
                 <p className="text-text text-lg font-semibold">
-                  {event?.title}
+                  {event?.title ?? event?.eventType ?? "تحديث الطلب"}
                 </p>
                 <p className="text-sm leading-6 text-gray-500">
-                  {event?.description}
+                  {event?.description ?? event?.details ?? "لا يوجد وصف إضافي."}
                 </p>
               </div>
 
               <div className="min-w-20 pt-1 text-xs text-gray-500">
-                {hasData ? event?.timestampLabel : "10:45AM"}
+                {hasData
+                  ? event?.timestampLabel ??
+                    formatOrderDateTime(event?.createdAt ?? event?.occurredAt)
+                  : "10:45AM"}
               </div>
             </div>
           </>

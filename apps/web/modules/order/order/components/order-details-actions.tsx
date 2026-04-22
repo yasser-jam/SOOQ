@@ -1,56 +1,64 @@
 "use client"
 
-import { useState } from "react"
-import { CircleCheck, PenLine, Router } from "lucide-react"
-
-import { Button } from "@workspace/ui/components/button"
-import OrderEditDialog from "./order-edit-dialog"
+import { CircleCheck, PenLine, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
+
+import type { OrderStatus } from "@/modules/order/order/types"
+import { Button } from "@workspace/ui/components/button"
 
 interface OrderDetailsActionsProps {
   orderId: string
+  status?: OrderStatus
 }
 
 export default function OrderDetailsActions({
   orderId,
+  status,
 }: OrderDetailsActionsProps) {
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-
   const router = useRouter()
 
   return (
-    <>
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        <Button type="button" size="md" variant="outline" onClick={() => router.push('/orders/${orderId}/returns')}>
-          رد الأموال
-        </Button>
+    <div className="flex flex-wrap items-center justify-end gap-3">
+      <Button
+        type="button"
+        size="md"
+        variant="outline"
+        onClick={() => router.push(`/orders/${orderId}/returns`)}
+      >
+        رد الأموال
+      </Button>
 
-        <Button
-          type="button"
-          size="md"
-          variant="outline"
-          onClick={() => setIsEditDialogOpen(true)}
-        >
-          تعديل الطلب
-          <PenLine data-icon="inline-end" />
-        </Button>
+      <Button
+        type="button"
+        size="md"
+        variant="outline"
+        onClick={() => router.push(`/orders/${orderId}/edit`)}
+      >
+        تعديل الطلب
+        <PenLine data-icon="inline-end" />
+      </Button>
 
+      <Button
+        type="button"
+        size="md"
+        variant="outline"
+        onClick={() => router.push(`/orders/${orderId}/transition`)}
+      >
+        تغيير الحالة
+        <CircleCheck data-icon="inline-end" />
+      </Button>
+
+      {status !== "CANCELLED" ? (
         <Button
           type="button"
           size="md"
           variant="secondary"
-          aria-label={`طباعة فاتورة الطلب ${orderId}`}
+          onClick={() => router.push(`/orders/${orderId}/cancel`)}
         >
-          طباعة فاتورة
-          <CircleCheck data-icon="inline-end" />
+          إلغاء الطلب
+          <XCircle data-icon="inline-end" />
         </Button>
-      </div>
-
-      <OrderEditDialog
-        orderId={orderId}
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-      />
-    </>
+      ) : null}
+    </div>
   )
 }

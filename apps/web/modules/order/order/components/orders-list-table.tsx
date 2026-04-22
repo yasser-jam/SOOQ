@@ -2,63 +2,77 @@
 
 import * as React from "react"
 import { ColumnDef } from "@tanstack/react-table"
+import { useQuery } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 
 import DataTable from "@/components/system/table"
 import TableActions from "@/components/system/table-actions"
-import type { OrderListItemModel } from "@/modules/order/order/model"
+import { listAdminOrders } from "@/modules/order/order/actions"
 import { ORDER_LIST_STATUS_META } from "@/modules/order/order/model"
+import { orderQueryKeys } from "@/modules/order/order/queryKeys"
+import type { AdminOrderListItem, OrderStatus } from "@/modules/order/order/types"
+import { formatOrderDate, getOrderCustomerName } from "@/modules/order/order/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
-const MOCK_ORDERS: OrderListItemModel[] = [
-  {
-    id: "ord-1001",
-    orderNumber: "ORD-1001",
-    client: { name: "محمد الأحمد", avatarUrl: "https://i.pravatar.cc/80?img=12" },
-    dateLabel: "20-04-2026",
-    status: "NEW",
-  },
-  {
-    id: "ord-1002",
-    orderNumber: "ORD-1002",
-    client: { name: "سارة الخطيب", avatarUrl: "https://i.pravatar.cc/80?img=12" },
-    dateLabel: "19-04-2026",
-    status: "PROCESSING",
-  },
-  {
-    id: "ord-1003",
-    orderNumber: "ORD-1003",
-    client: { name: "ليث الحمد", avatarUrl: "https://i.pravatar.cc/80?img=12" },
-    dateLabel: "18-04-2026",
-    status: "DELIVERED",
-  },
-  {
-    id: "ord-1004",
-    orderNumber: "ORD-1004",
-    client: { name: "ملاك ياسين", avatarUrl: "https://i.pravatar.cc/80?img=12" },
-    dateLabel: "17-04-2026",
-    status: "RETURN_REQUESTED",
-  },
-  {
-    id: "ord-1005",
-    orderNumber: "ORD-1005",
-    client: { name: "خالد ناصر", avatarUrl: "https://i.pravatar.cc/80?img=12" },
-    dateLabel: "16-04-2026",
-    status: "PROCESSING",
-  },
-]
+interface OrdersListTableProps {
+  status?: OrderStatus
+}
 
-export default function OrdersListTable() {
+export default function OrdersListTable({
+  status,
+}: OrdersListTableProps) {
   const router = useRouter()
+  const pageSize = 10
+  const [pageIndex, setPageIndex] = React.useState(0)
 
-  const columns: ColumnDef<OrderListItemModel>[] = [
+  React.useEffect(() => {
+    setPageIndex(0)
+  }, [status])
+
+  const { data, isPending } = useQuery({
+    queryKey: orderQueryKeys.list({
+      page: pageIndex,
+      size: pageSize,
+      sort: "placedAt,desc",
+      status,
+    }),
+    queryFn: () =>
+      listAdminOrders({
+        page: pageIndex,
+        size: pageSize,
+        sort: "placedAt,desc",
+        status,
+      }),
+  })
+
+  const columns: ColumnDef<AdminOrderListItem>[] = [
     {
       accessorKey: "orderNumber",
       header: "رقم الطلب",
       enableSorting: true,
       cell: ({ row }) => (
-        <span className="font-medium text-foreground">{row.original.orderNumber}</span>
+        <span className="font-medium text-foreground">
+          {row.original.orderNumber ?? row.original.orderId ?? row.original.id}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "الحالة",
+      enableSorting: true,
+      cell: ({ row }) => {
+        const statusMeta = ORDER_LIST_STATUS_META[row.original.status]
+
+        return <Badge variant={statusMeta.badgeVariant}>{statusMeta.label}</Badge>
+      },
+    },
+    {
+      accessorKey: "placedAt",
+      header: "التاريخ",
+      enableSorting: true,
+      cell: ({ row }) => (
+        <span>{formatOrderDate(row.original.placedAt ?? row.original.createdAt)}</span>
       ),
     },
     {
@@ -66,32 +80,19 @@ export default function OrdersListTable() {
       header: "العميل",
       enableSorting: false,
       cell: ({ row }) => {
-        const client = row.original.client
+        const clientName = getOrderCustomerName(row.original)
+        const avatarUrl =
+          row.original.customerAvatarUrl ?? row.original.customer?.avatarUrl
 
         return (
           <div className="flex items-center gap-3">
             <Avatar>
-              <AvatarImage src={client.avatarUrl ?? undefined} alt={client.name} />
-              <AvatarFallback>{client.name.slice(0, 2)}</AvatarFallback>
+              <AvatarImage src={avatarUrl ?? undefined} alt={clientName} />
+              <AvatarFallback>{clientName.slice(0, 2)}</AvatarFallback>
             </Avatar>
-            <span>{client.name}</span>
+            <span>{clientName}</span>
           </div>
         )
-      },
-    },
-    {
-      accessorKey: "dateLabel",
-      header: "التاريخ",
-      enableSorting: true,
-    },
-    {
-      accessorKey: "status",
-      header: "الحالة",
-      enableSorting: true,
-      cell: ({ row }) => {
-        const status = ORDER_LIST_STATUS_META[row.original.status]
-
-        return <Badge variant={status.badgeVariant}>{status.label}</Badge>
       },
     },
     {
@@ -99,7 +100,8 @@ export default function OrdersListTable() {
       header: () => <div></div>,
       enableSorting: false,
       cell: ({ row }) => {
-        const orderId = row.original.id
+        const orderId =
+          row.original.id ?? row.original.orderId ?? row.original.orderNumber ?? ""
 
         return (
           <TableActions
@@ -113,25 +115,15 @@ export default function OrdersListTable() {
     },
   ]
 
-  const pageSize = 10
-  const [pageIndex, setPageIndex] = React.useState(0)
-  const totalCount = MOCK_ORDERS.length
-  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize))
-
-  React.useEffect(() => {
-    setPageIndex((current) => Math.min(current, pageCount - 1))
-  }, [pageCount])
-
-  const pagedOrders = React.useMemo(() => {
-    const start = pageIndex * pageSize
-    return MOCK_ORDERS.slice(start, start + pageSize)
-  }, [pageIndex, pageSize])
+  const pageCount = Math.max(1, data?.totalPages ?? 1)
+  const orders = data?.content ?? data?.items ?? []
 
   return (
     <div className="w-full overflow-hidden rounded-lg border bg-white">
       <DataTable
         columns={columns}
-        data={pagedOrders}
+        isLoading={isPending}
+        data={orders}
         pagination={{ pageIndex, pageSize, pageCount }}
         onPageChange={setPageIndex}
       />

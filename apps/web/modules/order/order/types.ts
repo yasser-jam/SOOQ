@@ -121,11 +121,14 @@ export interface AdminOrder {
 	customerName?: string
 	guestName?: string
 	customer?: AdminOrderCustomer | null
+	shippingAddress?: AdminOrderShippingAddress | null
 	items?: AdminOrderItem[]
 	pricing?: AdminOrderPricing | null
 	timeline?: AdminOrderTimelineEvent[]
 	auditTrail?: AdminOrderTimelineEvent[]
 	notes?: AdminOrderNote[]
+	notesInternal?: string | null
+	notesCustomer?: string | null
 }
 
 export interface AdminOrdersSummary {

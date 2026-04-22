@@ -1,12 +1,17 @@
 "use client"
 
 import * as React from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { SendHorizontal } from "lucide-react"
 
-import type {
-  OrderNoteModel,
-  OrderNotesModel,
-} from "@/modules/order/order/model"
+import { updateAdminOrderNotes } from "@/modules/order/order/actions"
+import { initOrderNotes } from "@/modules/order/order/init"
+import { orderQueryKeys } from "@/modules/order/order/queryKeys"
+import type { AdminOrder, AdminOrderNote } from "@/modules/order/order/types"
+import {
+  formatOrderDateTime,
+  getOrderNotesByChannel,
+} from "@/modules/order/order/utils"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -17,7 +22,9 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea"
 
 interface OrderInternalNotesCardProps {
-  notes?: OrderNotesModel
+  orderId: string
+  order?: AdminOrder
+  isLoading?: boolean
 }
 
 type NoteTone = "primary" | "secondary"
@@ -86,9 +93,7 @@ function MockNoteCard({ note }: { note: MockNoteCardModel }) {
           <p className={`text-base font-semibold ${toneClasses.title}`}>
             {note.title}
           </p>
-          <p className={`text-sm leading-7 text-gray-500`}>
-            {note.description}
-          </p>
+          <p className="text-sm leading-7 text-gray-500">{note.description}</p>
         </div>
         <p className="shrink-0 text-xs text-gray-400">{note.timingLabel}</p>
       </div>
@@ -96,31 +101,72 @@ function MockNoteCard({ note }: { note: MockNoteCardModel }) {
   )
 }
 
-function NoteCard({ note }: { note: OrderNoteModel }) {
+function OrderNoteCard({ note }: { note: AdminOrderNote }) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/35 p-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-text text-lg font-semibold">{note.authorRole}</p>
-        <p className="text-sm text-muted-foreground">{note.timestampLabel}</p>
+        <p className="text-text text-lg font-semibold">
+          {note.authorRole ?? note.authorName ?? "النظام"}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {note.timestampLabel ??
+            formatOrderDateTime(note.createdAt ?? note.updatedAt) ??
+            "—"}
+        </p>
       </div>
-      <p className="text-text-secondary text-base leading-7">{note.body}</p>
+      <p className="text-text-secondary text-base leading-7">
+        {note.body ?? note.message}
+      </p>
     </div>
   )
 }
 
 export default function OrderInternalNotesCard({
-  notes,
+  orderId,
+  order,
+  isLoading = false,
 }: OrderInternalNotesCardProps) {
+  const queryClient = useQueryClient()
   const [activeChannel, setActiveChannel] = React.useState<
     "INTERNAL" | "CUSTOMER"
   >("INTERNAL")
+  const [drafts, setDrafts] = React.useState({
+    INTERNAL: "",
+    CUSTOMER: "",
+  })
+
+  React.useEffect(() => {
+    setDrafts({
+      INTERNAL: order?.notesInternal ?? "",
+      CUSTOMER: order?.notesCustomer ?? "",
+    })
+  }, [order?.notesCustomer, order?.notesInternal])
+
+  const { mutate: saveNotes, isPending } = useMutation({
+    mutationFn: updateAdminOrderNotes,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderQueryKeys.detail(orderId) })
+    },
+  })
 
   const activeNotes =
     activeChannel === "INTERNAL"
-      ? (notes?.internalNotes ?? [])
-      : (notes?.customerVisibleNotes ?? [])
-
+      ? getOrderNotesByChannel(order?.notes, "INTERNAL")
+      : getOrderNotesByChannel(order?.notes, "CUSTOMER")
+  const currentText =
+    activeChannel === "INTERNAL" ? drafts.INTERNAL : drafts.CUSTOMER
   const mockNotes = MOCK_NOTES_BY_CHANNEL[activeChannel]
+
+  const handleSubmit = () => {
+    saveNotes(
+      initOrderNotes(orderId, {
+        notesInternal:
+          activeChannel === "INTERNAL" ? drafts.INTERNAL.trim() : undefined,
+        notesCustomer:
+          activeChannel === "CUSTOMER" ? drafts.CUSTOMER.trim() : undefined,
+      })
+    )
+  }
 
   return (
     <Card className="h-full gap-6 py-6">
@@ -150,8 +196,19 @@ export default function OrderInternalNotesCard({
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-3">
+          {!isLoading && currentText ? (
+            <div className="rounded-2xl border border-border bg-background p-4 text-base leading-7 text-text-secondary">
+              {currentText}
+            </div>
+          ) : null}
+
           {activeNotes.length ? (
-            activeNotes.map((note) => <NoteCard key={note.id} note={note} />)
+            activeNotes.map((note) => (
+              <OrderNoteCard
+                key={note.id ?? note.noteId ?? note.createdAt}
+                note={note}
+              />
+            ))
           ) : (
             <>
               {mockNotes.map((mockNote) => (
@@ -162,12 +219,25 @@ export default function OrderInternalNotesCard({
         </div>
 
         <div className="relative">
-          <Textarea placeholder="اكتب ملاحظة..." className="min-h-24" />
+          <Textarea
+            placeholder="اكتب ملاحظة..."
+            className="min-h-24"
+            value={currentText}
+            onChange={(event) =>
+              setDrafts((current) => ({
+                ...current,
+                [activeChannel]: event.target.value,
+              }))
+            }
+            disabled={isLoading || isPending}
+          />
           <Button
             type="button"
             size="icon"
             variant="secondary"
             className="absolute bottom-3 left-3 rotate-180"
+            onClick={handleSubmit}
+            disabled={isLoading || isPending}
           >
             <SendHorizontal />
           </Button>

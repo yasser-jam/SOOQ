@@ -1,9 +1,7 @@
 import { Package } from "lucide-react"
 
-import type {
-  OrderLineItemModel,
-  OrderPricingModel,
-} from "@/modules/order/order/model"
+import type { AdminOrderItem, AdminOrderPricing } from "@/modules/order/order/types"
+import { formatOrderMoney } from "@/modules/order/order/utils"
 import {
   Avatar,
   AvatarFallback,
@@ -20,48 +18,23 @@ import { Separator } from "@workspace/ui/components/separator"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
 interface OrderSummaryCardProps {
-  items?: OrderLineItemModel[]
-  pricing?: OrderPricingModel
+  items?: AdminOrderItem[]
+  pricing?: AdminOrderPricing | null
+  currencyCode?: string
   isLoading?: boolean
-}
-
-const DUMMY_ITEMS: OrderLineItemModel[] = [
-  {
-    id: "dummy-item-1",
-    title: "قميص قطني كلاسيكي",
-    sku: "SHIRT-001",
-    quantity: 1,
-    priceLabel: "120 ر.س",
-    inventoryLabel: "متوفر",
-    thumbnailUrl: null,
-  },
-  {
-    id: "dummy-item-2",
-    title: "حقيبة يد يومية",
-    sku: "BAG-204",
-    quantity: 1,
-    priceLabel: "95 ر.س",
-    inventoryLabel: "مخزون منخفض",
-    thumbnailUrl: null,
-  },
-]
-
-const DUMMY_PRICING: OrderPricingModel = {
-  subtotalLabel: "215 ر.س",
-  logisticsAndTaxesLabel: "25 ر.س",
-  totalLabel: "240 ر.س",
 }
 
 export function OrderLineItemRow({
   item,
   isLoading,
 }: {
-  item?: OrderLineItemModel
+  item?: AdminOrderItem
   isLoading: boolean
 }) {
-  const itemTitle = item?.title ?? "عنصر الطلب"
-  const itemSkuLabel = item ? `SKU: ${item.sku}` : "SKU: —"
-  const inventoryLabel = item?.inventoryLabel ?? "غير محدد"
+  const itemTitle =
+    item?.title ?? item?.productTitle ?? item?.variantTitle ?? "عنصر الطلب"
+  const itemSkuLabel = item ? `SKU: ${item.sku ?? item.variantSku ?? "—"}` : "SKU: —"
+  const inventoryLabel = item?.inventoryLabel ?? item?.inventoryStatus ?? "غير محدد"
   const priceLabel = item?.priceLabel
 
   return (
@@ -71,7 +44,7 @@ export function OrderLineItemRow({
           <Avatar className="size-20 rounded-xl">
             {item?.thumbnailUrl ? (
               <AvatarImage
-                src={item.thumbnailUrl}
+                src={item.thumbnailUrl ?? item.imageUrl ?? undefined}
                 alt={item.title}
                 className="rounded-xl"
               />
@@ -133,15 +106,14 @@ function SummaryValue({
 export default function OrderSummaryCard({
   items,
   pricing,
+  currencyCode,
   isLoading = false,
 }: OrderSummaryCardProps) {
-  const hasItems = Boolean(items?.length)
   const resolvedItems = isLoading
     ? Array.from({ length: 2 }, () => undefined)
-    : hasItems
-      ? items
-      : DUMMY_ITEMS
-  const resolvedPricing = pricing ?? DUMMY_PRICING
+    : (items ?? [])
+  const logisticsAndTaxes =
+    (pricing?.shippingCost ?? 0) + (pricing?.taxAmount ?? 0)
   const itemsCount = isLoading ? 0 : resolvedItems?.length ?? 0
 
   return (
@@ -159,11 +131,17 @@ export default function OrderSummaryCard({
       <CardContent className="flex flex-col gap-4">
         {resolvedItems?.map((item, index) => (
           <OrderLineItemRow
-            key={item?.id ?? `placeholder-${index}`}
+            key={item?.id ?? item?.orderItemId ?? `placeholder-${index}`}
             item={item}
             isLoading={isLoading}
           />
         ))}
+
+        {!isLoading && resolvedItems.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-6 text-center text-muted-foreground">
+            لا توجد عناصر ضمن هذا الطلب.
+          </div>
+        ) : null}
 
         <Separator className="my-2" />
 
@@ -173,7 +151,10 @@ export default function OrderSummaryCard({
               المجموع الفرعي
             </span>
             <SummaryValue
-              value={resolvedPricing.subtotalLabel}
+              value={
+                pricing?.subtotalLabel ??
+                formatOrderMoney(pricing?.subtotal, pricing?.currencyCode ?? currencyCode)
+              }
               isLoading={isLoading}
             />
           </div>
@@ -183,7 +164,10 @@ export default function OrderSummaryCard({
               الخدمات اللوجستية والضرائب
             </span>
             <SummaryValue
-              value={resolvedPricing.logisticsAndTaxesLabel}
+              value={
+                pricing?.logisticsAndTaxesLabel ??
+                formatOrderMoney(logisticsAndTaxes, pricing?.currencyCode ?? currencyCode)
+              }
               isLoading={isLoading}
             />
           </div>
@@ -194,7 +178,11 @@ export default function OrderSummaryCard({
             </span>
             {!isLoading ? (
               <span className="text-xl font-bold text-secondary">
-                {resolvedPricing.totalLabel}
+                {pricing?.totalLabel ??
+                  (formatOrderMoney(
+                    pricing?.total,
+                    pricing?.currencyCode ?? currencyCode
+                  ) || "—")}
               </span>
             ) : (
               <Skeleton className="h-8 w-36" />

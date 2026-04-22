@@ -2,9 +2,9 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { AlertTriangle, CheckCheck, ChevronLeft, StopCircle } from "lucide-react"
+import { AlertTriangle, CheckCheck, ChevronLeft } from "lucide-react"
 
-import type { OrderLineItemModel } from "@/modules/order/order/model"
+import type { AdminOrderItem } from "@/modules/order/order/types"
 import { OrderLineItemRow } from "@/modules/order/order/components/order-summary-card"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -21,7 +21,7 @@ interface OrderReturnsPageViewProps {
   orderId: string
 }
 
-const RETURN_ITEM: OrderLineItemModel = {
+const RETURN_ITEM: AdminOrderItem = {
   id: "return-item-1",
   title: "الطلب",
   sku: "WR-990-BLK",

@@ -1,12 +1,16 @@
 import {
   AtSign,
   ChevronLeft,
-  ChevronRight,
   Phone,
   UserRound,
 } from "lucide-react"
 
-import type { OrderCustomerModel } from "@/modules/order/order/model"
+import type { AdminOrder } from "@/modules/order/order/types"
+import {
+  formatOrderDate,
+  getOrderCustomerName,
+  getOrderShippingAddress,
+} from "@/modules/order/order/utils"
 import {
   Avatar,
   AvatarFallback,
@@ -22,7 +26,8 @@ import {
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
 interface OrderCustomerCardProps {
-  customer?: OrderCustomerModel
+  order?: AdminOrder
+  isLoading?: boolean
 }
 
 function DataValue({ value }: { value?: string }) {
@@ -42,8 +47,12 @@ function DataLabel({ value, fallback }: { value?: string; fallback: string }) {
 }
 
 export default function OrderCustomerCard({
-  customer,
+  order,
+  isLoading = false,
 }: OrderCustomerCardProps) {
+  const customer = order?.customer
+  const shippingAddress = getOrderShippingAddress(order)
+
   return (
     <Card className="h-full gap-6 rounded-3xl py-6">
       <CardHeader className="pb-0">
@@ -64,10 +73,10 @@ export default function OrderCustomerCard({
       <CardContent className="flex flex-col gap-6">
         <div className="flex items-center justify-between gap-4">
           <Avatar className="border-text/70 size-22 border-[2px] bg-muted">
-            {customer?.avatarUrl ? (
+            {customer?.avatarUrl && !isLoading ? (
               <AvatarImage
                 src={customer.avatarUrl}
-                alt={customer.name ?? "صورة العميل"}
+                alt={getOrderCustomerName(customer)}
               />
             ) : null}
             <AvatarFallback className="bg-muted text-muted-foreground/95">
@@ -76,8 +85,14 @@ export default function OrderCustomerCard({
           </Avatar>
 
           <div className="flex flex-1 flex-col gap-2">
-            <DataLabel value={customer?.name} fallback="اسم الوسيط" />
-            <div className="text-gray-500">12/4/2004</div>
+            <DataLabel value={getOrderCustomerName(customer)} fallback="اسم العميل" />
+            <div className="text-gray-500">
+              {isLoading ? (
+                <Skeleton className="h-5 w-32" />
+              ) : (
+                formatOrderDate(customer?.createdAt ?? customer?.joinedAt) || "—"
+              )}
+            </div>
           </div>
         </div>
 
@@ -86,12 +101,12 @@ export default function OrderCustomerCard({
           <div className="flex flex-col gap-2">
             <div className="flex items-center">
               <Phone className="me-2 size-4 text-muted-foreground" />
-              <DataValue value={"+963993544711"} />
+              <DataValue value={isLoading ? undefined : customer?.phone ?? undefined} />
             </div>
 
             <div className="flex items-center">
               <AtSign className="me-2 size-4 text-muted-foreground" />
-              <DataValue value={"customer@example.com"} />
+              <DataValue value={isLoading ? undefined : customer?.email ?? undefined} />
             </div>
           </div>
         </section>
@@ -99,9 +114,17 @@ export default function OrderCustomerCard({
         <section className="flex flex-col gap-4 rounded-3xl bg-secondary/20 p-5">
           <h3 className="text-text text-xl">عنوان الشحن</h3>
           <div className="flex flex-col gap-2">
-            <DataValue value={"دمشق"} />
-            <DataValue value={"الزاهرة القديمة"} />
-            <DataValue value={"بجوار مدرسة الزاهرة القديمة - أمام الموقف"} />
+            <DataValue value={isLoading ? undefined : shippingAddress?.city ?? undefined} />
+            <DataValue
+              value={isLoading ? undefined : shippingAddress?.district ?? undefined}
+            />
+            <DataValue
+              value={
+                isLoading
+                  ? undefined
+                  : shippingAddress?.details ?? shippingAddress?.street ?? undefined
+              }
+            />
           </div>
         </section>
       </CardContent>

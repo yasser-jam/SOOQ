@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import {
   ArrowDown,
   ArrowUp,
@@ -11,7 +12,10 @@ import {
 } from "lucide-react"
 
 import FilterMenu from "@/components/system/filter-menu"
+import { getAdminOrdersSummary } from "@/modules/order/order/actions"
 import OrdersListTable from "@/modules/order/order/components/orders-list-table"
+import { orderQueryKeys } from "@/modules/order/order/queryKeys"
+import { formatOrderMoney } from "@/modules/order/order/utils"
 import { Button } from "@workspace/ui/components/button"
 import {
   Field,
@@ -24,54 +28,62 @@ import { cn } from "@workspace/ui/lib/utils"
 
 type OrdersTab = "orders" | "returns"
 
-const STAT_CARDS = [
-  {
-    id: "total-orders",
-    title: "إجمالي الطلبات",
-    value: "2,451",
-    borderClassName: "border-s-4 border-s-secondary",
-    iconClassName: "text-secondary/15",
-    Icon: Package,
-    hasTrendArrows: true,
-  },
-  {
-    id: "returns",
-    title: "طلبات الإرجاع",
-    value: "128",
-    borderClassName: "border-s-4 border-s-destructive",
-    iconClassName: "text-destructive/15",
-    Icon: RotateCcw,
-    hasTrendArrows: false,
-  },
-  {
-    id: "in-delivery",
-    title: "قيد التوصيل",
-    value: "342",
-    borderClassName: "border-s-4 border-s-primary",
-    iconClassName: "text-primary/15",
-    Icon: Truck,
-    hasTrendArrows: false,
-  },
-  {
-    id: "revenue",
-    title: "إجمالي الإيرادات",
-    value: "18,350,000",
-    borderClassName: "border-s-4 border-s-emerald-500",
-    iconClassName: "text-emerald-500/15",
-    Icon: Wallet,
-    hasTrendArrows: false,
-  },
-] as const
-
 export default function OrdersPageView() {
   const [activeTab, setActiveTab] = useState<OrdersTab>("orders")
+  const { data: summary } = useQuery({
+    queryKey: orderQueryKeys.summary(),
+    queryFn: getAdminOrdersSummary,
+  })
+
+  const statCards = [
+    {
+      id: "total-orders",
+      title: "إجمالي الطلبات",
+      value: summary?.totalOrders?.toLocaleString("en-US") ?? "0",
+      borderClassName: "border-s-4 border-s-secondary",
+      iconClassName: "text-secondary/15",
+      Icon: Package,
+      hasTrendArrows: true,
+    },
+    {
+      id: "returns",
+      title: "طلبات الإرجاع",
+      value: summary?.returnsCount?.toLocaleString("en-US") ?? "0",
+      borderClassName: "border-s-4 border-s-destructive",
+      iconClassName: "text-destructive/15",
+      Icon: RotateCcw,
+      hasTrendArrows: false,
+    },
+    {
+      id: "in-delivery",
+      title: "قيد التوصيل",
+      value: summary?.inDeliveryCount?.toLocaleString("en-US") ?? "0",
+      borderClassName: "border-s-4 border-s-primary",
+      iconClassName: "text-primary/15",
+      Icon: Truck,
+      hasTrendArrows: false,
+    },
+    {
+      id: "revenue",
+      title: "إجمالي الإيرادات",
+      value:
+        formatOrderMoney(
+          summary?.totalRevenue ?? summary?.revenue,
+          summary?.currencyCode ?? "SYP"
+        ) || "0",
+      borderClassName: "border-s-4 border-s-emerald-500",
+      iconClassName: "text-emerald-500/15",
+      Icon: Wallet,
+      hasTrendArrows: false,
+    },
+  ] as const
 
   return (
     <div className="container my-6 flex flex-col gap-6">
       <div className="page-title">قائمة الطلبات</div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {STAT_CARDS.map((card) => {
+        {statCards.map((card) => {
           const Icon = card.Icon
 
           return (
@@ -171,7 +183,10 @@ export default function OrdersPageView() {
           </FilterMenu>
         </div>
 
-        <OrdersListTable key={activeTab} />
+        <OrdersListTable
+          key={activeTab}
+          status={activeTab === "returns" ? "RETURN_REQUESTED" : undefined}
+        />
       </div>
     </div>
   )
