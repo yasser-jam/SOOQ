@@ -24,13 +24,18 @@ import {
 	SelectValue,
 } from "@workspace/ui/components/select"
 
-import { listProductCategories, productCategoryKeys } from "../actions"
+import {
+	getProductCategory,
+	listProductCategories,
+	productCategoryKeys,
+} from "../actions"
 
 type ProductCategorySelectProps<T extends FieldValues> = {
 	name: FieldPath<T>
 	control: Control<T>
 	label: string
 	placeholder?: string
+	initialValue?: string | null
 	excludedCategoryIds?: Array<string | null | undefined>
 	disabled?: boolean
 	emptyLabel?: string
@@ -43,25 +48,42 @@ export default function ProductCategorySelect<T extends FieldValues>({
 	control,
 	label,
 	placeholder = "اختر الفئة الأم",
+	initialValue,
 	excludedCategoryIds = [],
 	disabled,
 	emptyLabel = "بدون",
 }: ProductCategorySelectProps<T>) {
 	const fieldId = String(name)
-	const { data: categories, isPending } = useQuery({
+	const initialCategoryId = initialValue?.trim() ?? ""
+	const hasInitialValue = initialCategoryId.length > 0
+
+	const { data: categories, isPending: isPendingCategories } = useQuery({
 		queryKey: productCategoryKeys.all,
 		queryFn: listProductCategories,
+		enabled: !hasInitialValue,
 	})
+
+	const { data: initialCategory, isPending: isPendingInitialCategory } = useQuery({
+		queryKey: productCategoryKeys.detail(initialCategoryId),
+		queryFn: () => getProductCategory(initialCategoryId),
+		enabled: hasInitialValue,
+	})
+
+	const isPending = hasInitialValue ? isPendingInitialCategory : isPendingCategories
+	const isFieldLocked = hasInitialValue
 
 	const excludedIds = useMemo(
 		() => new Set(excludedCategoryIds.filter(Boolean)),
 		[excludedCategoryIds]
 	)
 
-	const availableCategories = useMemo(
-		() => (categories ?? []).filter((category) => !excludedIds.has(category.id ?? "")),
-		[categories, excludedIds]
-	)
+	const availableCategories = useMemo(() => {
+		if (hasInitialValue) {
+			return initialCategory ? [initialCategory] : []
+		}
+
+		return (categories ?? []).filter((category) => !excludedIds.has(category.id ?? ""))
+	}, [categories, excludedIds, hasInitialValue, initialCategory])
 
 	return (
 		<Controller
@@ -71,16 +93,16 @@ export default function ProductCategorySelect<T extends FieldValues>({
 				<UiField data-invalid={fieldState.invalid}>
 					<FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
 					<Select
-						value={field.value ?? EMPTY_VALUE}
+						value={isFieldLocked ? initialCategoryId : (field.value ?? EMPTY_VALUE)}
 						onValueChange={(value) => field.onChange(value === EMPTY_VALUE ? null : value)}
-						disabled={disabled || isPending}
+						disabled={disabled || isPending || isFieldLocked}
 					>
 						<SelectTrigger id={fieldId} className="h-11 w-full">
 							<SelectValue placeholder={placeholder} />
 						</SelectTrigger>
 						<SelectContent>
 							<SelectGroup>
-								<SelectItem value={EMPTY_VALUE}>{emptyLabel}</SelectItem>
+								{!isFieldLocked ? <SelectItem value={EMPTY_VALUE}>{emptyLabel}</SelectItem> : null}
 								{isPending ? (
 									<SelectItem value="__loading__" disabled>
 										<span className="inline-flex items-center gap-2">
@@ -91,7 +113,7 @@ export default function ProductCategorySelect<T extends FieldValues>({
 								) : (
 									availableCategories.map((category) => (
 										<SelectItem key={category.id} value={category.id ?? ""}>
-											{category.nameEn}
+											{category.nameAr}
 										</SelectItem>
 									))
 								)}

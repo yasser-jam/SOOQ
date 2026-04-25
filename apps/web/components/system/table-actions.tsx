@@ -21,6 +21,8 @@ export default function TableActions({
 
   return (
     <div className="flex items-center justify-end gap-2">
+      {children}
+
       <Button
         variant="primary"
         className="rounded-lg"
@@ -51,8 +53,6 @@ export default function TableActions({
         onAction={onDelete}
         icon={<Trash2Icon data-icon="inline-start" />}
       />
-
-      {children}
     </div>
   )
 }
