@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Package,
   Palette,
+  ShoppingBag,
   Truck,
   Users,
 } from "lucide-react"
@@ -58,6 +59,11 @@ const navItems: readonly NavItem[] = [
       { title: "الوسوم", url: "/products/tags" },
       { title: "الفئات", url: "/products/categories" },
     ],
+  },
+  {
+    title: "الطلبات",
+    url: "/orders",
+    icon: ShoppingBag,
   },
   {
     title: "الخدمات اللوجستية",
