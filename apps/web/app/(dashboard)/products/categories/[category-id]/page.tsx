@@ -163,8 +163,8 @@ export default function EditCategoryPage() {
           control={form.control}
           label="معرف الفئة الأم"
           placeholder="اختر الفئة الأم"
-          disabled={isSubmitting}
-		  initialValue={parentId || (isEdit ? category?.parentCategoryId : "")}
+          disabled={isSubmitting || isEdit}
+          initialValue={parentId}
           excludedCategoryIds={isEdit ? [categoryId] : []}
         />
 
