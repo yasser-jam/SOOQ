@@ -12,105 +12,7 @@ export type Product = z.infer<typeof productSchema>
 export type ProductOption = z.infer<typeof productOptionSchema>
 export type ProductOptionValue = z.infer<typeof productOptionValueSchema>
 
-export interface AdminProductVariantOverride {
-	sku?: string
-	price?: number
-	stockQty?: number
-	isActive?: boolean
-}
-
-export type AdminProductVariantOverrides = Record<
-	string,
-	AdminProductVariantOverride
->
-
-export type AdminProductInclude = "PRICING" | "IMAGES" | "INVENTORY"
-
-export interface AdminProductImage {
-	id?: string
-	mediaAssetId?: string
-	url?: string
-	alt?: string | null
-	altText?: string | null
-	isPrimary?: boolean
-	sortOrder?: number
-	createdAt?: string
-	updatedAt?: string
-}
-
-export interface AdminProductPricing {
-	basePrice?: number
-	compareAtPrice?: number | null
-	currencyCode?: string
-	priceRangeMin?: number
-	priceRangeMax?: number
-}
-
-export interface AdminProductInventory {
-	totalStockQty?: number
-	availableStockQty?: number
-	reservedStockQty?: number
-	lowStockThreshold?: number
-	inStock?: boolean
-}
-
-export interface AdminProductListItem {
-	id?: string
-	productId?: string
-	titleAr?: string
-	titleEn?: string
-	slug?: string
-	status?: ProductStatus
-	basePrice?: number
-	compareAtPrice?: number | null
-	currencyCode?: string
-	allowOversell?: boolean
-	thumbnailUrl?: string | null
-	imageUrl?: string | null
-	defaultCategoryId?: string | null
-	categoryIds?: string[]
-	tagIds?: string[]
-	createdAt?: string
-	updatedAt?: string
-	pricing?: AdminProductPricing | null
-	inventory?: AdminProductInventory | null
-}
-
-export interface AdminProduct extends AdminProductListItem {
-	descriptionAr?: string
-	descriptionEn?: string
-	seoTitle?: string
-	seoDescription?: string
-	mediaUrls?: string[]
-	options?: ProductOption[]
-	variantOverrides?: AdminProductVariantOverrides
-	images?: AdminProductImage[]
-}
-
-export interface PaginatedApiResponse<T> {
-	content?: T[]
-	items?: T[]
-	totalElements?: number
-	totalItems?: number
-	totalPages?: number
-	page?: number
-	number?: number
-	size?: number
-}
-
-export interface ListAdminProductsParams {
-	page?: number
-	size?: number
-	sort?: string
-	status?: ProductStatus
-	q?: string
-}
-
-export interface GetAdminProductParams {
-	include?: AdminProductInclude[]
-}
-
-export interface CreateAdminProductInput {
+export interface CreateProductInput {
 	titleAr: string
 	titleEn: string
 	slug: string
@@ -128,16 +30,16 @@ export interface CreateAdminProductInput {
 	tagIds?: string[]
 	mediaUrls?: string[]
 	options?: ProductOption[]
-	variantOverrides?: AdminProductVariantOverrides
+	variantOverrides?: any[]
 }
 
-export type UpdateAdminProductPayload = Partial<CreateAdminProductInput> &
+export type UpdateProductPayload = Partial<CreateProductInput> &
 	Pick<
-		CreateAdminProductInput,
+		CreateProductInput,
 		"titleAr" | "titleEn" | "slug" | "basePrice" | "currencyCode" | "status" | "allowOversell"
 	>
 
-export interface UpdateAdminProductInput {
+export interface UpdateProductInput {
 	id: string
-	data: UpdateAdminProductPayload
+	data: UpdateProductPayload
 }
