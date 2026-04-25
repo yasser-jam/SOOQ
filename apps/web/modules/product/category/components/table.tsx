@@ -152,6 +152,7 @@ export default function ProductCategoryTable() {
 				pagination={{ pageIndex, pageSize, pageCount }}
 				onPageChange={setPageIndex}
 				isLoading={isPending}
+				subrowsKey="children"
 			/>
 		</div>
 	)

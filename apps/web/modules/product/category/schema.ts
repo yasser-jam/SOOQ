@@ -14,4 +14,5 @@ export const productCategorySchema = z.object({
 	isActive: z.boolean(),
 	createdAt: optionalString(),
 	updatedAt: optionalString(),
+	children: z.array(z.any()).optional()
 })
