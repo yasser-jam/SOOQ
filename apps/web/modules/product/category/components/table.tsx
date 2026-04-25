@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import { useMemo, useState, useEffect } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ColumnDef } from "@tanstack/react-table"
 import { useRouter } from "next/navigation"
@@ -14,7 +14,7 @@ import { Badge } from "@workspace/ui/components/badge"
 
 import {
 	deleteProductCategory,
-	listProductCategoriesQueryOptions,
+	listProductCategories,
 	productCategoryKeys,
 } from "../actions"
 import type { ProductCategory } from "../types"
@@ -22,7 +22,17 @@ import type { ProductCategory } from "../types"
 export default function ProductCategoryTable() {
 	const router = useRouter()
 	const queryClient = useQueryClient()
+	const pageSize = 10
+	const [pageIndex, setPageIndex] = useState(0)
 
+	// ===== Data Fetching =====
+	const { data: categories } = useQuery({
+		queryKey: productCategoryKeys.all,
+		queryFn: listProductCategories,
+	})
+
+
+	// ===== Mutations =====
 	const { mutate: deleteCategory } = useMutation({
 		mutationFn: deleteProductCategory,
 		onSuccess: (_data, id) => {
@@ -31,14 +41,28 @@ export default function ProductCategoryTable() {
 		},
 	})
 
-	const { data: categories } = useQuery(listProductCategoriesQueryOptions())
+	// ===== Computed Values =====
+	const totalCount = categories?.length ?? 0
+	const pageCount = Math.max(1, Math.ceil(totalCount / pageSize))
 
-	const parentCategoryNames = React.useMemo(() => {
+	const parentCategoryNames = useMemo(() => {
 		return new Map(
 			(categories ?? []).map((category) => [category.id ?? "", category.nameAr])
 		)
 	}, [categories])
 
+	const pagedCategories = useMemo(() => {
+		if (!categories?.length) return []
+		const start = pageIndex * pageSize
+		return categories.slice(start, start + pageSize)
+	}, [pageIndex, pageSize, categories])
+
+	// ===== Pagination Reset =====
+	useEffect(() => {
+		setPageIndex((current) => Math.min(current, pageCount - 1))
+	}, [pageCount])
+
+	// ===== Table Columns =====
 	const columns: ColumnDef<ProductCategory>[] = [
 		{
 			accessorKey: "nameAr",
@@ -51,7 +75,7 @@ export default function ProductCategoryTable() {
 					<div className="flex items-center gap-3">
 						<Avatar>
 							<AvatarFallback>
-								{getInitials(category.nameAr || category.nameEn || "C") || <Layers3 size="18" />}
+								{getInitials(category.nameEn) || <Layers3 size="18" />}
 							</AvatarFallback>
 						</Avatar>
 						<div className="flex flex-col gap-0.5">
@@ -119,21 +143,6 @@ export default function ProductCategoryTable() {
 			},
 		},
 	]
-
-	const pageSize = 10
-	const [pageIndex, setPageIndex] = React.useState(0)
-	const totalCount = categories?.length ?? 0
-	const pageCount = Math.max(1, Math.ceil(totalCount / pageSize))
-
-	React.useEffect(() => {
-		setPageIndex((current) => Math.min(current, pageCount - 1))
-	}, [pageCount])
-
-	const pagedCategories = React.useMemo(() => {
-		if (!categories?.length) return []
-		const start = pageIndex * pageSize
-		return categories.slice(start, start + pageSize)
-	}, [pageIndex, pageSize, categories])
 
 	return (
 		<div className="w-full overflow-hidden rounded-lg border">
