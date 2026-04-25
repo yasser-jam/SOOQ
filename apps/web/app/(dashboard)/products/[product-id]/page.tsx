@@ -21,7 +21,10 @@ import {
 	productFormDefaultValues,
 } from "@/modules/product/product/init"
 import { productSchema } from "@/modules/product/product/schema"
-import { listProductCategoriesQueryOptions } from "@/modules/product/category/actions"
+import {
+	listProductCategories,
+	productCategoryKeys,
+} from "@/modules/product/category/actions"
 import { listProductTagsQueryOptions } from "@/modules/product/tag/actions"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -113,7 +116,10 @@ export default function ProductDetailsPage() {
 		enabled: isEdit,
 	})
 
-	const { data: categories } = useQuery(listProductCategoriesQueryOptions())
+	const { data: categories } = useQuery({
+		queryKey: productCategoryKeys.all,
+		queryFn: listProductCategories,
+	})
 	const { data: tags } = useQuery(listProductTagsQueryOptions())
 
 	React.useEffect(() => {

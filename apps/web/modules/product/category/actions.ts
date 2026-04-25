@@ -1,4 +1,3 @@
-import { queryOptions } from "@tanstack/react-query"
 import { api } from "@/lib/api"
 
 import type { CreateProductCategoryInput, ProductCategory, UpdateProductCategoryInput } from "./types"
@@ -21,7 +20,7 @@ const normalizeProductCategory = (
 })
 
 export const listProductCategories = async (): Promise<ProductCategory[]> => {
-	const response = await api<ApiResponse<ProductCategory[]>>(
+	const response = await api<ApiResponse<ProductCategoryApiModel[]>>(
 		"/admin/categories"
 	)
 
@@ -35,12 +34,6 @@ export const getProductCategory = async (id: string): Promise<ProductCategory> =
 
 	return normalizeProductCategory(response.data as ProductCategoryApiModel)
 }
-
-export const getProductCategoryQueryOptions = (id: string) =>
-	queryOptions({
-		queryKey: productCategoryKeys.detail(id),
-		queryFn: () => getProductCategory(id),
-	})
 
 export const updateProductCategory = ({
 	id,

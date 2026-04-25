@@ -8,6 +8,7 @@ import { Controller, useForm } from "react-hook-form"
 
 import Field from "@/components/system/Field"
 import PageDialog from "@/components/system/page-dialog"
+import ProductCategorySelect from "@/modules/product/category/components/category-select"
 import {
 	initCategory,
 	initCategoryPayload,
@@ -145,12 +146,13 @@ export default function EditCategoryPage() {
 					inputProps={{ disabled: isSubmitting }}
 				/>
 
-				<Field
+				<ProductCategorySelect
 					name="parentCategoryId"
 					control={form.control}
 					label="معرف الفئة الأم"
-					placeholder="اتركه فارغًا للفئة الرئيسية"
-					inputProps={{ disabled: isSubmitting }}
+					placeholder="اختر الفئة الأم"
+					disabled={isSubmitting}
+					excludedCategoryIds={isEdit ? [categoryId] : []}
 				/>
 
 				<div className="md:col-span-2">

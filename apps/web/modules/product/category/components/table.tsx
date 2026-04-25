@@ -26,7 +26,7 @@ export default function ProductCategoryTable() {
 	const [pageIndex, setPageIndex] = useState(0)
 
 	// ===== Data Fetching =====
-	const { data: categories } = useQuery({
+	const { data: categories, isPending } = useQuery({
 		queryKey: productCategoryKeys.all,
 		queryFn: listProductCategories,
 	})
@@ -151,6 +151,7 @@ export default function ProductCategoryTable() {
 				data={pagedCategories}
 				pagination={{ pageIndex, pageSize, pageCount }}
 				onPageChange={setPageIndex}
+				isLoading={isPending}
 			/>
 		</div>
 	)
