@@ -1,10 +1,10 @@
 "use client"
 
-import * as React from "react"
+import { useEffect, useState } from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
-import { Layers3 } from "lucide-react"
+import { Bot, Hand, Layers3 } from "lucide-react"
 
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
@@ -14,9 +14,9 @@ import { Badge } from "@workspace/ui/components/badge"
 import type { ProductCollection } from "../types"
 import {
 	deleteProductCollection,
-	listProductCollectionsQueryOptions,
-	productCollectionKeys,
+	listProductCollections,
 } from "../actions"
+import { collectionQueryKeys } from "../queryKeys"
 
 export default function ProductCollectionTable() {
 	const router = useRouter()
@@ -25,8 +25,8 @@ export default function ProductCollectionTable() {
 	const { mutate: deleteCollection } = useMutation({
 		mutationFn: deleteProductCollection,
 		onSuccess: (_data, id) => {
-			queryClient.invalidateQueries({ queryKey: productCollectionKeys.all })
-			queryClient.removeQueries({ queryKey: productCollectionKeys.detail(id) })
+			queryClient.invalidateQueries({ queryKey: collectionQueryKeys.all })
+			queryClient.removeQueries({ queryKey: collectionQueryKeys.detail(id) })
 		},
 	})
 
@@ -58,13 +58,28 @@ export default function ProductCollectionTable() {
 			header: "نوع المجموعة",
 			cell: ({ row }) => {
 				const type = row.original.collectionType
-				return <span>{type === "MANUAL" ? "يدوية" : "تلقائية"}</span>
+
+				if (type === "MANUAL") {
+					return (
+						<Badge variant="primary" className="gap-1.5">
+							<Hand size={14} />
+							<span>يدوي</span>
+						</Badge>
+					)
+				}
+
+				return (
+					<Badge variant="secondary" className="gap-1.5">
+						<Bot size={14} />
+						<span>تلقائي</span>
+					</Badge>
+				)
 			},
 		},
 		{
 			accessorKey: "descriptionAr",
 			header: "الوصف",
-			cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.descriptionAr}</span>,
+			cell: ({ row }) => <span className="text-sm text-gray-500 max-w-[300px] truncate block">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Animi eius, officia modi autem eaque mollitia magnam ipsam laborum quisquam blanditiis quis repellendus harum nulla similique, nam saepe excepturi fuga exercitationem?</span>,
 		},
 		{
 			accessorKey: "isActive",
@@ -102,28 +117,26 @@ export default function ProductCollectionTable() {
 		},
 	]
 
-	const { data: collections } = useQuery(listProductCollectionsQueryOptions())
+	const { data: collections, isPending } = useQuery({
+		queryKey: collectionQueryKeys.all,
+		queryFn: listProductCollections,
+	})
 
 	const pageSize = 10
-	const [pageIndex, setPageIndex] = React.useState(0)
+	const [pageIndex, setPageIndex] = useState(0)
 	const totalCount = collections?.length ?? 0
 	const pageCount = Math.max(1, Math.ceil(totalCount / pageSize))
 
-	React.useEffect(() => {
+	useEffect(() => {
 		setPageIndex((current) => Math.min(current, pageCount - 1))
 	}, [pageCount])
-
-	const pagedCollections = React.useMemo(() => {
-		if (!collections?.length) return []
-		const start = pageIndex * pageSize
-		return collections.slice(start, start + pageSize)
-	}, [collections, pageIndex, pageSize])
 
 	return (
 		<div className="w-full overflow-hidden rounded-lg border">
 			<DataTable
 				columns={columns}
-				data={pagedCollections}
+				isLoading={isPending}
+				data={collections || []}
 				pagination={{ pageIndex, pageSize, pageCount }}
 				onPageChange={setPageIndex}
 			/>

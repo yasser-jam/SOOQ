@@ -1,42 +1,12 @@
-import { queryOptions } from "@tanstack/react-query"
 import { api } from "@/lib/api"
+import { ApiResponse } from "@/lib/types"
 
-import type { ProductCollection } from "./types"
-
-export const productCollectionKeys = {
-	all: ["product-collections"] as const,
-	detail: (id: string) => [...productCollectionKeys.all, id] as const,
-}
-
-export type CreateProductCollectionInput = Pick<
+import type {
+	CreateProductCollectionInput,
 	ProductCollection,
-	|
-		"collectionName"
-	|
-		"collectionSlug"
-	|
-		"collectionType"
-	|
-		"descriptionAr"
-	|
-		"descriptionEn"
-	|
-		"isActive"
->
-
-export type UpdateProductCollectionInput = {
-	id: string
-	data: CreateProductCollectionInput
-}
-
-type ApiResponse<T> = {
-	data?: T
-}
-
-type ProductCollectionApiModel = ProductCollection & {
-	collectionId?: string
-	productCollectionId?: string
-}
+	ProductCollectionApiModel,
+	UpdateProductCollectionInput,
+} from "./types"
 
 const normalizeProductCollection = (
 	collection: ProductCollectionApiModel
@@ -53,12 +23,6 @@ export const listProductCollections = async (): Promise<ProductCollection[]> => 
 	return response.data?.map(normalizeProductCollection) ?? []
 }
 
-export const listProductCollectionsQueryOptions = () =>
-	queryOptions({
-		queryKey: productCollectionKeys.all,
-		queryFn: listProductCollections,
-	})
-
 export const getProductCollection = async (id: string): Promise<ProductCollection> => {
 	const response = await api<ApiResponse<ProductCollectionApiModel>>(
 		`/admin/collections/${id}`
@@ -66,12 +30,6 @@ export const getProductCollection = async (id: string): Promise<ProductCollectio
 
 	return normalizeProductCollection(response.data as ProductCollectionApiModel)
 }
-
-export const getProductCollectionQueryOptions = (id: string) =>
-	queryOptions({
-		queryKey: productCollectionKeys.detail(id),
-		queryFn: () => getProductCollection(id),
-	})
 
 export const updateProductCollection = async ({
 	id,

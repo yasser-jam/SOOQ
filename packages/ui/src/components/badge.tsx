@@ -15,6 +15,7 @@ const badgeVariants = cva(
         'secondary-tonal': 
           "bg-secondary/20 text-secondary",
         
+          primary: "bg-primary/10 text-primary",
           destructive:
           "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
         outline:

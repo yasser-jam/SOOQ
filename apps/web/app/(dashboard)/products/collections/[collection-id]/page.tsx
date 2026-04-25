@@ -1,11 +1,10 @@
 "use client"
 
-import * as React from "react"
+import { useCallback, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
-import { z } from "zod"
 
 import Field from "@/components/system/Field"
 import PageDialog from "@/components/system/page-dialog"
@@ -17,11 +16,12 @@ import {
 } from "@/modules/product/collection/init"
 import {
 	createProductCollection,
-	getProductCollectionQueryOptions,
-	productCollectionKeys,
+	getProductCollection,
 	updateProductCollection,
 } from "@/modules/product/collection/actions"
+import { collectionQueryKeys } from "@/modules/product/collection/queryKeys"
 import { productCollectionSchema } from "@/modules/product/collection/schema"
+import { ProductCollection } from "@/modules/product/collection/types"
 import { Button } from "@workspace/ui/components/button"
 import { DialogClose } from "@workspace/ui/components/dialog"
 import {
@@ -45,9 +45,6 @@ const collectionFormSchema = productCollectionSchema.omit({
 	updatedAt: true,
 })
 
-type CollectionFormValues = z.input<typeof collectionFormSchema>
-type CollectionSubmitValues = z.output<typeof collectionFormSchema>
-
 export default function EditCollectionPage() {
 	const router = useRouter()
 	const queryClient = useQueryClient()
@@ -55,17 +52,18 @@ export default function EditCollectionPage() {
 	const collectionId = params?.["collection-id"]?.toString() ?? ""
 	const isEdit = collectionId !== "create"
 
-	const form = useForm<CollectionFormValues>({
+	const form = useForm<ProductCollection>({
 		resolver: zodResolver(collectionFormSchema),
 		defaultValues: collectionFormDefaultValues,
 	})
 
 	const { data: collection, isLoading } = useQuery({
-		...getProductCollectionQueryOptions(collectionId),
+		queryKey: collectionQueryKeys.detail(collectionId),
+		queryFn: () => getProductCollection(collectionId),
 		enabled: isEdit,
 	})
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!isEdit) {
 			form.reset(collectionFormDefaultValues)
 			return
@@ -79,7 +77,7 @@ export default function EditCollectionPage() {
 	const { isPending: isUpdating, mutate: updateCollection } = useMutation({
 		mutationFn: updateProductCollection,
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: productCollectionKeys.all })
+			queryClient.invalidateQueries({ queryKey: collectionQueryKeys.all })
 			router.push('/products/collections')
 		},
 	})
@@ -87,16 +85,14 @@ export default function EditCollectionPage() {
 	const { isPending: isCreating, mutate: createCollection } = useMutation({
 		mutationFn: createProductCollection,
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: productCollectionKeys.all })
+			queryClient.invalidateQueries({ queryKey: collectionQueryKeys.all })
 			router.push('/products/collections')
 		},
 	})
 
-	const handleSubmit = React.useCallback(
-		(values: CollectionFormValues) => {
-			const normalizedValues = initCollectionPayload(
-				collectionFormSchema.parse(values) as CollectionSubmitValues
-			)
+	const handleSubmit = useCallback(
+		(values: ProductCollection) => {
+			const normalizedValues = initCollectionPayload(values)
 
 			if (isEdit) {
 				if (!collectionId) return
@@ -138,7 +134,7 @@ export default function EditCollectionPage() {
 				className="grid gap-4"
 				onSubmit={form.handleSubmit(handleSubmit)}
 			>
-				<Field<CollectionFormValues>
+				<Field
 					name="collectionName"
 					control={form.control}
 					label="اسم المجموعة"
@@ -146,39 +142,13 @@ export default function EditCollectionPage() {
 					inputProps={{ disabled: isSubmitting }}
 				/>
 
-				<Field<CollectionFormValues>
+				<Field
 					name="collectionSlug"
 					control={form.control}
 					label="الرابط"
 					placeholder="أدخل الرابط"
 					inputProps={{ disabled: isSubmitting }}
 				/>
-
-				<UiField data-invalid={Boolean(form.formState.errors.collectionType)}>
-					<FieldLabel htmlFor="collectionType">نوع المجموعة</FieldLabel>
-					<Controller
-						name="collectionType"
-						control={form.control}
-						render={({ field }) => (
-							<Select
-								disabled={isSubmitting}
-								value={field.value}
-								onValueChange={field.onChange}
-							>
-								<SelectTrigger id="collectionType" className="h-11 w-full">
-									<SelectValue placeholder="اختر نوع المجموعة" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectGroup>
-										<SelectItem value="MANUAL">يدوية</SelectItem>
-										<SelectItem value="AUTOMATIC">تلقائية</SelectItem>
-									</SelectGroup>
-								</SelectContent>
-							</Select>
-						)}
-					/>
-					<FieldError errors={[form.formState.errors.collectionType]} />
-				</UiField>
 
 				<UiField data-invalid={Boolean(form.formState.errors.descriptionAr)}>
 					<FieldLabel htmlFor="descriptionAr">الوصف بالعربية</FieldLabel>

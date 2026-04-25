@@ -43,12 +43,12 @@ const apiInstance: AxiosInstance = axios.create({
     (response) => response,
     (error: AxiosError) => {
       // Handle 401 globally
-      if (error.response?.status === 401) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
         if (typeof window !== "undefined") {
             removeCookie('sooq-access-token');
   
           // Redirect to login page
-          window.location.href = "/login";
+          window.location.href = "/request-otp";
         }
       }
   
