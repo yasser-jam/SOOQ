@@ -69,6 +69,10 @@ const navItems: readonly NavItem[] = [
     title: "الخدمات اللوجستية",
     url: "/logistics",
     icon: Truck,
+    children: [
+      { title: "مزودي الشحن", url: "/logistics/shipping/providers" },
+      { title: "الشحنات", url: "/logistics/shipping/shipments" },
+    ],
   },
   {
     title: "استوديو التصميم",
@@ -84,6 +88,9 @@ const navItems: readonly NavItem[] = [
     title: "المالية",
     url: "/finance",
     icon: CircleDollarSign,
+    children: [
+      { title: "تسوية تحصيل COD", url: "/finance/shipping/cod-reconciliation" },
+    ],
   },
 ]
 
