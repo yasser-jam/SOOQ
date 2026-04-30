@@ -128,13 +128,19 @@ export default function ProductMultipleCategorySelect<T extends FieldValues>({
                   id={fieldId}
                   type="button"
                   variant="outline"
-                  size="md"
                   role="combobox"
                   aria-expanded={open}
+                  aria-invalid={fieldState.invalid || undefined}
                   disabled={disabled || isPending}
-                  className="w-full justify-between"
+                  className="h-12 w-full justify-between rounded-md border-input bg-white px-2.5 py-1 text-lg md:text-sm dark:bg-input/30"
                 >
-                  <span className="truncate text-start">
+                  <span
+                    className={
+                      selectedIds.length > 0
+                        ? "truncate text-start"
+                        : "truncate text-start text-muted-foreground"
+                    }
+                  >
                     {selectedIds.length > 0
                       ? `${selectedIds.length} فئات مختارة`
                       : placeholder}
