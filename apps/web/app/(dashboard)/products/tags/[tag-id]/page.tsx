@@ -21,12 +21,6 @@ import { productTagSchema } from "@/modules/product/tag/schema"
 import { tagQueryKeys } from "@/modules/product/tag/queryKeys"
 import { ProductTag } from "@/modules/product/tag/types"
 
-const tagFormSchema = productTagSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-})
-
 export default function EditTagPage() {
 
   const router = useRouter()
@@ -36,7 +30,7 @@ export default function EditTagPage() {
   const isEdit = tagId !== "create"
 
   const form = useForm<ProductTag>({
-    resolver: zodResolver(tagFormSchema),
+    resolver: zodResolver(productTagSchema),
     defaultValues: {
       tagName: "",
       slug: "",

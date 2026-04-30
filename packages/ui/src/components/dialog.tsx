@@ -65,6 +65,8 @@ function DialogContent({
 }) {
   return (
     <DialogPortal>
+      {/* To avoid accessibility issues */}
+      <DialogTitle className="hidden"></DialogTitle>
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
