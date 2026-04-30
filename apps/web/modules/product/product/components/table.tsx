@@ -115,6 +115,7 @@ export default function ProductTable() {
   const { data: products } = useQuery({
     queryKey: productKeys.all,
     queryFn: () => listProducts(),
+    select: (res) => res.data
   })
 
   const pageSize = 10

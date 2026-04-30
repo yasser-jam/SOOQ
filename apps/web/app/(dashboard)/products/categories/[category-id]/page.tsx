@@ -8,7 +8,6 @@ import { Controller, useForm } from "react-hook-form"
 
 import Field from "@/components/system/Field"
 import PageDialog from "@/components/system/page-dialog"
-import ProductCategorySelect from "@/modules/product/category/components/category-select"
 import {
   initCategory,
   initCategoryPayload,
@@ -30,6 +29,7 @@ import {
 } from "@workspace/ui/components/field"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { init } from "@/modules/product/category/lib/init"
+import ProductMultipleCategorySelect from "@/modules/product/category/components/multiple-category-select"
 
 export default function EditCategoryPage() {
   const router = useRouter()
@@ -158,14 +158,12 @@ export default function EditCategoryPage() {
           inputProps={{ disabled: isSubmitting }}
         />
 
-        <ProductCategorySelect
+        <ProductMultipleCategorySelect
           name="parentCategoryId"
           control={form.control}
           label="معرف الفئة الأم"
           placeholder="اختر الفئة الأم"
           disabled={isSubmitting || isEdit}
-          initialValue={parentId}
-          excludedCategoryIds={isEdit ? [categoryId] : []}
         />
 
         <div className="md:col-span-2">

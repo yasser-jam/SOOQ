@@ -3,13 +3,14 @@ import { queryOptions } from "@tanstack/react-query"
 
 import type { CreateProductInput, Product, UpdateProductInput } from "./types"
 import api from "@/lib/api"
+import { ApiResponse } from "@/lib/types"
 
 export const productKeys = {
   all: ["products"] as const,
   detail: (id: string) => [...productKeys.all, id] as const,
 }
 
-export const listProducts = async (): Promise<Product[]> => api("/admin/products", {})
+export const listProducts = async (): Promise<ApiResponse<Product[]>> => api("/admin/products", {})
 
 export const getProduct = async (id: string): Promise<Product> => {
   const response = await api<Product>(`/products/${id}`)
@@ -27,7 +28,7 @@ export const updateProduct = async ({ id, data } : UpdateProductInput): Promise<
 export const createProduct = async (
   data: CreateProductInput
 ): Promise<void> => {
-  await api("/products", {
+  await api("/admin/products", {
     method: "POST",
     body: data,
   })

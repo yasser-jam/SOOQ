@@ -11,7 +11,6 @@ import {
   type FieldValues,
 } from "react-hook-form"
 
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Field as UiField,
@@ -34,32 +33,15 @@ import {
   PopoverTrigger,
 } from "@workspace/ui/components/popover"
 
-import {
-  getProductCategory,
-  listProductCategories,
-  productCategoryKeys,
-} from "../actions"
-import {
-  buildCategoryNameMap,
-  filterCategoryTree,
-} from "./category-select.utils"
+import { listProductCategories, productCategoryKeys } from "../actions"
+import { ProductCategory } from "../types"
 
 type ProductMultipleCategorySelectProps<T extends FieldValues> = {
   name: FieldPath<T>
   control: Control<T>
   label: string
   placeholder?: string
-  initialValues?: Array<string | null | undefined>
-  excludedCategoryIds?: Array<string | null | undefined>
   disabled?: boolean
-  emptyLabel?: string
-  subrowKeys?: string
-}
-
-type CategoryNode = {
-  id?: string | null
-  nameAr: string
-  [subrowKey: string]: unknown
 }
 
 const normalizeSelectedValues = (values: unknown): string[] => {
@@ -71,26 +53,39 @@ const normalizeSelectedValues = (values: unknown): string[] => {
   )
 }
 
-const getCategoryChildren = (
-  category: CategoryNode,
-  subrowKeys?: string
-): CategoryNode[] => {
-  if (!subrowKeys) return []
+type FlattenedCategory = {
+  id: string
+  nameAr: string
+  depth: number
+}
 
-  const nestedValue = category[subrowKeys]
-  return Array.isArray(nestedValue) ? (nestedValue as CategoryNode[]) : []
+const getCategoryId = (category: ProductCategory): string => {
+  // The API normalizes `id` on the top-level items in [actions.ts](apps/web/modules/product/category/actions.ts),
+  // but nested `children` may still only have `categoryId`.
+  return (category.id ?? category.categoryId ?? "").trim()
+}
+
+const getCategoryChildren = (category: ProductCategory): ProductCategory[] => {
+  const children = category.children
+  return Array.isArray(children) ? (children as ProductCategory[]) : []
 }
 
 const flattenCategoryTree = (
-  categories: CategoryNode[],
-  subrowKeys?: string,
+  categories: ProductCategory[],
   depth = 0
-): Array<{ category: CategoryNode; depth: number }> => {
-  return categories.flatMap((category) => {
-    const children = getCategoryChildren(category, subrowKeys)
+): FlattenedCategory[] => {
+  return (categories ?? []).flatMap((category) => {
+    const id = getCategoryId(category)
+    const nameAr = category.nameAr
+    const children = getCategoryChildren(category)
+
+    const current: FlattenedCategory | null = id
+      ? { id, nameAr, depth }
+      : null
+
     return [
-      { category, depth },
-      ...flattenCategoryTree(children, subrowKeys, depth + 1),
+      ...(current ? [current] : []),
+      ...flattenCategoryTree(children, depth + 1),
     ]
   })
 }
@@ -100,77 +95,29 @@ export default function ProductMultipleCategorySelect<T extends FieldValues>({
   control,
   label,
   placeholder = "اختر الفئات",
-  initialValues = [],
-  excludedCategoryIds = [],
   disabled,
-  emptyLabel = "بدون",
-  subrowKeys,
 }: ProductMultipleCategorySelectProps<T>) {
   const fieldId = String(name)
   const [open, setOpen] = useState(false)
-  const initialSelectedIds = useMemo(
-    () => normalizeSelectedValues(initialValues),
-    [initialValues]
-  )
 
-  const hasInitialValues = initialSelectedIds.length > 0
-
-  const { data: categories, isPending: isPendingCategories } = useQuery({
+  const { data: categories, isPending } = useQuery({
     queryKey: productCategoryKeys.all,
     queryFn: listProductCategories,
-    enabled: !hasInitialValues,
   })
 
-  const { data: initialCategory, isPending: isPendingInitialCategory } =
-    useQuery({
-      queryKey: productCategoryKeys.detail(initialSelectedIds[0] ?? ""),
-      queryFn: () => getProductCategory(initialSelectedIds[0] ?? ""),
-      enabled: hasInitialValues && initialSelectedIds.length === 1,
-    })
-
-  const isPending = hasInitialValues
-    ? isPendingInitialCategory
-    : isPendingCategories
-
-  const excludedIds = useMemo(
-    () =>
-      new Set(excludedCategoryIds.filter((id): id is string => Boolean(id))),
-    [excludedCategoryIds]
-  )
-
-  const availableCategories = useMemo(() => {
-    if (!hasInitialValues) {
-      return filterCategoryTree(categories ?? [], excludedIds, subrowKeys)
-    }
-
-    const fallback = initialCategory ? [initialCategory as CategoryNode] : []
-    return filterCategoryTree(
-      fallback as never,
-      excludedIds,
-      subrowKeys
-    ) as unknown as CategoryNode[]
-  }, [categories, excludedIds, hasInitialValues, initialCategory, subrowKeys])
-
-  const flatCategories = useMemo(
-    () =>
-      flattenCategoryTree(availableCategories as CategoryNode[], subrowKeys),
-    [availableCategories, subrowKeys]
-  )
-
-  const categoryNamesById = useMemo(
-    () => buildCategoryNameMap(availableCategories as never, subrowKeys),
-    [availableCategories, subrowKeys]
-  )
+  const flatCategories = useMemo(() => {
+    // API response is hierarchical (each category can contain nested `children`).
+    // We flatten it so the list renders as a single level while preserving `depth` for indentation.
+    return flattenCategoryTree(categories ?? [])
+  }, [categories])
 
   return (
     <Controller
       name={name}
       control={control}
+      defaultValue={[] as any}
       render={({ field, fieldState }) => {
-        const selectedValues = normalizeSelectedValues(field.value)
-        const selectedLabels = selectedValues
-          .map((value) => categoryNamesById.get(value))
-          .filter((label): label is string => Boolean(label))
+        const selectedIds = normalizeSelectedValues(field.value)
 
         return (
           <UiField data-invalid={fieldState.invalid}>
@@ -181,27 +128,28 @@ export default function ProductMultipleCategorySelect<T extends FieldValues>({
                   id={fieldId}
                   type="button"
                   variant="outline"
+                  size="md"
                   role="combobox"
                   aria-expanded={open}
                   disabled={disabled || isPending}
-                  className="h-11 w-full justify-between"
+                  className="w-full justify-between"
                 >
                   <span className="truncate text-start">
-                    {selectedLabels.length
-                      ? selectedLabels.join(", ")
+                    {selectedIds.length > 0
+                      ? `${selectedIds.length} فئات مختارة`
                       : placeholder}
                   </span>
                   <ChevronDown data-icon="inline-end" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-[var(--radix-popover-trigger-width)] p-0"
+                className="w-[var(--radix-popover-trigger-width)] rounded-xl p-0"
                 align="start"
               >
                 <Command>
                   <CommandInput placeholder="ابحث عن فئة..." />
                   <CommandList>
-                    <CommandEmpty>{emptyLabel}</CommandEmpty>
+                    <CommandEmpty>لا يوجد</CommandEmpty>
                     {isPending ? (
                       <CommandGroup>
                         <CommandItem disabled>
@@ -212,21 +160,20 @@ export default function ProductMultipleCategorySelect<T extends FieldValues>({
                     ) : (
                       <CommandGroup>
                         {flatCategories.length ? (
-                          flatCategories.map(({ category, depth }) => {
-                            const categoryId = category.id ?? ""
-                            const checked = selectedValues.includes(categoryId)
+                          flatCategories.map((category) => {
+                            const checked = selectedIds.includes(category.id)
 
                             return (
                               <CommandItem
-                                key={categoryId}
-                                value={`${category.nameAr} ${categoryId}`}
+                                key={category.id}
+                                value={`${category.nameAr} ${category.id}`}
                                 className="flex items-center gap-2"
                                 onSelect={() => {
                                   const nextValues = checked
-                                    ? selectedValues.filter(
-                                        (value) => value !== categoryId
+                                    ? selectedIds.filter(
+                                        (value) => value !== category.id
                                       )
-                                    : [...selectedValues, categoryId]
+                                    : [...selectedIds, category.id]
 
                                   field.onChange(nextValues)
                                 }}
@@ -237,15 +184,10 @@ export default function ProductMultipleCategorySelect<T extends FieldValues>({
                                   tabIndex={-1}
                                 />
                                 <span
-                                  style={{ paddingInlineStart: depth * 16 }}
+                                  style={{ paddingInlineStart: category.depth * 16 }}
                                 >
                                   {category.nameAr}
                                 </span>
-                                {depth > 0 ? (
-                                  <span className="ms-auto text-xs text-muted-foreground">
-                                    {subrowKeys ?? "children"}
-                                  </span>
-                                ) : null}
                               </CommandItem>
                             )
                           })

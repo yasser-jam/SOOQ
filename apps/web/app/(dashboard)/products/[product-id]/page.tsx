@@ -51,10 +51,10 @@ import {
   updateProduct,
 } from "@/modules/product/product/actions"
 import CurrencySelect from "@/modules/product/product/components/currency-select"
-import ProductCategorySelect from "@/modules/product/category/components/category-select"
 import ProductMultipleCategorySelect from "@/modules/product/category/components/multiple-category-select"
 import StatusSelect from "@/modules/product/product/components/status-select"
 import Textarea from "@/components/system/textarea"
+import CategorySelect from "@/modules/product/category/components/select"
 
 type ProductFormInput = z.input<typeof productSchema>
 type ProductSubmitValues = z.output<typeof productSchema>
@@ -312,12 +312,11 @@ export default function ProductDetailsPage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-4">
-                <ProductCategorySelect
+                <CategorySelect
                   name="defaultCategoryId"
                   control={form.control}
                   label="الفئة الافتراضية"
                   placeholder="اختر الفئة الافتراضية"
-                  emptyLabel="بدون"
                   disabled={isSubmitting}
                 />
 
@@ -327,8 +326,6 @@ export default function ProductDetailsPage() {
                   label="الفئات"
                   placeholder="اختر الفئات"
                   disabled={isSubmitting}
-                  subrowKeys="children"
-                  excludedCategoryIds={form.watch("defaultCategoryId") ? [form.watch("defaultCategoryId")] : []}
                 />
               </div>
             </CardContent>
