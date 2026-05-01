@@ -13,7 +13,7 @@ export const productKeys = {
 export const listProducts = async (): Promise<ApiResponse<Product[]>> => api("/admin/products", {})
 
 export const getProduct = async (id: string): Promise<Product> => {
-  const response = await api<Product>(`/products/${id}`)
+  const response = await api<Product>(`/admin/products/${id}`)
 
   return response
 }

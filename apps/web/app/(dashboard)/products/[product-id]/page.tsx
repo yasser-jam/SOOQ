@@ -55,6 +55,7 @@ import ProductMultipleCategorySelect from "@/modules/product/category/components
 import StatusSelect from "@/modules/product/product/components/status-select"
 import Textarea from "@/components/system/textarea"
 import CategorySelect from "@/modules/product/category/components/select"
+import TagSelect from "@/modules/product/tag/components/select"
 
 type ProductFormInput = z.input<typeof productSchema>
 type ProductSubmitValues = z.output<typeof productSchema>
@@ -251,14 +252,22 @@ export default function ProductDetailsPage() {
                   name="basePrice"
                   control={form.control}
                   label="السعر الأساسي"
-                  inputProps={{ disabled: isSubmitting, type: "number", min: 0 }}
+                  inputProps={{
+                    disabled: isSubmitting,
+                    type: "number",
+                    min: 0,
+                  }}
                 />
 
                 <Field
                   name="compareAtPrice"
                   control={form.control}
                   label="سعر المقارنة"
-                  inputProps={{ disabled: isSubmitting, type: "number", min: 0 }}
+                  inputProps={{
+                    disabled: isSubmitting,
+                    type: "number",
+                    min: 0,
+                  }}
                 />
 
                 <UiField
@@ -336,11 +345,12 @@ export default function ProductDetailsPage() {
               <CardTitle className="text-2xl">الوسوم</CardTitle>
             </CardHeader>
             <CardContent>
-              <Controller
-                name="tagIds"
-                control={form.control}
-                render={({ field }) => <div></div>}
-              />
+                  <TagSelect
+                    control={form.control}
+                    name="tagIds"
+                    label="الوسوم"
+
+                  ></TagSelect>
               <FieldError errors={[form.formState.errors.tagIds]} />
             </CardContent>
           </Card>
