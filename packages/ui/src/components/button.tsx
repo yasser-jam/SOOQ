@@ -22,12 +22,14 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
-        warning: "bg-warning/10 text-warning hover:bg-warning/20 focus-visible:border-warning/40 focus-visible:ring-warning/20 dark:bg-warning/20 dark:hover:bg-warning/30 dark:focus-visible:ring-warning/40",
-        secondaryFlat: "bg-secondary/10 text-secondary hover:bg-secondary/20 aria-expanded:bg-secondary/20 aria-expanded:text-secondary",
+        warning:
+          "bg-warning/10 text-warning hover:bg-warning/20 focus-visible:border-warning/40 focus-visible:ring-warning/20 dark:bg-warning/20 dark:hover:bg-warning/30 dark:focus-visible:ring-warning/40",
+        secondaryFlat:
+          "bg-secondary/10 text-secondary hover:bg-secondary/20 aria-expanded:bg-secondary/20 aria-expanded:text-secondary",
       },
       size: {
         default:
-          "h-9 gap-1.5 px-3.5 has-data-[icon=inline-end]:ps-2 has-data-[icon=inline-start]:pe-2 rounded-sm text-sm",
+          "h-9 gap-1.5 rounded-sm px-3.5 text-sm has-data-[icon=inline-end]:ps-2 has-data-[icon=inline-start]:pe-2",
         xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3.5",
         md: "h-11 gap-1 rounded-[min(var(--radius-md),10px)] px-4 text-sm in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3.5",
@@ -86,16 +88,18 @@ function Button({
       )}
       {...props}
     >
-      {showSpinner && (
-        <Loader2Icon
-          className={cn(
-            spinnerSizeClass[size ?? "default"],
-            "shrink-0 animate-spin"
-          )}
-          aria-hidden
-        />
-      )}
-      <>{children}</>
+      <>
+        {showSpinner && (
+          <Loader2Icon
+            className={cn(
+              spinnerSizeClass[size ?? "default"],
+              "shrink-0 animate-spin"
+            )}
+            aria-hidden
+          />
+        )}
+        {children}
+      </>
     </Comp>
   )
 }

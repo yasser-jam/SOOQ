@@ -103,7 +103,7 @@ export default function EditTagPage() {
       actions={
         <>
           <DialogClose asChild>
-            <Button variant="outline">إلغاء</Button>
+            <Button variant="ghost">إلغاء</Button>
           </DialogClose>
 
           <Button type="submit" form="tag-form" disabled={isSubmitting}>

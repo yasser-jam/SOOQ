@@ -56,6 +56,7 @@ import StatusSelect from "@/modules/product/product/components/status-select"
 import Textarea from "@/components/system/textarea"
 import CategorySelect from "@/modules/product/category/components/select"
 import TagSelect from "@/modules/product/tag/components/select"
+import TagMultiSelect from "@/modules/product/tag/components/multi-select"
 
 type ProductFormInput = z.input<typeof productSchema>
 type ProductSubmitValues = z.output<typeof productSchema>
@@ -345,12 +346,13 @@ export default function ProductDetailsPage() {
               <CardTitle className="text-2xl">الوسوم</CardTitle>
             </CardHeader>
             <CardContent>
-                  <TagSelect
+              <TagMultiSelect control={form.control} name="tagIds" label="الوسوم"></TagMultiSelect>
+                  {/* <TagSelect
                     control={form.control}
                     name="tagIds"
                     label="الوسوم"
 
-                  ></TagSelect>
+                  ></TagSelect> */}
               <FieldError errors={[form.formState.errors.tagIds]} />
             </CardContent>
           </Card>
