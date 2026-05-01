@@ -30,11 +30,12 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea"
 import { init } from "@/modules/product/category/lib/init"
 import ProductMultipleCategorySelect from "@/modules/product/category/components/multiple-category-select"
+import TextareaField from "@/components/system/textarea"
 
 export default function EditCategoryPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
-  
+
   const params = useParams()
   const categoryId = params?.["category-id"]?.toString() ?? ""
 
@@ -56,15 +57,12 @@ export default function EditCategoryPage() {
 
   useEffect(() => {
     if (!isEdit) {
+      form.reset(init())
 
-		form.reset(init())
-
-
-		// check if we have parentId as query param, pass parentId to reset
-      if (parentId) {		
-        form.setValue('parentCategoryId', parentId.toString())
+      // check if we have parentId as query param, pass parentId to reset
+      if (parentId) {
+        form.setValue("parentCategoryId", parentId.toString())
       }
-
 
       return
     }
@@ -167,43 +165,21 @@ export default function EditCategoryPage() {
         />
 
         <div className="md:col-span-2">
-          <UiField data-invalid={Boolean(form.formState.errors.descriptionAr)}>
-            <FieldLabel htmlFor="descriptionAr">الوصف بالعربية</FieldLabel>
-            <Controller
-              name="descriptionAr"
-              control={form.control}
-              render={({ field }) => (
-                <Textarea
-                  {...field}
-                  id="descriptionAr"
-                  placeholder="أدخل الوصف بالعربية"
-                  disabled={isSubmitting}
-                  className="min-h-24"
-                />
-              )}
-            />
-            <FieldError errors={[form.formState.errors.descriptionAr]} />
-          </UiField>
+          <TextareaField
+            label="الوصف بالعربية"
+            name="descriptionAr"
+            placeholder="أدخل الوصف بالعربية"
+            control={form.control}
+          ></TextareaField>
         </div>
 
         <div className="md:col-span-2">
-          <UiField data-invalid={Boolean(form.formState.errors.descriptionEn)}>
-            <FieldLabel htmlFor="descriptionEn">الوصف بالإنجليزية</FieldLabel>
-            <Controller
-              name="descriptionEn"
-              control={form.control}
-              render={({ field }) => (
-                <Textarea
-                  {...field}
-                  id="descriptionEn"
-                  placeholder="أدخل الوصف بالإنجليزية"
-                  disabled={isSubmitting}
-                  className="min-h-24"
-                />
-              )}
-            />
-            <FieldError errors={[form.formState.errors.descriptionEn]} />
-          </UiField>
+          <TextareaField
+            label="الوصف بالإنجليزية"
+            name="descriptionEn"
+            placeholder="أدخل الوصف بالإنجليزية"
+            control={form.control}
+          ></TextareaField>
         </div>
 
         <div className="md:col-span-2">
