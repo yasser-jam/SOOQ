@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -123,6 +124,11 @@ export default function ProductDetailsPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          {isEdit ? (
+            <Button variant="secondary" asChild>
+              <Link href={`/products/${productId}/inventory`}>فحص المخزون</Link>
+            </Button>
+          ) : null}
           <Button
             variant="ghost"
             onClick={() => router.back()}
@@ -311,7 +317,10 @@ export default function ProductDetailsPage() {
                 <CardTitle className="text-2xl">صور المنتج</CardTitle>
               </CardHeader>
               <CardContent>
-                <ImageUploader defaultFiles={product?.mediaUrls || []} onChange={handleImageChange} />
+                <ImageUploader
+                  defaultFiles={product?.mediaUrls || []}
+                  onChange={handleImageChange}
+                />
               </CardContent>
             </Card>
           )}
