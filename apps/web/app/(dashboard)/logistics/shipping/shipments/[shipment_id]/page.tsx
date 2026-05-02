@@ -1,4 +1,4 @@
-import ShipmentDetailsPageView from "@/modules/shipping/shipment/components/shipment-details-page"
+import ShipmentDetailsPageView from "@/modules/shipping/shipment/components/details"
 
 export default async function ShipmentDetailsPage({
   params,

@@ -1,4 +1,4 @@
-import ShippingProvidersPageView from "@/modules/shipping/provider/components/providers-page"
+import ShippingProvidersPageView from "@/modules/shipping/provider/components/view"
 
 export default function ShippingProvidersPage() {
   return <ShippingProvidersPageView />

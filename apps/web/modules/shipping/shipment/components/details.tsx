@@ -23,7 +23,7 @@ import { getShipment, getShipmentEvents, transitionShipment } from "../actions"
 import { SHIPMENT_STATUS_META, SHIPMENT_STATUS_TRANSITIONS } from "../model"
 import { shipmentQueryKeys } from "../queryKeys"
 import type { ShipmentStatus } from "../types"
-import ShipmentTimelineCard from "./shipment-timeline-card"
+import ShipmentTimelineCard from "./timeline"
 
 export default function ShipmentDetailsPageView({ shipmentId }: { shipmentId: string }) {
   const queryClient = useQueryClient()

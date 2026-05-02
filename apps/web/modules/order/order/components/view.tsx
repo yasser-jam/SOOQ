@@ -13,7 +13,7 @@ import {
 
 import FilterMenu from "@/components/system/filter-menu"
 import { getAdminOrdersSummary } from "@/modules/order/order/actions"
-import OrdersListTable from "@/modules/order/order/components/orders-list-table"
+import OrdersListTable from "@/modules/order/order/components/table"
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
 import { formatOrderMoney } from "@/modules/order/order/utils"
 import { Button } from "@workspace/ui/components/button"

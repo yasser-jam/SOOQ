@@ -1,6 +1,6 @@
 "use client"
 
-import ShipmentsTable from "./shipments-table"
+import ShipmentsTable from "./table"
 
 export default function ShipmentsPageView() {
   return (
