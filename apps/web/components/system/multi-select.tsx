@@ -36,24 +36,24 @@ export default function MultiSelect(props: MultiSelectProps<any>) {
 
   const anchor = useComboboxAnchor()
 
-  const getValue = (value: any) =>
+  const getTitle = (value: any) =>
     props.items.find((el) => el[valueKey] == value)?.[titleKey]
 
   return (
     <>
       <Combobox multiple autoHighlight items={props.items} value={props.value} onValueChange={props.onChange}>
-        <ComboboxInput placeholder={props.placeholder} value={props.value} />
+        {/* <ComboboxInput placeholder={props.placeholder} value={props.value} /> */}
 
-        {/* <ComboboxChips ref={anchor} className="w-full max-w-xs">
+        <ComboboxChips ref={anchor} className="w-full max-w-xs">
           <ComboboxValue placeholder={props.placeholder}>
             <React.Fragment>
               {props.value.map((value: string) => (
-                <ComboboxChip key={value}>{getValue(value)}</ComboboxChip>
+                <ComboboxChip key={value}>{getTitle(value)}</ComboboxChip>
               ))}
-              <ComboboxChipsInput placeholder={props.placeholder} />
+              <ComboboxChipsInput />
             </React.Fragment>
           </ComboboxValue>
-        </ComboboxChips> */}
+        </ComboboxChips>
 
         <ComboboxContent anchor={anchor}>
           <ComboboxEmpty>لا توجد عناصر</ComboboxEmpty>
