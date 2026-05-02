@@ -35,8 +35,13 @@ export default function CodReconciliationTable() {
     queryFn: () => listCodReconciliationBatches(params),
   })
 
-  const batches = data?.items ?? []
-  const pageCount = Math.max(1, data?.totalPages ?? 1)
+  const batches = data ?? []
+  const pageCount = 10
+
+  console.log(data);
+  
+  console.log(batches);
+  
 
   useEffect(() => {
     setPageIndex((current) => Math.min(current, pageCount - 1))
@@ -132,7 +137,7 @@ export default function CodReconciliationTable() {
       <DataTable
         columns={columns}
         isLoading={isPending}
-        data={batches}
+        data={batches as any[] || []}
         pagination={{ pageIndex, pageSize, pageCount }}
         onPageChange={setPageIndex}
       />

@@ -128,13 +128,13 @@ export default function ShippingProviderUpsertPageView({
           inputProps={{ disabled: isSubmitting, dir: "ltr" }}
         />
 
-        <Field
+        {/* <Field
           name="priority"
           control={form.control}
           label="الأولوية"
           placeholder="10"
           inputProps={{ disabled: isSubmitting, type: "number" }}
-        />
+        /> */}
 
         <Field
           name="apiKey"
