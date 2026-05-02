@@ -68,7 +68,7 @@ export default function ShippingProviderUpsertPageView({
 
   const handleSubmit = useCallback(
     (values: ShippingProvider) => {
-      return isEdit ? update(values) : create(values)
+      return isEdit ? update({ id: providerId, data: values }) : create(values)
     },
     [create, isEdit, providerId, update]
   )
