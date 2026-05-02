@@ -32,24 +32,6 @@ type CategorySelectProps<T extends FieldValues> = {
   disabled?: boolean
 }
 
-const normalizeSelectedValue = (value: unknown): string | undefined => {
-  // This component is a single-select.
-  // If a form accidentally passes an array value (e.g. reused from multi-select), pick the first string.
-  if (typeof value === "string") {
-    const trimmed = value.trim()
-    return trimmed.length ? trimmed : undefined
-  }
-
-  if (Array.isArray(value)) {
-    const first = value.find(
-      (item): item is string => typeof item === "string" && item.trim().length > 0
-    )
-    return first?.trim() || undefined
-  }
-
-  return undefined
-}
-
 export default function CategorySelect<T extends FieldValues>({
   name,
   control,
@@ -69,7 +51,7 @@ export default function CategorySelect<T extends FieldValues>({
       name={name}
       control={control}
       render={({ field, fieldState }) => {
-        const value = normalizeSelectedValue(field.value)
+        const value = field.value
 
         return (
           <UiField data-invalid={fieldState.invalid}>
@@ -79,17 +61,16 @@ export default function CategorySelect<T extends FieldValues>({
               onValueChange={field.onChange}
               disabled={disabled || isPending}
             >
-              <SelectTrigger id={fieldId} aria-invalid={fieldState.invalid || undefined}>
+              <SelectTrigger
+                id={fieldId}
+                aria-invalid={fieldState.invalid || undefined}
+              >
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
 
               <SelectContent>
                 <SelectGroup>
-                  {isPending ? (
-                    <SelectItem value="__loading__" disabled>
-                      جاري تحميل الفئات...
-                    </SelectItem>
-                  ) : categories?.length ? (
+                  {categories?.length &&
                     categories.map((category) => (
                       <SelectItem
                         key={category.id}
@@ -98,12 +79,7 @@ export default function CategorySelect<T extends FieldValues>({
                       >
                         {category.nameAr}
                       </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="__empty__" disabled>
-                      لا توجد فئات متاحة
-                    </SelectItem>
-                  )}
+                    ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
