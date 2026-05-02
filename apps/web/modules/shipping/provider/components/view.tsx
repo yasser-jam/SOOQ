@@ -12,7 +12,7 @@ import {
 import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 
-import ProvidersTable from "./providers-table"
+import ProvidersTable from "./table"
 
 export default function ShippingProvidersPageView() {
   const router = useRouter()

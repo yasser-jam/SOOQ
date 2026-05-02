@@ -26,7 +26,6 @@ export default function ProvidersTable() {
     mutationFn: deleteShippingProvider,
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: shippingProviderQueryKeys.all })
-      queryClient.removeQueries({ queryKey: shippingProviderQueryKeys.detail(id) })
     },
   })
 
@@ -40,7 +39,9 @@ export default function ProvidersTable() {
         return (
           <div className="flex flex-col gap-0.5">
             <span>{provider.providerName}</span>
-            <span className="text-xs text-muted-foreground">{provider.providerCode}</span>
+            <span className="text-xs text-muted-foreground">
+              {provider.providerCode}
+            </span>
           </div>
         )
       },

@@ -12,23 +12,14 @@ import { Button } from "@workspace/ui/components/button"
 import { DialogClose } from "@workspace/ui/components/dialog"
 
 import { shippingProviderSchema } from "../schema"
-import type { ShippingProvider, ShippingProviderUpsertPayload } from "../types"
+import type { ShippingProvider } from "../types"
 import {
   createShippingProvider,
   getShippingProvider,
   updateShippingProvider,
 } from "../actions"
 import { shippingProviderQueryKeys } from "../queryKeys"
-import { initShippingProviderUpdate } from "../init"
-
-const providerFormSchema = shippingProviderSchema.omit({
-  id: true,
-  hasApiKey: true,
-  hasWebhookSecret: true,
-  isActive: true,
-  createdAt: true,
-  updatedAt: true,
-})
+import { initShippingProvider } from "../init"
 
 export default function ShippingProviderUpsertPageView({
   providerId,
@@ -41,15 +32,8 @@ export default function ShippingProviderUpsertPageView({
   const isEdit = providerId !== "create"
 
   const form = useForm<ShippingProvider>({
-    resolver: zodResolver(providerFormSchema),
-    defaultValues: {
-      providerCode: "",
-      providerName: "",
-      apiBaseUrl: "",
-      apiKey: "",
-      webhookSecret: "",
-      priority: 10,
-    },
+    resolver: zodResolver(shippingProviderSchema),
+    defaultValues: initShippingProvider(),
   })
 
   const { data: provider, isLoading } = useQuery({
@@ -59,32 +43,15 @@ export default function ShippingProviderUpsertPageView({
   })
 
   useEffect(() => {
-    if (!isEdit) {
-      form.reset({
-        providerCode: "",
-        providerName: "",
-        apiBaseUrl: "",
-        apiKey: "",
-        webhookSecret: "",
-        priority: 10,
-      })
-      return
-    }
-
-    form.reset({
-      providerCode: provider?.providerCode ?? "",
-      providerName: provider?.providerName ?? "",
-      apiBaseUrl: provider?.apiBaseUrl ?? "",
-      apiKey: "",
-      webhookSecret: "",
-      priority: provider?.priority ?? 10,
-    })
+    initShippingProvider(provider)
   }, [form, isEdit, provider])
 
   const { isPending: isCreating, mutate: create } = useMutation({
     mutationFn: createShippingProvider,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: shippingProviderQueryKeys.all })
+      await queryClient.invalidateQueries({
+        queryKey: shippingProviderQueryKeys.all,
+      })
       router.push("/logistics/shipping/providers")
     },
   })
@@ -92,9 +59,8 @@ export default function ShippingProviderUpsertPageView({
   const { isPending: isUpdating, mutate: update } = useMutation({
     mutationFn: updateShippingProvider,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: shippingProviderQueryKeys.all })
       await queryClient.invalidateQueries({
-        queryKey: shippingProviderQueryKeys.detail(providerId),
+        queryKey: shippingProviderQueryKeys.all,
       })
       router.push("/logistics/shipping/providers")
     },
@@ -102,21 +68,7 @@ export default function ShippingProviderUpsertPageView({
 
   const handleSubmit = useCallback(
     (values: ShippingProvider) => {
-      const payload: ShippingProviderUpsertPayload = {
-        providerCode: values.providerCode,
-        providerName: values.providerName,
-        apiBaseUrl: values.apiBaseUrl,
-        apiKey: values.apiKey,
-        webhookSecret: values.webhookSecret,
-        priority: values.priority,
-      }
-
-      if (isEdit) {
-        update(initShippingProviderUpdate(providerId, { ...values, ...payload }))
-        return
-      }
-
-      create(payload)
+      return isEdit ? update(values) : create(values)
     },
     [create, isEdit, providerId, update]
   )
@@ -137,7 +89,11 @@ export default function ShippingProviderUpsertPageView({
             <Button variant="outline">إلغاء</Button>
           </DialogClose>
 
-          <Button type="submit" form="shipping-provider-form" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            form="shipping-provider-form"
+            disabled={isSubmitting}
+          >
             حفظ
           </Button>
         </>

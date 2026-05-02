@@ -1,4 +1,4 @@
-import ShippingProviderUpsertPageView from "@/modules/shipping/provider/components/provider-upsert-page"
+import ShippingProviderForm from "@/modules/shipping/provider/components/form"
 
 export default async function ShippingProviderUpsertPage({
   params,
@@ -7,5 +7,5 @@ export default async function ShippingProviderUpsertPage({
 }) {
   const { provider_id } = await params
 
-  return <ShippingProviderUpsertPageView providerId={provider_id} />
+  return <ShippingProviderForm providerId={provider_id} />
 }
