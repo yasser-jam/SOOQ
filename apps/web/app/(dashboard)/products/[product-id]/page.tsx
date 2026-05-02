@@ -40,6 +40,7 @@ import Textarea from "@/components/system/textarea"
 import CategorySelect from "@/modules/product/category/components/select"
 import TagMultiSelect from "@/modules/product/tag/components/multi-select"
 import { normalizeOptionSortOrder } from "@/modules/product/product/helpers"
+import ImageUploader from "@/components/system/image-uploader"
 
 type ProductFormInput = z.input<typeof productSchema>
 type ProductSubmitValues = z.output<typeof productSchema>
@@ -104,6 +105,16 @@ export default function ProductDetailsPage() {
       name: "options",
     }) ?? []
 
+  const handleImageChange = useCallback(
+    (imageUrls: string[]) => {
+      form.setValue("mediaUrls", imageUrls, {
+        shouldDirty: true,
+        shouldValidate: true,
+      })
+    },
+    [form]
+  )
+
   return (
     <div className="container my-6 flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -113,7 +124,7 @@ export default function ProductDetailsPage() {
 
         <div className="flex items-center gap-3">
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={() => router.back()}
             disabled={isSubmitting}
           >
@@ -293,6 +304,17 @@ export default function ProductDetailsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {isEdit && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">صور المنتج</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ImageUploader onChange={handleImageChange} />
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
