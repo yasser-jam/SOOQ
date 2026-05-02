@@ -32,7 +32,6 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 
 import { useState, useEffect, ComponentType } from 'react'
-import { useQuery } from "@tanstack/react-query"
 
 type NavChild = {
   title: string
@@ -137,6 +136,7 @@ function NavMenuItem({
     children?.some((c) => isRouteActive(pathname, c.url))
   )
 
+  
   const [open, setOpen] = useState(hasActiveChild)
 
   useEffect(() => {
@@ -147,6 +147,7 @@ function NavMenuItem({
     isRouteActive(pathname, item.url) || hasActiveChild
 
   if (!hasChildren) {
+    
     return (
       <SidebarMenuItem>
         <SidebarMenuButton isActive={isRouteActive(pathname, item.url)} asChild>
