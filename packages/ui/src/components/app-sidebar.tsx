@@ -31,6 +31,9 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { cn } from "@workspace/ui/lib/utils"
 
+import { useState, useEffect, ComponentType } from 'react'
+import { useQuery } from "@tanstack/react-query"
+
 type NavChild = {
   title: string
   url: string
@@ -39,7 +42,7 @@ type NavChild = {
 type NavItem = {
   title: string
   url: string
-  icon: React.ComponentType<{ className?: string }>
+  icon: ComponentType<{ className?: string }>
   children?: readonly NavChild[]
 }
 
@@ -99,8 +102,8 @@ const subNavLinkClass =
   "mb-0.5 h-12 min-h-12 w-full translate-x-0 rounded-none border-secondary px-4 text-sm ring-sidebar-ring outline-hidden transition-all duration-300 hover:border-r-3 hover:bg-primary/5 hover:bg-white/5 hover:text-secondary focus-visible:ring-2 data-active:border-r-3 data-active:bg-primary/5 data-active:bg-white/5 data-active:font-normal data-active:text-secondary [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-current"
 
 function useFallbackPathname() {
-  const [pathname, setPathname] = React.useState("")
-  React.useEffect(() => {
+  const [pathname, setPathname] = useState("")
+  useEffect(() => {
     const read = () => setPathname(window.location.pathname)
     read()
     window.addEventListener("popstate", read)
@@ -134,9 +137,9 @@ function NavMenuItem({
     children?.some((c) => isRouteActive(pathname, c.url))
   )
 
-  const [open, setOpen] = React.useState(hasActiveChild)
+  const [open, setOpen] = useState(hasActiveChild)
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (hasActiveChild) setOpen(true)
   }, [hasActiveChild])
 
@@ -210,9 +213,10 @@ function NavMenuItem({
 export type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   /** When set (e.g. `usePathname()` in the Next.js app), active state updates on client navigation. */
   pathname?: string
+  user: any
 }
 
-export function AppSidebar({ pathname: pathnameProp, ...props }: AppSidebarProps) {
+export function AppSidebar({ pathname: pathnameProp, user, ...props }: AppSidebarProps) {
   const fallbackPathname = useFallbackPathname()
   const pathname = pathnameProp ?? fallbackPathname
 
@@ -230,7 +234,7 @@ export function AppSidebar({ pathname: pathnameProp, ...props }: AppSidebarProps
                   لوحة تحكم المتجر
                 </span>
 
-                <span className="text-sm text-gray-200">لوحة التاجر</span>
+                <span className="text-sm text-gray-200">{user?.storeConfigId}</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>

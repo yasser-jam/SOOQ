@@ -1,19 +1,31 @@
 "use client"
 import { DirectionProvider } from "@radix-ui/react-direction"
 import { AppSidebar } from "@workspace/ui/components/app-sidebar"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@workspace/ui/components/sidebar"
+import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { usePathname } from "next/navigation"
 import { ThemeProvider } from "next-themes"
 import LayoutHeader from "./layout/LayoutHeader"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from "@tanstack/react-query"
 import { Toaster } from "./toaster"
+import { api } from "@/lib/api"
+import { ApiResponse } from "@/lib/types"
 
 function AppSidebarWithPathname() {
+  // User Profile
+  const { data: user } = useQuery({
+    queryKey: ["user-profile"],
+    queryFn: () => api<ApiResponse<any>>("admin/store/settings"),
+    select: (data) => data?.data
+  })
+
+
+
   const pathname = usePathname()
-  return <AppSidebar pathname={pathname} />
+  return <AppSidebar pathname={pathname} user={user}  />
 }
 
 export default function Providers({ children }: { children: React.ReactNode }) {
