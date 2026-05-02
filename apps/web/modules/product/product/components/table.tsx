@@ -12,9 +12,10 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
 import type { Product } from "../types"
-import { deleteProduct, listProducts, productKeys } from "../actions"
+import { deleteProduct, listProducts } from "../actions"
 import { toast } from "sonner"
 import { useEffect } from "react"
+import { productKeys } from "../queryKeys"
 
 export default function ProductTable() {
   const router = useRouter()
@@ -26,6 +27,12 @@ export default function ProductTable() {
       queryClient.invalidateQueries({ queryKey: productKeys.all })
       toast.success("تم حذف المنتج بنجاح")
     },
+  })
+
+  const { data: products } = useQuery({
+    queryKey: productKeys.all,
+    queryFn: () => listProducts(),
+    select: (res) => res.data,
   })
 
   const columns: ColumnDef<Product>[] = [
@@ -99,7 +106,6 @@ export default function ProductTable() {
         return (
           <TableActions
             onUpdate={() => {
-              if (!productId) return
               router.push(`/products/${productId}`)
             }}
             onDelete={() => {
@@ -111,12 +117,6 @@ export default function ProductTable() {
       },
     },
   ]
-
-  const { data: products } = useQuery({
-    queryKey: productKeys.all,
-    queryFn: () => listProducts(),
-    select: (res) => res.data
-  })
 
   const pageSize = 10
   const [pageIndex, setPageIndex] = React.useState(0)

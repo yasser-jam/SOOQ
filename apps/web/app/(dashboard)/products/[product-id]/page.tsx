@@ -311,7 +311,7 @@ export default function ProductDetailsPage() {
                 <CardTitle className="text-2xl">صور المنتج</CardTitle>
               </CardHeader>
               <CardContent>
-                <ImageUploader onChange={handleImageChange} />
+                <ImageUploader defaultFiles={product?.mediaUrls || []} onChange={handleImageChange} />
               </CardContent>
             </Card>
           )}

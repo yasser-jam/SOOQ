@@ -15,19 +15,36 @@ import {
   FileUploadList,
   FileUploadTrigger,
 } from "@workspace/ui/components/file-upload"
+import { useMutation } from "@tanstack/react-query"
+import api from "@/lib/api"
+import { ApiResponse } from "@/lib/types"
 
 export const title = "Image Dropzone"
 
 type ImageUploaderProps = {
-  defaultFiles?: File[]
+  defaultFiles?: string[]
   onChange?: (files: string[]) => void
+  productId?: string
 }
 
 export default function ImageUploader({
   defaultFiles,
   onChange,
+  productId,
 }: ImageUploaderProps) {
-  const [files, setFiles] = React.useState<File[]>(defaultFiles || [])
+  const [files, setFiles] = React.useState<File[]>([])
+
+
+
+  const { isPending, mutate: upload } = useMutation({
+    mutationKey: ["upload-image"],
+    mutationFn: () =>
+      api<ApiResponse<any>>(`admin/products/${productId}/images`),
+    onSuccess: (data) => {
+      toast.success("تم رفع الصورة بنجاح")
+      setFiles((prev) => [...prev, data?.data.map((img: any) => img.publicUrl)])
+    },
+  })
 
   const onFileReject = React.useCallback((file: File, message: string) => {
     toast.error(message, {
@@ -36,9 +53,9 @@ export default function ImageUploader({
   }, [])
 
   const handleFileChange = React.useCallback((files: File[]) => {
-    setFiles(files)
+    // setFiles(files)
 
-    onChange?.(files.map((file) => URL.createObjectURL(file)))
+    // onChange?.(files)
   }, [])
 
   return (
