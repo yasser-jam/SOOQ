@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import { useState, useEffect } from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { useQuery } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
@@ -10,23 +10,28 @@ import TableActions from "@/components/system/table-actions"
 import { listAdminOrders } from "@/modules/order/order/actions"
 import { ORDER_LIST_STATUS_META } from "@/modules/order/order/model"
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
-import type { AdminOrderListItem, OrderStatus } from "@/modules/order/order/types"
-import { formatOrderDate, getOrderCustomerName } from "@/modules/order/order/utils"
-import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
+import type { Order, OrderStatus } from "@/modules/order/order/types"
+import {
+  formatOrderDate,
+  getOrderCustomerName,
+} from "@/modules/order/order/utils"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
 interface OrdersListTableProps {
   status?: OrderStatus
 }
 
-export default function OrdersListTable({
-  status,
-}: OrdersListTableProps) {
+export default function OrdersListTable({ status }: OrdersListTableProps) {
   const router = useRouter()
   const pageSize = 10
-  const [pageIndex, setPageIndex] = React.useState(0)
+  const [pageIndex, setPageIndex] = useState(0)
 
-  React.useEffect(() => {
+  useEffect(() => {
     setPageIndex(0)
   }, [status])
 
@@ -46,14 +51,14 @@ export default function OrdersListTable({
       }),
   })
 
-  const columns: ColumnDef<AdminOrderListItem>[] = [
+  const columns: ColumnDef<Order>[] = [
     {
       accessorKey: "orderNumber",
       header: "رقم الطلب",
       enableSorting: true,
       cell: ({ row }) => (
         <span className="font-medium text-foreground">
-          {row.original.orderNumber ?? row.original.orderId ?? row.original.id}
+          {row.original?.orderNumber}
         </span>
       ),
     },
@@ -64,16 +69,16 @@ export default function OrdersListTable({
       cell: ({ row }) => {
         const statusMeta = ORDER_LIST_STATUS_META[row.original.status]
 
-        return <Badge variant={statusMeta.badgeVariant}>{statusMeta.label}</Badge>
+        return (
+          <Badge variant={statusMeta?.badgeVariant}>{statusMeta?.label}</Badge>
+        )
       },
     },
     {
       accessorKey: "placedAt",
       header: "التاريخ",
       enableSorting: true,
-      cell: ({ row }) => (
-        <span>{formatOrderDate(row.original.placedAt ?? row.original.createdAt)}</span>
-      ),
+      cell: ({ row }) => <span>{formatOrderDate(row.original.createdAt)}</span>,
     },
     {
       accessorKey: "client",
@@ -81,8 +86,7 @@ export default function OrdersListTable({
       enableSorting: false,
       cell: ({ row }) => {
         const clientName = getOrderCustomerName(row.original)
-        const avatarUrl =
-          row.original.customerAvatarUrl ?? row.original.customer?.avatarUrl
+        const avatarUrl = row.original.customerName
 
         return (
           <div className="flex items-center gap-3">
@@ -100,8 +104,7 @@ export default function OrdersListTable({
       header: () => <div></div>,
       enableSorting: false,
       cell: ({ row }) => {
-        const orderId =
-          row.original.id ?? row.original.orderId ?? row.original.orderNumber ?? ""
+        const orderId = row.original.id
 
         return (
           <TableActions
@@ -116,7 +119,7 @@ export default function OrdersListTable({
   ]
 
   const pageCount = Math.max(1, data?.totalPages ?? 1)
-  const orders = data?.content ?? data?.items ?? []
+  const orders = data?.items ?? []
 
   return (
     <div className="w-full overflow-hidden rounded-lg border bg-white">

@@ -1,17 +1,12 @@
-export type OrderStatus =
-	| "NEW"
-	| "PENDING"
-	| "CONFIRMED"
-	| "PROCESSING"
-	| "SHIPPED"
-	| "OUT_FOR_DELIVERY"
-	| "DELIVERED"
-	| "CANCELLED"
-	| "RETURN_REQUESTED"
-	| "RETURNED"
+import z from "zod"
+import { orderSchema } from "./schema"
+
+export type OrderStatus = z.infer<typeof orderSchema.shape.status>
 
 export type OrderPaymentMethod = "COD" | "PAYMERA"
 export type OrderNoteChannel = "INTERNAL" | "CUSTOMER"
+
+export type Order = z.infer<typeof orderSchema>
 
 export interface AdminOrderShippingAddress {
 	country?: string | null
