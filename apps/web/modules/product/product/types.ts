@@ -5,6 +5,7 @@ import {
 	productOptionValueSchema,
 	productSchema,
 	productStatusSchema,
+	variantOptionSchema,
 } from "./schema"
 
 export type ProductStatus = z.infer<typeof productStatusSchema>
@@ -43,3 +44,5 @@ export interface UpdateProductInput {
 	id: string
 	data: UpdateProductPayload
 }
+
+export type VariantOptionValues = z.infer<typeof variantOptionSchema>

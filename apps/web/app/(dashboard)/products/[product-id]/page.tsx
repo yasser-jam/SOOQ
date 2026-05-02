@@ -2,15 +2,16 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Controller, useForm } from "react-hook-form"
+import { Controller, useForm, useWatch } from "react-hook-form"
 import { Plus, Trash2Icon } from "lucide-react"
 import { z } from "zod"
 
 import Field from "@/components/system/Field"
 import { initProduct } from "@/modules/product/product/init"
 import { productSchema } from "@/modules/product/product/schema"
+import VariantOptionDialog from "@/modules/product/product/components/option-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -22,28 +23,10 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
-import {
   Field as UiField,
-  FieldDescription,
   FieldError,
   FieldLabel,
-  FieldSet,
-  FieldTitle,
 } from "@workspace/ui/components/field"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 
 import {
   createProduct,
@@ -55,31 +38,14 @@ import ProductMultipleCategorySelect from "@/modules/product/category/components
 import StatusSelect from "@/modules/product/product/components/status-select"
 import Textarea from "@/components/system/textarea"
 import CategorySelect from "@/modules/product/category/components/select"
-import TagSelect from "@/modules/product/tag/components/select"
 import TagMultiSelect from "@/modules/product/tag/components/multi-select"
+import { normalizeOptionSortOrder } from "@/modules/product/product/helpers"
 
 type ProductFormInput = z.input<typeof productSchema>
 type ProductSubmitValues = z.output<typeof productSchema>
 
-const optionDialogSchema = z.object({
-  optionNameAr: z.string().trim().min(1, "اسم الخيار بالعربية مطلوب"),
-  optionNameEn: z.string().trim().min(1, "اسم الخيار بالإنجليزية مطلوب"),
-  valuesAr: z.string().trim().min(1, "أدخل القيم بالعربية"),
-  valuesEn: z.string().trim().min(1, "أدخل القيم بالإنجليزية"),
-  colorHexes: z.string().optional(),
-})
-
-type OptionDialogValues = z.infer<typeof optionDialogSchema>
-
-const parseList = (value: string) =>
-  value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean)
-
 export default function ProductDetailsPage() {
   const router = useRouter()
-  const queryClient = useQueryClient()
   const params = useParams()
   const productId = params?.["product-id"]?.toString() ?? ""
   const isEdit = productId !== "create"
@@ -89,17 +55,6 @@ export default function ProductDetailsPage() {
   const form = useForm<ProductFormInput, unknown, ProductSubmitValues>({
     resolver: zodResolver(productSchema),
     defaultValues: initProduct(),
-  })
-
-  const optionDialogForm = useForm<OptionDialogValues>({
-    resolver: zodResolver(optionDialogSchema),
-    defaultValues: {
-      optionNameAr: "",
-      optionNameEn: "",
-      valuesAr: "",
-      valuesEn: "",
-      colorHexes: "",
-    },
   })
 
   const { data: product, isLoading } = useQuery({
@@ -142,14 +97,12 @@ export default function ProductDetailsPage() {
     [createProductMutation, isEdit, productId, updateProductMutation]
   )
 
-  const handleAddOption = optionDialogForm.handleSubmit((values) => {
-    console.log(values)
-
-    optionDialogForm.reset()
-    setOptionsDialogOpen(false)
-  })
-
   const isSubmitting = isUpdating || isLoading || isCreating
+  const productOptions =
+    useWatch({
+      control: form.control,
+      name: "options",
+    }) ?? []
 
   return (
     <div className="container my-6 flex flex-col gap-6">
@@ -346,8 +299,12 @@ export default function ProductDetailsPage() {
               <CardTitle className="text-2xl">الوسوم</CardTitle>
             </CardHeader>
             <CardContent>
-              <TagMultiSelect control={form.control} name="tagIds" label="الوسوم"></TagMultiSelect>
-                  {/* <TagSelect
+              <TagMultiSelect
+                control={form.control}
+                name="tagIds"
+                label="الوسوم"
+              ></TagMultiSelect>
+              {/* <TagSelect
                     control={form.control}
                     name="tagIds"
                     label="الوسوم"
@@ -399,140 +356,85 @@ export default function ProductDetailsPage() {
             </CardAction>
           </CardHeader>
           <CardContent>
-            <Controller
-              name="options"
-              control={form.control}
-              render={({ field }) => (
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  {(field.value ?? []).map((option, optionIndex) => (
-                    <Card
-                      key={`${option.optionNameAr}-${optionIndex}`}
-                      size="sm"
-                    >
-                      <CardHeader>
-                        <CardTitle className="text-lg">
-                          {option.optionNameAr}
-                        </CardTitle>
-                        <CardDescription>{option.optionNameEn}</CardDescription>
-                        <CardAction>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => {
-                              const nextOptions = (field.value ?? []).filter(
-                                (_, index) => index !== optionIndex
-                              )
-                              field.onChange(nextOptions)
-                            }}
-                            disabled={isSubmitting}
-                          >
-                            <Trash2Icon
-                              data-icon="inline-start"
-                              className="p-0.5"
-                            />
-                          </Button>
-                        </CardAction>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-2">
-                          {option.values.map((value, valueIndex) => (
-                            <Badge
-                              key={`${value.valueAr}-${valueIndex}`}
-                              variant="secondary"
-                            >
-                              {value.valueAr}
-                              {value.colorHex ? ` (${value.colorHex})` : ""}
-                            </Badge>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {productOptions.map((option, optionIndex) => (
+                <Card key={`${option.optionNameAr}-${optionIndex}`} size="sm">
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      {option.optionNameAr}
+                    </CardTitle>
+                    <CardDescription>{option.optionNameEn}</CardDescription>
+                    <CardAction>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => {
+                          const nextOptions = productOptions.filter(
+                            (_, index) => index !== optionIndex
+                          )
 
-                  {!(field.value ?? []).length && (
-                    <div className="rounded-lg border p-4 text-sm text-muted-foreground">
-                      لا يوجد خيارات مضافة بعد.
+                          form.setValue(
+                            "options",
+                            normalizeOptionSortOrder(nextOptions),
+                            {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            }
+                          )
+                        }}
+                        disabled={isSubmitting}
+                      >
+                        <Trash2Icon
+                          data-icon="inline-start"
+                          className="p-0.5"
+                        />
+                      </Button>
+                    </CardAction>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {option.values.map((value, valueIndex) => (
+                        <Badge
+                          key={`${value.valueAr}-${valueIndex}`}
+                          variant="secondary"
+                        >
+                          {value.valueAr}
+                          {value.colorHex ? ` (${value.colorHex})` : ""}
+                        </Badge>
+                      ))}
                     </div>
-                  )}
+                  </CardContent>
+                </Card>
+              ))}
+
+              {!productOptions.length && (
+                <div className="rounded-lg border p-4 text-sm text-muted-foreground">
+                  لا يوجد خيارات مضافة بعد.
                 </div>
               )}
-            />
+            </div>
             <FieldError errors={[form.formState.errors.options]} />
           </CardContent>
         </Card>
       </form>
 
-      <Dialog open={optionsDialogOpen} onOpenChange={setOptionsDialogOpen}>
-        <DialogContent size="sm" showCloseButton={!isSubmitting}>
-          <DialogHeader>
-            <DialogTitle>إضافة خيار</DialogTitle>
-          </DialogHeader>
-
-          <form
-            id="add-option-form"
-            className="grid grid-cols-1 gap-4 md:grid-cols-2"
-            onSubmit={handleAddOption}
-          >
-            <Field
-              name="optionNameAr"
-              control={optionDialogForm.control}
-              label="اسم الخيار بالعربية"
-              placeholder="مثال: اللون"
-              inputProps={{ disabled: isSubmitting }}
-            />
-
-            <Field
-              name="optionNameEn"
-              control={optionDialogForm.control}
-              label="اسم الخيار بالإنجليزية"
-              placeholder="Example: Color"
-              inputProps={{ disabled: isSubmitting }}
-            />
-
-            <Field
-              name="valuesAr"
-              control={optionDialogForm.control}
-              label="القيم بالعربية"
-              placeholder="أحمر, أزرق"
-              inputProps={{ disabled: isSubmitting }}
-            />
-
-            <Field
-              name="valuesEn"
-              control={optionDialogForm.control}
-              label="القيم بالإنجليزية"
-              placeholder="Red, Blue"
-              inputProps={{ disabled: isSubmitting }}
-            />
-
-            <Field
-              name="colorHexes"
-              control={optionDialogForm.control}
-              label="Color Hex (اختياري)"
-              inputProps={{ disabled: isSubmitting, type: "color" }}
-            />
-          </form>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOptionsDialogOpen(false)}
-              disabled={isSubmitting}
-            >
-              إلغاء
-            </Button>
-            <Button
-              type="submit"
-              form="add-option-form"
-              disabled={isSubmitting}
-            >
-              إضافة
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <VariantOptionDialog
+        open={optionsDialogOpen}
+        onOpenChange={setOptionsDialogOpen}
+        disabled={isSubmitting}
+        nextSortOrder={productOptions.length}
+        onChange={(option) => {
+          form.setValue(
+            "options",
+            normalizeOptionSortOrder([...productOptions, option]),
+            {
+              shouldDirty: true,
+              shouldValidate: true,
+            }
+          )
+        }}
+      />
     </div>
   )
 }
