@@ -46,7 +46,7 @@ export default function TagMultiSelect<T extends FieldValues>({
 
   const { data: tags, isPending } = useQuery<ProductTag[]>({
     queryKey: productTagKeys.all,
-    queryFn: listProductTags
+    queryFn: listProductTags,
   })
 
   return (
@@ -54,14 +54,17 @@ export default function TagMultiSelect<T extends FieldValues>({
       name={name}
       control={control}
       render={({ field, fieldState }) => {
-
         return (
           <UiField data-invalid={fieldState.invalid}>
             <FieldLabel>{label}</FieldLabel>
-            <MultiSelect items={tags || []} itemTitle="tagName" itemValue="id" placeholder="اختر الوسوم" {...field} >
-
-
-            </MultiSelect>
+            <MultiSelect
+              items={tags || []}
+              itemTitle="tagName"
+              itemValue="id"
+              placeholder="اختر الوسوم"
+              loading={isPending}
+              {...field}
+            ></MultiSelect>
 
             <FieldError errors={[fieldState.error]} />
           </UiField>

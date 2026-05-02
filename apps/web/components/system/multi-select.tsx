@@ -18,6 +18,7 @@ import {
 
 import { ReactNode } from "react"
 import { Control, FieldPath } from "react-hook-form"
+import { Loader2 } from "lucide-react"
 
 type MultiSelectProps<T extends Record<string, unknown>> = {
   value: any[]
@@ -28,6 +29,8 @@ type MultiSelectProps<T extends Record<string, unknown>> = {
   defaultValue?: any[]
   //   pass it here instead of inputProps in order to avoid duplication and make it easy to set
   placeholder?: string
+
+  loading?: boolean
 }
 
 export default function MultiSelect(props: MultiSelectProps<any>) {
@@ -41,18 +44,29 @@ export default function MultiSelect(props: MultiSelectProps<any>) {
 
   return (
     <>
-      <Combobox multiple autoHighlight items={props.items} value={props.value} onValueChange={props.onChange}>
+      <Combobox
+        multiple
+        autoHighlight
+        items={props.items}
+        value={props.value}
+        onValueChange={props.onChange}
+        disabled={props.loading}
+      >
         {/* <ComboboxInput placeholder={props.placeholder} value={props.value} /> */}
 
-        <ComboboxChips ref={anchor} className="w-full max-w-xs">
+        <ComboboxChips ref={anchor} className="w-full relative">
           <ComboboxValue placeholder={props.placeholder}>
             <React.Fragment>
               {props.value.map((value: string) => (
                 <ComboboxChip key={value}>{getTitle(value)}</ComboboxChip>
               ))}
-              <ComboboxChipsInput />
+              <ComboboxChipsInput placeholder={props.placeholder} />
             </React.Fragment>
           </ComboboxValue>
+
+          {props.loading && (
+            <Loader2 className="absolute top-2 left-2 animate-spin" />
+          )}
         </ComboboxChips>
 
         <ComboboxContent anchor={anchor}>
