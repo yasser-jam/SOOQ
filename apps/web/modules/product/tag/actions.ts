@@ -7,14 +7,10 @@ import type {
   UpdateProductTagInput,
 } from "./types"
 import { ApiResponse } from "@/lib/types"
+import { tagQueryKeys } from "./queryKeys"
 
 type ProductTagResponse = ProductTag & {
   productTagId: string
-}
-
-export const productTagKeys = {
-  all: ["product-tags"] as const,
-  detail: (id: string) => [...productTagKeys.all, id] as const,
 }
 
 export const listProductTags = async (): Promise<ProductTag[]> => {
@@ -24,7 +20,7 @@ export const listProductTags = async (): Promise<ProductTag[]> => {
 
 export const listProductTagsQueryOptions = () =>
   queryOptions({
-    queryKey: productTagKeys.all,
+    queryKey: tagQueryKeys.all,
     queryFn: listProductTags,
   })
 
@@ -35,7 +31,7 @@ export const getProductTag = async (id: string): Promise<ProductTag> => {
 
 export const getProductTagQueryOptions = (id: string) =>
   queryOptions({
-    queryKey: productTagKeys.detail(id),
+    queryKey: tagQueryKeys.detail(id),
     queryFn: () => getProductTag(id),
   })
 
