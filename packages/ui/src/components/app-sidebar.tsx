@@ -6,6 +6,7 @@ import {
   ChevronDown,
   Circle,
   CircleDollarSign,
+  FileText,
   LayoutDashboard,
   Package,
   Palette,
@@ -72,6 +73,11 @@ const navItems: readonly NavItem[] = [
     title: "أكواد الخصم",
     url: "/discount-codes",
     icon: BadgePercent,
+  },
+  {
+    title: "قوالب الفاتورة",
+    url: "/invoice-layouts",
+    icon: FileText,
   },
   {
     title: "الخدمات اللوجستية",
