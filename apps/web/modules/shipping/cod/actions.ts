@@ -29,6 +29,7 @@ export const listCodReconciliationBatches = async (
   )
 
 
+  // @ts-ignore
   const data = response.data?.map(el => normalizeBatch(el)) ?? []
 
   return data
