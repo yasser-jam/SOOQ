@@ -12,6 +12,7 @@ import {
   Package,
   Palette,
   Receipt,
+  RotateCcw,
   ShoppingBag,
   Truck,
   Users,
@@ -116,6 +117,11 @@ const navItems: readonly NavItem[] = [
     title: "بوابات الدفع",
     url: "/payment-providers",
     icon: CreditCard,
+  },
+  {
+    title: "الاستردادات",
+    url: "/refunds",
+    icon: RotateCcw,
   },
 ]
 
