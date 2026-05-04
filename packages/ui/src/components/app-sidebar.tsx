@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Package,
   Palette,
+  Receipt,
   ShoppingBag,
   Truck,
   Users,
@@ -75,9 +76,13 @@ const navItems: readonly NavItem[] = [
     icon: BadgePercent,
   },
   {
-    title: "قوالب الفاتورة",
-    url: "/invoice-layouts",
-    icon: FileText,
+    title: "الفواتير",
+    url: "/invoices",
+    icon: Receipt,
+    children: [
+      { title: "قائمة الفواتير", url: "/invoices" },
+      { title: "قوالب الفاتورة", url: "/invoice-layouts" },
+    ],
   },
   {
     title: "الخدمات اللوجستية",

@@ -8,10 +8,12 @@ import {
   CheckCircle2,
   CircleCheck,
   Cog,
+  Download,
   FileText,
   PackageCheck,
   PenLine,
   Receipt,
+  RefreshCcw,
   RotateCcw,
   Truck,
   Wallet,
@@ -33,11 +35,18 @@ import type {
   OrderStatus,
   TransitionableOrderStatus,
 } from "@/modules/order/order/types"
+import {
+  generateInvoice,
+  regenerateInvoice,
+} from "@/modules/order/invoice/actions"
+import { invoiceQueryKeys } from "@/modules/order/invoice/queryKeys"
 import { Button } from "@workspace/ui/components/button"
 
 interface OrderDetailsActionsProps {
   orderId: string
   status?: OrderStatus
+  invoiceNumber?: string | null
+  invoicePdfUrl?: string | null
 }
 
 type IconType = typeof CheckCircle2
@@ -63,6 +72,8 @@ const DESTRUCTIVE_TRANSITIONS: TransitionableOrderStatus[] = [
 export default function OrderDetailsActions({
   orderId,
   status,
+  invoiceNumber,
+  invoicePdfUrl,
 }: OrderDetailsActionsProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -75,6 +86,30 @@ export default function OrderDetailsActions({
       await queryClient.invalidateQueries({ queryKey: orderQueryKeys.all })
     },
   })
+
+  const invalidateAfterInvoiceMutation = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: orderQueryKeys.detail(orderId),
+    })
+    await queryClient.invalidateQueries({
+      queryKey: invoiceQueryKeys.all,
+    })
+  }
+
+  const { mutate: generateMutation, isPending: isGenerating } = useMutation({
+    mutationFn: () => generateInvoice(orderId),
+    onSuccess: invalidateAfterInvoiceMutation,
+  })
+
+  const { mutate: regenerateMutation, isPending: isRegenerating } = useMutation(
+    {
+      mutationFn: () => regenerateInvoice(orderId),
+      onSuccess: invalidateAfterInvoiceMutation,
+    }
+  )
+
+  const isInvoiceWorking = isGenerating || isRegenerating
+  const hasInvoice = Boolean(invoiceNumber)
 
   if (!status) {
     return (
@@ -135,17 +170,38 @@ export default function OrderDetailsActions({
           </Button>
         ) : null}
 
-        <Button
-          type="button"
-          size="md"
-          variant="outline"
-          onClick={() => alert("توليد الفاتورة سيُفعَّل في المرحلة 6")}
-          disabled
-          title="قريباً (Phase 6)"
-        >
-          توليد فاتورة
-          <FileText data-icon="inline-end" />
-        </Button>
+        {hasInvoice && invoicePdfUrl ? (
+          <>
+            <Button type="button" size="md" variant="outline" asChild>
+              <a href={invoicePdfUrl} target="_blank" rel="noopener noreferrer">
+                تنزيل الفاتورة
+                <Download data-icon="inline-end" />
+              </a>
+            </Button>
+
+            <Button
+              type="button"
+              size="md"
+              variant="outline"
+              onClick={() => regenerateMutation()}
+              disabled={isInvoiceWorking}
+            >
+              إعادة توليد
+              <RefreshCcw data-icon="inline-end" />
+            </Button>
+          </>
+        ) : (
+          <Button
+            type="button"
+            size="md"
+            variant="outline"
+            onClick={() => generateMutation()}
+            disabled={isInvoiceWorking}
+          >
+            توليد فاتورة
+            <FileText data-icon="inline-end" />
+          </Button>
+        )}
 
         {allowedTransitions.map((target) => {
           const Icon = TRANSITION_ICONS[target]

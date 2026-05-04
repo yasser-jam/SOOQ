@@ -52,7 +52,12 @@ export default function OrderDetailsPageView({
           ) : null}
         </div>
 
-        <OrderDetailsActions orderId={orderId} status={order?.status} />
+        <OrderDetailsActions
+          orderId={orderId}
+          status={order?.status}
+          invoiceNumber={order?.invoiceNumber}
+          invoicePdfUrl={order?.invoicePdfUrl}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
