@@ -51,68 +51,67 @@ type MockOrderSeed = {
 }
 
 const STATUS_FLOW: OrderStatus[] = [
-	"NEW",
 	"PENDING",
 	"CONFIRMED",
 	"PROCESSING",
 	"SHIPPED",
-	"OUT_FOR_DELIVERY",
 	"DELIVERED",
+	"COMPLETED",
 ]
 
 const STATUS_EVENT_META: Record<
 	OrderStatus,
 	{ eventType: string; title: string; description: string }
 > = {
-	NEW: {
+	PENDING: {
 		eventType: "ORDER_CREATED",
 		title: "تم إنشاء الطلب",
-		description: "تم تسجيل الطلب في لوحة الإدارة.",
-	},
-	PENDING: {
-		eventType: "ORDER_PENDING",
-		title: "الطلب قيد الانتظار",
-		description: "الطلب بانتظار المراجعة الأولية.",
+		description: "تم تسجيل الطلب وبانتظار المراجعة الأولية.",
 	},
 	CONFIRMED: {
-		eventType: "ORDER_CONFIRMED",
+		eventType: "CONFIRMED",
 		title: "تم تأكيد الطلب",
 		description: "تمت مراجعة الطلب وتأكيده.",
 	},
 	PROCESSING: {
-		eventType: "ORDER_PROCESSING",
+		eventType: "PROCESSING",
 		title: "الطلب قيد المعالجة",
 		description: "يتم تجهيز الأصناف للشحن.",
 	},
 	SHIPPED: {
-		eventType: "ORDER_SHIPPED",
+		eventType: "SHIPPED",
 		title: "تم شحن الطلب",
 		description: "تم تسليم الطلب إلى شركة الشحن.",
 	},
-	OUT_FOR_DELIVERY: {
-		eventType: "ORDER_OUT_FOR_DELIVERY",
-		title: "الطلب قيد التوصيل",
-		description: "المندوب في الطريق إلى العميل.",
-	},
 	DELIVERED: {
-		eventType: "ORDER_DELIVERED",
+		eventType: "DELIVERED",
 		title: "تم تسليم الطلب",
-		description: "تم تسليم الطلب بنجاح.",
+		description: "تم تسليم الطلب بنجاح إلى العميل.",
+	},
+	COMPLETED: {
+		eventType: "COMPLETED",
+		title: "تم إكمال الطلب",
+		description: "اكتمل الطلب وأُغلق.",
 	},
 	CANCELLED: {
-		eventType: "ORDER_CANCELLED",
+		eventType: "CANCELLED",
 		title: "تم إلغاء الطلب",
 		description: "تم إلغاء الطلب قبل اكتمال الشحن.",
 	},
-	RETURN_REQUESTED: {
-		eventType: "ORDER_RETURN_REQUESTED",
-		title: "تم طلب إرجاع",
-		description: "العميل طلب إرجاع الطلب بعد الاستلام.",
-	},
 	RETURNED: {
-		eventType: "ORDER_RETURNED",
+		eventType: "RETURNED",
 		title: "تم إرجاع الطلب",
 		description: "اكتملت عملية الإرجاع وتمت المعالجة.",
+	},
+	REFUNDED: {
+		eventType: "REFUNDED",
+		title: "تم استرداد الطلب",
+		description: "تم استرداد قيمة الطلب للعميل.",
+	},
+	FAILED: {
+		eventType: "FAILED",
+		title: "فشل الطلب",
+		description: "فشل تنفيذ الطلب.",
 	},
 }
 
@@ -120,7 +119,7 @@ const ORDER_SEEDS: MockOrderSeed[] = [
 	{
 		id: "ord_1001",
 		orderNumber: "SOOQ-1001",
-		status: "NEW",
+		status: "PENDING",
 		placedAt: "2026-04-22T08:15:00.000Z",
 		customer: {
 			id: "cus_1001",
@@ -313,7 +312,7 @@ const ORDER_SEEDS: MockOrderSeed[] = [
 	{
 		id: "ord_1006",
 		orderNumber: "SOOQ-1006",
-		status: "OUT_FOR_DELIVERY",
+		status: "COMPLETED",
 		placedAt: "2026-04-20T09:30:00.000Z",
 		customer: {
 			id: "cus_1006",
@@ -421,7 +420,7 @@ const ORDER_SEEDS: MockOrderSeed[] = [
 	{
 		id: "ord_1009",
 		orderNumber: "SOOQ-1009",
-		status: "RETURN_REQUESTED",
+		status: "REFUNDED",
 		placedAt: "2026-04-18T11:50:00.000Z",
 		customer: {
 			id: "cus_1009",
@@ -572,15 +571,23 @@ const ORDER_SEEDS: MockOrderSeed[] = [
 
 const getStageStatuses = (status: OrderStatus): OrderStatus[] => {
 	if (status === "CANCELLED") {
-		return ["NEW", "PENDING", "CANCELLED"]
-	}
-
-	if (status === "RETURN_REQUESTED") {
-		return [...STATUS_FLOW, "RETURN_REQUESTED"]
+		return ["PENDING", "CANCELLED"]
 	}
 
 	if (status === "RETURNED") {
-		return [...STATUS_FLOW, "RETURN_REQUESTED", "RETURNED"]
+		return [...STATUS_FLOW.slice(0, STATUS_FLOW.indexOf("DELIVERED") + 1), "RETURNED"]
+	}
+
+	if (status === "REFUNDED") {
+		return [
+			...STATUS_FLOW.slice(0, STATUS_FLOW.indexOf("DELIVERED") + 1),
+			"RETURNED",
+			"REFUNDED",
+		]
+	}
+
+	if (status === "FAILED") {
+		return [...STATUS_FLOW.slice(0, STATUS_FLOW.indexOf("SHIPPED") + 1), "FAILED"]
 	}
 
 	return STATUS_FLOW.slice(0, STATUS_FLOW.indexOf(status) + 1)
@@ -762,8 +769,16 @@ const toListItem = (order: AdminOrder): AdminOrderListItem => ({
 })
 
 export const getMockAdminOrdersSummary = (): AdminOrdersSummary => {
+	const countBy = (status: OrderStatus) =>
+		MOCK_ADMIN_ORDERS.filter((order) => order.status === status).length
+
 	const totalRevenue = MOCK_ADMIN_ORDERS.reduce((sum, order) => {
-		if (order.status === "CANCELLED" || order.status === "RETURNED") {
+		if (
+			order.status === "CANCELLED" ||
+			order.status === "RETURNED" ||
+			order.status === "REFUNDED" ||
+			order.status === "FAILED"
+		) {
 			return sum
 		}
 
@@ -771,16 +786,24 @@ export const getMockAdminOrdersSummary = (): AdminOrdersSummary => {
 	}, 0)
 
 	return {
-		totalOrders: MOCK_ADMIN_ORDERS.length,
-		returnsCount: MOCK_ADMIN_ORDERS.filter((order) =>
-			["RETURN_REQUESTED", "RETURNED"].includes(order.status)
-		).length,
-		inDeliveryCount: MOCK_ADMIN_ORDERS.filter(
-			(order) => order.status === "OUT_FOR_DELIVERY"
-		).length,
+		total: MOCK_ADMIN_ORDERS.length,
+		pending: countBy("PENDING"),
+		confirmed: countBy("CONFIRMED"),
+		processing: countBy("PROCESSING"),
+		shipped: countBy("SHIPPED"),
+		delivered: countBy("DELIVERED"),
+		completed: countBy("COMPLETED"),
+		cancelled: countBy("CANCELLED"),
+		returned: countBy("RETURNED"),
+		refunded: countBy("REFUNDED"),
+		failed: countBy("FAILED"),
 		totalRevenue,
 		revenue: totalRevenue,
 		currencyCode: "SYP",
+		// legacy aliases (retained for transitional callers)
+		totalOrders: MOCK_ADMIN_ORDERS.length,
+		returnsCount: countBy("RETURNED") + countBy("REFUNDED"),
+		inDeliveryCount: countBy("SHIPPED"),
 	}
 }
 

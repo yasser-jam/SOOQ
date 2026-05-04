@@ -1,16 +1,24 @@
 import z from "zod"
 
-const orderStatusSchema = z.enum([
-  "NEW",
+export const orderStatusSchema = z.enum([
   "PENDING",
   "CONFIRMED",
   "PROCESSING",
   "SHIPPED",
-  "OUT_FOR_DELIVERY",
   "DELIVERED",
+  "COMPLETED",
   "CANCELLED",
-  "RETURN_REQUESTED",
   "RETURNED",
+  "REFUNDED",
+  "FAILED",
+])
+
+export const paymentStatusSchema = z.enum([
+  "UNPAID",
+  "PENDING",
+  "PAID",
+  "FAILED",
+  "REFUNDED",
 ])
 
 export const orderSchema = z.object({
@@ -18,6 +26,9 @@ export const orderSchema = z.object({
   orderNumber: z.string(),
   customerName: z.string(),
   totalAmount: z.number(),
+  itemCount: z.number().optional(),
   status: orderStatusSchema,
+  paymentStatus: paymentStatusSchema.optional(),
+  placedAt: z.string().optional(),
   createdAt: z.string(),
 })

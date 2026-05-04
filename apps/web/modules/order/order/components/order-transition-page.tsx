@@ -10,21 +10,23 @@ import { getAdminOrder, transitionAdminOrderStatus } from "@/modules/order/order
 import { initOrderTransition } from "@/modules/order/order/init"
 import { ORDER_LIST_STATUS_META } from "@/modules/order/order/model"
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
-import type { OrderStatus } from "@/modules/order/order/types"
+import type { TransitionableOrderStatus } from "@/modules/order/order/types"
 import { Button } from "@workspace/ui/components/button"
 
 interface OrderTransitionPageViewProps {
   orderId: string
 }
 
-const ORDER_TRANSITION_TARGETS: OrderStatus[] = [
+const ORDER_TRANSITION_TARGETS: TransitionableOrderStatus[] = [
   "CONFIRMED",
   "PROCESSING",
   "SHIPPED",
-  "OUT_FOR_DELIVERY",
   "DELIVERED",
-  "RETURN_REQUESTED",
+  "COMPLETED",
+  "CANCELLED",
   "RETURNED",
+  "REFUNDED",
+  "FAILED",
 ]
 
 export default function OrderTransitionPageView({
@@ -37,7 +39,8 @@ export default function OrderTransitionPageView({
     queryFn: () => getAdminOrder(orderId),
   })
 
-  const [targetStatus, setTargetStatus] = useState<OrderStatus>("CONFIRMED")
+  const [targetStatus, setTargetStatus] =
+    useState<TransitionableOrderStatus>("CONFIRMED")
 
   const { mutate, isPending } = useMutation({
     mutationFn: transitionAdminOrderStatus,
@@ -74,7 +77,7 @@ export default function OrderTransitionPageView({
             onClick={() =>
               mutate(
                 initOrderTransition(orderId, {
-                  targetStatus: targetStatus as Exclude<OrderStatus, "NEW">,
+                  targetStatus: targetStatus as TransitionableOrderStatus,
                 })
               )
             }

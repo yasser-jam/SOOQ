@@ -1,22 +1,32 @@
 import z from "zod"
 import { orderSchema } from "./schema"
+import type {
+	OrderStatus,
+	PaymentStatus,
+	PaymentMethod,
+} from "@/lib/domain-enums"
+import type { Page } from "@/lib/types"
 
-export type OrderStatus = z.infer<typeof orderSchema.shape.status>
+export type { OrderStatus, PaymentStatus, PaymentMethod } from "@/lib/domain-enums"
 
-export type OrderPaymentMethod = "COD" | "PAYMERA"
+export type OrderPaymentMethod = PaymentMethod
 export type OrderNoteChannel = "INTERNAL" | "CUSTOMER"
 
 export type Order = z.infer<typeof orderSchema>
 
 export interface AdminOrderShippingAddress {
+	latitude?: number
+	longitude?: number
+	recipientName?: string | null
+	phone?: string | null
+	addressLabel?: string | null
+	name?: string | null
 	country?: string | null
 	governorate?: string | null
 	city?: string | null
 	district?: string | null
 	street?: string | null
 	details?: string | null
-	phone?: string | null
-	name?: string | null
 }
 
 export interface AdminOrderCustomer {
@@ -96,6 +106,10 @@ export interface AdminOrderListItem {
 	orderNumber?: string
 	orderCode?: string
 	status: OrderStatus
+	paymentStatus?: PaymentStatus
+	itemCount?: number
+	total?: number
+	currencyCode?: string
 	placedAt?: string
 	createdAt?: string
 	customerName?: string
@@ -109,12 +123,16 @@ export interface AdminOrder {
 	orderId?: string
 	orderNumber?: string
 	status: OrderStatus
+	paymentStatus?: PaymentStatus
+	paymentRedirectUrl?: string | null
 	placedAt?: string
 	createdAt?: string
 	currencyCode?: string
-	paymentMethod?: OrderPaymentMethod
+	paymentMethod?: PaymentMethod
+	paymeraTxnId?: string | null
 	customerName?: string
 	guestName?: string
+	guestEmail?: string | null
 	customer?: AdminOrderCustomer | null
 	shippingAddress?: AdminOrderShippingAddress | null
 	items?: AdminOrderItem[]
@@ -124,26 +142,34 @@ export interface AdminOrder {
 	notes?: AdminOrderNote[]
 	notesInternal?: string | null
 	notesCustomer?: string | null
+	invoiceNumber?: string | null
+	invoicePdfUrl?: string | null
 }
 
 export interface AdminOrdersSummary {
-	totalOrders?: number
-	returnsCount?: number
-	inDeliveryCount?: number
+	total?: number
+	pending?: number
+	confirmed?: number
+	processing?: number
+	shipped?: number
+	delivered?: number
+	completed?: number
+	cancelled?: number
+	returned?: number
+	refunded?: number
+	failed?: number
 	totalRevenue?: number
 	revenue?: number
 	currencyCode?: string
+	totalOrders?: number
+	returnsCount?: number
+	inDeliveryCount?: number
 }
 
-export interface PaginatedApiResponse<T> {
-	content?: T[]
+export type PaginatedApiResponse<T> = Page<T> & {
 	items?: T[]
-	totalElements?: number
 	totalItems?: number
-	totalPages?: number
 	page?: number
-	number?: number
-	size?: number
 }
 
 export interface ListAdminOrdersParams {
@@ -153,8 +179,10 @@ export interface ListAdminOrdersParams {
 	status?: OrderStatus
 }
 
+export type TransitionableOrderStatus = Exclude<OrderStatus, "PENDING">
+
 export interface TransitionOrderStatusPayload {
-	targetStatus: Exclude<OrderStatus, "NEW">
+	targetStatus: TransitionableOrderStatus
 }
 
 export interface TransitionOrderStatusInput {
@@ -172,8 +200,8 @@ export interface CancelOrderInput {
 }
 
 export interface UpdateOrderNotesPayload {
-	notesInternal?: string
-	notesCustomer?: string
+	notesInternal?: string | null
+	notesCustomer?: string | null
 }
 
 export interface UpdateOrderNotesInput {

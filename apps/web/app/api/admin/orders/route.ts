@@ -4,16 +4,16 @@ import { listMockAdminOrders } from "@/modules/order/order/apis/mock-service"
 import type { ListAdminOrdersParams, OrderStatus } from "@/modules/order/order/types"
 
 const ORDER_STATUSES: OrderStatus[] = [
-	"NEW",
 	"PENDING",
 	"CONFIRMED",
 	"PROCESSING",
 	"SHIPPED",
-	"OUT_FOR_DELIVERY",
 	"DELIVERED",
+	"COMPLETED",
 	"CANCELLED",
-	"RETURN_REQUESTED",
 	"RETURNED",
+	"REFUNDED",
+	"FAILED",
 ]
 
 const parseNumberParam = (value: string | null): number | undefined => {

@@ -185,7 +185,7 @@ export default function OrdersPageView() {
 
         <OrdersListTable
           key={activeTab}
-          status={activeTab === "returns" ? "RETURN_REQUESTED" : undefined}
+          status={activeTab === "returns" ? "RETURNED" : undefined}
         />
       </div>
     </div>
