@@ -4,6 +4,8 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { getCookie, removeCookie } from "./cookies";
 import { toast } from "sonner";
+import { humanizeError } from "./error-codes";
+import type { ApiResponse, FieldError } from "./types";
 
 // ==============================
 const apiInstance: AxiosInstance = axios.create({
@@ -13,29 +15,45 @@ const apiInstance: AxiosInstance = axios.create({
       "Content-Type": "application/json",
     },
   });
-  
+
   // ==============================
   // Request Interceptor
   // ==============================
   apiInstance.interceptors.request.use(
     (config) => {
-      const token = getCookie('sooq-access-token');
-  
-      if (token) {
-        config.headers = config.headers ?? {};
+      const url = (config.url ?? "").toString();
+      const isPublic = url.startsWith("/public/") || url.startsWith("public/");
 
-        if (typeof config.headers.set === "function") {
-          config.headers.set("Authorization", `Bearer ${token}`);
+      config.headers = config.headers ?? {};
+
+      const setHeader = (key: string, value: string) => {
+        if (typeof config.headers!.set === "function") {
+          config.headers!.set(key, value);
         } else {
-          (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
+          (config.headers as Record<string, string>)[key] = value;
+        }
+      };
+
+      if (isPublic) {
+        const tenantId =
+          process.env.NEXT_PUBLIC_TENANT_ID || getCookie("sooq-tenant-id");
+
+        if (tenantId) {
+          setHeader("X-Tenant-Id", tenantId);
+        }
+      } else {
+        const token = getCookie("sooq-access-token");
+
+        if (token) {
+          setHeader("Authorization", `Bearer ${token}`);
         }
       }
-  
+
       return config;
     },
     (error) => Promise.reject(error)
   );
-  
+
   // ==============================
   // Response Interceptor
   // ==============================
@@ -46,48 +64,59 @@ const apiInstance: AxiosInstance = axios.create({
       if (error.response?.status === 401 || error.response?.status === 403) {
         if (typeof window !== "undefined") {
             removeCookie('sooq-access-token');
-  
+
           // Redirect to login page
           window.location.href = "/request-otp";
         }
       }
-  
-      return Promise.reject(handleError(error));
+
+      return Promise.reject(handleError(error as AxiosError<ApiResponse<unknown>>));
     }
   );
-  
+
   // ==============================
   // Error Handler
   // ==============================
-  const handleError = (error: AxiosError<any>) => {
-    
-    // Show toast error
-    toast.error(error.response?.data?.message || "حدث خطأ ما");
+  export type ApiError = {
+    status: number
+    message: string
+    errorCode?: string
+    fieldErrors?: FieldError[]
+    data?: unknown
+  }
 
+  const handleError = (error: AxiosError<ApiResponse<unknown>>): ApiError => {
+    const responseData = error.response?.data;
+    const errorCode = responseData?.errorCode;
+    const rawMessage = responseData?.message ?? error.message;
+    const message = humanizeError(errorCode, rawMessage);
+
+    // Show toast error
+    toast.error(message);
 
     if (error.response) {
-      const responseData = error.response.data as { message?: string } | undefined;
-
       return {
         status: error.response.status,
-        message: responseData?.message || "Something went wrong",
+        message,
+        errorCode,
+        fieldErrors: responseData?.fieldErrors,
         data: error.response.data,
       };
     }
-  
+
     if (error.request) {
       return {
         status: 0,
-        message: "No response from server",
+        message: "لا يوجد استجابة من الخادم",
       };
     }
-  
+
     return {
       status: 0,
       message: error.message,
     };
   };
-  
+
   // ==============================
   // Generic Request Function
   // ==============================
