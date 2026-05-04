@@ -1,3 +1,6 @@
+import z from "zod"
+import { createCodReconciliationBatchSchema } from "./schema"
+
 export type CodSettlementStatus = "PENDING" | "SETTLED" | "DISPUTED"
 
 export interface CodReconciliationBatch {
@@ -35,12 +38,7 @@ export type ListCodReconciliationBatchesParams = {
   size?: number
 }
 
-export type CreateCodReconciliationBatchPayload = {
-  shippingProviderId: string
-  providerFeePercentage: number
-  settlementDate: string
-  notes?: string
-}
+export type CreateCodReconciliationBatchPayload = z.infer<typeof createCodReconciliationBatchSchema>
 
 export type UpdateCodReconciliationStatusPayload = {
   status: CodSettlementStatus

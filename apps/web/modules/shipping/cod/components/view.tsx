@@ -2,7 +2,7 @@
 
 import { Button } from "@workspace/ui/components/button"
 
-import CodReconciliationTable from "./cod-reconciliation-table"
+import CodReconciliationTable from "./table"
 
 export default function CodReconciliationPageView() {
   return (

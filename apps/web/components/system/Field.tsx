@@ -37,7 +37,19 @@ export default function Field<T extends FieldValues>({
       render={({ field, fieldState }) => (
         <UiField data-invalid={fieldState.invalid}>
           <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
-          <Input {...field} id={fieldId} name={fieldId} placeholder={placeholder} {...inputProps} />
+          <Input
+            {...field}
+            id={fieldId}
+            name={fieldId}
+            placeholder={placeholder}
+            {...inputProps}
+            // Todo: proper handling
+            value={
+              inputProps?.type === "number"
+                ? (Number(field.value) ?? "")
+                : field.value
+            }
+          />
           <FieldError errors={[fieldState.error]} />
         </UiField>
       )}
