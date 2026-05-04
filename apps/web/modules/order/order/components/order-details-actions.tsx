@@ -1,9 +1,38 @@
 "use client"
 
-import { CircleCheck, PenLine, XCircle } from "lucide-react"
+import { useState } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
+import {
+  AlertTriangle,
+  CheckCircle2,
+  CircleCheck,
+  Cog,
+  FileText,
+  PackageCheck,
+  PenLine,
+  Receipt,
+  RotateCcw,
+  Truck,
+  Wallet,
+  XCircle,
+} from "lucide-react"
 
-import type { OrderStatus } from "@/modules/order/order/types"
+import ConfirmAlert from "@/components/system/confirm-alert"
+import { transitionAdminOrderStatus } from "@/modules/order/order/actions"
+import { initOrderTransition } from "@/modules/order/order/init"
+import {
+  ALLOWED_ORDER_TRANSITIONS,
+  CANCELLABLE_STATUSES,
+  EDITABLE_STATUSES,
+  ORDER_TRANSITION_ACTION_LABELS,
+  REFUNDABLE_STATUSES,
+} from "@/modules/order/order/model"
+import { orderQueryKeys } from "@/modules/order/order/queryKeys"
+import type {
+  OrderStatus,
+  TransitionableOrderStatus,
+} from "@/modules/order/order/types"
 import { Button } from "@workspace/ui/components/button"
 
 interface OrderDetailsActionsProps {
@@ -11,54 +40,164 @@ interface OrderDetailsActionsProps {
   status?: OrderStatus
 }
 
+type IconType = typeof CheckCircle2
+
+const TRANSITION_ICONS: Record<TransitionableOrderStatus, IconType> = {
+  CONFIRMED: CheckCircle2,
+  PROCESSING: Cog,
+  SHIPPED: Truck,
+  DELIVERED: PackageCheck,
+  COMPLETED: CircleCheck,
+  CANCELLED: XCircle,
+  RETURNED: RotateCcw,
+  REFUNDED: Wallet,
+  FAILED: AlertTriangle,
+}
+
+const DESTRUCTIVE_TRANSITIONS: TransitionableOrderStatus[] = [
+  "FAILED",
+  "RETURNED",
+  "REFUNDED",
+]
+
 export default function OrderDetailsActions({
   orderId,
   status,
 }: OrderDetailsActionsProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
+  const [pendingTransition, setPendingTransition] =
+    useState<TransitionableOrderStatus | null>(null)
+
+  const { mutate: transition, isPending: isTransitioning } = useMutation({
+    mutationFn: transitionAdminOrderStatus,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: orderQueryKeys.all })
+    },
+  })
+
+  if (!status) {
+    return (
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <Button type="button" size="md" variant="outline" disabled>
+          جاري التحميل...
+        </Button>
+      </div>
+    )
+  }
+
+  const allowedTransitions = ALLOWED_ORDER_TRANSITIONS[status] ?? []
+  const canCancel = CANCELLABLE_STATUSES.includes(status)
+  const canEdit = EDITABLE_STATUSES.includes(status)
+  const canRefund = REFUNDABLE_STATUSES.includes(status)
+
+  const runTransition = (target: TransitionableOrderStatus) => {
+    transition(
+      initOrderTransition(orderId, {
+        targetStatus: target,
+      })
+    )
+  }
+
+  const handleTransitionClick = (target: TransitionableOrderStatus) => {
+    if (DESTRUCTIVE_TRANSITIONS.includes(target)) {
+      setPendingTransition(target)
+      return
+    }
+
+    runTransition(target)
+  }
 
   return (
-    <div className="flex flex-wrap items-center justify-end gap-3">
-      <Button
-        type="button"
-        size="md"
-        variant="outline"
-        onClick={() => router.push(`/orders/${orderId}/returns`)}
-      >
-        رد الأموال
-      </Button>
+    <>
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        {canRefund ? (
+          <Button
+            type="button"
+            size="md"
+            variant="outline"
+            onClick={() => router.push(`/orders/${orderId}/returns`)}
+          >
+            بدء استرداد
+            <Receipt data-icon="inline-end" />
+          </Button>
+        ) : null}
 
-      <Button
-        type="button"
-        size="md"
-        variant="outline"
-        onClick={() => router.push(`/orders/${orderId}/edit`)}
-      >
-        تعديل الطلب
-        <PenLine data-icon="inline-end" />
-      </Button>
+        {canEdit ? (
+          <Button
+            type="button"
+            size="md"
+            variant="outline"
+            onClick={() => router.push(`/orders/${orderId}/edit`)}
+          >
+            تعديل الطلب
+            <PenLine data-icon="inline-end" />
+          </Button>
+        ) : null}
 
-      <Button
-        type="button"
-        size="md"
-        variant="outline"
-        onClick={() => router.push(`/orders/${orderId}/transition`)}
-      >
-        تغيير الحالة
-        <CircleCheck data-icon="inline-end" />
-      </Button>
-
-      {status !== "CANCELLED" ? (
         <Button
           type="button"
           size="md"
-          variant="secondary"
-          onClick={() => router.push(`/orders/${orderId}/cancel`)}
+          variant="outline"
+          onClick={() => alert("توليد الفاتورة سيُفعَّل في المرحلة 6")}
+          disabled
+          title="قريباً (Phase 6)"
         >
-          إلغاء الطلب
-          <XCircle data-icon="inline-end" />
+          توليد فاتورة
+          <FileText data-icon="inline-end" />
         </Button>
-      ) : null}
-    </div>
+
+        {allowedTransitions.map((target) => {
+          const Icon = TRANSITION_ICONS[target]
+          const isDestructive = DESTRUCTIVE_TRANSITIONS.includes(target)
+
+          return (
+            <Button
+              key={target}
+              type="button"
+              size="md"
+              variant={isDestructive ? "outline" : "secondary"}
+              onClick={() => handleTransitionClick(target)}
+              disabled={isTransitioning}
+            >
+              {ORDER_TRANSITION_ACTION_LABELS[target]}
+              <Icon data-icon="inline-end" />
+            </Button>
+          )
+        })}
+
+        {canCancel ? (
+          <Button
+            type="button"
+            size="md"
+            variant="destructive"
+            onClick={() => router.push(`/orders/${orderId}/cancel`)}
+          >
+            إلغاء الطلب
+            <XCircle data-icon="inline-end" />
+          </Button>
+        ) : null}
+      </div>
+
+      <ConfirmAlert
+        open={pendingTransition !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingTransition(null)
+        }}
+        title={
+          pendingTransition
+            ? ORDER_TRANSITION_ACTION_LABELS[pendingTransition]
+            : ""
+        }
+        description="هذا الإجراء يُعدّل حالة الطلب ولا يمكن التراجع عنه. هل تريد المتابعة؟"
+        actionLabel="تأكيد"
+        variant="destructive"
+        onAction={() => {
+          if (pendingTransition) {
+            runTransition(pendingTransition)
+          }
+        }}
+      />
+    </>
   )
 }

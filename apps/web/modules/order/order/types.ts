@@ -74,13 +74,19 @@ export interface AdminOrderPricing {
 	totalLabel?: string
 }
 
+export interface AdminOrderTimelineEventDetails {
+	reason?: string
+	editedFields?: string[]
+	[key: string]: unknown
+}
+
 export interface AdminOrderTimelineEvent {
 	id?: string
 	eventId?: string
 	eventType?: string
 	title?: string
 	description?: string
-	details?: string
+	details?: string | AdminOrderTimelineEventDetails | null
 	createdAt?: string
 	occurredAt?: string
 	timestampLabel?: string

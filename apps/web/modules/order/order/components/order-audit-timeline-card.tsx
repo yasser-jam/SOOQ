@@ -1,4 +1,8 @@
-import type { AdminOrderTimelineEvent } from "@/modules/order/order/types"
+import { TIMELINE_EVENT_LABELS } from "@/modules/order/order/model"
+import type {
+  AdminOrderTimelineEvent,
+  AdminOrderTimelineEventDetails,
+} from "@/modules/order/order/types"
 import { formatOrderDateTime } from "@/modules/order/order/utils"
 import {
   Card,
@@ -43,12 +47,46 @@ const MOCK_EVENTS: AdminOrderTimelineEvent[] = [
   },
 ]
 
+const isDetailsObject = (
+  details: AdminOrderTimelineEvent["details"]
+): details is AdminOrderTimelineEventDetails =>
+  typeof details === "object" && details !== null
+
+const getEventTitle = (event?: AdminOrderTimelineEvent): string => {
+  if (event?.title) return event.title
+  if (event?.eventType && TIMELINE_EVENT_LABELS[event.eventType]) {
+    return TIMELINE_EVENT_LABELS[event.eventType]!
+  }
+  return event?.eventType ?? "تحديث الطلب"
+}
+
+const getEventExtraInfo = (event?: AdminOrderTimelineEvent): string | null => {
+  if (!event?.details) return null
+
+  if (typeof event.details === "string") {
+    return event.details
+  }
+
+  if (isDetailsObject(event.details)) {
+    if (event.details.reason) {
+      return `السبب: ${event.details.reason}`
+    }
+    if (event.details.editedFields?.length) {
+      return `الحقول المعدّلة: ${event.details.editedFields.join("، ")}`
+    }
+  }
+
+  return null
+}
+
 function OrderAuditTimelineRow({
   event,
   isLast,
   isLoading,
 }: OrderAuditTimelineRowProps) {
   const hasData = !isLoading && Boolean(event)
+  const title = getEventTitle(event)
+  const extraInfo = getEventExtraInfo(event)
 
   return (
     <div className="relative flex gap-4 w-full">
@@ -67,19 +105,22 @@ function OrderAuditTimelineRow({
           <>
             <div className="flex justify-between w-full">
               <div>
-                <p className="text-text text-lg font-semibold">
-                  {event?.title ?? event?.eventType ?? "تحديث الطلب"}
-                </p>
+                <p className="text-text text-lg font-semibold">{title}</p>
                 <p className="text-sm leading-6 text-gray-500">
-                  {event?.description ?? event?.details ?? "لا يوجد وصف إضافي."}
+                  {event?.description ?? "لا يوجد وصف إضافي."}
                 </p>
+                {extraInfo ? (
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    {extraInfo}
+                  </p>
+                ) : null}
               </div>
 
               <div className="min-w-20 pt-1 text-xs text-gray-500">
-                {hasData
-                  ? event?.timestampLabel ??
-                    formatOrderDateTime(event?.createdAt ?? event?.occurredAt)
-                  : "10:45AM"}
+                {event?.timestampLabel ??
+                  formatOrderDateTime(
+                    event?.createdAt ?? event?.occurredAt
+                  )}
               </div>
             </div>
           </>

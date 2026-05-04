@@ -158,12 +158,22 @@ export default function OrderInternalNotesCard({
   const mockNotes = MOCK_NOTES_BY_CHANNEL[activeChannel]
 
   const handleSubmit = () => {
+    const trimmedInternal = drafts.INTERNAL.trim()
+    const trimmedCustomer = drafts.CUSTOMER.trim()
+    const originalInternal = (order?.notesInternal ?? "").trim()
+    const originalCustomer = (order?.notesCustomer ?? "").trim()
+
+    const internalChanged =
+      activeChannel === "INTERNAL" && trimmedInternal !== originalInternal
+    const customerChanged =
+      activeChannel === "CUSTOMER" && trimmedCustomer !== originalCustomer
+
+    if (!internalChanged && !customerChanged) return
+
     saveNotes(
       initOrderNotes(orderId, {
-        notesInternal:
-          activeChannel === "INTERNAL" ? drafts.INTERNAL.trim() : undefined,
-        notesCustomer:
-          activeChannel === "CUSTOMER" ? drafts.CUSTOMER.trim() : undefined,
+        notesInternal: internalChanged ? trimmedInternal : null,
+        notesCustomer: customerChanged ? trimmedCustomer : null,
       })
     )
   }
