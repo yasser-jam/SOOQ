@@ -2,20 +2,29 @@
 
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
-  ArrowDown,
-  ArrowUp,
+  AlertCircle,
+  BadgeCheck,
+  CheckCircle2,
+  Clock,
+  Cog,
   Package,
+  PackageCheck,
   RotateCcw,
+  TrendingUp,
   Truck,
   Wallet,
+  X,
+  XCircle,
 } from "lucide-react"
 
+import { ORDER_STATUS_META, type OrderStatus } from "@/lib/domain-enums"
+import { formatSyp } from "@/lib/money"
 import FilterMenu from "@/components/system/filter-menu"
 import { getAdminOrdersSummary } from "@/modules/order/order/actions"
 import OrdersListTable from "@/modules/order/order/components/table"
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
-import { formatOrderMoney } from "@/modules/order/order/utils"
 import { Button } from "@workspace/ui/components/button"
 import {
   Field,
@@ -26,72 +35,198 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { cn } from "@workspace/ui/lib/utils"
 
-type OrdersTab = "orders" | "returns"
+type StatusCardId = OrderStatus | "TOTAL" | "REVENUE"
+
+type StatusCard = {
+  id: StatusCardId
+  status?: OrderStatus
+  title: string
+  Icon: typeof Package
+  borderClassName: string
+  iconClassName: string
+}
+
+const STATUS_CARDS: StatusCard[] = [
+  {
+    id: "TOTAL",
+    title: "إجمالي الطلبات",
+    Icon: Package,
+    borderClassName: "border-s-4 border-s-secondary",
+    iconClassName: "text-secondary/15",
+  },
+  {
+    id: "PENDING",
+    status: "PENDING",
+    title: "قيد الانتظار",
+    Icon: Clock,
+    borderClassName: "border-s-4 border-s-amber-500",
+    iconClassName: "text-amber-500/15",
+  },
+  {
+    id: "CONFIRMED",
+    status: "CONFIRMED",
+    title: "مؤكد",
+    Icon: CheckCircle2,
+    borderClassName: "border-s-4 border-s-blue-500",
+    iconClassName: "text-blue-500/15",
+  },
+  {
+    id: "PROCESSING",
+    status: "PROCESSING",
+    title: "قيد المعالجة",
+    Icon: Cog,
+    borderClassName: "border-s-4 border-s-indigo-500",
+    iconClassName: "text-indigo-500/15",
+  },
+  {
+    id: "SHIPPED",
+    status: "SHIPPED",
+    title: "تم الشحن",
+    Icon: Truck,
+    borderClassName: "border-s-4 border-s-primary",
+    iconClassName: "text-primary/15",
+  },
+  {
+    id: "DELIVERED",
+    status: "DELIVERED",
+    title: "تم التسليم",
+    Icon: PackageCheck,
+    borderClassName: "border-s-4 border-s-emerald-500",
+    iconClassName: "text-emerald-500/15",
+  },
+  {
+    id: "COMPLETED",
+    status: "COMPLETED",
+    title: "مكتمل",
+    Icon: BadgeCheck,
+    borderClassName: "border-s-4 border-s-emerald-600",
+    iconClassName: "text-emerald-600/15",
+  },
+  {
+    id: "CANCELLED",
+    status: "CANCELLED",
+    title: "ملغي",
+    Icon: XCircle,
+    borderClassName: "border-s-4 border-s-destructive",
+    iconClassName: "text-destructive/15",
+  },
+  {
+    id: "RETURNED",
+    status: "RETURNED",
+    title: "مرتجع",
+    Icon: RotateCcw,
+    borderClassName: "border-s-4 border-s-orange-500",
+    iconClassName: "text-orange-500/15",
+  },
+  {
+    id: "REFUNDED",
+    status: "REFUNDED",
+    title: "تم الاسترداد",
+    Icon: Wallet,
+    borderClassName: "border-s-4 border-s-rose-500",
+    iconClassName: "text-rose-500/15",
+  },
+  {
+    id: "FAILED",
+    status: "FAILED",
+    title: "فشل",
+    Icon: AlertCircle,
+    borderClassName: "border-s-4 border-s-red-700",
+    iconClassName: "text-red-700/15",
+  },
+  {
+    id: "REVENUE",
+    title: "إجمالي الإيرادات",
+    Icon: TrendingUp,
+    borderClassName: "border-s-4 border-s-emerald-500",
+    iconClassName: "text-emerald-500/15",
+  },
+]
+
+const isOrderStatus = (value: string | null): value is OrderStatus =>
+  value !== null && value in ORDER_STATUS_META
 
 export default function OrdersPageView() {
-  const [activeTab, setActiveTab] = useState<OrdersTab>("orders")
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const statusParam = searchParams.get("status")
+  const status = isOrderStatus(statusParam) ? statusParam : undefined
+
+  const [searchQuery, setSearchQuery] = useState("")
+
   const { data: summary } = useQuery({
     queryKey: orderQueryKeys.summary(),
     queryFn: getAdminOrdersSummary,
   })
 
-  const statCards = [
-    {
-      id: "total-orders",
-      title: "إجمالي الطلبات",
-      value: summary?.totalOrders?.toLocaleString("en-US") ?? "0",
-      borderClassName: "border-s-4 border-s-secondary",
-      iconClassName: "text-secondary/15",
-      Icon: Package,
-      hasTrendArrows: true,
-    },
-    {
-      id: "returns",
-      title: "طلبات الإرجاع",
-      value: summary?.returnsCount?.toLocaleString("en-US") ?? "0",
-      borderClassName: "border-s-4 border-s-destructive",
-      iconClassName: "text-destructive/15",
-      Icon: RotateCcw,
-      hasTrendArrows: false,
-    },
-    {
-      id: "in-delivery",
-      title: "قيد التوصيل",
-      value: summary?.inDeliveryCount?.toLocaleString("en-US") ?? "0",
-      borderClassName: "border-s-4 border-s-primary",
-      iconClassName: "text-primary/15",
-      Icon: Truck,
-      hasTrendArrows: false,
-    },
-    {
-      id: "revenue",
-      title: "إجمالي الإيرادات",
-      value:
-        formatOrderMoney(
-          summary?.totalRevenue ?? summary?.revenue,
-          summary?.currencyCode ?? "SYP"
-        ) || "0",
-      borderClassName: "border-s-4 border-s-emerald-500",
-      iconClassName: "text-emerald-500/15",
-      Icon: Wallet,
-      hasTrendArrows: false,
-    },
-  ] as const
+  const getCardValue = (id: StatusCardId): string => {
+    if (!summary) return "0"
+
+    if (id === "TOTAL") {
+      return (summary.total ?? summary.totalOrders ?? 0).toLocaleString("en-US")
+    }
+
+    if (id === "REVENUE") {
+      return (
+        formatSyp(summary.totalRevenue ?? summary.revenue ?? 0) || "0"
+      )
+    }
+
+    const key = id.toLowerCase() as keyof typeof summary
+    const count = (summary[key] as number | undefined) ?? 0
+
+    return count.toLocaleString("en-US")
+  }
+
+  const handleCardClick = (card: StatusCard) => {
+    if (card.id === "REVENUE") return
+
+    const params = new URLSearchParams(searchParams.toString())
+
+    if (card.status) {
+      params.set("status", card.status)
+    } else {
+      params.delete("status")
+    }
+
+    const query = params.toString()
+    router.push(query ? `/orders?${query}` : "/orders")
+  }
+
+  const clearStatusFilter = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("status")
+
+    const query = params.toString()
+    router.push(query ? `/orders?${query}` : "/orders")
+  }
+
+  const tableTitle = status
+    ? `جدول الطلبات — ${ORDER_STATUS_META[status].label}`
+    : "جدول الطلبات"
 
   return (
     <div className="container my-6 flex flex-col gap-6">
       <div className="page-title">قائمة الطلبات</div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {statCards.map((card) => {
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
+        {STATUS_CARDS.map((card) => {
           const Icon = card.Icon
+          const isActive = card.status && card.status === status
+          const isClickable = card.id !== "REVENUE"
 
           return (
-            <div
+            <button
               key={card.id}
+              type="button"
+              onClick={() => handleCardClick(card)}
+              disabled={!isClickable}
               className={cn(
-                "relative overflow-hidden rounded-xl border bg-white p-5",
-                card.borderClassName
+                "relative overflow-hidden rounded-xl border bg-white p-5 text-start transition",
+                card.borderClassName,
+                isClickable && "cursor-pointer hover:shadow-md",
+                !isClickable && "cursor-default",
+                isActive && "ring-2 ring-primary"
               )}
             >
               <Icon
@@ -107,50 +242,35 @@ export default function OrdersPageView() {
                   {card.title}
                 </span>
 
-                {card.hasTrendArrows ? (
-                  <div className="flex items-center gap-3">
-                    <ArrowDown className="text-destructive" />
-                    <span className="text-2xl font-semibold text-foreground">
-                      {card.value}
-                    </span>
-                    <ArrowUp className="text-emerald-600" />
-                  </div>
-                ) : (
-                  <span className="text-2xl font-semibold text-foreground">
-                    {card.value}
-                  </span>
-                )}
+                <span className="text-2xl font-semibold text-foreground">
+                  {getCardValue(card.id)}
+                </span>
               </div>
-            </div>
+            </button>
           )
         })}
       </div>
 
-      <div className="flex w-fit items-center gap-2 rounded-xl border bg-card p-1">
-        <Button
-          type="button"
-          size="sm"
-          variant={activeTab === "orders" ? "secondary" : "ghost"}
-          onClick={() => setActiveTab("orders")}
-        >
-          الطلبات
-        </Button>
-
-        <Button
-          type="button"
-          size="sm"
-          variant={activeTab === "returns" ? "secondary" : "ghost"}
-          onClick={() => setActiveTab("returns")}
-        >
-          طلبات الإرجاع
-        </Button>
-      </div>
-
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">
-            {activeTab === "orders" ? "جدول الطلبات" : "جدول طلبات الإرجاع"}
-          </h2>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-foreground">
+              {tableTitle}
+            </h2>
+
+            {status ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={clearStatusFilter}
+                className="h-7 gap-1 text-xs text-muted-foreground"
+              >
+                <X className="size-3" />
+                إزالة الفلتر
+              </Button>
+            ) : null}
+          </div>
 
           <FilterMenu>
             <FieldGroup>
@@ -163,19 +283,8 @@ export default function OrdersPageView() {
                     id="orders-table-filter-number"
                     type="search"
                     placeholder="ابحث برقم الطلب"
-                  />
-                </FieldContent>
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="orders-table-filter-status">
-                  الحالة
-                </FieldLabel>
-                <FieldContent>
-                  <Input
-                    id="orders-table-filter-status"
-                    type="search"
-                    placeholder="ابحث بالحالة"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </FieldContent>
               </Field>
@@ -183,10 +292,7 @@ export default function OrdersPageView() {
           </FilterMenu>
         </div>
 
-        <OrdersListTable
-          key={activeTab}
-          status={activeTab === "returns" ? "RETURNED" : undefined}
-        />
+        <OrdersListTable status={status} searchQuery={searchQuery} />
       </div>
     </div>
   )

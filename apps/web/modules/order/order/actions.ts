@@ -9,7 +9,6 @@ import type {
   CancelOrderInput,
   EditOrderInput,
   ListAdminOrdersParams,
-  Order,
   PaginatedApiResponse,
   TransitionOrderStatusInput,
   UpdateOrderNotesInput,
@@ -24,9 +23,9 @@ export const getAdminOrdersSummary = async (): Promise<AdminOrdersSummary> => {
 
 export const listAdminOrders = async (
   params: ListAdminOrdersParams
-): Promise<PaginatedApiResponse<Order>> => {
+): Promise<PaginatedApiResponse<AdminOrderListItem>> => {
   const response = await api<
-    ApiResponse<PaginatedApiResponse<Order>>
+    ApiResponse<PaginatedApiResponse<AdminOrderListItem>>
   >("/admin/orders", {
     params,
   })

@@ -10,7 +10,29 @@ import type {
 	OrderPaymentMethod,
 	OrderStatus,
 	PaginatedApiResponse,
+	PaymentStatus,
 } from "../types"
+
+const derivePaymentStatus = (
+	status: OrderStatus,
+	method: OrderPaymentMethod
+): PaymentStatus => {
+	if (status === "REFUNDED") return "REFUNDED"
+	if (status === "FAILED") return "FAILED"
+	if (status === "CANCELLED") return "UNPAID"
+
+	if (method === "PAYMERA") {
+		if (status === "PENDING") return "PENDING"
+		return "PAID"
+	}
+
+	// COD
+	if (status === "DELIVERED" || status === "COMPLETED" || status === "RETURNED") {
+		return "PAID"
+	}
+
+	return "UNPAID"
+}
 
 type MockOrderItemSeed = {
 	variantId: string
@@ -706,12 +728,14 @@ const MOCK_ADMIN_ORDERS: AdminOrder[] = ORDER_SEEDS.map((seed) => {
 	const items = buildItems(seed.id, seed.items)
 	const pricing = buildPricing(items, seed.shippingCost, seed.taxAmount)
 	const timeline = buildTimeline(seed.id, seed.placedAt, seed.status)
+	const paymentStatus = derivePaymentStatus(seed.status, seed.paymentMethod)
 
 	return {
 		id: seed.id,
 		orderId: seed.id,
 		orderNumber: seed.orderNumber,
 		status: seed.status,
+		paymentStatus,
 		placedAt: seed.placedAt,
 		createdAt: seed.placedAt,
 		currencyCode: "SYP",
@@ -761,6 +785,10 @@ const toListItem = (order: AdminOrder): AdminOrderListItem => ({
 	orderId: order.orderId,
 	orderNumber: order.orderNumber,
 	status: order.status,
+	paymentStatus: order.paymentStatus,
+	itemCount: order.items?.length ?? 0,
+	total: order.pricing?.total,
+	currencyCode: order.currencyCode,
 	placedAt: order.placedAt,
 	createdAt: order.createdAt,
 	customerName: order.customerName,

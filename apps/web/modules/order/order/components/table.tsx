@@ -1,16 +1,21 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { useQuery } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 
+import {
+  ORDER_STATUS_META,
+  PAYMENT_STATUS_META,
+  type OrderStatus,
+} from "@/lib/domain-enums"
+import { formatSyp } from "@/lib/money"
 import DataTable from "@/components/system/table"
 import TableActions from "@/components/system/table-actions"
 import { listAdminOrders } from "@/modules/order/order/actions"
-import { ORDER_LIST_STATUS_META } from "@/modules/order/order/model"
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
-import type { Order, OrderStatus } from "@/modules/order/order/types"
+import type { AdminOrderListItem } from "@/modules/order/order/types"
 import {
   formatOrderDate,
   getOrderCustomerName,
@@ -24,16 +29,20 @@ import { Badge } from "@workspace/ui/components/badge"
 
 interface OrdersListTableProps {
   status?: OrderStatus
+  searchQuery?: string
 }
 
-export default function OrdersListTable({ status }: OrdersListTableProps) {
+export default function OrdersListTable({
+  status,
+  searchQuery = "",
+}: OrdersListTableProps) {
   const router = useRouter()
   const pageSize = 10
   const [pageIndex, setPageIndex] = useState(0)
 
   useEffect(() => {
     setPageIndex(0)
-  }, [status])
+  }, [status, searchQuery])
 
   const { data, isPending } = useQuery({
     queryKey: orderQueryKeys.list({
@@ -51,7 +60,18 @@ export default function OrdersListTable({ status }: OrdersListTableProps) {
       }),
   })
 
-  const columns: ColumnDef<Order>[] = [
+  const filteredOrders = useMemo(() => {
+    const orders = data?.items ?? []
+    const trimmedQuery = searchQuery.trim().toLowerCase()
+
+    if (!trimmedQuery) return orders
+
+    return orders.filter((order) =>
+      order?.orderNumber?.toLowerCase().includes(trimmedQuery)
+    )
+  }, [data?.items, searchQuery])
+
+  const columns: ColumnDef<AdminOrderListItem>[] = [
     {
       accessorKey: "orderNumber",
       header: "رقم الطلب",
@@ -67,7 +87,7 @@ export default function OrdersListTable({ status }: OrdersListTableProps) {
       header: "الحالة",
       enableSorting: true,
       cell: ({ row }) => {
-        const statusMeta = ORDER_LIST_STATUS_META[row.original.status]
+        const statusMeta = ORDER_STATUS_META[row.original.status]
 
         return (
           <Badge variant={statusMeta?.badgeVariant}>{statusMeta?.label}</Badge>
@@ -75,10 +95,58 @@ export default function OrdersListTable({ status }: OrdersListTableProps) {
       },
     },
     {
+      accessorKey: "paymentStatus",
+      header: "حالة الدفع",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const paymentStatus = row.original.paymentStatus
+
+        if (!paymentStatus) {
+          return <span className="text-muted-foreground">—</span>
+        }
+
+        const meta = PAYMENT_STATUS_META[paymentStatus]
+
+        return <Badge variant={meta?.badgeVariant}>{meta?.label}</Badge>
+      },
+    },
+    {
+      accessorKey: "itemCount",
+      header: "العناصر",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const count = row.original.itemCount
+
+        if (typeof count !== "number") {
+          return <span className="text-muted-foreground">—</span>
+        }
+
+        return <span>{count} عناصر</span>
+      },
+    },
+    {
+      accessorKey: "total",
+      header: "الإجمالي",
+      enableSorting: true,
+      cell: ({ row }) => {
+        const total = row.original.total
+
+        return (
+          <span className="font-medium">
+            {typeof total === "number" ? formatSyp(total) : "—"}
+          </span>
+        )
+      },
+    },
+    {
       accessorKey: "placedAt",
       header: "التاريخ",
       enableSorting: true,
-      cell: ({ row }) => <span>{formatOrderDate(row.original.createdAt)}</span>,
+      cell: ({ row }) => (
+        <span>
+          {formatOrderDate(row.original.placedAt ?? row.original.createdAt)}
+        </span>
+      ),
     },
     {
       accessorKey: "client",
@@ -119,14 +187,13 @@ export default function OrdersListTable({ status }: OrdersListTableProps) {
   ]
 
   const pageCount = Math.max(1, data?.totalPages ?? 1)
-  const orders = data?.items ?? []
 
   return (
     <div className="w-full overflow-hidden rounded-lg border bg-white">
       <DataTable
         columns={columns}
         isLoading={isPending}
-        data={orders}
+        data={filteredOrders}
         pagination={{ pageIndex, pageSize, pageCount }}
         onPageChange={setPageIndex}
       />
