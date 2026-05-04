@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import {
+  BadgePercent,
   ChevronDown,
   Circle,
   CircleDollarSign,
@@ -66,6 +67,11 @@ const navItems: readonly NavItem[] = [
     title: "الطلبات",
     url: "/orders",
     icon: ShoppingBag,
+  },
+  {
+    title: "أكواد الخصم",
+    url: "/discount-codes",
+    icon: BadgePercent,
   },
   {
     title: "الخدمات اللوجستية",
