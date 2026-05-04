@@ -50,3 +50,12 @@ export type UpdateCodReconciliationStatusInput = {
   id: string
   data: UpdateCodReconciliationStatusPayload
 }
+
+export interface CodCollectionEntry {
+  codCollectionEntryId?: string
+  shipmentId?: string
+  paymentTxnId?: string | null
+  expectedAmountSyp?: number | null
+  collectedAmountSyp?: number | null
+  collectedAt?: string | null
+}

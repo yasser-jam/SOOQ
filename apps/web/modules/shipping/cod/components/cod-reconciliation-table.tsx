@@ -3,9 +3,11 @@
 import { useEffect, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
 
 import DataTable from "@/components/system/table"
 import TableActions from "@/components/system/table-actions"
+import { formatSyp } from "@/lib/money"
 import { Badge } from "@workspace/ui/components/badge"
 
 import type { CodReconciliationBatch, CodSettlementStatus } from "../types"
@@ -20,6 +22,7 @@ import {
 } from "../model"
 
 export default function CodReconciliationTable() {
+  const router = useRouter()
   const queryClient = useQueryClient()
 
   const pageSize = 20
@@ -35,13 +38,9 @@ export default function CodReconciliationTable() {
     queryFn: () => listCodReconciliationBatches(params),
   })
 
-  const batches = data ?? []
-  const pageCount = 10
-
-  console.log(data);
-  
-  console.log(batches);
-  
+  const batches = data?.content ?? data?.items ?? []
+  const totalElements = data?.totalElements ?? data?.totalItems ?? batches.length
+  const pageCount = Math.max(1, Math.ceil(totalElements / pageSize))
 
   useEffect(() => {
     setPageIndex((current) => Math.min(current, pageCount - 1))
@@ -50,7 +49,9 @@ export default function CodReconciliationTable() {
   const { mutate: updateStatus, isPending: isUpdatingStatus } = useMutation({
     mutationFn: updateCodReconciliationStatus,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: codReconciliationQueryKeys.all })
+      await queryClient.invalidateQueries({
+        queryKey: codReconciliationQueryKeys.all,
+      })
     },
   })
 
@@ -63,7 +64,9 @@ export default function CodReconciliationTable() {
         return (
           <div className="flex flex-col gap-0.5">
             <span>{batch.providerName ?? "-"}</span>
-            <span className="text-xs text-muted-foreground">{batch.providerCode ?? ""}</span>
+            <span className="text-xs text-muted-foreground">
+              {batch.providerCode ?? ""}
+            </span>
           </div>
         )
       },
@@ -71,7 +74,9 @@ export default function CodReconciliationTable() {
     {
       accessorKey: "settlementDate",
       header: "تاريخ التسوية",
-      cell: ({ row }) => <span dir="ltr">{row.original.settlementDate ?? "-"}</span>,
+      cell: ({ row }) => (
+        <span dir="ltr">{row.original.settlementDate ?? "-"}</span>
+      ),
     },
     {
       accessorKey: "orderCount",
@@ -79,14 +84,32 @@ export default function CodReconciliationTable() {
       cell: ({ row }) => <span dir="ltr">{row.original.orderCount ?? 0}</span>,
     },
     {
+      accessorKey: "expectedTotalSyp",
+      header: "المتوقع",
+      cell: ({ row }) => (
+        <span dir="ltr">{formatSyp(row.original.expectedTotalSyp)}</span>
+      ),
+    },
+    {
       accessorKey: "collectedTotalSyp",
       header: "المحصل",
-      cell: ({ row }) => <span dir="ltr">{row.original.collectedTotalSyp ?? 0}</span>,
+      cell: ({ row }) => (
+        <span dir="ltr">{formatSyp(row.original.collectedTotalSyp)}</span>
+      ),
+    },
+    {
+      accessorKey: "providerFeeAmountSyp",
+      header: "عمولة المزود",
+      cell: ({ row }) => (
+        <span dir="ltr">{formatSyp(row.original.providerFeeAmountSyp)}</span>
+      ),
     },
     {
       accessorKey: "netSettlementSyp",
       header: "صافي التسوية",
-      cell: ({ row }) => <span dir="ltr">{row.original.netSettlementSyp ?? 0}</span>,
+      cell: ({ row }) => (
+        <span dir="ltr">{formatSyp(row.original.netSettlementSyp)}</span>
+      ),
     },
     {
       accessorKey: "settlementStatus",
@@ -105,13 +128,18 @@ export default function CodReconciliationTable() {
       cell: ({ row }) => {
         const id = row.original.id
         const status = row.original.settlementStatus
-        const transitions = status ? COD_SETTLEMENT_STATUS_TRANSITIONS[status] : []
+        const transitions = status
+          ? COD_SETTLEMENT_STATUS_TRANSITIONS[status]
+          : []
 
         const firstTransition = transitions[0]
 
         return (
           <TableActions
-            onUpdate={undefined}
+            onUpdate={() => {
+              if (!id) return
+              router.push(`/finance/shipping/cod-reconciliation/${id}`)
+            }}
             onDelete={undefined}
           >
             {id && status && firstTransition ? (
@@ -120,7 +148,10 @@ export default function CodReconciliationTable() {
                 className="text-xs text-secondary hover:underline disabled:opacity-60"
                 disabled={isUpdatingStatus}
                 onClick={() =>
-                  updateStatus({ id, data: { status: firstTransition as CodSettlementStatus } })
+                  updateStatus({
+                    id,
+                    data: { status: firstTransition as CodSettlementStatus },
+                  })
                 }
               >
                 تحويل إلى: {COD_SETTLEMENT_STATUS_META[firstTransition].label}
@@ -137,7 +168,7 @@ export default function CodReconciliationTable() {
       <DataTable
         columns={columns}
         isLoading={isPending}
-        data={batches as any[] || []}
+        data={batches}
         pagination={{ pageIndex, pageSize, pageCount }}
         onPageChange={setPageIndex}
       />

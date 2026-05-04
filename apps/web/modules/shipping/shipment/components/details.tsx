@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
+import { Wallet } from "lucide-react"
 
+import { formatSyp } from "@/lib/money"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -26,6 +29,7 @@ import type { ShipmentStatus } from "../types"
 import ShipmentTimelineCard from "./timeline"
 
 export default function ShipmentDetailsPageView({ shipmentId }: { shipmentId: string }) {
+  const router = useRouter()
   const queryClient = useQueryClient()
 
   const { data: shipment, isLoading: isShipmentLoading } = useQuery({
@@ -84,12 +88,27 @@ export default function ShipmentDetailsPageView({ shipmentId }: { shipmentId: st
             </div>
             <div className="flex items-center justify-between gap-4">
               <span className="text-muted-foreground">COD المتوقع</span>
-              <span dir="ltr">{shipment?.expectedCodAmountSyp ?? 0}</span>
+              <span dir="ltr">{formatSyp(shipment?.expectedCodAmountSyp)}</span>
             </div>
             <div className="flex items-center justify-between gap-4">
               <span className="text-muted-foreground">COD المحصل</span>
-              <span dir="ltr">{shipment?.collectedCodAmountSyp ?? 0}</span>
+              <span dir="ltr">{formatSyp(shipment?.collectedCodAmountSyp)}</span>
             </div>
+
+            {(shipment?.expectedCodAmountSyp ?? 0) > 0 ? (
+              <Button
+                variant="outline"
+                className="mt-2"
+                onClick={() =>
+                  router.push(
+                    `/logistics/shipping/shipments/${shipmentId}/cod`
+                  )
+                }
+              >
+                حركات تحصيل COD
+                <Wallet data-icon="inline-end" />
+              </Button>
+            ) : null}
 
             {shipment?.carrierTrackingUrl ? (
               <Button asChild variant="secondary" className="mt-2">
