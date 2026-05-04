@@ -6,6 +6,7 @@ import {
   ChevronDown,
   Circle,
   CircleDollarSign,
+  CreditCard,
   FileText,
   LayoutDashboard,
   Package,
@@ -110,6 +111,11 @@ const navItems: readonly NavItem[] = [
     children: [
       { title: "تسوية تحصيل COD", url: "/finance/shipping/cod-reconciliation" },
     ],
+  },
+  {
+    title: "بوابات الدفع",
+    url: "/payment-providers",
+    icon: CreditCard,
   },
 ]
 
