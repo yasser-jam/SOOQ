@@ -2,14 +2,22 @@
 
 import { useCallback, useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
+import { ShieldAlert } from "lucide-react"
 
 import PageDialog from "@/components/system/page-dialog"
 import Field from "@/components/system/Field"
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert"
 import { Button } from "@workspace/ui/components/button"
+import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DialogClose } from "@workspace/ui/components/dialog"
+import { Label } from "@workspace/ui/components/label"
 
 import { shippingProviderSchema } from "../schema"
 import type { ShippingProvider } from "../types"
@@ -19,7 +27,13 @@ import {
   updateShippingProvider,
 } from "../actions"
 import { shippingProviderQueryKeys } from "../queryKeys"
-import { initShippingProvider } from "../init"
+import {
+  buildCreateShippingProviderPayload,
+  buildUpdateShippingProviderPayload,
+  initShippingProviderFormValues,
+  initShippingProviderUpdate,
+  shippingProviderFormDefaults,
+} from "../init"
 
 export default function ShippingProviderUpsertPageView({
   providerId,
@@ -32,8 +46,8 @@ export default function ShippingProviderUpsertPageView({
   const isEdit = providerId !== "create"
 
   const form = useForm<ShippingProvider>({
-    resolver: zodResolver(shippingProviderSchema),
-    defaultValues: initShippingProvider(),
+    resolver: zodResolver(shippingProviderSchema) as never,
+    defaultValues: shippingProviderFormDefaults,
   })
 
   const { data: provider, isLoading } = useQuery({
@@ -43,7 +57,14 @@ export default function ShippingProviderUpsertPageView({
   })
 
   useEffect(() => {
-    initShippingProvider(provider)
+    if (!isEdit) {
+      form.reset(shippingProviderFormDefaults)
+      return
+    }
+
+    if (!provider) return
+
+    form.reset(initShippingProviderFormValues(provider))
   }, [form, isEdit, provider])
 
   const { isPending: isCreating, mutate: create } = useMutation({
@@ -68,7 +89,17 @@ export default function ShippingProviderUpsertPageView({
 
   const handleSubmit = useCallback(
     (values: ShippingProvider) => {
-      return isEdit ? update({ id: providerId, data: values }) : create(values)
+      if (isEdit) {
+        update(
+          initShippingProviderUpdate(
+            providerId,
+            buildUpdateShippingProviderPayload(values)
+          )
+        )
+        return
+      }
+
+      create(buildCreateShippingProviderPayload(values))
     },
     [create, isEdit, providerId, update]
   )
@@ -117,7 +148,7 @@ export default function ShippingProviderUpsertPageView({
           control={form.control}
           label="الكود"
           placeholder="مثال: DAMASCUS_EXPRESS"
-          inputProps={{ disabled: isSubmitting }}
+          inputProps={{ disabled: isSubmitting || isEdit }}
         />
 
         <Field
@@ -128,29 +159,79 @@ export default function ShippingProviderUpsertPageView({
           inputProps={{ disabled: isSubmitting, dir: "ltr" }}
         />
 
-        {/* <Field
+        <Field
           name="priority"
           control={form.control}
-          label="الأولوية"
+          label="الأولوية (الأرقام الأعلى تأخذ الأسبقية)"
           placeholder="10"
-          inputProps={{ disabled: isSubmitting, type: "number" }}
-        /> */}
+          inputProps={{
+            disabled: isSubmitting,
+            type: "number",
+            min: "0",
+          }}
+        />
+
+        {isEdit ? (
+          <Alert className="rounded-xl border-amber-200 bg-amber-50">
+            <ShieldAlert className="size-5 text-amber-700" />
+            <AlertTitle className="text-amber-900">
+              المفاتيح السرية محفوظة
+            </AlertTitle>
+            <AlertDescription className="text-amber-800">
+              {provider?.hasApiKey ? "API Key مُهيَّأ. " : "API Key غير مُهيَّأ. "}
+              {provider?.hasWebhookSecret
+                ? "Webhook Secret مُهيَّأ."
+                : "Webhook Secret غير مُهيَّأ."}{" "}
+              اترك الحقول فارغة للحفاظ على القيم الحالية، أو املأها لتحديثها.
+            </AlertDescription>
+          </Alert>
+        ) : null}
 
         <Field
           name="apiKey"
           control={form.control}
           label="API Key"
-          placeholder="(اختياري)"
-          inputProps={{ disabled: isSubmitting, dir: "ltr" }}
+          placeholder={isEdit ? "اتركه فارغاً للحفاظ على القيمة" : "(اختياري)"}
+          inputProps={{
+            disabled: isSubmitting,
+            dir: "ltr",
+            type: "password",
+            autoComplete: "off",
+          }}
         />
 
         <Field
           name="webhookSecret"
           control={form.control}
           label="Webhook Secret"
-          placeholder="(اختياري)"
-          inputProps={{ disabled: isSubmitting, dir: "ltr" }}
+          placeholder={isEdit ? "اتركه فارغاً للحفاظ على القيمة" : "(اختياري)"}
+          inputProps={{
+            disabled: isSubmitting,
+            dir: "ltr",
+            type: "password",
+            autoComplete: "off",
+          }}
         />
+
+        {isEdit ? (
+          <Controller
+            name="isActive"
+            control={form.control}
+            render={({ field }) => (
+              <div className="flex items-center gap-3 rounded-xl border bg-card p-3">
+                <Checkbox
+                  id="isActive"
+                  checked={Boolean(field.value)}
+                  onCheckedChange={(checked) => field.onChange(checked === true)}
+                  disabled={isSubmitting}
+                />
+                <Label htmlFor="isActive" className="cursor-pointer">
+                  مزود نشط (يظهر في خيارات الشحن)
+                </Label>
+              </div>
+            )}
+          />
+        ) : null}
       </form>
     </PageDialog>
   )

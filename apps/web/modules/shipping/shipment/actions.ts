@@ -1,7 +1,12 @@
 import { api } from "@/lib/api"
 import type { ApiResponse } from "@/lib/types"
 
-import type { Shipment, ShipmentStatusEvent, TransitionShipmentInput } from "./types"
+import type {
+  CreateShipmentPayload,
+  Shipment,
+  ShipmentStatusEvent,
+  TransitionShipmentInput,
+} from "./types"
 
 type ShipmentApiResponse = Shipment & {
   shipmentId: string
@@ -34,3 +39,17 @@ export const transitionShipment = ({ id, data }: TransitionShipmentInput): Promi
     method: "POST",
     body: data,
   })
+
+export const createShipment = async (
+  payload: CreateShipmentPayload
+): Promise<Shipment> => {
+  const response = await api<ApiResponse<ShipmentApiResponse>>(
+    "/admin/shipping/shipments",
+    {
+      method: "POST",
+      body: payload,
+    }
+  )
+
+  return normalizeShipment(response.data!)
+}

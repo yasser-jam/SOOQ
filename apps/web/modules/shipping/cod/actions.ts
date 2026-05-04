@@ -20,18 +20,22 @@ const normalizeBatch = (batch: CodReconciliationBatchApiResponse): CodReconcilia
 
 export const listCodReconciliationBatches = async (
   params: ListCodReconciliationBatchesParams = {}
-): Promise<ApiResponse<CodReconciliationBatch>> => {
-  const response = await api<ApiResponse<CodReconciliationBatchApiResponse>>(
-    "/admin/shipping/cod/reconciliation",
-    {
-      params,
-    }
-  )
+): Promise<PaginatedApiResponse<CodReconciliationBatch>> => {
+  const response = await api<
+    ApiResponse<PaginatedApiResponse<CodReconciliationBatchApiResponse>>
+  >("/admin/shipping/cod/reconciliation", {
+    params,
+  })
 
+  const page = response.data ?? {}
+  const items =
+    page.content?.map(normalizeBatch) ?? page.items?.map(normalizeBatch) ?? []
 
-  const data = response.data?.map(el => normalizeBatch(el)) ?? []
-
-  return data
+  return {
+    ...page,
+    content: items,
+    items,
+  }
 }
 
 export const createCodReconciliationBatch = async (

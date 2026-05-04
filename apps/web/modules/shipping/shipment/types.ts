@@ -45,3 +45,13 @@ export type TransitionShipmentInput = {
   id: string
   data: TransitionShipmentPayload
 }
+
+export interface CreateShipmentPayload {
+  orderId: string
+  shippingProviderId: string
+  originLat: number
+  originLng: number
+  destinationLat: number
+  destinationLng: number
+  expectedCodAmountSyp?: number | null
+}

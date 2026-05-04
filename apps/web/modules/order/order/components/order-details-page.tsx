@@ -57,6 +57,11 @@ export default function OrderDetailsPageView({
           status={order?.status}
           invoiceNumber={order?.invoiceNumber}
           invoicePdfUrl={order?.invoicePdfUrl}
+          orderNumber={order?.orderNumber}
+          paymentMethod={order?.paymentMethod}
+          orderTotal={order?.pricing?.total}
+          destinationLat={order?.shippingAddress?.latitude}
+          destinationLng={order?.shippingAddress?.longitude}
         />
       </div>
 

@@ -40,13 +40,21 @@ import {
   regenerateInvoice,
 } from "@/modules/order/invoice/actions"
 import { invoiceQueryKeys } from "@/modules/order/invoice/queryKeys"
+import CreateShipmentDialog from "@/modules/shipping/shipment/components/create-shipment-dialog"
 import { Button } from "@workspace/ui/components/button"
+
+import type { PaymentMethod } from "@/lib/domain-enums"
 
 interface OrderDetailsActionsProps {
   orderId: string
   status?: OrderStatus
   invoiceNumber?: string | null
   invoicePdfUrl?: string | null
+  orderNumber?: string | null
+  paymentMethod?: PaymentMethod | null
+  orderTotal?: number | null
+  destinationLat?: number | null
+  destinationLng?: number | null
 }
 
 type IconType = typeof CheckCircle2
@@ -74,16 +82,27 @@ export default function OrderDetailsActions({
   status,
   invoiceNumber,
   invoicePdfUrl,
+  orderNumber,
+  paymentMethod,
+  orderTotal,
+  destinationLat,
+  destinationLng,
 }: OrderDetailsActionsProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [pendingTransition, setPendingTransition] =
     useState<TransitionableOrderStatus | null>(null)
+  const [shipmentDialogOpen, setShipmentDialogOpen] = useState(false)
 
   const { mutate: transition, isPending: isTransitioning } = useMutation({
     mutationFn: transitionAdminOrderStatus,
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({ queryKey: orderQueryKeys.all })
+      // Auto-open shipment creation dialog when transitioning to PROCESSING
+      // (per the doc: PROCESSING transition triggers shipment creation).
+      if (variables.data.targetStatus === "PROCESSING") {
+        setShipmentDialogOpen(true)
+      }
     },
   })
 
@@ -253,6 +272,17 @@ export default function OrderDetailsActions({
             runTransition(pendingTransition)
           }
         }}
+      />
+
+      <CreateShipmentDialog
+        open={shipmentDialogOpen}
+        onOpenChange={setShipmentDialogOpen}
+        orderId={orderId}
+        orderNumber={orderNumber}
+        paymentMethod={paymentMethod}
+        orderTotal={orderTotal}
+        destinationLat={destinationLat}
+        destinationLng={destinationLng}
       />
     </>
   )

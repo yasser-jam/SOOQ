@@ -42,7 +42,7 @@ export default function CodReconciliationCreatePageView() {
   const queryClient = useQueryClient()
 
   const form = useForm<CreateFormValues>({
-    resolver: zodResolver(createCodReconciliationBatchSchema),
+    resolver: zodResolver(createCodReconciliationBatchSchema) as never,
     defaultValues: {
       shippingProviderId: "",
       providerFeePercentage: 5,

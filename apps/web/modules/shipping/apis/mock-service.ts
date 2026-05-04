@@ -252,6 +252,8 @@ export const updateMockShippingProvider = (
   if (index < 0) return undefined
 
   const current = providers[index]
+  if (!current) return undefined
+
   const updated: MockShippingProvider = {
     ...current,
     ...data,
