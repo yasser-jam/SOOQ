@@ -1,11 +1,12 @@
 "use client"
 
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
-import { Image as ImageIcon } from "lucide-react"
+import { Image as ImageIcon, Upload, X } from "lucide-react"
+import { toast } from "sonner"
 
 import Field from "@/components/system/Field"
 import PageDialog from "@/components/system/page-dialog"
@@ -42,6 +43,8 @@ export default function EditInvoiceLayoutPage() {
 	const params = useParams()
 	const profileId = params?.["profile-id"]?.toString() ?? ""
 	const isEdit = profileId !== "create"
+	const [uploadedLogo, setUploadedLogo] = useState<string | null>(null)
+	const fileInputRef = useRef<HTMLInputElement | null>(null)
 
 	const form = useForm<InvoiceLayoutFormValues>({
 		resolver: zodResolver(invoiceLayoutFormSchema) as never,
@@ -69,6 +72,7 @@ export default function EditInvoiceLayoutPage() {
 		mutationFn: createInvoiceLayout,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: invoiceLayoutQueryKeys.all })
+			toast.success("تم إنشاء قالب الفاتورة بنجاح")
 			router.push("/invoice-layouts")
 		},
 	})
@@ -77,6 +81,7 @@ export default function EditInvoiceLayoutPage() {
 		mutationFn: updateInvoiceLayout,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: invoiceLayoutQueryKeys.all })
+			toast.success("تم حفظ التعديلات")
 			router.push("/invoice-layouts")
 		},
 	})
@@ -99,6 +104,50 @@ export default function EditInvoiceLayoutPage() {
 	const isSubmitting = isCreating || isUpdating || isLoading
 	const logoUrl = form.watch("visibleFields.logoUrl")
 	const colorScheme = form.watch("visibleFields.colorScheme")
+
+	const handleLogoUpload = useCallback(
+		(event: React.ChangeEvent<HTMLInputElement>) => {
+			const file = event.target.files?.[0]
+			// Reset the input so re-selecting the same file fires onChange again.
+			event.target.value = ""
+			if (!file) return
+
+			if (!file.type.startsWith("image/")) {
+				toast.error("يرجى اختيار ملف صورة صالح")
+				return
+			}
+
+			if (file.size > 5 * 1024 * 1024) {
+				toast.error("حجم الصورة يجب أن لا يتجاوز 5 ميجابايت")
+				return
+			}
+
+			const reader = new FileReader()
+			reader.onload = (e) => {
+				const result = e.target?.result as string
+				setUploadedLogo(result)
+				form.setValue("visibleFields.logoUrl", result, {
+					shouldDirty: true,
+					shouldValidate: true,
+				})
+			}
+			reader.onerror = () => {
+				toast.error("تعذّر قراءة ملف الصورة")
+			}
+			reader.readAsDataURL(file)
+		},
+		[form]
+	)
+
+	const clearUploadedLogo = useCallback(() => {
+		setUploadedLogo(null)
+		form.setValue("visibleFields.logoUrl", "", {
+			shouldDirty: true,
+			shouldValidate: true,
+		})
+	}, [form])
+
+	const displayLogo = uploadedLogo || logoUrl
 
 	return (
 		<PageDialog
@@ -220,37 +269,100 @@ export default function EditInvoiceLayoutPage() {
 						</UiField>
 					</div>
 
+					{colorScheme ? (
+						<div
+							className="rounded-xl p-3 text-sm font-medium"
+							style={{
+								backgroundColor: `${colorScheme}20`,
+								color: colorScheme,
+							}}
+						>
+							معاينة: هذا اللون سيُستخدم في عناوين الفاتورة.
+						</div>
+					) : null}
+
 					<UiField>
-						<FieldLabel htmlFor="logoUrl">رابط الشعار</FieldLabel>
-						<div className="flex items-center gap-3">
-							<div className="flex size-16 items-center justify-center overflow-hidden rounded-xl border bg-muted">
-								{logoUrl ? (
-									// eslint-disable-next-line @next/next/no-img-element
-									<img
-										src={logoUrl}
-										alt="شعار"
-										className="size-full object-contain"
-									/>
-								) : (
-									<ImageIcon className="size-6 text-muted-foreground" />
+						<FieldLabel htmlFor="logoUrl">شعار المتجر</FieldLabel>
+						<div className="space-y-4">
+							{/* Logo Preview */}
+							<div className="flex items-center gap-4">
+								<div className="flex size-20 items-center justify-center overflow-hidden rounded-xl border bg-muted">
+									{displayLogo ? (
+										// eslint-disable-next-line @next/next/no-img-element
+										<img
+											src={displayLogo}
+											alt="شعار"
+											className="size-full object-contain"
+										/>
+									) : (
+										<ImageIcon className="size-6 text-muted-foreground" />
+									)}
+								</div>
+								{displayLogo && (
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										onClick={clearUploadedLogo}
+										disabled={isSubmitting}
+									>
+										<X className="size-4" />
+										إزالة الشعار
+									</Button>
 								)}
 							</div>
-							<Controller
-								name="visibleFields.logoUrl"
-								control={form.control}
-								render={({ field }) => (
+
+							{/* Upload Section */}
+							<div className="space-y-2">
+								<div className="text-sm font-medium">تحميل من الجهاز</div>
+								<div className="flex items-center gap-3">
 									<input
-										id="logoUrl"
-										type="url"
-										className="flex-1 rounded border bg-card px-3 py-2 text-sm"
-										value={field.value ?? ""}
-										onChange={(event) => field.onChange(event.target.value)}
+										ref={fileInputRef}
+										type="file"
+										id="logo-upload"
+										accept="image/*"
+										onChange={handleLogoUpload}
 										disabled={isSubmitting}
-										placeholder="https://example.com/logo.png"
-										dir="ltr"
+										className="hidden"
 									/>
-								)}
-							/>
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => fileInputRef.current?.click()}
+										disabled={isSubmitting}
+									>
+										<Upload className="size-4" />
+										اختر صورة
+									</Button>
+									<span className="text-xs text-muted-foreground">
+										PNG, JPG, GIF (حتى 5 ميجابايت)
+									</span>
+								</div>
+							</div>
+
+							{/* URL Input Section */}
+							<div className="space-y-2">
+								<div className="text-sm font-medium">أو أدخل رابط الصورة</div>
+								<Controller
+									name="visibleFields.logoUrl"
+									control={form.control}
+									render={({ field }) => (
+										<input
+											id="logoUrl"
+											type="url"
+											className="w-full rounded border bg-card px-3 py-2 text-sm"
+											value={field.value ?? ""}
+											onChange={(event) => {
+												field.onChange(event.target.value)
+												setUploadedLogo(null) // Clear uploaded file when URL changes
+											}}
+											disabled={isSubmitting}
+											placeholder="https://example.com/logo.png"
+											dir="ltr"
+										/>
+									)}
+								/>
+							</div>
 						</div>
 					</UiField>
 				</section>
@@ -296,17 +408,6 @@ export default function EditInvoiceLayoutPage() {
 						/>
 					</UiField>
 
-					{colorScheme ? (
-						<div
-							className="rounded-xl p-3 text-sm font-medium"
-							style={{
-								backgroundColor: `${colorScheme}20`,
-								color: colorScheme,
-							}}
-						>
-							معاينة: هذا اللون سيُستخدم في عناوين الفاتورة.
-						</div>
-					) : null}
 				</section>
 
 				<section className="grid gap-4">
