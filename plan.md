@@ -1,478 +1,319 @@
-# خطة تنفيذ وحدات ORD + PAY + SHP في SOOQ-Front
+# خطة تنفيذ ORD + PAY + SHP في SOOQ-Front
 
-**المرجع:** `SOOQ-Back/docs/FRONTEND_PAGES_ORD_PAY_SHP.md`
-**النطاق:** Merchant Admin Panel (هذا التطبيق الحالي `apps/web`). الـ Customer Storefront يُعالج كنطاق منفصل في Phase 12.
-**اللغة:** RTL عربي افتراضي + English switcher.
+**المرجع:** `SOOQ-Back/docs/FRONTEND_PAGES_ORD_PAY_SHP.md` (محدّث 2026-05-05، مع Part H الجديد)
+**ملخّص ما أُنجز:** `SOOQ-Front/KV-ORDERS-SUMMARY.md`
+**اللغة:** RTL عربي افتراضي.
 **العملة:** SYP (أعداد صحيحة فقط).
-**عدد الـ endpoints:** ORD = 29، PAY = 13، SHP = 18.
 
 ---
 
-## مخطط الحالة الحالية vs المطلوبة
+## Implementation Snapshot
 
-| الوحدة | الموجود حالياً في `modules/` | الحالة | الفجوات |
+| الـ Surface | الحالة | الـ Endpoints | المرجع |
 |---|---|---|---|
-| ORD — orders | `order/order` | mock + جزئي | enum غير محاذٍ، أزرار الإجراءات الشرطية غير مكتملة، لا يوجد invoice/shipment widget |
-| ORD — discount codes | — | غير موجود | إنشاء كامل |
-| ORD — invoices | — | غير موجود | إنشاء كامل |
-| ORD — invoice layout profiles | — | غير موجود | إنشاء كامل |
-| PAY — payment providers | — | غير موجود | إنشاء كامل |
-| PAY — refunds | — | غير موجود | إنشاء كامل |
-| SHP — providers | `shipping/provider` | موجود | محاذاة الـ DTO، write-only credentials |
-| SHP — shipments | `shipping/shipment` | موجود | الربط مع transition → PROCESSING |
-| SHP — COD reconciliation | `shipping/cod` | موجود | محاذاة + batch detail |
-| SHP — tracking widget | — | غير موجود | إضافة في Order Detail |
+| Merchant Admin (Part A) — `apps/web` | ✅ مكتمل على فرع `KV-Orders` | 35/35 admin endpoints | A1–A11 |
+| Customer Storefront (Part B) — `apps/storefront` (مقترح) | ⏳ لم يبدأ | 0/18 customer endpoints | B1–B11 |
+| Backend ORD + PAY + SHP | ✅ مكتمل | 60/60 | Part E |
 
 ---
 
-## Phase 0 — البنية التحتية المشتركة (Cross-cutting)
+## القسم 1 — ما أُنجز (Phase 0–10) ✅
 
-**الهدف:** تجهيز الأساس التقني قبل البدء بأي وحدة.
-
-### المهام
-1. **محاذاة `lib/api.ts` مع envelope الـ backend**
-   - تعريف `ApiEnvelope<T> = { success, data, message, timestamp, errorCode?, fieldErrors? }`.
-   - استخراج `data` تلقائياً في الـ interceptor، وإرجاع كائن الخطأ المُهيكل (`errorCode`, `fieldErrors`) عند الفشل.
-   - `lib/types.ts`: تحديث `ApiResponse<T>` ليطابق هذا الشكل.
-
-2. **حقن `X-Tenant-Id` لمسارات `/public/**`**
-   - قراءة `tenantId` من cookie أو env (`NEXT_PUBLIC_TENANT_ID` للتطوير).
-   - request interceptor: إذا بدأ الـ URL بـ `/public/`، يضيف `X-Tenant-Id` (لا يضيف `Authorization`).
-   - دالة منفصلة `publicApi()` في `lib/api.ts` لتمييز الاستدعاءات.
-
-3. **خرائط enums مشتركة**
-   - ملف جديد `lib/domain-enums.ts`:
-     - `OrderStatus = "PENDING" | "CONFIRMED" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "COMPLETED" | "CANCELLED" | "RETURNED" | "REFUNDED" | "FAILED"`
-     - `PaymentStatus = "UNPAID" | "PENDING" | "PAID" | "FAILED" | "REFUNDED"`
-     - `ShipmentStatus = "PENDING" | "PICKED_UP" | "IN_TRANSIT" | "READY_FOR_PICKUP_AT_OFFICE" | "DELIVERED" | "FAILED" | "RETURNED"`
-     - `SettlementStatus = "PENDING" | "SETTLED" | "DISPUTED"`
-   - meta map لكل enum (label عربي + variant للـ Badge).
-
-4. **خريطة أكواد الأخطاء → رسائل عربية**
-   - `lib/error-codes.ts`: `ERR_1003`, `ERR_2001`, `ERR_3001`, `ERR_8000–ERR_8005`, `RESOURCE_NOT_FOUND`.
-   - دالة `humanizeError(errorCode, fallback)` تُستخدم في كل الـ mutations.
-
-5. **مساعدات Money + Pagination**
-   - `lib/money.ts`: `formatSyp(amount: number)` — أعداد صحيحة فقط، `Intl.NumberFormat("ar-SY", { style: "currency", currency: "SYP", maximumFractionDigits: 0 })`.
-   - `lib/pagination.ts`: تطبيع استجابة Spring `Page<T>` (`content[]`, `totalElements`, `totalPages`, `number`, `size`) إلى شكل موحّد للـ DataTable.
-
-6. **مكوّن خريطة (Map) عام**
-   - `components/system/map-pin.tsx`: عرض pin على إحداثيات معطاة (read-only) — Leaflet.
-   - `components/system/map-pin-picker.tsx`: التقاط الإحداثيات بالنقر (للـ checkout/edit address) — يُستخدم لاحقاً في Phase 12.
-
-### معايير القبول
-- كل استدعاء API يمر عبر `api()` يُرجع `data` مباشرة بدون تكرار `.data ?? {}`.
-- `/public/**` يتضمن تلقائياً `X-Tenant-Id`.
-- الـ enums متطابقة 100% مع الـ backend.
-
----
-
-## Phase 1 — ORD: محاذاة وحدة الطلبات الحالية
-
-**الهدف:** إصلاح الـ enum + إعادة هيكلة الإجراءات حسب الـ backend الفعلي.
-
-### المهام
-1. **تحديث [schema.ts](apps/web/modules/order/order/schema.ts)**
-   - حذف: `NEW`, `OUT_FOR_DELIVERY`, `RETURN_REQUESTED`.
-   - إضافة: `COMPLETED`, `REFUNDED`, `FAILED`.
-   - إضافة `paymentStatus` إلى `orderSchema` (`UNPAID | PENDING | PAID | FAILED | REFUNDED`).
-
-2. **تحديث [model.ts](apps/web/modules/order/order/model.ts)**
-   - إعادة بناء `ORDER_LIST_STATUS_META` للحالات الجديدة بترجمة عربية.
-   - إضافة `ORDER_PAYMENT_STATUS_META`.
-
-3. **تحديث [types.ts](apps/web/modules/order/order/types.ts)**
-   - إضافة `paymentStatus`, `paymentRedirectUrl?`, `invoiceNumber?`, `invoicePdfUrl?` إلى `AdminOrder`.
-   - `AdminOrderShippingAddress`: إضافة `latitude: number, longitude: number, recipientName: string, addressLabel?: string` وحذف `country/governorate/city/district/street` (الـ backend يستخدم إحداثيات فقط).
-   - `AdminOrdersSummary`: إضافة حقول لكل حالة (`pending, confirmed, processing, shipped, delivered, completed, cancelled, returned, refunded, failed, total`).
-
-4. **تحديث [actions.ts](apps/web/modules/order/order/actions.ts)**
-   - مطابقة كل endpoint مع الجدول في A1–A3:
-     - `GET /admin/orders/summary`
-     - `GET /admin/orders` (مع `status`, `page`, `size`, `sort`)
-     - `GET /admin/orders/{id}`
-     - `GET /admin/orders/{id}/timeline`
-     - `POST /admin/orders/{id}/transition` body `{ targetStatus }`
-     - `POST /admin/orders/{id}/cancel` body `{ reason }`
-     - `PUT /admin/orders/{id}/notes` body `{ notesInternal?, notesCustomer? }` (`null` = لا تغيير، `""` = مسح)
-     - `PUT /admin/orders/{id}/edit` body `{ items[], shippingAddress }`
-
-5. **حذف `apis/mock-service.ts` بعد ربط الـ backend** (تركه مؤقتاً مع flag `USE_MOCK` خلال التطوير).
-
-### معايير القبول
-- جميع الـ TypeScript types تُترجم بدون أخطاء.
-- استدعاء `/admin/orders/summary` على الـ backend يُرجع نفس الشكل المتوقع.
-
----
-
-## Phase 2 — ORD: Orders Dashboard + List (A1, A2)
-
-**الهدف:** صفحة لوحة الطلبات + جدول مع فلترة.
-
-### المهام
-1. **بطاقات Dashboard في [view.tsx](apps/web/modules/order/order/components/view.tsx)**
-   - بطاقة لكل حالة (10 بطاقات بدلاً من 4 الحالية): pending, confirmed, processing, shipped, delivered, completed, cancelled, returned, refunded, failed، + بطاقة "الإجمالي".
-   - اقتراح: عرضها كـ `grid-cols-2 md:grid-cols-3 xl:grid-cols-5`.
-   - النقر على بطاقة → التنقل إلى `/orders?status=<STATUS>`.
-
-2. **فلترة الجدول بـ status من الـ URL search params**
-   - استخدام `useSearchParams` في `view.tsx`.
-   - إزالة التبويب الثنائي (`activeTab`) الحالي واستبداله بـ chips فلترة كاملة (10 حالات).
-
-3. **جدول الطلبات [table.tsx](apps/web/modules/order/order/components/table.tsx)**
-   - أعمدة جديدة: `orderNumber, customer, itemCount, total (SYP), status, paymentStatus, placedAt`.
-   - إضافة `itemCount` إلى `AdminOrderListItem` و عرضه بدون per-row fetch.
-   - شريط بحث client-side على `orderNumber`.
-
-4. **Pagination حقيقية**
-   - تمرير `pageIndex/pageSize/sort` إلى `listAdminOrders` مع التحديث في URL.
-
-### معايير القبول
-- النقر على بطاقة "Pending" → يظهر URL `?status=PENDING` والجدول يُفلتر.
-- العمود `itemCount` يظهر "3 عناصر" بدون استدعاء إضافي.
-
----
-
-## Phase 3 — ORD: Order Detail + Action Buttons (A3)
-
-**الهدف:** صفحة تفاصيل كاملة مع منطق الأزرار الشرطية + tracking widget.
-
-### المهام
-1. **مصفوفة الأزرار حسب الحالة في [order-details-actions.tsx](apps/web/modules/order/order/components/order-details-actions.tsx)**
-   - دالة `getAvailableActions(status)` تُرجع قائمة بالأزرار المسموحة:
-     | زر | يظهر عند |
-     |---|---|
-     | تأكيد | `PENDING` |
-     | بدء المعالجة | `CONFIRMED` (يستدعي إنشاء shipment تلقائياً — Phase 9) |
-     | تم الشحن | `PROCESSING` |
-     | تم التسليم | `SHIPPED` |
-     | إكمال | `DELIVERED` |
-     | فشل | `SHIPPED` |
-     | مرتجع | `DELIVERED` |
-     | استرداد | `RETURNED` (أو استخدم Refund flow A8 من Phase 6) |
-     | إلغاء | `PENDING/CONFIRMED/PROCESSING` |
-     | تعديل | `PENDING/CONFIRMED` |
-     | توليد فاتورة | أي حالة (idempotent) |
-     | بدء استرداد | `DELIVERED/COMPLETED` |
-
-2. **بطاقة عنوان الشحن مع mini map**
-   - مكوّن جديد `order-address-card.tsx` يستخدم `MapPin` من Phase 0.
-   - عرض `recipientName, phone, addressLabel, latitude, longitude`.
-
-3. **بطاقة الدفع**
-   - مكوّن جديد `order-payment-card.tsx`: `paymentMethod`, `paymentStatus` (Badge ملوّن)، `paymeraTxnId` إن وجد.
-
-4. **بطاقة الفاتورة (Phase 4 dependency)**
-   - إذا `invoiceNumber` و `invoicePdfUrl` موجودان → "تنزيل الفاتورة" (link مباشر).
-   - إذا غير موجود → زر "توليد الفاتورة" → `POST /admin/invoices/generate/{orderId}`.
-
-5. **Shipment Tracking Widget داخل الصفحة**
-   - مكوّن جديد `order-shipment-tracking-card.tsx` يستدعي `GET /public/shipping/track/{orderId}`.
-   - 404 → عرض placeholder "بانتظار الشحن".
-
-6. **بطاقة Notes**
-   - إصلاح [order-internal-notes-card.tsx](apps/web/modules/order/order/components/order-internal-notes-card.tsx) ليرسل فقط الحقل المُعدَّل (`null` لعدم التغيير، `""` للمسح).
-
-7. **Edit Dialog**
-   - إعادة كتابة [order-edit-page.tsx](apps/web/modules/order/order/components/order-edit-page.tsx):
-     - إرسال **كامل** `items[]` (يستبدل القائمة).
-     - `shippingAddress` ككائن واحد بإحداثيات.
-
-8. **Cancel Dialog**
-   - [order-cancel-page.tsx](apps/web/modules/order/order/components/order-cancel-page.tsx) يرسل `{ reason }`.
-
-9. **Timeline**
-   - تحديث [order-audit-timeline-card.tsx](apps/web/modules/order/order/components/order-audit-timeline-card.tsx) لمعالجة event types: `ORDER_CREATED, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, COMPLETED, CANCELLED (details.reason), NOTES_UPDATED, ORDER_EDITED (details.editedFields)`.
-
-### معايير القبول
-- زر "تأكيد" يظهر فقط عندما `status === "PENDING"`.
-- النقر على "بدء المعالجة" يستدعي `transition` ثم يفتح dialog إنشاء shipment.
-- خرائط lat/lng تُعرض داخل بطاقة العنوان.
-
----
-
-## Phase 4 — ORD: Discount Codes (A4)
-
-**الهدف:** CRUD كامل لأكواد الخصم.
-
-### المهام
-1. **إنشاء وحدة `modules/order/discount-code/`**
-   - `types.ts`: `DiscountCode { id, code, discountType: "PERCENTAGE"|"FIXED_AMOUNT"|"FREE_SHIPPING", value, minOrder, cap, usageLimit, currentUses, scope: "ALL"|"PRODUCT"|"CATEGORY", scopeIds[], startsAt, endsAt, isActive }`.
-   - `schema.ts`: zod schema للنموذج.
-   - `actions.ts`: `listDiscountCodes`, `getDiscountCode`, `createDiscountCode`, `updateDiscountCode`, `deleteDiscountCode`.
-   - `queryKeys.ts`.
-
-2. **الصفحات**
-   - `app/(dashboard)/discount-codes/page.tsx` → list
-   - `app/(dashboard)/discount-codes/new/page.tsx` → create form
-   - `app/(dashboard)/discount-codes/[id]/page.tsx` → edit form
-
-3. **مكوّنات**
-   - `components/discount-codes-table.tsx`: badge "نشط/منتهي"، progress bar `currentUses / usageLimit`.
-   - `components/discount-code-form.tsx`: حقل code (auto-uppercase preview)، type selector، scope picker (مع dropdown للمنتجات/الفئات).
-
-4. **قواعد**
-   - عند التعديل: `code` و `discountType` immutable (تعطيل الحقول).
-
-### معايير القبول
-- إنشاء كود `10OFF` بنوع PERCENTAGE = 10% يعمل ويظهر في القائمة.
-- soft-delete يخفي الكود من القائمة.
-
----
-
-## Phase 5 — ORD: Invoice Layout Profiles (A5)
-
-**الهدف:** محرّر بصري لقوالب PDF الفاتورة.
-
-### المهام
-1. **إنشاء وحدة `modules/order/invoice-layout/`**
-   - `types.ts`: `InvoiceLayoutProfile { id, name, isDefault, headerText, footerText, storeName, colorScheme, logoUrl, visibleFieldsJson }`.
-   - `actions.ts`: 5 endpoints.
-
-2. **الصفحات**
-   - `app/(dashboard)/invoice-layouts/page.tsx` → list
-   - `app/(dashboard)/invoice-layouts/[id]/page.tsx` → editor
-
-3. **محرّر**
-   - رفع شعار (يستخدم نفس logic رفع صور المنتج إن وجد، أو إنشاء `lib/upload.ts`).
-   - color picker (مكوّن `<Input type="color">` + hex preview).
-   - مفاتيح Toggle لكل حقل في `visibleFieldsJson` (19 toggle): `showLogo, showStoreName, showOrderNumber, showOrderDate, showCustomerName, showCustomerPhone, showShippingAddress, showSku, showUnitPrice, showQuantity, showItemDiscount, showSubtotal, showTaxBreakdown, showShippingCost, showDiscountTotal, showPaymentMethod, showPaymentStatus, showPaymeraRrn, showNotes`.
-   - حقل text لـ `headerText`, `footerText`, `storeName`.
-
-4. **منطق `isDefault`**
-   - تحويل profile إلى default يلغي default السابق تلقائياً (الـ backend يتعامل مع ذلك).
-   - عرض شارة "الافتراضي" على البطاقة.
-
-5. **Live preview** (اختياري في v1، يمكن تأجيله): مربع يحاكي شكل الفاتورة بناءً على القيم الحالية.
-
-### معايير القبول
-- إنشاء profile جديد، تعيينه default، توليد فاتورة لطلب → الفاتورة تستخدم الإعدادات الجديدة.
-
----
-
-## Phase 6 — ORD: Invoices (A6)
-
-**الهدف:** صفحة قائمة + ربط أزرار التوليد في Order Detail.
-
-### المهام
-1. **إنشاء وحدة `modules/order/invoice/`**
-   - `actions.ts`: `listInvoices`, `generateInvoice(orderId)`, `regenerateInvoice(orderId)`.
-
-2. **الصفحات**
-   - `app/(dashboard)/invoices/page.tsx` → جدول كل الفواتير مع روابط تنزيل.
-
-3. **الربط في Order Detail (Phase 3)**
-   - زر "توليد" / "إعادة توليد" / "تنزيل" حسب وجود `invoiceNumber`.
-   - "إعادة التوليد" يُستخدم بعد تغيير layout profile.
-
-### معايير القبول
-- توليد فاتورة لطلب يظهر الـ PDF رابط مباشرةً.
-- إعادة التوليد تُنشئ ملف جديد و تُلغي الـ soft-delete على القديم.
-
----
-
-## Phase 7 — PAY: Payment Providers Configuration (A7)
-
-**الهدف:** صفحة إعدادات بوابات الدفع.
-
-### المهام
-1. **إنشاء وحدة `modules/payment/provider/`**
-   - `types.ts`: `PaymentProvider { id, providerCode: "COD"|"PAYMERA"|..., displayName, isEnabled, hasApiKey, hasWebhookSecret, settingsJson }`.
-   - `actions.ts`: 5 endpoints.
-
-2. **الصفحات**
-   - `app/(dashboard)/payment-providers/page.tsx` → list + add/edit form.
-
-3. **النماذج الحساسة لكل provider**
-   - `COD`: toggle `enabled` فقط.
-   - `PAYMERA`: حقول `terminalId, username, password, environment (test|prod), savedCards, merchantDisplayName, settlementCurrency`.
-   - الـ credentials غير مُرجعة من API → عرض `hasApiKey: ✓` فقط مع زر "تعديل" يفتح dialog إعادة الإدخال.
-
-4. **منطق التشفير على الواجهة**
-   - الـ password يُرسل عند الإدخال فقط، لا يُجلَب أبداً.
-
-### معايير القبول
-- إعداد PAYMERA test يعمل والـ checkout يستخدم البيانات.
-- إعادة فتح الصفحة لا تظهر `password` في النموذج (مفرّغ).
-
----
-
-## Phase 8 — PAY: Refunds (A8)
-
-**الهدف:** قائمة الاستردادات + modal بدء استرداد من Order Detail.
-
-### المهام
-1. **إنشاء وحدة `modules/payment/refund/`**
-   - `types.ts`: `Refund { id, orderId, refundAmount, reason, status: "PENDING"|"COMPLETED"|"FAILED", createdAt, paymeraRrn? }`.
-   - `actions.ts`: `listRefunds`, `getRefundForOrder(orderId)`, `createRefund({ orderId, refundAmount, reason })`.
-
-2. **الصفحات**
-   - `app/(dashboard)/refunds/page.tsx` → list مع فلتر status.
-
-3. **Modal من Order Detail**
-   - يظهر زر "بدء استرداد" عند `DELIVERED` أو `COMPLETED`.
-   - حقول: `refundAmount` (مع validation ≤ order.total)، `reason`.
-   - PAYMERA → عرض النتيجة sync.
-   - COD → toast "تم تسجيل الاسترداد كقيد دفترية".
-
-4. **بعد النجاح**
-   - تحديث `paymentStatus` للطلب إلى `REFUNDED` تلقائياً (الـ backend).
-   - invalidate query keys: `orderQueryKeys.detail(orderId)` + `refundQueryKeys.all`.
-
-### معايير القبول
-- بدء استرداد لطلب PAYMERA → النتيجة تظهر فوراً، حالة الطلب تتحدث.
-
----
-
-## Phase 9 — SHP: محاذاة Shipping Providers + Shipments + COD
-
-**الهدف:** ربط الوحدات الموجودة بالـ backend الحقيقي + إكمال الفجوات.
-
-### المهام
-1. **Shipping Providers (A9)** — `modules/shipping/provider/`
-   - مراجعة [actions.ts](apps/web/modules/shipping/provider/actions.ts) لتطابق `/admin/shipping/providers/*`.
-   - النموذج: `providerCode, nameAr, nameEn, apiBaseUrl, apiKey (write-only), webhookSecret (write-only), priority, isActive`.
-   - الترتيب في القائمة بحسب `priority DESC`.
-   - زر "تحديث المفتاح" يفتح dialog منفصل (نمط Phase 7).
-
-2. **Shipments (A10)** — `modules/shipping/shipment/`
-   - مراجعة `actions.ts` لتطابق `/admin/shipping/shipments/*`.
-   - **Auto-create shipment dialog** يفتح من Order Detail عند اختيار "بدء المعالجة":
-     - Read-only: `orderId`, `expectedCodAmountSyp` (= `order.total` if COD، وإلا `null`).
-     - User input: `shippingProviderId` (dropdown من active providers، مرتبة حسب priority، الأعلى مُختار افتراضياً).
-     - `originLat/Lng`: من store settings.
-     - `destinationLat/Lng`: من `order.shippingAddress`.
-   - ترتيب الاستدعاء: `transition → PROCESSING` ثم `POST /admin/shipping/shipments`.
-   - معالجة `ERR_8003` ("shipment already exists") بشكل لطيف.
-
-3. **Shipment Detail Page**
-   - مكوّن جديد: timeline من `GET /admin/shipping/shipments/{id}/events`.
-   - عرض `carrierTrackingUrl, codAmountSyp, codCollectedAt`.
-   - زر "Manual transition" (override) يفتح dialog اختيار `targetStatus` من enum الـ ShipmentStatus.
-
-4. **Status badge map**
-   - في `lib/domain-enums.ts`: ألوان كل ShipmentStatus.
-
-### معايير القبول
-- "بدء المعالجة" على طلب PENDING → ينشئ shipment مع correct provider + COD amount.
-- التتبع في `/public/shipping/track/{orderId}` يعرض القيم الحقيقية.
-
----
-
-## Phase 10 — SHP: COD Reconciliation (A11)
-
-**الهدف:** إكمال صفحات تسوية COD.
-
-### المهام
-1. **List page** — `app/(dashboard)/finance/shipping/cod-reconciliation/page.tsx`
-   - أعمدة: `provider, settlementDate, expectedTotalSyp, collectedTotalSyp, providerFeeAmountSyp, netSettlementSyp, status (badge)`.
-   - فلترة بـ provider + settlement date range.
-
-2. **Create batch dialog**
-   - `shippingProviderId` (dropdown)، `providerFeePercentage` (number)، `settlementDate` (date picker)، `notes` (textarea).
-
-3. **Batch Detail Page** — `[batchId]/page.tsx`
-   - عرض كل الـ COD entries في الـ batch.
-   - زر "تحويل إلى SETTLED" / "وضع علامة DISPUTED".
-
-4. **Shipment COD entries** — `app/(dashboard)/logistics/shipping/shipments/[id]/cod/page.tsx`
-   - يستدعي `GET /admin/shipping/cod/entries/{shipmentId}`.
-
-5. **Permissions**
-   - الصفحة محمية بصلاحية "finance" (فحص في layout أو middleware).
-
-### معايير القبول
-- إنشاء batch جديد بـ providerFeePercentage = 5% يعرض `netSettlementSyp = expectedTotal - fee`.
-
----
-
-## Phase 11 — i18n + RTL polish + اختبار End-to-End
-
-**الهدف:** التحقق من Part D (Merchant Workflow) عبر السيناريو الكامل.
-
-### المهام
-1. **مفاتيح الترجمة**
-   - تجميع كل الـ string العربية الموجودة حالياً + الجديدة في `i18n/messages/ar.json` و `i18n/messages/en.json`.
-   - إعداد next-intl أو نظام مماثل، مع toggle في navbar.
-
-2. **اختبار سيناريو Part D يدوياً**
-   - Dashboard → list (PENDING) → detail → confirm → processing (+shipment) → wait webhook (محاكاة من admin) → delivered → generate invoice → refund flow → COD reconciliation.
-
-3. **Empty states + loading states**
-   - مراجعة كل القوائم: skeleton، رسالة فارغة عربية واضحة.
-
-4. **معالجة الأخطاء العامة**
-   - كل mutation تستخدم `humanizeError()` من Phase 0.
-   - 401/403 يعيد التوجيه إلى `/request-otp` (موجود حالياً).
-
-### معايير القبول
-- التبديل ar/en يعمل على كل الصفحات الجديدة.
-- سيناريو Part D ينفّذ من البداية للنهاية بدون أخطاء console.
-
----
-
-## Phase 12 — Customer Storefront (Part B) — نطاق منفصل
-
-**الهدف:** تطبيق العميل (Cart → Checkout → My Orders → Tracking).
-
-> **ملاحظة:** هذا تطبيق منفصل — يُقترح إنشاؤه كـ `apps/storefront/` في نفس monorepo، أو كمشروع Next.js مستقل. **لا يُنفَّذ ضمن `apps/web` (لوحة الإدارة).**
-
-### الـ phases الفرعية
-- **12.1 — Cart (B1):** Zustand store + localStorage persistence + `productSnapshot` لكل سطر.
-- **12.2 — Checkout Step 1 — Address (B2):** `MapPinPicker` من Phase 0 + form (recipientName, phone, addressLabel).
-- **12.3 — Checkout Step 2 — Shipping Preview (B3):** `POST /public/shipping/calculate` فور تغيير الـ pin (debounced).
-- **12.4 — Checkout Step 3 — Discount (B4):** `GET /public/checkout/validate-discount` على blur.
-- **12.5 — Checkout Step 4 — Payment Methods (B5):** `GET /public/payments/methods` → radio group.
-- **12.6 — Checkout Step 5 — Place Order (B6):** `POST /public/checkout` مع `checkoutToken` (UUID مولّد مرة عند دخول الصفحة)، التعامل مع `paymentRedirectUrl` لـ PAYMERA.
-- **12.7 — Payment Return Pages (B7):** `/payment/success`, `/payment/failure` مع poll على `/public/payments/{txnId}/status` كل 2s حتى 10s.
-- **12.8 — My Orders (B8) + Detail (B9):** قوائم + cancel + invoice download.
-- **12.9 — Guest Order Lookup (B10):** نموذج بسيط بـ `orderNumber + email`.
-- **12.10 — Tracking Widget (B11):** stepper عمودي مع `statusHistory`.
-
----
-
-## ترتيب التنفيذ المُوصى به
-
-```
-Phase 0 (يوم 1)  ──┐
-                   │
-Phase 1 (يوم 2)  ──┤
-                   │
-Phase 2 ──┐  Phase 4 ──┐  Phase 7 ──┐
-Phase 3 ──┤  Phase 5 ──┤  Phase 8 ──┤   ← يمكن تنفيذها بالتوازي
-          │  Phase 6 ──┘             │      بمطورين منفصلين
-Phase 9   ──────────────────────────┤
-                                     │
-Phase 10 ─────────────────────────────┘
-                                     │
-Phase 11 ─────────────────────────────┘ (تكامل + اختبار)
-                                     │
-Phase 12 ───────────────────────── (نطاق منفصل، تطبيق آخر)
-```
-
-**الحرجة (يجب أن تسبق غيرها):**
-- Phase 0 → كل ما بعدها.
-- Phase 1 → Phase 2, 3, 9.
-- Phase 5 → Phase 6 (لأن الفاتورة تستخدم layout).
-- Phase 9 → Phase 10 (COD entries تأتي من shipments).
-
----
-
-## مخاطر معروفة + قرارات معلّقة
-
-| المخاطرة | البديل | القرار المطلوب |
+| Phase | البند | الـ Commit |
 |---|---|---|
-| الـ enum الحالي يستخدم `NEW`, `OUT_FOR_DELIVERY`, `RETURN_REQUESTED` (mock data) — حذفها قد يكسر الـ UI | الإبقاء على `mock-service.ts` خلف flag حتى نهاية Phase 1 | OK |
-| `tenantId` للـ `/public/**` — من أين يأتي في لوحة الإدارة؟ | استخدام tenant الحالي من JWT claims على الـ backend | تأكيد مع backend team |
-| رفع الصور (logo) في Phase 5 | استخدام endpoint موجود (إن وجد) أو إنشاء `POST /admin/uploads` | فحص الـ backend |
-| Shipment auto-creation عند PROCESSING — هل يُنشأ على الـ backend تلقائياً؟ | لا، الـ frontend يستدعي `transition` ثم `POST /shipments` بشكل صريح | موثّق ✓ |
-| Map provider — Leaflet (مجاني) أم Google Maps (مدفوع)؟ | Leaflet + OpenStreetMap للبداية | تأكيد مع PM |
+| 0 | Cross-cutting infra (`api.ts` envelope + `X-Tenant-Id` for `/public/**` + domain enums + error codes + money/pagination helpers) | `4b1e67f` |
+| 1 | محاذاة `OrderStatus` مع backend (10 حالات) + توسيع `AdminOrder` بالحقول الجديدة | `61bfff0` |
+| 2 | Orders Dashboard (12 stat card) + URL filter بـ `?status=` + جدول غني | `13e9272` |
+| 3 | Order Detail بـ مصفوفة أزرار شرطية + payment card + tracking widget + notes/timeline | `8603433` |
+| 4 | Discount Codes module (CRUD + scope picker + status calc) | `eae8dc5` |
+| 5 | Invoice Layout Profiles (19 toggle + color picker + logo) | `c8ed912` |
+| 6 | Invoices module (list + Generate/Regenerate/Download من Order Detail) | `1b5f114` |
+| 7 | Payment Providers config (catalog-driven COD/PAYMERA + write-only credentials) | `985c99e` |
+| 8 | Refunds module + dialog من Order Detail (PAYMERA sync vs COD ledger) | `c452fea` |
+| 9 | Shipping providers alignment + CreateShipmentDialog auto-open عند PROCESSING | `12d15ff` |
+| 10 | COD Reconciliation (batch detail + per-shipment entries + status transitions) | `0b04f79` |
+| Extra | Leaflet maps (`MapPin` / `MapPinPicker` / `MapRoute`) + ربط في address card / order edit / create-shipment / shipment route | `a6e7d8c` |
+| Polish | Invoice Layout Editor — استبدال `alert()` بـ `toast`، `useRef` للـ file input، إعادة وضع color preview | `7943d90` |
+
+**التغطية:** 35 endpoint admin + كل صفحات A1–A11.
 
 ---
 
-## ملاحظات تقنية
+## القسم 2 — Phase 11: Polish + Tech Debt 🟡
 
-- **TanStack Query keys**: كل وحدة تحتفظ بـ `queryKeys.ts` خاص بها (نمط موجود).
-- **Optimistic updates**: لا تُستخدم في الـ transitions (الـ backend يتحقق من الـ flow). تُستخدم في Notes فقط.
-- **invalidation strategy**: عند `transition/cancel/edit/notes` → invalidate `orderQueryKeys.detail(id)` + `orderQueryKeys.timeline(id)` + `orderQueryKeys.summary()`.
-- **Forms**: استخدام `react-hook-form` + `zodResolver` (نمط مفترض). إن لم يكن موجود، يُضاف في Phase 0.
+**الهدف:** إغلاق الفجوات في لوحة الإدارة قبل الانتقال إلى الـ storefront.
+
+### 11.1 — Backend dependency: رفع الشعار (Logo Upload)
+
+**الحالة الحالية:** الشعار يُرفع كـ base64 data URL ويُحفَظ في `visibleFields.logoUrl`. صورة 5MB → ~6.7MB JSON. غير مناسب للإنتاج.
+
+**ما يحتاج backend:**
+- `POST /api/v1/admin/uploads` — multipart يستقبل الملف، يُخزّنه (S3 / local)، ويُرجع `{ url, fileId? }`.
+
+**عمل الـ frontend بعد جاهزية الـ endpoint:**
+1. إضافة `lib/upload.ts` بـ `uploadImage(file): Promise<{ url }>`.
+2. تعديل `app/(dashboard)/invoice-layouts/[profile-id]/page.tsx`:
+   - استبدال `FileReader.readAsDataURL` بـ `uploadImage(file)`.
+   - حقن `result.url` في `visibleFields.logoUrl` بدلاً من الـ data URL.
+   - الإبقاء على معاينة سريعة client-side عبر `URL.createObjectURL` خلال الرفع.
+
+**معيار القبول:** صورة 2MB ترفع كـ multipart، الـ DB يحفظ URL ~80 byte، الـ form payload يبقى صغيراً.
+
+---
+
+### 11.2 — فلترة COD Reconciliation List
+
+**الحالة الحالية:** القائمة الأساسية بدون فلاتر (انظر `KV-ORDERS-SUMMARY.md` §11).
+
+**العمل:**
+1. إضافة `FilterMenu` فوق `CodReconciliationTable`:
+   - Dropdown مزود الشحن (من `listShippingProviders`)
+   - Date range picker (من / إلى) لـ `settlementDate`
+2. تمرير الفلاتر كـ query params إلى `GET /admin/shipping/cod/reconciliation`:
+   - `shippingProviderId`، `settlementDateFrom`، `settlementDateTo`
+3. التحقق من دعم backend لهذه params — إن لم يدعم، إما طلب التعديل أو client-side filter كحل مؤقّت.
+
+**معيار القبول:** اختيار مزود → تظهر دفعاته فقط. Date range يحدّد نافذة التسوية.
+
+---
+
+### 11.3 — حذف نهائي لـ `mock-service.ts`
+
+**الموقع:** `apps/web/modules/order/order/apis/mock-service.ts` + استدعاءاته.
+
+**العمل:**
+1. التأكّد أن كل `getMockAdmin*` في `actions.ts` لم تعد تُستدعى.
+2. حذف الملف + استدعاءاته.
+3. تشغيل typecheck للتأكّد.
+
+**معيار القبول:** `grep -r "mock-service" modules/order/order` يُرجع صفر نتائج.
+
+---
+
+### 11.4 — `order-edit-page` بـ react-hook-form
+
+**الحالة الحالية:** الصفحة تستخدم `useState` يدوياً بينما باقي الـ forms في المشروع تستخدم `react-hook-form + zodResolver`.
+
+**العمل:**
+1. إنشاء `editOrderSchema` في `modules/order/order/schema.ts` يستخدم `phoneSchema` الموجود.
+2. إعادة كتابة `order-edit-page.tsx` بنفس نمط `shipping-provider/components/form.tsx`:
+   - `useForm<EditOrderFormValues>({ resolver: zodResolver(editOrderSchema) })`
+   - `Field` من `components/system/Field.tsx` للحقول النصية
+   - `Controller` لـ `MapPinPicker`
+3. الإبقاء على نفس الـ payload shape (`items[]` كاملة + `shippingAddress` بإحداثيات).
+
+**معيار القبول:** validation عربية ظاهرة عبر `<FieldError>`، رقم هاتف بصيغة Syrian +9639 محقّق، نفس الـ payload يصل للـ backend.
+
+---
+
+### 11.5 — i18n + RTL polish
+
+**الحالة الحالية:** كل الـ string عربية مدمجة في الـ JSX.
+
+**العمل:**
+1. إضافة `next-intl` (يحتاج موافقة على dep جديد).
+2. إنشاء `i18n/messages/ar.json` و `i18n/messages/en.json` — استخراج كل الـ string من المكوّنات.
+3. Toggle ar/en في الـ navbar.
+4. مراجعة كل صفحة للـ Empty states / Loading states / Error handling:
+   - استخدام `humanizeError()` من Phase 0 في كل `mutation.onError` صراحةً (حالياً يُستدعى عبر axios interceptor فقط).
+
+**معيار القبول:** التبديل ar/en يعمل على كل الصفحات بدون refactor جوهري لكل مكوّن. صفحات فارغة تعرض رسائل واضحة.
+
+---
+
+### 11.6 — E2E manual test (Part D)
+
+**العمل:** تنفيذ سيناريو Part D من backend doc بدءاً من dashboard حتى reconciliation:
+
+| # | الخطوة | المتوقع |
+|---|---|---|
+| 1 | Dashboard | 12 بطاقة + counts |
+| 2 | List PENDING | جدول مفلتر |
+| 3 | Order Detail | كل البطاقات تُحمّل + map mini |
+| 4 | Confirm | حالة الطلب CONFIRMED + timeline event |
+| 5 | Move to Processing | dialog إنشاء shipment يفتح + map picker pre-filled |
+| 6 | (محاكاة webhook 3PL) | الـ shipment status يتحدث |
+| 7 | Mark Delivered | حالة الطلب DELIVERED |
+| 8 | Generate Invoice | PDF يصل عبر link |
+| 9 | Initiate Refund | dialog يفتح + COD/PAYMERA branching |
+| 10 | COD Reconciliation | إنشاء batch + transition إلى SETTLED |
+
+**معيار القبول:** السيناريو يعمل end-to-end بدون أخطاء console، كل toast يظهر، كل invalidation يحدث.
+
+---
+
+## القسم 3 — Phase 12: Customer Storefront ⏳
+
+**الهدف:** تطبيق العميل (Cart → Checkout → My Orders → Tracking) كنطاق منفصل.
+
+**القرار المعلّق:** موقع التطبيق الجديد:
+- **مقترح أ:** `apps/storefront/` ضمن نفس الـ monorepo، يُشارك `packages/ui` و `lib/leaflet.ts` و `MapPinPicker` المُستخرَج إلى `packages/ui`.
+- **مقترح ب:** مشروع Next.js مستقل خارج الـ monorepo.
+
+**التوصية:** أ — يستفيد من الـ shared packages الموجودة.
+
+### 12.0 — تجهيز قبل الـ Storefront
+
+1. **استخراج `MapPinPicker` و `MapPin` و `MapRoute` إلى `packages/ui/src/components/`**:
+   - تعديل imports في `apps/web` بعد النقل.
+   - الـ storefront يستخدم نفس المكوّنات.
+2. **استخراج `lib/leaflet.ts` و `lib/money.ts` و `lib/error-codes.ts` و `lib/domain-enums.ts` إلى `packages/shared/`** أو `packages/lib/`:
+   - يُتاح للـ storefront و apps/web معاً.
+3. **إنشاء `apps/storefront/` بـ Next.js scaffold** مع:
+   - نفس tailwind config (RTL).
+   - نفس shadcn/ui setup.
+   - `lib/api.ts` خاص يحقن `X-Tenant-Id` لكل `/public/**` (حسب tenant subdomain أو env).
+
+### 12.1 — Cart (B1)
+
+**الـ Endpoints:** لا يوجد — كل شيء client-side.
+
+**العمل:**
+- Zustand store + `localStorage` persistence (`zustand/middleware/persist`).
+- كل سطر: `{ variantId, quantity, productSnapshot: { title, price, image } }`.
+- عند تحميل الـ cart اختيارياً: re-fetch كل variant عبر `GET /public/products/.../variants/{id}` للكشف عن price drift.
+
+### 12.2 — Checkout Step 1 — Address (B2)
+
+**الـ Endpoints:** لا يوجد — local form state فقط.
+
+**العمل:**
+- `MapPinPicker` (المُستخرَج من Phase 12.0).
+- form: `recipientName`, `phone`, `addressLabel`.
+- validation: `latitude ∈ [-90, 90]`، `longitude ∈ [-180, 180]`، `recipientName` و `phone` مطلوبان.
+- الـ map default يقع على `store.location` من store-settings (يحتاج `GET /public/store-settings` — أتأكّد من توفّره).
+
+### 12.3 — Checkout Step 2 — Shipping Cost Preview (B3)
+
+**Endpoint:** `POST /public/shipping/calculate` (X-Tenant-Id)
+
+**العمل:**
+- TanStack Query mutation تُستدعى debounced عند تغيير الـ pin.
+- `shippingProviderId: null` ليُختار auto بـ priority.
+- عرض: `"Shipping: 15,000 SYP via دمشق إكسبريس"` + ETA إن وجد.
+
+### 12.4 — Checkout Step 3 — Discount Code Preview (B4)
+
+**Endpoint:** `GET /public/checkout/validate-discount?code=...&subtotal=...&shippingCost=...` (X-Tenant-Id)
+
+**العمل:**
+- Input مع debounce على blur (لا keystroke).
+- عند نجاح: عرض savings + recompute total.
+- معالجة `ERR_2001` (invalid/expired code) بـ inline error.
+
+### 12.5 — Checkout Step 4 — Payment Methods (B5)
+
+**Endpoint:** `GET /public/payments/methods` (X-Tenant-Id)
+
+**العمل:**
+- TanStack Query عند فتح step.
+- Radio group بـ `displayName`.
+- لو `requiresRedirect: true` → label الزر "Continue to Payment".
+
+### 12.6 — Checkout Step 5 — Place Order (B6)
+
+**Endpoint:** `POST /public/checkout` (X-Tenant-Id)
+
+**العمل:**
+- توليد `checkoutToken = crypto.randomUUID()` **مرة** عند دخول صفحة الـ checkout (ليُمنع duplicate orders).
+- إرسال كامل الـ payload (items + shippingAddress + paymentMethod + checkoutToken + discountCode + notesCustomer + guestEmail).
+- معالجة الـ response:
+  - `paymentMethod === "COD"` و `paymentStatus === "UNPAID"` → navigate `/checkout/success?orderId=`
+  - `paymentMethod === "PAYMERA"` و `paymentStatus === "PENDING"` → `window.location.href = response.paymentRedirectUrl`
+- معالجة الأخطاء: `ERR_2001` (out of stock / discount invalid / guest email missing)، `ERR_1003` (missing tenant).
+
+### 12.7 — Payment Return Pages (B7)
+
+**Endpoint:** `GET /public/payments/{txnId}/status` (X-Tenant-Id)
+
+**صفحات:**
+- `/payment/success?txnId=...`
+- `/payment/failure?txnId=...`
+
+**العمل:**
+- Poll مرة عند التحميل، ثم كل 2s حتى 10s ما لم تتحوّل من `PENDING`.
+- على `PAID` → redirect إلى `/orders/{orderId}`.
+- على `FAILED` → زر retry يعيد إلى checkout.
+
+### 12.8 — My Orders (B8) + Detail (B9)
+
+**Endpoints:**
+- `GET /customer/orders?status=...&page=...&size=...` (JWT)
+- `GET /customer/orders/{id}` (JWT)
+- `POST /customer/orders/{id}/cancel` (JWT)
+- `GET /customer/orders/{id}/invoice` (JWT)
+
+**العمل:**
+- إعادة استخدام `OrderResponseDto` shape من `apps/web` (مع حذف `notesInternal`).
+- "Cancel" يظهر فقط لو `status ∈ {PENDING, CONFIRMED}`.
+- "Download Invoice" يستدعي endpoint الـ invoice — على 404 يعرض "Invoice not ready yet".
+- Embed `B11. Tracking Widget`.
+
+### 12.9 — Guest Order Lookup (B10)
+
+**Endpoint:** `GET /public/checkout/orders/lookup?orderNumber=...&email=...` (X-Tenant-Id)
+
+**العمل:** نموذج بسيط بـ orderNumber + email → يعرض نفس shape B9.
+
+### 12.10 — Tracking Widget (B11)
+
+**Endpoint:** `GET /public/shipping/track/{orderId}` (X-Tenant-Id)
+
+**العمل:**
+- Vertical stepper من `statusHistory[]` بـ timestamps.
+- "Track with carrier" link لـ `carrierTrackingUrl`.
+- عرض `officePickupInstructions` بارز عند `READY_FOR_PICKUP_AT_OFFICE`.
+- "Delivered on {date}" عند وجود `deliveredAt`.
+- 404 → placeholder "بانتظار الشحن".
+
+---
+
+## القسم 4 — Backend Dependencies (Open)
+
+| Endpoint | الغرض | المُستهلك |
+|---|---|---|
+| `POST /api/v1/admin/uploads` | رفع صور (multipart → URL) | Phase 11.1 — Invoice logo؛ مستقبلاً صور المنتجات |
+| `GET /public/store-settings` | إعدادات المتجر العامة (origin lat/lng، logo، اسم) | Phase 12.2 — map default + checkout header |
+
+تُحرَّر بمشاركة فريق الـ backend قبل بدء العمل المقابل.
+
+---
+
+## القسم 5 — Open Questions
+
+| السؤال | الحالة | ملاحظات |
+|---|---|---|
+| موقع تطبيق الـ storefront | ❓ | مقترح `apps/storefront/` — تأكيد قبل Phase 12.0 |
+| نظام i18n | ❓ | `next-intl` مرشّح — يحتاج موافقة dep جديد |
+| رفع الصور (logo) | ❓ | بانتظار `POST /admin/uploads` على الـ backend |
+| دعم backend لفلاتر COD list | ❓ | تأكيد دعم `shippingProviderId` + `settlementDateFrom/To` كـ query params |
+
+---
+
+## القسم 6 — Recommended Sequence
+
+```
+Phase 11.1 (logo upload)        ← بانتظار backend
+Phase 11.2 (COD filters)        ← يمكن البدء فوراً (مع توضيح backend params)
+Phase 11.3 (delete mock-service) ← بعد E2E (11.6)
+Phase 11.4 (order-edit RHF)     ← يمكن البدء فوراً
+Phase 11.5 (i18n + polish)      ← بعد موافقة dep
+Phase 11.6 (E2E manual)         ← بعد كل ما سبق
+
+ثم:
+
+Phase 12.0 (extract shared packages)  ← يستفيد منه باقي 12.*
+Phase 12.1–12.10 (storefront flows)   ← بترتيب الـ user journey
+```
+
+---
+
+## القسم 7 — Notes تقنية
+
+- **TanStack Query keys**: نمط `{all, list, detail(id), summary?, byOrder(id)?}` مُتّسق — تابعه في الـ storefront.
+- **Optimistic updates**: لا تُستخدم للـ transitions (الـ backend يتحقق من state machine). تُستخدم للـ Notes فقط.
+- **Invalidation strategy**: عند `transition/cancel/edit/notes/refund` يُلغى `orderQueryKeys.detail(id)` + `timeline(id)` + `summary`.
+- **Forms**: `react-hook-form + zodResolver + Field` — الـ standard. (استثناء حالي: `order-edit-page` — Phase 11.4).
+- **MapPinPicker/MapPin/MapRoute**: حالياً في `apps/web/components/system/`. تُنقل إلى `packages/ui` في Phase 12.0.
+- **`X-Tenant-Id` للـ storefront**: يأتي من subdomain (`<tenant>.sooq.app`) أو من env config — قرار معماري قبل Phase 12.0.
+- **Tech debt المُتبقّي:** 4 أخطاء TypeScript في `app/api/admin/products/*` (سابقة، خارج هذا الـ scope).
