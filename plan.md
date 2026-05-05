@@ -35,7 +35,8 @@
 | Extra | Leaflet maps (`MapPin` / `MapPinPicker` / `MapRoute`) + ربط في address card / order edit / create-shipment / shipment route | `a6e7d8c` |
 | Polish | Invoice Layout Editor — استبدال `alert()` بـ `toast`، `useRef` للـ file input، إعادة وضع color preview | `7943d90` |
 | 11.4 | إعادة كتابة `order-edit-page` بـ react-hook-form + zod + useFieldArray + nested Controllers لـ MapPinPicker | `40f1b5a` |
-| 11.1 | تحويل رفع شعار الفاتورة إلى multipart (`profile` + `logo` parts) ضمن نفس endpoints؛ إزالة base64 conversion من الـ frontend | (هذا الـ commit) |
+| 11.1 | تحويل رفع شعار الفاتورة إلى multipart (`profile` + `logo` parts) ضمن نفس endpoints؛ إزالة base64 conversion من الـ frontend | `f3ae335` |
+| 11.2 | فلاتر COD reconciliation list (مزود + نطاق تاريخ) — client-side حتى يدعم الـ backend الـ params | (هذا الـ commit) |
 
 **التغطية:** 35 endpoint admin + كل صفحات A1–A11.
 
@@ -67,19 +68,20 @@
 
 ---
 
-### 11.2 — فلترة COD Reconciliation List
+### 11.2 — فلترة COD Reconciliation List ✅ **مكتمل (client-side interim)**
 
-**الحالة الحالية:** القائمة الأساسية بدون فلاتر (انظر `KV-ORDERS-SUMMARY.md` §11).
+**ما تمّ:**
+1. [`types.ts`](apps/web/modules/shipping/cod/types.ts) — `CodReconciliationFilters` + توسيع `ListCodReconciliationBatchesParams` بـ `shippingProviderId` و `settlementDateFrom` و `settlementDateTo` (forward-compatible عند تطوير الـ backend).
+2. [`cod-reconciliation-filters.tsx`](apps/web/modules/shipping/cod/components/cod-reconciliation-filters.tsx) (جديد) — bar فيه:
+   - **مزود الشحن**: `Select` من `listShippingProviders` مع option "كل المزودين"
+   - **من تاريخ** + **إلى تاريخ**: `<Input type="date">` LTR، مع `min`/`max` متبادل لمنع نطاق مقلوب
+   - زرّ "مسح الفلاتر" — معطّل ما لم يكن أيٌّ من الفلاتر فعّالاً
+3. [`cod-reconciliation-table.tsx`](apps/web/modules/shipping/cod/components/cod-reconciliation-table.tsx) — يأخذ `filters` كـ prop، يجلب `size=200` مرّة واحدة، يُطبّق الفلترة + الـ pagination client-side. الـ pageIndex يُعاد لـ 0 عند تغيير أي فلتر.
+4. [`cod-reconciliation-page.tsx`](apps/web/modules/shipping/cod/components/cod-reconciliation-page.tsx) — يحفظ state الفلاتر ويُمرّرها للـ table.
 
-**العمل:**
-1. إضافة `FilterMenu` فوق `CodReconciliationTable`:
-   - Dropdown مزود الشحن (من `listShippingProviders`)
-   - Date range picker (من / إلى) لـ `settlementDate`
-2. تمرير الفلاتر كـ query params إلى `GET /admin/shipping/cod/reconciliation`:
-   - `shippingProviderId`، `settlementDateFrom`، `settlementDateTo`
-3. التحقق من دعم backend لهذه params — إن لم يدعم، إما طلب التعديل أو client-side filter كحل مؤقّت.
+**سبب client-side:** الـ backend `GET /admin/shipping/cod/reconciliation` يقبل `Pageable` فقط (لا `@RequestParam`). البيانات قليلة الـ cardinality (دفعات قليلة لكل مزود يومياً)، فجلب 200 صفّ ثم filter في الذاكرة قرار مقبول كـ interim. الترقية لـ server-side تتطلّب فقط تعديل `actions.ts` لتمرير الـ params في الـ URL — بدون تغيير في الـ UI.
 
-**معيار القبول:** اختيار مزود → تظهر دفعاته فقط. Date range يحدّد نافذة التسوية.
+**معيار القبول المُحقّق:** اختيار مزود → تظهر دفعاته فقط؛ Date range يحدّد نافذة التسوية؛ pageIndex يُعاد ضبطه؛ "مسح الفلاتر" يعيد القائمة كاملة.
 
 ---
 
@@ -295,7 +297,7 @@
 | موقع تطبيق الـ storefront | ❓ | مقترح `apps/storefront/` — تأكيد قبل Phase 12.0 |
 | نظام i18n | ❓ | `next-intl` مرشّح — يحتاج موافقة dep جديد |
 | رفع الصور (logo) | ✅ مكتمل | الـ backend دعم multipart inline على endpoints الفاتورة (2026-05-05) والـ frontend استهلكها في Phase 11.1. |
-| دعم backend لفلاتر COD list | ❓ | تأكيد دعم `shippingProviderId` + `settlementDateFrom/To` كـ query params |
+| دعم backend لفلاتر COD list | ❌ غير مدعوم بعد | الـ frontend يفلتر client-side حالياً (Phase 11.2). طلب backend: إضافة `@RequestParam` لـ `shippingProviderId` + `settlementDateFrom/To` على `GET /admin/shipping/cod/reconciliation`. الترقية على الـ frontend تتطلّب فقط تعديل `actions.ts` لتمرير الـ params. |
 
 ---
 
@@ -303,7 +305,7 @@
 
 ```
 Phase 11.1 (logo upload)        ← ✅ مكتمل
-Phase 11.2 (COD filters)        ← يمكن البدء فوراً (مع توضيح backend params)
+Phase 11.2 (COD filters)        ← ✅ مكتمل (client-side interim)
 Phase 11.3 (delete mock-service) ← بعد E2E (11.6)
 Phase 11.4 (order-edit RHF)     ← ✅ مكتمل
 Phase 11.5 (i18n + polish)      ← بعد موافقة dep

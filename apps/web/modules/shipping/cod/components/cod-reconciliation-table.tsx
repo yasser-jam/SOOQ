@@ -10,7 +10,11 @@ import TableActions from "@/components/system/table-actions"
 import { formatSyp } from "@/lib/money"
 import { Badge } from "@workspace/ui/components/badge"
 
-import type { CodReconciliationBatch, CodSettlementStatus } from "../types"
+import type {
+  CodReconciliationBatch,
+  CodReconciliationFilters,
+  CodSettlementStatus,
+} from "../types"
 import {
   listCodReconciliationBatches,
   updateCodReconciliationStatus,
@@ -21,30 +25,93 @@ import {
   COD_SETTLEMENT_STATUS_TRANSITIONS,
 } from "../model"
 
-export default function CodReconciliationTable() {
+interface CodReconciliationTableProps {
+  filters?: CodReconciliationFilters
+}
+
+// Fetch a generous page so client-side filtering covers typical-scale data.
+// Server-side filtering is the long-term answer; this is the documented
+// interim per Phase 11.2 in plan.md.
+const FETCH_SIZE = 200
+const PAGE_SIZE = 20
+
+export default function CodReconciliationTable({
+  filters,
+}: CodReconciliationTableProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
 
-  const pageSize = 20
   const [pageIndex, setPageIndex] = useState(0)
 
-  const params = useMemo(
-    () => ({ page: pageIndex, size: pageSize }),
-    [pageIndex]
+  const fetchParams = useMemo(
+    () => ({ page: 0, size: FETCH_SIZE }),
+    []
   )
 
   const { data, isPending } = useQuery({
-    queryKey: codReconciliationQueryKeys.list(params),
-    queryFn: () => listCodReconciliationBatches(params),
+    queryKey: codReconciliationQueryKeys.list(fetchParams),
+    queryFn: () => listCodReconciliationBatches(fetchParams),
   })
 
-  const batches = data?.content ?? data?.items ?? []
-  const totalElements = data?.totalElements ?? data?.totalItems ?? batches.length
-  const pageCount = Math.max(1, Math.ceil(totalElements / pageSize))
+  const allBatches = data?.content ?? data?.items ?? []
+
+  const filteredBatches = useMemo(() => {
+    if (!filters) return allBatches
+
+    const { shippingProviderId, settlementDateFrom, settlementDateTo } = filters
+
+    return allBatches.filter((batch) => {
+      if (
+        shippingProviderId &&
+        batch.shippingProviderId !== shippingProviderId
+      ) {
+        return false
+      }
+      // Settlement dates from the API are ISO YYYY-MM-DD strings — string
+      // comparison is enough for inclusive bounds.
+      if (
+        settlementDateFrom &&
+        batch.settlementDate &&
+        batch.settlementDate < settlementDateFrom
+      ) {
+        return false
+      }
+      if (
+        settlementDateTo &&
+        batch.settlementDate &&
+        batch.settlementDate > settlementDateTo
+      ) {
+        return false
+      }
+      return true
+    })
+  }, [allBatches, filters])
+
+  const totalElements = filteredBatches.length
+  const pageCount = Math.max(1, Math.ceil(totalElements / PAGE_SIZE))
+
+  // Reset to first page whenever filters change or the row count shrinks
+  // below the current page.
+  useEffect(() => {
+    setPageIndex(0)
+  }, [
+    filters?.shippingProviderId,
+    filters?.settlementDateFrom,
+    filters?.settlementDateTo,
+  ])
 
   useEffect(() => {
     setPageIndex((current) => Math.min(current, pageCount - 1))
   }, [pageCount])
+
+  const pageRows = useMemo(
+    () =>
+      filteredBatches.slice(
+        pageIndex * PAGE_SIZE,
+        pageIndex * PAGE_SIZE + PAGE_SIZE
+      ),
+    [filteredBatches, pageIndex]
+  )
 
   const { mutate: updateStatus, isPending: isUpdatingStatus } = useMutation({
     mutationFn: updateCodReconciliationStatus,
@@ -168,8 +235,8 @@ export default function CodReconciliationTable() {
       <DataTable
         columns={columns}
         isLoading={isPending}
-        data={batches}
-        pagination={{ pageIndex, pageSize, pageCount }}
+        data={pageRows}
+        pagination={{ pageIndex, pageSize: PAGE_SIZE, pageCount }}
         onPageChange={setPageIndex}
       />
     </div>
