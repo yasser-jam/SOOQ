@@ -10,6 +10,7 @@ import {
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
 import { Badge } from "@workspace/ui/components/badge"
 
+import OrderAddressCard from "./order-address-card"
 import OrderAuditTimelineCard from "./order-audit-timeline-card"
 import OrderCustomerCard from "./order-customer-card"
 import OrderDetailsActions from "./order-details-actions"
@@ -78,6 +79,10 @@ export default function OrderDetailsPageView({
         <div className="flex flex-col gap-6 xl:col-span-4">
           <OrderCustomerCard order={order} isLoading={isOrderLoading} />
           <OrderPaymentCard order={order} isLoading={isOrderLoading} />
+        </div>
+
+        <div className="xl:col-span-12">
+          <OrderAddressCard order={order} isLoading={isOrderLoading} />
         </div>
       </div>
 

@@ -5,7 +5,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Truck } from "lucide-react"
 import { toast } from "sonner"
 
+import MapPinPicker from "@/components/system/map-pin-picker"
 import PageDialog from "@/components/system/page-dialog"
+import type { PaymentMethod } from "@/lib/domain-enums"
+import { DAMASCUS_CENTER } from "@/lib/leaflet"
 import { formatSyp } from "@/lib/money"
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
 import { listShippingProviders } from "@/modules/shipping/provider/actions"
@@ -39,15 +42,11 @@ interface CreateShipmentDialogProps {
   onOpenChange: (open: boolean) => void
   orderId: string
   orderNumber?: string | null
-  paymentMethod?: "COD" | "PAYMERA" | null
+  paymentMethod?: PaymentMethod | null
   orderTotal?: number | null
   destinationLat?: number | null
   destinationLng?: number | null
 }
-
-// Damascus city center as a sensible default until store-settings has lat/lng.
-const DEFAULT_ORIGIN_LAT = 33.5138
-const DEFAULT_ORIGIN_LNG = 36.2765
 
 export default function CreateShipmentDialog({
   open,
@@ -61,10 +60,10 @@ export default function CreateShipmentDialog({
 }: CreateShipmentDialogProps) {
   const queryClient = useQueryClient()
   const [providerId, setProviderId] = useState("")
-  const [originLat, setOriginLat] = useState(String(DEFAULT_ORIGIN_LAT))
-  const [originLng, setOriginLng] = useState(String(DEFAULT_ORIGIN_LNG))
-  const [destLat, setDestLat] = useState("")
-  const [destLng, setDestLng] = useState("")
+  const [originLat, setOriginLat] = useState(String(DAMASCUS_CENTER.lat))
+  const [originLng, setOriginLng] = useState(String(DAMASCUS_CENTER.lng))
+  const [destLat, setDestLat] = useState<number | null>(null)
+  const [destLng, setDestLng] = useState<number | null>(null)
 
   const { data: providers = [] } = useQuery({
     queryKey: shippingProviderQueryKeys.all,
@@ -88,16 +87,13 @@ export default function CreateShipmentDialog({
       setProviderId(activeProviders[0]?.id ?? "")
     }
 
-    setDestLat(
-      typeof destinationLat === "number" ? String(destinationLat) : ""
-    )
-    setDestLng(
-      typeof destinationLng === "number" ? String(destinationLng) : ""
-    )
+    setDestLat(typeof destinationLat === "number" ? destinationLat : null)
+    setDestLng(typeof destinationLng === "number" ? destinationLng : null)
   }, [open, activeProviders, destinationLat, destinationLng, providerId])
 
   const isCod = paymentMethod === "COD"
-  const expectedCodAmount = isCod && typeof orderTotal === "number" ? orderTotal : null
+  const expectedCodAmount =
+    isCod && typeof orderTotal === "number" ? orderTotal : null
 
   const { mutate, isPending } = useMutation({
     mutationFn: createShipment,
@@ -124,15 +120,15 @@ export default function CreateShipmentDialog({
   })
 
   const handleSubmit = () => {
-    if (!providerId) return
+    if (!providerId || destLat === null || destLng === null) return
 
     mutate({
       orderId,
       shippingProviderId: providerId,
       originLat: Number(originLat),
       originLng: Number(originLng),
-      destinationLat: Number(destLat),
-      destinationLng: Number(destLng),
+      destinationLat: destLat,
+      destinationLng: destLng,
       expectedCodAmountSyp: expectedCodAmount,
     })
   }
@@ -141,8 +137,8 @@ export default function CreateShipmentDialog({
     providerId &&
     Number.isFinite(Number(originLat)) &&
     Number.isFinite(Number(originLng)) &&
-    Number.isFinite(Number(destLat)) &&
-    Number.isFinite(Number(destLng))
+    destLat !== null &&
+    destLng !== null
 
   return (
     <PageDialog
@@ -196,10 +192,7 @@ export default function CreateShipmentDialog({
               </SelectTrigger>
               <SelectContent>
                 {activeProviders.map((provider) => (
-                  <SelectItem
-                    key={provider.id}
-                    value={provider.id ?? ""}
-                  >
+                  <SelectItem key={provider.id} value={provider.id ?? ""}>
                     {provider.providerName}{" "}
                     {provider.priority !== undefined
                       ? `(أولوية ${provider.priority})`
@@ -214,69 +207,78 @@ export default function CreateShipmentDialog({
           </FieldDescription>
         </Field>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field>
-            <FieldLabel htmlFor="origin-lat">خط عرض المتجر</FieldLabel>
-            <FieldContent>
-              <Input
-                id="origin-lat"
-                type="number"
-                step="0.000001"
-                value={originLat}
-                onChange={(e) => setOriginLat(e.target.value)}
-                disabled={isPending}
-                dir="ltr"
-              />
-            </FieldContent>
-          </Field>
+        <Field>
+          <FieldLabel>عنوان التسليم</FieldLabel>
+          <FieldContent>
+            <MapPinPicker
+              latitude={destLat}
+              longitude={destLng}
+              defaultLatitude={
+                typeof destinationLat === "number"
+                  ? destinationLat
+                  : DAMASCUS_CENTER.lat
+              }
+              defaultLongitude={
+                typeof destinationLng === "number"
+                  ? destinationLng
+                  : DAMASCUS_CENTER.lng
+              }
+              onChange={({ latitude, longitude }) => {
+                setDestLat(latitude)
+                setDestLng(longitude)
+              }}
+              height={280}
+            />
+            {destLat !== null && destLng !== null ? (
+              <div className="mt-2 flex items-center justify-between gap-4 rounded-xl bg-muted/30 px-3 py-2 font-mono text-xs text-muted-foreground">
+                <span dir="ltr">{destLat.toFixed(6)}</span>
+                <span>·</span>
+                <span dir="ltr">{destLng.toFixed(6)}</span>
+              </div>
+            ) : null}
+          </FieldContent>
+          <FieldDescription>
+            تم الالتقاط من عنوان الطلب. يمكنك تعديله بسحب الـ pin أو النقر على
+            الخريطة.
+          </FieldDescription>
+        </Field>
 
-          <Field>
-            <FieldLabel htmlFor="origin-lng">خط طول المتجر</FieldLabel>
-            <FieldContent>
-              <Input
-                id="origin-lng"
-                type="number"
-                step="0.000001"
-                value={originLng}
-                onChange={(e) => setOriginLng(e.target.value)}
-                disabled={isPending}
-                dir="ltr"
-              />
-            </FieldContent>
-          </Field>
-        </div>
+        <details className="group rounded-2xl border bg-muted/20 px-4 py-3">
+          <summary className="cursor-pointer text-sm font-medium text-muted-foreground group-open:mb-3">
+            إحداثيات المتجر (إعدادات متقدمة)
+          </summary>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field>
+              <FieldLabel htmlFor="origin-lat">خط عرض المتجر</FieldLabel>
+              <FieldContent>
+                <Input
+                  id="origin-lat"
+                  type="number"
+                  step="0.000001"
+                  value={originLat}
+                  onChange={(e) => setOriginLat(e.target.value)}
+                  disabled={isPending}
+                  dir="ltr"
+                />
+              </FieldContent>
+            </Field>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field>
-            <FieldLabel htmlFor="dest-lat">خط عرض الوجهة</FieldLabel>
-            <FieldContent>
-              <Input
-                id="dest-lat"
-                type="number"
-                step="0.000001"
-                value={destLat}
-                onChange={(e) => setDestLat(e.target.value)}
-                disabled={isPending}
-                dir="ltr"
-              />
-            </FieldContent>
-          </Field>
-
-          <Field>
-            <FieldLabel htmlFor="dest-lng">خط طول الوجهة</FieldLabel>
-            <FieldContent>
-              <Input
-                id="dest-lng"
-                type="number"
-                step="0.000001"
-                value={destLng}
-                onChange={(e) => setDestLng(e.target.value)}
-                disabled={isPending}
-                dir="ltr"
-              />
-            </FieldContent>
-          </Field>
-        </div>
+            <Field>
+              <FieldLabel htmlFor="origin-lng">خط طول المتجر</FieldLabel>
+              <FieldContent>
+                <Input
+                  id="origin-lng"
+                  type="number"
+                  step="0.000001"
+                  value={originLng}
+                  onChange={(e) => setOriginLng(e.target.value)}
+                  disabled={isPending}
+                  dir="ltr"
+                />
+              </FieldContent>
+            </Field>
+          </div>
+        </details>
       </div>
     </PageDialog>
   )

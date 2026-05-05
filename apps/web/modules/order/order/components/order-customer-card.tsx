@@ -9,7 +9,6 @@ import type { AdminOrder } from "@/modules/order/order/types"
 import {
   formatOrderDate,
   getOrderCustomerName,
-  getOrderShippingAddress,
 } from "@/modules/order/order/utils"
 import {
   Avatar,
@@ -51,7 +50,6 @@ export default function OrderCustomerCard({
   isLoading = false,
 }: OrderCustomerCardProps) {
   const customer = order?.customer
-  const shippingAddress = getOrderShippingAddress(order)
 
   return (
     <Card className="h-full gap-6 rounded-3xl py-6">
@@ -111,22 +109,6 @@ export default function OrderCustomerCard({
           </div>
         </section>
 
-        <section className="flex flex-col gap-4 rounded-3xl bg-secondary/20 p-5">
-          <h3 className="text-text text-xl">عنوان الشحن</h3>
-          <div className="flex flex-col gap-2">
-            <DataValue value={isLoading ? undefined : shippingAddress?.city ?? undefined} />
-            <DataValue
-              value={isLoading ? undefined : shippingAddress?.district ?? undefined}
-            />
-            <DataValue
-              value={
-                isLoading
-                  ? undefined
-                  : shippingAddress?.details ?? shippingAddress?.street ?? undefined
-              }
-            />
-          </div>
-        </section>
       </CardContent>
     </Card>
   )

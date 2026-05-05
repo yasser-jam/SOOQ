@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { Wallet } from "lucide-react"
 
+import MapRoute from "@/components/system/map-route"
 import { formatSyp } from "@/lib/money"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -49,6 +50,24 @@ export default function ShipmentDetailsPageView({ shipmentId }: { shipmentId: st
     return SHIPMENT_STATUS_TRANSITIONS[status]
   }, [status])
 
+  const route =
+    shipment &&
+    typeof shipment.originLat === "number" &&
+    typeof shipment.originLng === "number" &&
+    typeof shipment.destinationLat === "number" &&
+    typeof shipment.destinationLng === "number"
+      ? {
+          originLat: shipment.originLat,
+          originLng: shipment.originLng,
+          destinationLat: shipment.destinationLat,
+          destinationLng: shipment.destinationLng,
+        }
+      : null
+
+  const originLabel = shipment?.providerName
+    ? `المتجر · ${shipment.providerName}`
+    : "المتجر"
+
   const [targetStatus, setTargetStatus] = useState<ShipmentStatus | "">("")
 
   const { mutate: transition, isPending: isTransitioning } = useMutation({
@@ -71,6 +90,40 @@ export default function ShipmentDetailsPageView({ shipmentId }: { shipmentId: st
           </Badge>
         ) : null}
       </div>
+
+      {route ? (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-xl">مسار الشحنة</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MapRoute
+              originLat={route.originLat}
+              originLng={route.originLng}
+              destinationLat={route.destinationLat}
+              destinationLng={route.destinationLng}
+              originLabel={originLabel}
+              destinationLabel="عنوان التسليم"
+              height={360}
+            />
+            <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+              <div className="flex flex-col gap-1 rounded-xl bg-muted/30 px-3 py-2">
+                <span>نقطة الانطلاق</span>
+                <span className="font-mono text-foreground" dir="ltr">
+                  {route.originLat.toFixed(6)}, {route.originLng.toFixed(6)}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1 rounded-xl bg-muted/30 px-3 py-2">
+                <span>وجهة التسليم</span>
+                <span className="font-mono text-foreground" dir="ltr">
+                  {route.destinationLat.toFixed(6)},{" "}
+                  {route.destinationLng.toFixed(6)}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">

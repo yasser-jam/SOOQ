@@ -5,26 +5,30 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Plus, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
+import MapPinPicker from "@/components/system/map-pin-picker"
 import PageDialog from "@/components/system/page-dialog"
 import { editAdminOrder, getAdminOrder } from "@/modules/order/order/actions"
 import { initOrderEdit } from "@/modules/order/order/init"
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
-import type { AdminOrderShippingAddress, EditOrderPayload } from "@/modules/order/order/types"
+import type {
+  AdminOrderShippingAddress,
+  EditOrderPayload,
+} from "@/modules/order/order/types"
 import { getOrderShippingAddress } from "@/modules/order/order/utils"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import { Textarea } from "@workspace/ui/components/textarea"
 
 interface OrderEditPageViewProps {
   orderId: string
 }
 
 const emptyShippingAddress: AdminOrderShippingAddress = {
-  governorate: "",
-  city: "",
-  district: "",
-  street: "",
+  latitude: undefined,
+  longitude: undefined,
+  recipientName: "",
   phone: "",
-  name: "",
+  addressLabel: "",
 }
 
 export default function OrderEditPageView({
@@ -53,8 +57,13 @@ export default function OrderEditPageView({
           quantity: item.quantity ?? 1,
         })) ?? [],
       shippingAddress: {
-        ...emptyShippingAddress,
-        ...shippingAddress,
+        latitude: shippingAddress?.latitude,
+        longitude: shippingAddress?.longitude,
+        recipientName:
+          shippingAddress?.recipientName ?? shippingAddress?.name ?? "",
+        phone: shippingAddress?.phone ?? "",
+        addressLabel:
+          shippingAddress?.addressLabel ?? shippingAddress?.details ?? "",
       },
     })
   }, [order])
@@ -66,6 +75,23 @@ export default function OrderEditPageView({
       router.push(`/orders/${orderId}`)
     },
   })
+
+  const { latitude, longitude, recipientName, phone } = form.shippingAddress
+  const hasCoords = typeof latitude === "number" && typeof longitude === "number"
+  const canSave =
+    form.items.length > 0 &&
+    hasCoords &&
+    Boolean(recipientName?.trim()) &&
+    Boolean(phone?.trim())
+
+  const updateAddress = (patch: Partial<AdminOrderShippingAddress>) =>
+    setForm((current) => ({
+      ...current,
+      shippingAddress: {
+        ...current.shippingAddress,
+        ...patch,
+      },
+    }))
 
   return (
     <PageDialog
@@ -85,7 +111,7 @@ export default function OrderEditPageView({
           <Button
             type="button"
             variant="secondary"
-            disabled={isPending || form.items.length === 0}
+            disabled={isPending || !canSave}
             onClick={() => mutate(initOrderEdit(orderId, form))}
           >
             حفظ التعديلات
@@ -96,7 +122,9 @@ export default function OrderEditPageView({
       <div className="grid gap-6">
         <section className="grid gap-4 rounded-2xl border bg-card p-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-foreground">عناصر الطلب</h3>
+            <h3 className="text-lg font-semibold text-foreground">
+              عناصر الطلب
+            </h3>
 
             <Button
               type="button"
@@ -167,7 +195,9 @@ export default function OrderEditPageView({
                   onClick={() =>
                     setForm((current) => ({
                       ...current,
-                      items: current.items.filter((_, currentIndex) => currentIndex !== index),
+                      items: current.items.filter(
+                        (_, currentIndex) => currentIndex !== index
+                      ),
                     }))
                   }
                   disabled={isPending}
@@ -179,96 +209,58 @@ export default function OrderEditPageView({
           </div>
         </section>
 
-        <section className="grid gap-4 rounded-2xl border bg-card p-4 md:grid-cols-2">
-          <Input
-            value={form.shippingAddress.name ?? ""}
+        <section className="grid gap-4 rounded-2xl border bg-card p-4">
+          <h3 className="text-lg font-semibold text-foreground">عنوان الشحن</h3>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <Input
+              value={recipientName ?? ""}
+              onChange={(event) =>
+                updateAddress({ recipientName: event.target.value })
+              }
+              placeholder="اسم المستلم"
+              disabled={isPending}
+            />
+
+            <Input
+              value={phone ?? ""}
+              onChange={(event) => updateAddress({ phone: event.target.value })}
+              placeholder="رقم الهاتف"
+              disabled={isPending}
+              dir="ltr"
+            />
+          </div>
+
+          <Textarea
+            value={form.shippingAddress.addressLabel ?? ""}
             onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                shippingAddress: {
-                  ...current.shippingAddress,
-                  name: event.target.value,
-                },
-              }))
+              updateAddress({ addressLabel: event.target.value })
             }
-            placeholder="اسم المستلم"
+            placeholder="ملاحظات على العنوان (يُعرض على الفاتورة فقط)"
             disabled={isPending}
+            rows={2}
           />
 
-          <Input
-            value={form.shippingAddress.phone ?? ""}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                shippingAddress: {
-                  ...current.shippingAddress,
-                  phone: event.target.value,
-                },
-              }))
+          <MapPinPicker
+            latitude={latitude}
+            longitude={longitude}
+            onChange={({ latitude: lat, longitude: lng }) =>
+              updateAddress({ latitude: lat, longitude: lng })
             }
-            placeholder="رقم الهاتف"
-            disabled={isPending}
+            height={320}
           />
 
-          <Input
-            value={form.shippingAddress.governorate ?? ""}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                shippingAddress: {
-                  ...current.shippingAddress,
-                  governorate: event.target.value,
-                },
-              }))
-            }
-            placeholder="المحافظة"
-            disabled={isPending}
-          />
-
-          <Input
-            value={form.shippingAddress.city ?? ""}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                shippingAddress: {
-                  ...current.shippingAddress,
-                  city: event.target.value,
-                },
-              }))
-            }
-            placeholder="المدينة"
-            disabled={isPending}
-          />
-
-          <Input
-            value={form.shippingAddress.district ?? ""}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                shippingAddress: {
-                  ...current.shippingAddress,
-                  district: event.target.value,
-                },
-              }))
-            }
-            placeholder="الحي"
-            disabled={isPending}
-          />
-
-          <Input
-            value={form.shippingAddress.street ?? ""}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                shippingAddress: {
-                  ...current.shippingAddress,
-                  street: event.target.value,
-                },
-              }))
-            }
-            placeholder="الشارع والتفاصيل"
-            disabled={isPending}
-          />
+          {hasCoords ? (
+            <div className="flex items-center justify-between gap-4 rounded-xl bg-muted/30 px-3 py-2 font-mono text-xs text-muted-foreground">
+              <span dir="ltr">{latitude!.toFixed(6)}</span>
+              <span>·</span>
+              <span dir="ltr">{longitude!.toFixed(6)}</span>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              انقر على الخريطة أو اسحب الـ pin لتحديد عنوان التسليم
+            </p>
+          )}
         </section>
       </div>
     </PageDialog>

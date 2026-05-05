@@ -5,6 +5,9 @@ import { useParams, useRouter } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
+import DatePicker from "react-datepicker"
+import { ar } from "date-fns/locale"
+import "react-datepicker/dist/react-datepicker.css"
 
 import Field from "@/components/system/Field"
 import PageDialog from "@/components/system/page-dialog"
@@ -283,26 +286,81 @@ export default function EditDiscountCodePage() {
 					<FieldError errors={[form.formState.errors.applicableScope]} />
 				</UiField>
 
-				<div className="grid gap-4 sm:grid-cols-2">
-					<Field
-						name="startsAt"
-						control={form.control}
-						label="تاريخ البداية"
-						inputProps={{
-							type: "datetime-local",
-							disabled: isSubmitting,
-						}}
-					/>
+				<div className="space-y-4">
+					<div className="rounded-lg border bg-gray-50 p-4">
+						<div className="mb-3 text-sm font-medium text-gray-700">
+							⏰ فترة الصلاحية
+						</div>
+						<div className="grid gap-4 sm:grid-cols-2">
+							<UiField data-invalid={Boolean(form.formState.errors.startsAt)}>
+								<FieldLabel htmlFor="startsAt" className="flex items-center gap-2">
+									📅 تاريخ البداية
+								</FieldLabel>
+								<Controller
+									name="startsAt"
+									control={form.control}
+									render={({ field }) => (
+										<DatePicker
+											selected={field.value ? new Date(field.value) : null}
+											onChange={(date: Date | null) => {
+												if (date) {
+													const isoString = date.toISOString().slice(0, 16)
+													field.onChange(isoString)
+												} else {
+													field.onChange("")
+												}
+											}}
+											showTimeSelect
+											timeFormat="HH:mm"
+											timeIntervals={15}
+											dateFormat="yyyy-MM-dd HH:mm"
+											placeholderText="اختر تاريخ البداية والوقت"
+											disabled={isSubmitting}
+											className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 text-right"
+											locale={ar}
+										/>
+									)}
+								/>
+								<FieldError errors={[form.formState.errors.startsAt]} />
+							</UiField>
 
-					<Field
-						name="expiresAt"
-						control={form.control}
-						label="تاريخ الانتهاء"
-						inputProps={{
-							type: "datetime-local",
-							disabled: isSubmitting,
-						}}
-					/>
+							<UiField data-invalid={Boolean(form.formState.errors.expiresAt)}>
+								<FieldLabel htmlFor="expiresAt" className="flex items-center gap-2">
+									🕐 تاريخ الانتهاء
+								</FieldLabel>
+								<Controller
+									name="expiresAt"
+									control={form.control}
+									render={({ field }) => (
+										<DatePicker
+											selected={field.value ? new Date(field.value) : null}
+											onChange={(date: Date | null) => {
+												if (date) {
+													const isoString = date.toISOString().slice(0, 16)
+													field.onChange(isoString)
+												} else {
+													field.onChange("")
+												}
+											}}
+											showTimeSelect
+											timeFormat="HH:mm"
+											timeIntervals={15}
+											dateFormat="yyyy-MM-dd HH:mm"
+											placeholderText="اختر تاريخ الانتهاء والوقت"
+											disabled={isSubmitting}
+											className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 text-right"
+											locale={ar}
+											minDate={form.getValues("startsAt") ? new Date(form.getValues("startsAt")) : new Date()}
+										/>
+									)}
+								/>
+								<FieldError errors={[form.formState.errors.expiresAt]} />
+							</UiField>
+						</div>
+						<div className="mt-3 text-xs text-gray-500">
+							💡 سيتم تفعيل الكود من تاريخ البداية وحتى تاريخ الانتهاء المحدد
+						</div>
+					</div>
 				</div>
 			</form>
 		</PageDialog>
