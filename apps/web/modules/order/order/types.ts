@@ -1,5 +1,5 @@
 import z from "zod"
-import { orderSchema } from "./schema"
+import { editOrderSchema, orderSchema } from "./schema"
 import type {
 	OrderStatus,
 	PaymentStatus,
@@ -229,3 +229,8 @@ export interface EditOrderInput {
 	id: string
 	data: EditOrderPayload
 }
+
+// z.input keeps coerced fields (quantity) accepting strings from the DOM;
+// z.output is the parsed payload sent to the backend.
+export type EditOrderFormValues = z.input<typeof editOrderSchema>
+export type EditOrderFormParsed = z.output<typeof editOrderSchema>

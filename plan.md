@@ -34,6 +34,7 @@
 | 10 | COD Reconciliation (batch detail + per-shipment entries + status transitions) | `0b04f79` |
 | Extra | Leaflet maps (`MapPin` / `MapPinPicker` / `MapRoute`) + ربط في address card / order edit / create-shipment / shipment route | `a6e7d8c` |
 | Polish | Invoice Layout Editor — استبدال `alert()` بـ `toast`، `useRef` للـ file input، إعادة وضع color preview | `7943d90` |
+| 11.4 | إعادة كتابة `order-edit-page` بـ react-hook-form + zod + useFieldArray + nested Controllers لـ MapPinPicker | (هذا الـ commit) |
 
 **التغطية:** 35 endpoint admin + كل صفحات A1–A11.
 
@@ -43,21 +44,28 @@
 
 **الهدف:** إغلاق الفجوات في لوحة الإدارة قبل الانتقال إلى الـ storefront.
 
-### 11.1 — Backend dependency: رفع الشعار (Logo Upload)
+### 11.1 — رفع الشعار عبر multipart (مُتاح الآن من الـ backend)
 
-**الحالة الحالية:** الشعار يُرفع كـ base64 data URL ويُحفَظ في `visibleFields.logoUrl`. صورة 5MB → ~6.7MB JSON. غير مناسب للإنتاج.
+**ما تغيّر (2026-05-05):** الـ backend جعل `POST /admin/invoice-layout-profiles` و `PUT /{profileId}` **multipart** مع جزء اختياري `logo`. لا حاجة لـ `POST /admin/uploads` منفصل — الـ pattern مماثل لـ products. (راجع H3 في `FRONTEND_PAGES_ORD_PAY_SHP.md`.)
 
-**ما يحتاج backend:**
-- `POST /api/v1/admin/uploads` — multipart يستقبل الملف، يُخزّنه (S3 / local)، ويُرجع `{ url, fileId? }`.
+**الحالة الحالية في الـ frontend:** الشعار يُرفع كـ base64 data URL ويُحفَظ في `visibleFields.logoUrl`. صورة 5MB → ~6.7MB JSON. يجب التحويل إلى multipart.
 
-**عمل الـ frontend بعد جاهزية الـ endpoint:**
-1. إضافة `lib/upload.ts` بـ `uploadImage(file): Promise<{ url }>`.
-2. تعديل `app/(dashboard)/invoice-layouts/[profile-id]/page.tsx`:
-   - استبدال `FileReader.readAsDataURL` بـ `uploadImage(file)`.
-   - حقن `result.url` في `visibleFields.logoUrl` بدلاً من الـ data URL.
-   - الإبقاء على معاينة سريعة client-side عبر `URL.createObjectURL` خلال الرفع.
+**العمل المطلوب:**
+1. تعديل [`modules/order/invoice-layout/actions.ts`](apps/web/modules/order/invoice-layout/actions.ts) — `createInvoiceLayout` و `updateInvoiceLayout` يبنيان `FormData`:
+   ```ts
+   const fd = new FormData()
+   fd.append("profile", new Blob([JSON.stringify(payload)], { type: "application/json" }))
+   if (logoFile) fd.append("logo", logoFile)
+   await api(url, { method, body: fd })
+   ```
+2. **عدم تعيين `Content-Type` يدوياً** — المتصفح يضع `multipart/form-data` مع boundary صحيح. التحقّق من أن `lib/api.ts` لا يُجبر `Content-Type: application/json` عند `body instanceof FormData` (تعديل صغير في الـ axios config إن لزم).
+3. تعديل [`app/(dashboard)/invoice-layouts/[profile-id]/page.tsx`](apps/web/app/(dashboard)/invoice-layouts/[profile-id]/page.tsx):
+   - الاحتفاظ بالـ `File` في state (بدلاً من تحويله إلى base64).
+   - معاينة client-side عبر `URL.createObjectURL(file)` (تذكّر `revokeObjectURL` على cleanup).
+   - تمرير `File` إلى الـ mutation بجانب الـ payload.
+4. حذف منطق `FileReader.readAsDataURL` من `handleLogoUpload`.
 
-**معيار القبول:** صورة 2MB ترفع كـ multipart، الـ DB يحفظ URL ~80 byte، الـ form payload يبقى صغيراً.
+**معيار القبول:** صورة 2MB ترفع كـ multipart، الـ DB يحفظ URL قصيراً (لا base64)، الـ JSON payload يبقى صغيراً.
 
 ---
 
@@ -90,19 +98,22 @@
 
 ---
 
-### 11.4 — `order-edit-page` بـ react-hook-form
+### 11.4 — `order-edit-page` بـ react-hook-form ✅ **مكتمل**
 
-**الحالة الحالية:** الصفحة تستخدم `useState` يدوياً بينما باقي الـ forms في المشروع تستخدم `react-hook-form + zodResolver`.
+**ما تمّ:**
+1. أُضيف `editOrderSchema` + `editOrderItemSchema` + `editOrderShippingAddressSchema` في [`modules/order/order/schema.ts`](apps/web/modules/order/order/schema.ts) مع رسائل عربية وقواعد validation:
+   - lat ∈ [-90, 90]، lng ∈ [-180, 180]
+   - phone بنمط `^[0-9+]{8,15}$` (يطابق pattern الـ backend — أوسع من `phoneSchema` الـ OWNER لأن العميل قد لا يكون سورياً)
+   - `quantity` بـ `z.coerce.number().int().min(1)`
+2. أُضيف `EditOrderFormValues = z.input<typeof editOrderSchema>` و `EditOrderFormParsed = z.output` في [types.ts](apps/web/modules/order/order/types.ts).
+3. [`order-edit-page.tsx`](apps/web/modules/order/order/components/order-edit-page.tsx) أُعيد كتابتها:
+   - `useForm` + `zodResolver`
+   - `useFieldArray` لـ items
+   - `Field` لـ variantId/quantity/recipientName/phone
+   - `TextareaField` لـ addressLabel
+   - مكوّن مساعد `ShippingMapPickerField` يلفّ MapPinPicker بـ Controller المتداخل لـ lat/lng (مع `useWatch` للـ longitude لتقليل re-renders)
 
-**العمل:**
-1. إنشاء `editOrderSchema` في `modules/order/order/schema.ts` يستخدم `phoneSchema` الموجود.
-2. إعادة كتابة `order-edit-page.tsx` بنفس نمط `shipping-provider/components/form.tsx`:
-   - `useForm<EditOrderFormValues>({ resolver: zodResolver(editOrderSchema) })`
-   - `Field` من `components/system/Field.tsx` للحقول النصية
-   - `Controller` لـ `MapPinPicker`
-3. الإبقاء على نفس الـ payload shape (`items[]` كاملة + `shippingAddress` بإحداثيات).
-
-**معيار القبول:** validation عربية ظاهرة عبر `<FieldError>`، رقم هاتف بصيغة Syrian +9639 محقّق، نفس الـ payload يصل للـ backend.
+**معيار القبول المُحقّق:** validation عربية ظاهرة عبر `<FieldError>`، رقم هاتف يحقّق `^[0-9+]{8,15}$`، الـ payload يبقى نفسه (`items[]` كاملة + `shippingAddress` بإحداثيات + addressLabel optional).
 
 ---
 
@@ -270,10 +281,10 @@
 
 ## القسم 4 — Backend Dependencies (Open)
 
-| Endpoint | الغرض | المُستهلك |
-|---|---|---|
-| `POST /api/v1/admin/uploads` | رفع صور (multipart → URL) | Phase 11.1 — Invoice logo؛ مستقبلاً صور المنتجات |
-| `GET /public/store-settings` | إعدادات المتجر العامة (origin lat/lng، logo، اسم) | Phase 12.2 — map default + checkout header |
+| Endpoint | الغرض | المُستهلك | الحالة |
+|---|---|---|---|
+| `POST /api/v1/admin/invoice-layout-profiles` (multipart) | رفع شعار الفاتورة inline | Phase 11.1 | ✅ متاح منذ 2026-05-05 |
+| `GET /public/store-settings` | إعدادات المتجر العامة (origin lat/lng، logo، اسم) | Phase 12.2 — map default + checkout header | ❓ بانتظار التأكيد |
 
 تُحرَّر بمشاركة فريق الـ backend قبل بدء العمل المقابل.
 
@@ -285,7 +296,7 @@
 |---|---|---|
 | موقع تطبيق الـ storefront | ❓ | مقترح `apps/storefront/` — تأكيد قبل Phase 12.0 |
 | نظام i18n | ❓ | `next-intl` مرشّح — يحتاج موافقة dep جديد |
-| رفع الصور (logo) | ❓ | بانتظار `POST /admin/uploads` على الـ backend |
+| رفع الصور (logo) | ✅ مفتوح | الـ backend دعم multipart inline على endpoints الفاتورة (2026-05-05). Phase 11.1 صار جاهز للتنفيذ. |
 | دعم backend لفلاتر COD list | ❓ | تأكيد دعم `shippingProviderId` + `settlementDateFrom/To` كـ query params |
 
 ---
@@ -293,10 +304,10 @@
 ## القسم 6 — Recommended Sequence
 
 ```
-Phase 11.1 (logo upload)        ← بانتظار backend
+Phase 11.1 (logo upload)        ← يمكن البدء فوراً (backend جاهز منذ 2026-05-05)
 Phase 11.2 (COD filters)        ← يمكن البدء فوراً (مع توضيح backend params)
 Phase 11.3 (delete mock-service) ← بعد E2E (11.6)
-Phase 11.4 (order-edit RHF)     ← يمكن البدء فوراً
+Phase 11.4 (order-edit RHF)     ← ✅ مكتمل
 Phase 11.5 (i18n + polish)      ← بعد موافقة dep
 Phase 11.6 (E2E manual)         ← بعد كل ما سبق
 
@@ -313,7 +324,7 @@ Phase 12.1–12.10 (storefront flows)   ← بترتيب الـ user journey
 - **TanStack Query keys**: نمط `{all, list, detail(id), summary?, byOrder(id)?}` مُتّسق — تابعه في الـ storefront.
 - **Optimistic updates**: لا تُستخدم للـ transitions (الـ backend يتحقق من state machine). تُستخدم للـ Notes فقط.
 - **Invalidation strategy**: عند `transition/cancel/edit/notes/refund` يُلغى `orderQueryKeys.detail(id)` + `timeline(id)` + `summary`.
-- **Forms**: `react-hook-form + zodResolver + Field` — الـ standard. (استثناء حالي: `order-edit-page` — Phase 11.4).
+- **Forms**: `react-hook-form + zodResolver + Field` — الـ standard في كامل المشروع بعد Phase 11.4.
 - **MapPinPicker/MapPin/MapRoute**: حالياً في `apps/web/components/system/`. تُنقل إلى `packages/ui` في Phase 12.0.
 - **`X-Tenant-Id` للـ storefront**: يأتي من subdomain (`<tenant>.sooq.app`) أو من env config — قرار معماري قبل Phase 12.0.
 - **Tech debt المُتبقّي:** 4 أخطاء TypeScript في `app/api/admin/products/*` (سابقة، خارج هذا الـ scope).
