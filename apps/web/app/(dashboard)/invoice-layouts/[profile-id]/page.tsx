@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -43,7 +43,11 @@ export default function EditInvoiceLayoutPage() {
 	const params = useParams()
 	const profileId = params?.["profile-id"]?.toString() ?? ""
 	const isEdit = profileId !== "create"
-	const [uploadedLogo, setUploadedLogo] = useState<string | null>(null)
+	// File picked from disk — stays in memory until submit, then sent as the
+	// `logo` part of the multipart request. The backend uploads it via
+	// MediaUploadService and merges the resulting publicUrl into
+	// visibleFieldsJson.logoUrl (see H3 in the FRONTEND_PAGES doc).
+	const [logoFile, setLogoFile] = useState<File | null>(null)
 	const fileInputRef = useRef<HTMLInputElement | null>(null)
 
 	const form = useForm<InvoiceLayoutFormValues>({
@@ -91,19 +95,37 @@ export default function EditInvoiceLayoutPage() {
 			if (isEdit) {
 				if (!profileId) return
 				updateMutation(
-					initInvoiceLayoutUpdate(profileId, buildUpdatePayload(values))
+					initInvoiceLayoutUpdate(
+						profileId,
+						buildUpdatePayload(values),
+						logoFile
+					)
 				)
 				return
 			}
 
-			createMutation(buildCreatePayload(values))
+			createMutation({
+				payload: buildCreatePayload(values),
+				logoFile,
+			})
 		},
-		[createMutation, isEdit, profileId, updateMutation]
+		[createMutation, isEdit, logoFile, profileId, updateMutation]
 	)
 
 	const isSubmitting = isCreating || isUpdating || isLoading
 	const logoUrl = form.watch("visibleFields.logoUrl")
 	const colorScheme = form.watch("visibleFields.colorScheme")
+
+	// Local preview for a freshly-picked file — must be revoked on change /
+	// unmount to avoid leaking blob URLs.
+	const logoPreviewUrl = useMemo(
+		() => (logoFile ? URL.createObjectURL(logoFile) : null),
+		[logoFile]
+	)
+	useEffect(() => {
+		if (!logoPreviewUrl) return
+		return () => URL.revokeObjectURL(logoPreviewUrl)
+	}, [logoPreviewUrl])
 
 	const handleLogoUpload = useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,8 +134,11 @@ export default function EditInvoiceLayoutPage() {
 			event.target.value = ""
 			if (!file) return
 
-			if (!file.type.startsWith("image/")) {
-				toast.error("يرجى اختيار ملف صورة صالح")
+			// Backend accepts image/jpeg, image/png, image/webp; the form caps
+			// at 5MB to match the multipart-handler limit.
+			const allowed = ["image/jpeg", "image/png", "image/webp"]
+			if (!allowed.includes(file.type)) {
+				toast.error("الصور المسموحة: JPG، PNG، WebP")
 				return
 			}
 
@@ -122,32 +147,27 @@ export default function EditInvoiceLayoutPage() {
 				return
 			}
 
-			const reader = new FileReader()
-			reader.onload = (e) => {
-				const result = e.target?.result as string
-				setUploadedLogo(result)
-				form.setValue("visibleFields.logoUrl", result, {
-					shouldDirty: true,
-					shouldValidate: true,
-				})
-			}
-			reader.onerror = () => {
-				toast.error("تعذّر قراءة ملف الصورة")
-			}
-			reader.readAsDataURL(file)
+			setLogoFile(file)
+			// Clear any pasted/legacy URL — the new file is the source of truth
+			// and the backend will overwrite logoUrl after upload.
+			form.setValue("visibleFields.logoUrl", "", {
+				shouldDirty: true,
+				shouldValidate: true,
+			})
 		},
 		[form]
 	)
 
 	const clearUploadedLogo = useCallback(() => {
-		setUploadedLogo(null)
+		setLogoFile(null)
 		form.setValue("visibleFields.logoUrl", "", {
 			shouldDirty: true,
 			shouldValidate: true,
 		})
 	}, [form])
 
-	const displayLogo = uploadedLogo || logoUrl
+	// Preview priority: local blob (just-picked) > stored URL (server-side).
+	const displayLogo = logoPreviewUrl || logoUrl
 
 	return (
 		<PageDialog
@@ -354,7 +374,7 @@ export default function EditInvoiceLayoutPage() {
 											value={field.value ?? ""}
 											onChange={(event) => {
 												field.onChange(event.target.value)
-												setUploadedLogo(null) // Clear uploaded file when URL changes
+												setLogoFile(null) // Pasted URL takes priority
 											}}
 											disabled={isSubmitting}
 											placeholder="https://example.com/logo.png"

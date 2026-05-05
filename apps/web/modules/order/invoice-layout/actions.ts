@@ -2,11 +2,26 @@ import { api } from "@/lib/api"
 import type { ApiResponse } from "@/lib/types"
 
 import type {
+	CreateInvoiceLayoutMutationInput,
 	CreateInvoiceLayoutPayload,
 	InvoiceLayoutProfile,
 	InvoiceLayoutProfileApiModel,
-	UpdateInvoiceLayoutInput,
+	UpdateInvoiceLayoutMutationInput,
+	UpdateInvoiceLayoutPayload,
 } from "./types"
+
+const buildMultipartBody = (
+	payload: CreateInvoiceLayoutPayload | UpdateInvoiceLayoutPayload,
+	logoFile?: File | null
+): FormData => {
+	const fd = new FormData()
+	fd.append(
+		"profile",
+		new Blob([JSON.stringify(payload)], { type: "application/json" })
+	)
+	if (logoFile) fd.append("logo", logoFile)
+	return fd
+}
 
 const normalizeInvoiceLayout = (
 	model: InvoiceLayoutProfileApiModel
@@ -38,22 +53,24 @@ export const getInvoiceLayout = async (
 	)
 }
 
-export const createInvoiceLayout = async (
-	data: CreateInvoiceLayoutPayload
-): Promise<void> => {
+export const createInvoiceLayout = async ({
+	payload,
+	logoFile,
+}: CreateInvoiceLayoutMutationInput): Promise<void> => {
 	await api<ApiResponse<unknown>>("/admin/invoice-layout-profiles", {
 		method: "POST",
-		body: data,
+		body: buildMultipartBody(payload, logoFile),
 	})
 }
 
 export const updateInvoiceLayout = async ({
 	id,
-	data,
-}: UpdateInvoiceLayoutInput): Promise<void> => {
+	payload,
+	logoFile,
+}: UpdateInvoiceLayoutMutationInput): Promise<void> => {
 	await api<ApiResponse<unknown>>(`/admin/invoice-layout-profiles/${id}`, {
 		method: "PUT",
-		body: data,
+		body: buildMultipartBody(payload, logoFile),
 	})
 }
 

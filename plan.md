@@ -34,7 +34,8 @@
 | 10 | COD Reconciliation (batch detail + per-shipment entries + status transitions) | `0b04f79` |
 | Extra | Leaflet maps (`MapPin` / `MapPinPicker` / `MapRoute`) + ربط في address card / order edit / create-shipment / shipment route | `a6e7d8c` |
 | Polish | Invoice Layout Editor — استبدال `alert()` بـ `toast`، `useRef` للـ file input، إعادة وضع color preview | `7943d90` |
-| 11.4 | إعادة كتابة `order-edit-page` بـ react-hook-form + zod + useFieldArray + nested Controllers لـ MapPinPicker | (هذا الـ commit) |
+| 11.4 | إعادة كتابة `order-edit-page` بـ react-hook-form + zod + useFieldArray + nested Controllers لـ MapPinPicker | `40f1b5a` |
+| 11.1 | تحويل رفع شعار الفاتورة إلى multipart (`profile` + `logo` parts) ضمن نفس endpoints؛ إزالة base64 conversion من الـ frontend | (هذا الـ commit) |
 
 **التغطية:** 35 endpoint admin + كل صفحات A1–A11.
 
@@ -44,28 +45,25 @@
 
 **الهدف:** إغلاق الفجوات في لوحة الإدارة قبل الانتقال إلى الـ storefront.
 
-### 11.1 — رفع الشعار عبر multipart (مُتاح الآن من الـ backend)
+### 11.1 — رفع الشعار عبر multipart ✅ **مكتمل**
 
-**ما تغيّر (2026-05-05):** الـ backend جعل `POST /admin/invoice-layout-profiles` و `PUT /{profileId}` **multipart** مع جزء اختياري `logo`. لا حاجة لـ `POST /admin/uploads` منفصل — الـ pattern مماثل لـ products. (راجع H3 في `FRONTEND_PAGES_ORD_PAY_SHP.md`.)
+**ما تمّ:**
+1. [`lib/api.ts`](apps/web/lib/api.ts) — حارس صغير: عند `body instanceof FormData` يُلغى `Content-Type` على مستوى الـ request ليتركه المتصفّح يضبطه بـ boundary صحيحة.
+2. [`modules/order/invoice-layout/types.ts`](apps/web/modules/order/invoice-layout/types.ts) — `CreateInvoiceLayoutMutationInput` و `UpdateInvoiceLayoutMutationInput` يجمعان الـ payload مع `logoFile?: File | null`.
+3. [`modules/order/invoice-layout/actions.ts`](apps/web/modules/order/invoice-layout/actions.ts) — helper `buildMultipartBody(payload, logoFile?)` يبني `FormData` بـ:
+   - `profile`: `new Blob([JSON.stringify(payload)], { type: "application/json" })`
+   - `logo`: الـ File (اختياري)
 
-**الحالة الحالية في الـ frontend:** الشعار يُرفع كـ base64 data URL ويُحفَظ في `visibleFields.logoUrl`. صورة 5MB → ~6.7MB JSON. يجب التحويل إلى multipart.
+   `createInvoiceLayout` و `updateInvoiceLayout` تستخدمانه.
+4. [`modules/order/invoice-layout/init.ts`](apps/web/modules/order/invoice-layout/init.ts) — `initInvoiceLayoutUpdate(id, payload, logoFile?)` يُرجع الشكل الجديد.
+5. [`app/(dashboard)/invoice-layouts/[profile-id]/page.tsx`](apps/web/app/(dashboard)/invoice-layouts/[profile-id]/page.tsx):
+   - state صار `logoFile: File | null` بدل base64 string.
+   - معاينة عبر `useMemo(() => URL.createObjectURL(logoFile))` + `useEffect` cleanup للـ `revokeObjectURL`.
+   - حُذف `FileReader.readAsDataURL` كاملاً.
+   - validation لنوع الملف صار صراحةً `image/jpeg | image/png | image/webp` (يطابق MultipartFile filter في الـ backend).
+   - عند اختيار ملف جديد، `visibleFields.logoUrl` يُمسح ليُعلم أن الـ source الجديد هو الـ file (الـ backend يكتب الـ URL بعد الرفع).
 
-**العمل المطلوب:**
-1. تعديل [`modules/order/invoice-layout/actions.ts`](apps/web/modules/order/invoice-layout/actions.ts) — `createInvoiceLayout` و `updateInvoiceLayout` يبنيان `FormData`:
-   ```ts
-   const fd = new FormData()
-   fd.append("profile", new Blob([JSON.stringify(payload)], { type: "application/json" }))
-   if (logoFile) fd.append("logo", logoFile)
-   await api(url, { method, body: fd })
-   ```
-2. **عدم تعيين `Content-Type` يدوياً** — المتصفح يضع `multipart/form-data` مع boundary صحيح. التحقّق من أن `lib/api.ts` لا يُجبر `Content-Type: application/json` عند `body instanceof FormData` (تعديل صغير في الـ axios config إن لزم).
-3. تعديل [`app/(dashboard)/invoice-layouts/[profile-id]/page.tsx`](apps/web/app/(dashboard)/invoice-layouts/[profile-id]/page.tsx):
-   - الاحتفاظ بالـ `File` في state (بدلاً من تحويله إلى base64).
-   - معاينة client-side عبر `URL.createObjectURL(file)` (تذكّر `revokeObjectURL` على cleanup).
-   - تمرير `File` إلى الـ mutation بجانب الـ payload.
-4. حذف منطق `FileReader.readAsDataURL` من `handleLogoUpload`.
-
-**معيار القبول:** صورة 2MB ترفع كـ multipart، الـ DB يحفظ URL قصيراً (لا base64)، الـ JSON payload يبقى صغيراً.
+**معيار القبول المُحقّق:** صورة 2MB ترفع كـ multipart، الـ DB يحفظ URL قصيراً (publicUrl من `MediaUploadService`)، الـ JSON payload يبقى صغيراً، الـ frontend لا يحمل base64 في الذاكرة بعد الآن.
 
 ---
 
@@ -283,7 +281,7 @@
 
 | Endpoint | الغرض | المُستهلك | الحالة |
 |---|---|---|---|
-| `POST /api/v1/admin/invoice-layout-profiles` (multipart) | رفع شعار الفاتورة inline | Phase 11.1 | ✅ متاح منذ 2026-05-05 |
+| `POST /api/v1/admin/invoice-layout-profiles` (multipart) | رفع شعار الفاتورة inline | Phase 11.1 | ✅ متاح + مُستهلَك من الـ frontend |
 | `GET /public/store-settings` | إعدادات المتجر العامة (origin lat/lng، logo، اسم) | Phase 12.2 — map default + checkout header | ❓ بانتظار التأكيد |
 
 تُحرَّر بمشاركة فريق الـ backend قبل بدء العمل المقابل.
@@ -296,7 +294,7 @@
 |---|---|---|
 | موقع تطبيق الـ storefront | ❓ | مقترح `apps/storefront/` — تأكيد قبل Phase 12.0 |
 | نظام i18n | ❓ | `next-intl` مرشّح — يحتاج موافقة dep جديد |
-| رفع الصور (logo) | ✅ مفتوح | الـ backend دعم multipart inline على endpoints الفاتورة (2026-05-05). Phase 11.1 صار جاهز للتنفيذ. |
+| رفع الصور (logo) | ✅ مكتمل | الـ backend دعم multipart inline على endpoints الفاتورة (2026-05-05) والـ frontend استهلكها في Phase 11.1. |
 | دعم backend لفلاتر COD list | ❓ | تأكيد دعم `shippingProviderId` + `settlementDateFrom/To` كـ query params |
 
 ---
@@ -304,7 +302,7 @@
 ## القسم 6 — Recommended Sequence
 
 ```
-Phase 11.1 (logo upload)        ← يمكن البدء فوراً (backend جاهز منذ 2026-05-05)
+Phase 11.1 (logo upload)        ← ✅ مكتمل
 Phase 11.2 (COD filters)        ← يمكن البدء فوراً (مع توضيح backend params)
 Phase 11.3 (delete mock-service) ← بعد E2E (11.6)
 Phase 11.4 (order-edit RHF)     ← ✅ مكتمل

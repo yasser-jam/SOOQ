@@ -43,3 +43,17 @@ export interface UpdateInvoiceLayoutInput {
 	id: string
 	data: UpdateInvoiceLayoutPayload
 }
+
+// Multipart mutation inputs — pair the JSON profile payload with an optional
+// File for the logo part. The backend (POST/PUT /admin/invoice-layout-profiles)
+// merges the resulting publicUrl into visibleFieldsJson.logoUrl when present.
+export interface CreateInvoiceLayoutMutationInput {
+	payload: CreateInvoiceLayoutPayload
+	logoFile?: File | null
+}
+
+export interface UpdateInvoiceLayoutMutationInput {
+	id: string
+	payload: UpdateInvoiceLayoutPayload
+	logoFile?: File | null
+}

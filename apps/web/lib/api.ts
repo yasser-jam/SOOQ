@@ -130,6 +130,12 @@ export const api = async <T = unknown>(
 ): Promise<T> => {
   const { body, headers, method = "GET", ...restOptions } = options;
 
+  // For FormData, the browser must set Content-Type with the multipart
+  // boundary itself. Setting Content-Type to undefined here cancels the
+  // instance-level "application/json" default for this request only.
+  const isFormData =
+    typeof FormData !== "undefined" && body instanceof FormData;
+
   const response = await apiInstance.request<T>({
     url,
     method,
@@ -137,6 +143,7 @@ export const api = async <T = unknown>(
     data: body,
     headers: {
       ...headers,
+      ...(isFormData ? { "Content-Type": undefined } : {}),
     },
     ...restOptions,
   });

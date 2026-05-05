@@ -4,7 +4,7 @@ import type {
 	InvoiceLayoutFormValues,
 	InvoiceLayoutProfile,
 	InvoiceVisibleFields,
-	UpdateInvoiceLayoutInput,
+	UpdateInvoiceLayoutMutationInput,
 	UpdateInvoiceLayoutPayload,
 } from "./types"
 
@@ -64,8 +64,10 @@ export const buildUpdatePayload = (
 
 export const initInvoiceLayoutUpdate = (
 	id: string,
-	data: UpdateInvoiceLayoutPayload
-): UpdateInvoiceLayoutInput => ({
+	payload: UpdateInvoiceLayoutPayload,
+	logoFile?: File | null
+): UpdateInvoiceLayoutMutationInput => ({
 	id,
-	data,
+	payload,
+	logoFile,
 })
