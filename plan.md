@@ -36,7 +36,8 @@
 | Polish | Invoice Layout Editor — استبدال `alert()` بـ `toast`، `useRef` للـ file input، إعادة وضع color preview | `7943d90` |
 | 11.4 | إعادة كتابة `order-edit-page` بـ react-hook-form + zod + useFieldArray + nested Controllers لـ MapPinPicker | `40f1b5a` |
 | 11.1 | تحويل رفع شعار الفاتورة إلى multipart (`profile` + `logo` parts) ضمن نفس endpoints؛ إزالة base64 conversion من الـ frontend | `f3ae335` |
-| 11.2 | فلاتر COD reconciliation list (مزود + نطاق تاريخ) — client-side حتى يدعم الـ backend الـ params | (هذا الـ commit) |
+| 11.2 | فلاتر COD reconciliation list (مزود + نطاق تاريخ) — client-side حتى يدعم الـ backend الـ params | `fa690c1` |
+| 11.3 | حذف نهائي لـ mock-service + 14 راوتاً Next.js مرتبطاً بها (dead code) | (هذا الـ commit) |
 
 **التغطية:** 35 endpoint admin + كل صفحات A1–A11.
 
@@ -85,16 +86,17 @@
 
 ---
 
-### 11.3 — حذف نهائي لـ `mock-service.ts`
+### 11.3 — حذف نهائي لـ `mock-service.ts` ✅ **مكتمل**
 
-**الموقع:** `apps/web/modules/order/order/apis/mock-service.ts` + استدعاءاته.
+**ما تمّ:**
+1. تحقّقتُ من الاستدعاءات: الـ mock services لم تكن مستدعاة من `actions.ts` (كل actions تستخدم `api()` المباشرة على Railway). الاستدعاءات الوحيدة كانت من 14 ملف Next.js API route تحت `app/api/admin/` كانت dead code (axios baseURL يشير إلى `https://sooq.up.railway.app/api/v1` فلا يصلها أحد).
+2. حُذفت:
+   - `apps/web/modules/order/order/apis/mock-service.ts` + الـ `apis/` directory
+   - `apps/web/modules/shipping/apis/mock-service.ts` + الـ `apis/` directory
+   - 14 ملف تحت `apps/web/app/api/admin/` (orders، products، shipping/cod، shipping/providers، shipping/shipments) + الـ `app/api/` directory نفسه
+3. typecheck تخلّص أيضاً من الـ 4 أخطاء السابقة في `app/api/admin/products/*` لأنّها كانت داخل الراوتات المحذوفة.
 
-**العمل:**
-1. التأكّد أن كل `getMockAdmin*` في `actions.ts` لم تعد تُستدعى.
-2. حذف الملف + استدعاءاته.
-3. تشغيل typecheck للتأكّد.
-
-**معيار القبول:** `grep -r "mock-service" modules/order/order` يُرجع صفر نتائج.
+**معيار القبول المُحقّق:** `grep -r "mock-service" apps/web` يُرجع صفر نتائج. typecheck يخرج بـ `EXIT=0` نظيف بدون أيّ خطأ.
 
 ---
 
@@ -306,7 +308,7 @@
 ```
 Phase 11.1 (logo upload)        ← ✅ مكتمل
 Phase 11.2 (COD filters)        ← ✅ مكتمل (client-side interim)
-Phase 11.3 (delete mock-service) ← بعد E2E (11.6)
+Phase 11.3 (delete mock-service) ← ✅ مكتمل
 Phase 11.4 (order-edit RHF)     ← ✅ مكتمل
 Phase 11.5 (i18n + polish)      ← بعد موافقة dep
 Phase 11.6 (E2E manual)         ← بعد كل ما سبق
@@ -327,4 +329,4 @@ Phase 12.1–12.10 (storefront flows)   ← بترتيب الـ user journey
 - **Forms**: `react-hook-form + zodResolver + Field` — الـ standard في كامل المشروع بعد Phase 11.4.
 - **MapPinPicker/MapPin/MapRoute**: حالياً في `apps/web/components/system/`. تُنقل إلى `packages/ui` في Phase 12.0.
 - **`X-Tenant-Id` للـ storefront**: يأتي من subdomain (`<tenant>.sooq.app`) أو من env config — قرار معماري قبل Phase 12.0.
-- **Tech debt المُتبقّي:** 4 أخطاء TypeScript في `app/api/admin/products/*` (سابقة، خارج هذا الـ scope).
+- **Tech debt المُتبقّي:** لا أخطاء TypeScript قائمة بعد Phase 11.3 (الـ 4 أخطاء السابقة في `app/api/admin/products/*` اختفت مع حذف الراوتات).
