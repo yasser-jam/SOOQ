@@ -61,7 +61,10 @@ export default function OrdersListTable({
   })
 
   const filteredOrders = useMemo(() => {
-    const orders = data?.items ?? []
+    // Backend wraps the list in Spring Page (`content`); the legacy custom
+    // shape used `items`. Read both so the UI works regardless of which the
+    // controller emits.
+    const orders = data?.items ?? data?.content ?? []
     const trimmedQuery = searchQuery.trim().toLowerCase()
 
     if (!trimmedQuery) return orders
@@ -69,7 +72,7 @@ export default function OrdersListTable({
     return orders.filter((order) =>
       order?.orderNumber?.toLowerCase().includes(trimmedQuery)
     )
-  }, [data?.items, searchQuery])
+  }, [data?.items, data?.content, searchQuery])
 
   const columns: ColumnDef<AdminOrderListItem>[] = [
     {

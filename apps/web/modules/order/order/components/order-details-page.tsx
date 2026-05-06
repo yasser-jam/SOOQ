@@ -12,7 +12,6 @@ import { Badge } from "@workspace/ui/components/badge"
 
 import OrderAddressCard from "./order-address-card"
 import OrderAuditTimelineCard from "./order-audit-timeline-card"
-import OrderCustomerCard from "./order-customer-card"
 import OrderDetailsActions from "./order-details-actions"
 import OrderInternalNotesCard from "./order-internal-notes-card"
 import OrderPaymentCard from "./order-payment-card"
@@ -77,7 +76,6 @@ export default function OrderDetailsPageView({
         </div>
 
         <div className="flex flex-col gap-6 xl:col-span-4">
-          <OrderCustomerCard order={order} isLoading={isOrderLoading} />
           <OrderPaymentCard order={order} isLoading={isOrderLoading} />
         </div>
 

@@ -57,8 +57,6 @@ export interface AdminOrderItem {
 	unitPrice?: number
 	totalPrice?: number
 	priceLabel?: string
-	inventoryLabel?: string
-	inventoryStatus?: string
 	thumbnailUrl?: string | null
 	imageUrl?: string | null
 }
