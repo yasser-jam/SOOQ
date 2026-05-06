@@ -1,11 +1,50 @@
-import type { QueryClient } from "@tanstack/react-query"
-import { queryOptions } from "@tanstack/react-query"
-
 import type { CreateProductInput, Product, ProductOption, UpdateProductInput } from "./types"
 import api from "@/lib/api"
 import { ApiResponse } from "@/lib/types"
 import { ProductCategory } from "../category/types"
 import { ProductTag } from "../tag/types"
+
+type ProductFormPayload = Omit<CreateProductInput, "files"> & {
+  files?: File[]
+}
+
+type ProductFormData = ProductFormPayload & {
+  id?: string
+  createdAt?: string
+  updatedAt?: string
+  mediaUrls?: string[]
+}
+
+const buildProductFormData = ({ files, ...product }: ProductFormData) => {
+  const formData = new FormData()
+  const productPayload = { ...product } as Record<string, unknown>
+  const mediaAssetIds =
+    (product as { mediaAssetIds?: string[] | null }).mediaAssetIds ?? null
+
+  delete productPayload.id
+  delete productPayload.createdAt
+  delete productPayload.updatedAt
+  delete productPayload.mediaUrls
+
+  formData.append(
+    "product",
+    new Blob(
+      [
+        JSON.stringify({
+          ...productPayload,
+          mediaAssetIds,
+        }),
+      ],
+      { type: "application/json" }
+    )
+  )
+
+  files?.forEach((file) => {
+    formData.append("files", file)
+  })
+
+  return formData
+}
 
 const normalizeProduct = (data: any): Product => {
   return {
@@ -16,7 +55,6 @@ const normalizeProduct = (data: any): Product => {
     descriptionAr: data.descriptionAr,
     descriptionEn: data.descriptionEn,
     mediaUrls: data.media?.map((m: any) => m.url) || [],
-    
   }
 }
 
@@ -44,7 +82,7 @@ const normalizeGetProduct = (data: any): Product => {
 }
 
 export const listProducts = async (): Promise<ApiResponse<Product[]>> => {
-  let products = await api<ApiResponse<Product[]>>("/admin/products")
+  const products = await api<ApiResponse<Product[]>>("/admin/products")
 
   products.data = products.data?.map((el) => normalizeProduct(el)) || []
 
@@ -70,12 +108,6 @@ type ProductGetResponse = ApiResponse<{
 export const getProduct = async (id: string): Promise<Product> => {
   const response = await api<ProductGetResponse>(`/admin/products/${id}`)
 
-  console.log(response.data);
-
-  console.log('normalized', normalizeGetProduct(response.data));
-  
-  
-
   return normalizeGetProduct(response.data)
 }
 
@@ -85,7 +117,7 @@ export const updateProduct = async ({
 }: UpdateProductInput): Promise<void> => {
   await api(`/admin/products/${id}`, {
     method: "PUT",
-    body: data,
+    body: buildProductFormData(data),
   })
 }
 
@@ -94,12 +126,12 @@ export const createProduct = async (
 ): Promise<void> => {
   await api("/admin/products", {
     method: "POST",
-    body: data,
+    body: buildProductFormData(data),
   })
 }
 
 export const deleteProduct = async (id: string): Promise<void> => {
-  await api(`/products/${id}`, {
+  await api(`/admin/products/${id}`, {
     method: "DELETE",
   })
 }

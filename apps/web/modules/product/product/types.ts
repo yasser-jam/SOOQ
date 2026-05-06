@@ -30,6 +30,8 @@ export interface CreateProductInput {
 	categoryIds?: string[]
 	tagIds?: string[]
 	mediaUrls?: string[]
+	mediaAssetIds?: string[] | null
+	files?: File[]
 	options?: ProductOption[]
 	variantOverrides?: any[]
 }
@@ -39,6 +41,10 @@ export type UpdateProductPayload = Partial<CreateProductInput> &
 		CreateProductInput,
 		"titleAr" | "titleEn" | "slug" | "basePrice" | "currencyCode" | "status" | "allowOversell"
 	>
+	& {
+		mediaAssetIds?: string[] | null
+		files?: File[]
+	}
 
 export interface UpdateProductInput {
 	id: string

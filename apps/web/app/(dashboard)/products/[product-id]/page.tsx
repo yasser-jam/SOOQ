@@ -47,12 +47,24 @@ type ProductFormInput = z.input<typeof productSchema>
 type ProductSubmitValues = z.output<typeof productSchema>
 
 export default function ProductDetailsPage() {
-  const router = useRouter()
   const params = useParams()
   const productId = params?.["product-id"]?.toString() ?? ""
   const isEdit = productId !== "create"
 
+  return <ProductDetailsForm key={productId} productId={productId} isEdit={isEdit} />
+}
+
+function ProductDetailsForm({
+  productId,
+  isEdit,
+}: {
+  productId: string
+  isEdit: boolean
+}) {
+  const router = useRouter()
+
   const [optionsDialogOpen, setOptionsDialogOpen] = useState(false)
+  const [productFiles, setProductFiles] = useState<File[]>([])
 
   const form = useForm<ProductFormInput, unknown, ProductSubmitValues>({
     resolver: zodResolver(productSchema),
@@ -88,15 +100,20 @@ export default function ProductDetailsPage() {
 
   const handleSubmit = useCallback(
     (data: ProductSubmitValues) => {
+      const payload = {
+        ...data,
+        files: productFiles,
+      }
+
       if (isEdit) {
         if (!productId) return
-        updateProductMutation({ id: productId, data })
+        updateProductMutation({ id: productId, data: payload })
         return
       }
 
-      createProductMutation(data)
+      createProductMutation(payload)
     },
-    [createProductMutation, isEdit, productId, updateProductMutation]
+    [createProductMutation, isEdit, productFiles, productId, updateProductMutation]
   )
 
   const isSubmitting = isUpdating || isLoading || isCreating
@@ -107,13 +124,10 @@ export default function ProductDetailsPage() {
     }) ?? []
 
   const handleImageChange = useCallback(
-    (imageUrls: string[]) => {
-      form.setValue("mediaUrls", imageUrls, {
-        shouldDirty: true,
-        shouldValidate: true,
-      })
+    (files: File[]) => {
+      setProductFiles(files)
     },
-    [form]
+    []
   )
 
   return (
@@ -311,19 +325,17 @@ export default function ProductDetailsPage() {
             </CardContent>
           </Card>
 
-          {isEdit && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">صور المنتج</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ImageUploader
-                  defaultFiles={product?.mediaUrls || []}
-                  onChange={handleImageChange}
-                />
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">صور المنتج</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ImageUploader
+                existingFiles={product?.mediaUrls || []}
+                onChange={handleImageChange}
+              />
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>

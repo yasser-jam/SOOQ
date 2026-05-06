@@ -9,9 +9,6 @@ import { toast } from "sonner";
 const apiInstance: AxiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
     withCredentials: true,
-    headers: {
-      "Content-Type": "application/json",
-    },
   });
   
   // ==============================
@@ -59,7 +56,7 @@ const apiInstance: AxiosInstance = axios.create({
   // ==============================
   // Error Handler
   // ==============================
-  const handleError = (error: AxiosError<any>) => {
+  const handleError = (error: AxiosError<unknown>) => {
     
     // Show toast error
     toast.error(error.response?.data?.message || "حدث خطأ ما");
@@ -100,6 +97,7 @@ export const api = async <T = unknown>(
   options: ApiOptions = {}
 ): Promise<T> => {
   const { body, headers, method = "GET", ...restOptions } = options;
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
 
   const response = await apiInstance.request<T>({
     url,
@@ -107,6 +105,7 @@ export const api = async <T = unknown>(
     withCredentials: true,
     data: body,
     headers: {
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...headers,
     },
     ...restOptions,
