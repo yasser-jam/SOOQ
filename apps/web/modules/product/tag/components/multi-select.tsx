@@ -22,10 +22,11 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field"
 
-import { listProductTags, productTagKeys } from "../actions"
+import { listProductTags } from "../actions"
 import { listProductCategories } from "../../category/actions"
 import MultiSelect from "@/components/system/multi-select"
 import { ProductTag } from "../types"
+import { tagQueryKeys } from "../queryKeys"
 
 type CategorySelectProps<T extends FieldValues> = {
   name: FieldPath<T>
@@ -45,7 +46,7 @@ export default function TagMultiSelect<T extends FieldValues>({
   const fieldId = String(name)
 
   const { data: tags, isPending } = useQuery<ProductTag[]>({
-    queryKey: productTagKeys.all,
+    queryKey: tagQueryKeys.all,
     queryFn: listProductTags,
   })
 

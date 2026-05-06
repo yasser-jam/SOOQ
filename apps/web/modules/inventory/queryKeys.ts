@@ -2,6 +2,8 @@ export const inventoryQueryKeys = {
   all: ["inventory"] as const,
   status: (productId: string) =>
     [...inventoryQueryKeys.all, "status", productId] as const,
+  lowStock: (productId: string) =>
+    [...inventoryQueryKeys.all, "low-stock", productId] as const,
   movementList: (variantId: string) =>
     [...inventoryQueryKeys.all, "movements", variantId] as const,
   movements: (

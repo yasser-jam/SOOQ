@@ -2,6 +2,7 @@ import { api } from "@/lib/api"
 import type { ApiResponse } from "@/lib/types"
 
 import type {
+  BulkInventoryAdjustmentInput,
   InventoryAdjustmentInput,
   InventoryMovement,
   InventoryVariantStatus,
@@ -41,4 +42,35 @@ export const adjustInventory = async (
     method: "POST",
     body: data,
   })
+}
+
+export const bulkAdjustInventory = async (
+  data: BulkInventoryAdjustmentInput
+): Promise<void> => {
+  await api<void>("/admin/inventory/adjust/bulk", {
+    method: "POST",
+    body: data,
+  })
+}
+
+export const getLowStockVariants = async (
+  productId: string
+): Promise<InventoryVariantStatus[]> => {
+  const response = await api<ApiResponse<InventoryVariantStatus[]>>(
+    `/admin/inventory/products/${productId}/low-stock`
+  )
+
+  return response.data ?? []
+}
+
+export const setInventoryThreshold = async (
+  variantId: string,
+  threshold: number
+): Promise<void> => {
+  await api<void>(
+    `/admin/inventory/variants/${variantId}/threshold?threshold=${threshold}`,
+    {
+      method: "PUT",
+    }
+  )
 }

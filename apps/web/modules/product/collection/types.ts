@@ -9,6 +9,28 @@ export type ProductCollectionApiModel = ProductCollection & {
 	productCollectionId?: string
 }
 
+export type CollectionProduct = {
+	productId: string
+	sortOrder?: number
+}
+
+export type CollectionRule = {
+	fieldKey: string
+	operator: string
+	value: string
+	logicGroup: "AND" | "OR"
+}
+
+export type CollectionPreviewItem = {
+	productId?: string
+	id?: string
+	titleAr?: string
+	titleEn?: string
+	slug?: string
+	basePrice?: number
+	currencyCode?: string
+}
+
 export type CreateProductCollectionInput = Pick<
 	ProductCollection,
 	|
@@ -28,4 +50,14 @@ export type CreateProductCollectionInput = Pick<
 export type UpdateProductCollectionInput = {
 	id: string
 	data: CreateProductCollectionInput
+}
+
+export type AddCollectionProductInput = {
+	id: string
+	data: CollectionProduct
+}
+
+export type AddCollectionRuleInput = {
+	id: string
+	data: CollectionRule
 }

@@ -24,3 +24,11 @@ export interface InventoryAdjustmentInput {
   quantityDelta: number
   reasonCode: "MANUAL_ADJUSTMENT"
 }
+
+export interface BulkInventoryAdjustmentInput {
+  adjustments: Array<{
+    variantId: string
+    quantityDelta: number
+    reasonCode: "MANUAL_ADJUSTMENT" | "IMPORT"
+  }>
+}

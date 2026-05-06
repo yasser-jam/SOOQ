@@ -2,7 +2,11 @@ import { api } from "@/lib/api"
 import { ApiResponse } from "@/lib/types"
 
 import type {
+	AddCollectionProductInput,
+	AddCollectionRuleInput,
 	CreateProductCollectionInput,
+	CollectionPreviewItem,
+	CollectionRule,
 	ProductCollection,
 	ProductCollectionApiModel,
 	UpdateProductCollectionInput,
@@ -56,4 +60,62 @@ export const deleteProductCollection = async (
 	await api(`/admin/collections/${id}`, {
 		method: "DELETE",
 	})
+}
+
+export const listCollectionProducts = async (
+	id: string
+): Promise<CollectionPreviewItem[]> => {
+	const response = await api<ApiResponse<CollectionPreviewItem[]>>(
+		`/admin/collections/${id}/products`
+	)
+
+	return response.data ?? []
+}
+
+export const addProductToCollection = async ({
+	id,
+	data,
+}: AddCollectionProductInput): Promise<void> => {
+	await api(`/admin/collections/${id}/products`, {
+		method: "POST",
+		body: data,
+	})
+}
+
+export const listCollectionRules = async (
+	id: string
+): Promise<CollectionRule[]> => {
+	const response = await api<ApiResponse<CollectionRule[]>>(
+		`/admin/collections/${id}/rules`
+	)
+
+	return response.data ?? []
+}
+
+export const addCollectionRule = async ({
+	id,
+	data,
+}: AddCollectionRuleInput): Promise<void> => {
+	await api(`/admin/collections/${id}/rules`, {
+		method: "POST",
+		body: data,
+	})
+}
+
+export const evaluateCollectionRules = async (
+	id: string
+): Promise<ApiResponse<unknown>> => {
+	return api<ApiResponse<unknown>>(`/admin/collections/${id}/evaluate`, {
+		method: "POST",
+	})
+}
+
+export const previewCollectionRules = async (
+	id: string
+): Promise<CollectionPreviewItem[]> => {
+	const response = await api<ApiResponse<CollectionPreviewItem[]>>(
+		`/admin/collections/${id}/preview`
+	)
+
+	return response.data ?? []
 }
