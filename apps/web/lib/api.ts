@@ -5,6 +5,7 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { getCookie, removeCookie } from "./cookies";
 import { toast } from "sonner";
 import { humanizeError } from "./error-codes";
+import { getTenantIdFromToken } from "./jwt";
 import type { ApiResponse, FieldError } from "./types";
 
 // ==============================
@@ -35,8 +36,18 @@ const apiInstance: AxiosInstance = axios.create({
       };
 
       if (isPublic) {
+        // Resolution order:
+        //   1. NEXT_PUBLIC_TENANT_ID env (storefront single-tenant builds)
+        //   2. sooq-tenant-id cookie (set explicitly when known)
+        //   3. tenantId claim from the admin JWT (covers admin pages that
+        //      hit /public/* endpoints, e.g. the tracking widget reused on
+        //      both admin order detail and the future storefront)
+        const accessToken = getCookie("sooq-access-token");
         const tenantId =
-          process.env.NEXT_PUBLIC_TENANT_ID || getCookie("sooq-tenant-id");
+          process.env.NEXT_PUBLIC_TENANT_ID ||
+          getCookie("sooq-tenant-id") ||
+          (accessToken ? getTenantIdFromToken(accessToken) : null) ||
+          null;
 
         if (tenantId) {
           setHeader("X-Tenant-Id", tenantId);
