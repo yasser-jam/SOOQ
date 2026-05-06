@@ -155,6 +155,54 @@
 
 ---
 
+### 11.7 — SHP polish + ربط نقاط التكامل ✅ **مكتمل**
+
+**الهدف:** سدّ الفجوات في رحلة الطلب → الشحنة → COD batch دون إعادة بناء.
+
+**ما تمّ:**
+
+1. [`shipping/shipment/public-tracking.ts`](apps/web/modules/shipping/shipment/public-tracking.ts) (جديد) — استخراج `fetchPublicShipmentTracking` و `publicShipmentTrackingQueryKey` ليتشاركها كل من tracking card و actions. React Query يدمج الطلبين تلقائياً.
+
+2. [`order-details-actions.tsx`](apps/web/modules/order/order/components/order-details-actions.tsx) — حذف auto-open عند PROCESSING (كان يضع التاجر في فخّ لو dismiss). أُضيف زر يدوي **"إنشاء شحنة"** يظهر عند:
+   - وجود `destinationLat/Lng` في `shippingAddress`
+   - حالة الطلب ضمن `[PENDING, CONFIRMED, PROCESSING, SHIPPED]`
+   - عدم وجود شحنة بعد (يُستدلّ من `tracking.shipmentId`)
+
+3. [`order-shipment-tracking-card.tsx`](apps/web/modules/order/order/components/order-shipment-tracking-card.tsx) — أُضيف زر **"تفاصيل الشحنة (إدارة)"** يفتح `/logistics/shipping/shipments/{shipmentId}` بجانب "التتبع عبر شركة الشحن".
+
+4. [`shipping/shipment/components/details.tsx`](apps/web/modules/shipping/shipment/components/details.tsx):
+   - **Order back-link**: استبدال `Order ID: <uuid>` بـ Button → `/orders/{id}` يعرض `#orderNumber` + اسم المستلم + الهاتف. التسمية: "الطلب".
+   - **Auto-sync**: عند نجاح transition الشحنة، يُقرأ الطلب الحالي ويُطبّق mapping (`SHIPMENT_TO_ORDER_SYNC`):
+     | شحنة جديدة | طلب target | حالات سابقة صحيحة |
+     |---|---|---|
+     | `IN_TRANSIT` | `SHIPPED` | `CONFIRMED, PROCESSING` |
+     | `DELIVERED` | `DELIVERED` | `SHIPPED` |
+     | `FAILED` | `FAILED` | `PROCESSING, SHIPPED` |
+     | `RETURNED` | `RETURNED` | `DELIVERED` |
+   - يُتحقّق guard مزدوج: `validFromOrderStates.includes(currentStatus)` AND `ALLOWED_ORDER_TRANSITIONS[currentStatus]` — وإلا يظهر `toast.info` ويبقى الطلب كما هو.
+
+5. [`cod-batch-detail-page.tsx`](apps/web/modules/shipping/cod/components/cod-batch-detail-page.tsx) — قسم جديد **"شحنات هذه الدفعة"**:
+   - Aggregation: `listShipments()` filtered by `shippingProviderId === batch.shippingProviderId` + `status === DELIVERED` + `deliveredAt` يطابق `settlementDate` (calendar day).
+   - كل صفّ يحوي link لـ `/orders/{id}` + المُحصَّل + تاريخ التسليم + زر "حركات COD" → `/logistics/shipping/shipments/{id}/cod`.
+   - subtitle ينبّه إلى أنها مطابقة تقريبية (المزود قد يتأخّر في إرسال COD).
+
+6. [`shipping/shipment/components/shipments-filters.tsx`](apps/web/modules/shipping/shipment/components/shipments-filters.tsx) (جديد) + [`table.tsx`](apps/web/modules/shipping/shipment/components/table.tsx) + [`view.tsx`](apps/web/modules/shipping/shipment/components/view.tsx):
+   - فلاتر client-side: الحالة (Select)، المزود (Select)، نطاق تاريخ الإنشاء.
+   - زر "مسح الفلاتر"، إعادة pageIndex إلى 0 عند أي تغيير.
+   - نفس نمط [`cod-reconciliation-filters.tsx`](apps/web/modules/shipping/cod/components/cod-reconciliation-filters.tsx) — interim حتى يضيف الـ backend `@RequestParam` للقائمة.
+
+7. [`shipping/shipment/actions.ts`](apps/web/modules/shipping/shipment/actions.ts) و [`shipping/provider/actions.ts`](apps/web/modules/shipping/provider/actions.ts) — `listShipments` و `listShippingProviders` صارا يقرآن `data` كـ array مباشر OR `data.content` (Spring Page) ليبقيا متوافقَين مع redesign الـ backend (2026-04-11). نفس الإصلاح المُطبّق على [`order/components/table.tsx`](apps/web/modules/order/order/components/table.tsx).
+
+**معيار القبول المُحقَّق:**
+- زر "إنشاء شحنة" ظاهر للطلبات الواردة، يختفي بعد الإنشاء.
+- شحنة DELIVERED → الطلب يصير DELIVERED تلقائياً (toast نجاح مزدوج)؛ لو الحالة الحالية لا تسمح، toast.info دون كسر الـ flow.
+- من شاشة الشحنة، نقرة على رقم الطلب تفتح صفحة الطلب.
+- في COD batch detail، قائمة الشحنات المساهمة تظهر مع روابط لتفاصيل الشحنة و COD entries.
+- فلاتر قائمة الشحنات تعمل (status/provider/date)، "مسح الفلاتر" يُعيد القائمة كاملة.
+- typecheck نظيف؛ lint بدون warnings جديدة.
+
+---
+
 ## القسم 3 — Phase 12: Customer Storefront ⏳
 
 **الهدف:** تطبيق العميل (Cart → Checkout → My Orders → Tracking) كنطاق منفصل.
@@ -300,6 +348,9 @@
 | نظام i18n | ❓ | `next-intl` مرشّح — يحتاج موافقة dep جديد |
 | رفع الصور (logo) | ✅ مكتمل | الـ backend دعم multipart inline على endpoints الفاتورة (2026-05-05) والـ frontend استهلكها في Phase 11.1. |
 | دعم backend لفلاتر COD list | ❌ غير مدعوم بعد | الـ frontend يفلتر client-side حالياً (Phase 11.2). طلب backend: إضافة `@RequestParam` لـ `shippingProviderId` + `settlementDateFrom/To` على `GET /admin/shipping/cod/reconciliation`. الترقية على الـ frontend تتطلّب فقط تعديل `actions.ts` لتمرير الـ params. |
+| دعم backend لفلاتر/pagination قائمة الشحنات | ❌ غير مدعوم بعد | `GET /admin/shipping/shipments` يعيد `List<>` كامل بلا query params. الـ frontend يفلتر client-side (Phase 11.7). طلب backend: pagination + `@RequestParam` لـ `status`, `shippingProviderId`, `createdAtFrom/To`. |
+| GET /admin/shipping/cod/reconciliation/{batchId}/shipments | ❌ غير موجود | الـ frontend يجمّع تقريبياً عبر تطابق provider + DELIVERED + settlementDate (Phase 11.7). Endpoint مخصّص يعطي تطابقاً دقيقاً يربط batch ↔ COD entries ↔ shipments على مستوى الـ backend. |
+| تزامن SHP→ORD على مستوى الـ backend | ❌ غير موجود | الـ frontend يطبّق التزامن (Phase 11.7) عبر transitionAdminOrderStatus بعد transition الشحنة. الأنسب لاحقاً: backend يستهلك `ShipmentStatusChangedEvent` ويُحدّث الـ order تلقائياً، ثم نُزيل المنطق من الـ FE. |
 
 ---
 
@@ -312,6 +363,7 @@ Phase 11.3 (delete mock-service) ← ✅ مكتمل
 Phase 11.4 (order-edit RHF)     ← ✅ مكتمل
 Phase 11.5 (i18n + polish)      ← بعد موافقة dep
 Phase 11.6 (E2E manual)         ← بعد كل ما سبق
+Phase 11.7 (SHP polish + ربط)   ← ✅ مكتمل
 
 ثم:
 

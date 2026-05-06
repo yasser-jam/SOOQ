@@ -1,12 +1,21 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { ExternalLink, MapPin, PackageOpen, Truck } from "lucide-react"
+import Link from "next/link"
+import {
+  ExternalLink,
+  MapPin,
+  PackageOpen,
+  Settings,
+  Truck,
+} from "lucide-react"
 
-import { api } from "@/lib/api"
-import { SHIPMENT_STATUS_META, type ShipmentStatus } from "@/lib/domain-enums"
-import type { ApiResponse } from "@/lib/types"
+import { SHIPMENT_STATUS_META } from "@/lib/domain-enums"
 import { formatOrderDateTime } from "@/modules/order/order/utils"
+import {
+  fetchPublicShipmentTracking,
+  publicShipmentTrackingQueryKey,
+} from "@/modules/shipping/shipment/public-tracking"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -17,76 +26,51 @@ import {
 } from "@workspace/ui/components/card"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
-interface ShipmentStatusHistoryEntry {
-  status: ShipmentStatus
-  timestamp: string
-}
-
-interface PublicShipmentTrackingResponse {
-  shipmentId?: string
-  orderId?: string
-  shipmentStatus?: ShipmentStatus
-  statusLabel?: string
-  carrierTrackingUrl?: string | null
-  officePickupInstructions?: string | null
-  deliveredAt?: string | null
-  createdAt?: string
-  statusHistory?: ShipmentStatusHistoryEntry[]
-}
-
 interface OrderShipmentTrackingCardProps {
   orderId: string
-}
-
-const fetchShipmentTracking = async (
-  orderId: string
-): Promise<PublicShipmentTrackingResponse | null> => {
-  try {
-    const response = await api<ApiResponse<PublicShipmentTrackingResponse>>(
-      `/public/shipping/track/${orderId}`
-    )
-    return response.data ?? null
-  } catch (error) {
-    const status = (error as { status?: number })?.status
-
-    if (status === 404) return null
-
-    throw error
-  }
 }
 
 export default function OrderShipmentTrackingCard({
   orderId,
 }: OrderShipmentTrackingCardProps) {
   const { data, isPending, isError } = useQuery({
-    queryKey: ["public", "shipping", "track", orderId],
-    queryFn: () => fetchShipmentTracking(orderId),
+    queryKey: publicShipmentTrackingQueryKey(orderId),
+    queryFn: () => fetchPublicShipmentTracking(orderId),
     retry: false,
+    enabled: Boolean(orderId),
   })
 
   return (
     <Card className="gap-6 rounded-3xl py-6">
       <CardHeader className="pb-0">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="text-xl">تتبع الشحنة</CardTitle>
 
-          {data?.carrierTrackingUrl ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              asChild
-            >
-              <a
-                href={data.carrierTrackingUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                التتبع عبر شركة الشحن
-                <ExternalLink data-icon="inline-end" />
-              </a>
-            </Button>
-          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {data?.shipmentId ? (
+              <Button type="button" size="sm" variant="outline" asChild>
+                <Link
+                  href={`/logistics/shipping/shipments/${data.shipmentId}`}
+                >
+                  تفاصيل الشحنة (إدارة)
+                  <Settings data-icon="inline-end" />
+                </Link>
+              </Button>
+            ) : null}
+
+            {data?.carrierTrackingUrl ? (
+              <Button type="button" size="sm" variant="outline" asChild>
+                <a
+                  href={data.carrierTrackingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  التتبع عبر شركة الشحن
+                  <ExternalLink data-icon="inline-end" />
+                </a>
+              </Button>
+            ) : null}
+          </div>
         </div>
       </CardHeader>
 

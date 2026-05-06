@@ -19,11 +19,20 @@ const normalizeProvider = (
 })
 
 export const listShippingProviders = async (): Promise<ShippingProvider[]> => {
-	const response = await api<ApiResponse<ShippingProviderApiResponse[]>>(
-		"/admin/shipping/providers"
-	)
+	// Backend currently returns a plain array, but the 2026-04-11 redesign is
+	// migrating list endpoints to Spring Page (`{ content: [...] }`). Read
+	// both shapes so a future backend change doesn't blank the dropdown.
+	const response = await api<
+		ApiResponse<
+			| ShippingProviderApiResponse[]
+			| { content?: ShippingProviderApiResponse[] }
+		>
+	>("/admin/shipping/providers")
 
-	return response.data?.map(normalizeProvider) ?? []
+	const raw = response.data
+	const items = Array.isArray(raw) ? raw : (raw?.content ?? [])
+
+	return items.map(normalizeProvider)
 }
 
 export const getShippingProvider = async (

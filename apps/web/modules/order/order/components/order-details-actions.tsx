@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import {
   AlertTriangle,
@@ -11,6 +11,7 @@ import {
   Download,
   FileText,
   PackageCheck,
+  PackagePlus,
   PenLine,
   Receipt,
   RefreshCcw,
@@ -41,6 +42,10 @@ import {
 } from "@/modules/order/invoice/actions"
 import { invoiceQueryKeys } from "@/modules/order/invoice/queryKeys"
 import CreateShipmentDialog from "@/modules/shipping/shipment/components/create-shipment-dialog"
+import {
+  fetchPublicShipmentTracking,
+  publicShipmentTrackingQueryKey,
+} from "@/modules/shipping/shipment/public-tracking"
 import { Button } from "@workspace/ui/components/button"
 
 import type { PaymentMethod } from "@/lib/domain-enums"
@@ -96,15 +101,21 @@ export default function OrderDetailsActions({
 
   const { mutate: transition, isPending: isTransitioning } = useMutation({
     mutationFn: transitionAdminOrderStatus,
-    onSuccess: async (_data, variables) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: orderQueryKeys.all })
-      // Auto-open shipment creation dialog when transitioning to PROCESSING
-      // (per the doc: PROCESSING transition triggers shipment creation).
-      if (variables.data.targetStatus === "PROCESSING") {
-        setShipmentDialogOpen(true)
-      }
     },
   })
+
+  // Shared with OrderShipmentTrackingCard via the same queryKey — React Query
+  // dedupes the network call. We only need to know whether a shipment exists
+  // (to decide whether to show the "Create Shipment" button).
+  const { data: tracking } = useQuery({
+    queryKey: publicShipmentTrackingQueryKey(orderId),
+    queryFn: () => fetchPublicShipmentTracking(orderId),
+    retry: false,
+    enabled: Boolean(orderId),
+  })
+  const hasShipment = Boolean(tracking?.shipmentId)
 
   const invalidateAfterInvoiceMutation = async () => {
     await queryClient.invalidateQueries({
@@ -143,7 +154,24 @@ export default function OrderDetailsActions({
   const allowedTransitions = ALLOWED_ORDER_TRANSITIONS[status] ?? []
   const canCancel = CANCELLABLE_STATUSES.includes(status)
   const canEdit = EDITABLE_STATUSES.includes(status)
-  const canRefund = REFUNDABLE_STATUSES.includes(status)
+  // Refund is only meaningful for online-paid orders. COD orders settle through
+  // the COD reconciliation flow, not the refund endpoint (which 422s on COD).
+  const canRefund = REFUNDABLE_STATUSES.includes(status) && paymentMethod !== "COD"
+
+  // Manual create-shipment button — replaces the previous auto-open on the
+  // PROCESSING transition. Visible only when a shipment can still be created
+  // (terminal/cancelled orders are out) and one doesn't already exist.
+  const SHIPPABLE_STATUSES: OrderStatus[] = [
+    "PENDING",
+    "CONFIRMED",
+    "PROCESSING",
+    "SHIPPED",
+  ]
+  const canCreateShipment =
+    !hasShipment &&
+    SHIPPABLE_STATUSES.includes(status) &&
+    typeof destinationLat === "number" &&
+    typeof destinationLng === "number"
 
   const runTransition = (target: TransitionableOrderStatus) => {
     transition(
@@ -186,6 +214,18 @@ export default function OrderDetailsActions({
           >
             تعديل الطلب
             <PenLine data-icon="inline-end" />
+          </Button>
+        ) : null}
+
+        {canCreateShipment ? (
+          <Button
+            type="button"
+            size="md"
+            variant="secondary"
+            onClick={() => setShipmentDialogOpen(true)}
+          >
+            إنشاء شحنة
+            <PackagePlus data-icon="inline-end" />
           </Button>
         ) : null}
 

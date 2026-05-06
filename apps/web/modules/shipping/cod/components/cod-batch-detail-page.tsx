@@ -1,12 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
+import type { ColumnDef } from "@tanstack/react-table"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, ExternalLink } from "lucide-react"
 
 import ConfirmAlert from "@/components/system/confirm-alert"
+import DataTable from "@/components/system/table"
 import { formatSyp } from "@/lib/money"
+import { listShipments } from "@/modules/shipping/shipment/actions"
+import { shipmentQueryKeys } from "@/modules/shipping/shipment/queryKeys"
+import type { Shipment } from "@/modules/shipping/shipment/types"
+import { formatShipmentDateTime } from "@/modules/shipping/shipment/utils"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -27,6 +34,16 @@ import {
 } from "../model"
 import { codReconciliationQueryKeys } from "../queryKeys"
 import type { CodSettlementStatus } from "../types"
+
+// settlementDate from the backend is "yyyy-MM-dd"; shipment.deliveredAt is a
+// full ISO timestamp. Compare on calendar day only.
+const isSameCalendarDay = (
+  isoTimestamp: string | null | undefined,
+  ymd: string | null | undefined
+): boolean => {
+  if (!isoTimestamp || !ymd) return false
+  return isoTimestamp.startsWith(ymd)
+}
 
 interface CodBatchDetailPageViewProps {
   batchId: string
@@ -58,6 +75,80 @@ export default function CodBatchDetailPageView({
   const status = batch?.settlementStatus
   const transitions = status ? COD_SETTLEMENT_STATUS_TRANSITIONS[status] : []
   const statusMeta = status ? COD_SETTLEMENT_STATUS_META[status] : null
+
+  // Backend has no GET /reconciliation/{batchId}/shipments endpoint, so we
+  // approximate: load all shipments (cache shared with the shipments list
+  // page) and filter client-side by provider + DELIVERED + delivery day
+  // matching settlementDate. Heuristic — if 3PL collects COD with a delay,
+  // some shipments may be missed; documented as a backend follow-up.
+  const { data: allShipments = [], isPending: isShipmentsLoading } = useQuery({
+    queryKey: shipmentQueryKeys.list(),
+    queryFn: listShipments,
+    enabled: Boolean(batch),
+  })
+
+  const batchShipments = useMemo<Shipment[]>(() => {
+    if (!batch) return []
+    return allShipments.filter(
+      (shipment) =>
+        shipment.shippingProviderId === batch.shippingProviderId &&
+        shipment.shipmentStatus === "DELIVERED" &&
+        isSameCalendarDay(shipment.deliveredAt, batch.settlementDate)
+    )
+  }, [allShipments, batch])
+
+  const shipmentColumns: ColumnDef<Shipment>[] = [
+    {
+      accessorKey: "orderId",
+      header: "الطلب",
+      cell: ({ row }) => {
+        const orderId = row.original.orderId
+        if (!orderId) return <span>-</span>
+        return (
+          <Button asChild variant="link" size="sm" className="h-auto p-0">
+            <Link href={`/orders/${orderId}`} dir="ltr">
+              {orderId.slice(0, 8)}
+              <ExternalLink data-icon="inline-end" />
+            </Link>
+          </Button>
+        )
+      },
+    },
+    {
+      accessorKey: "collectedCodAmountSyp",
+      header: "المُحصَّل",
+      cell: ({ row }) => (
+        <span dir="ltr">
+          {formatSyp(row.original.collectedCodAmountSyp ?? 0)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "deliveredAt",
+      header: "تاريخ التسليم",
+      cell: ({ row }) => (
+        <span dir="ltr">
+          {formatShipmentDateTime(row.original.deliveredAt ?? undefined)}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      enableSorting: false,
+      header: () => <div />,
+      cell: ({ row }) => {
+        const id = row.original.id
+        if (!id) return null
+        return (
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/logistics/shipping/shipments/${id}/cod`}>
+              حركات COD
+            </Link>
+          </Button>
+        )
+      },
+    },
+  ]
 
   if (isPending) {
     return (
@@ -194,6 +285,26 @@ export default function CodBatchDetailPageView({
               </CardContent>
             </Card>
           ) : null}
+
+          <Card className="lg:col-span-3">
+            <CardHeader>
+              <CardTitle className="text-xl">شحنات هذه الدفعة</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                مطابقة تقريبية: شحنات مسلَّمة بنفس مزود الشحن وبنفس تاريخ
+                التسوية. قد يختلف الحصر الدقيق إذا تأخّر المزود في إرسال
+                التحصيل.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="w-full overflow-hidden rounded-lg border">
+                <DataTable
+                  columns={shipmentColumns}
+                  isLoading={isShipmentsLoading}
+                  data={batchShipments}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 

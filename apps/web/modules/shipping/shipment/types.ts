@@ -55,3 +55,14 @@ export interface CreateShipmentPayload {
   destinationLng: number
   expectedCodAmountSyp?: number | null
 }
+
+// Client-side filters for the shipments list — backend currently returns the
+// full List<ShipmentResponseDto> without query params, so filtering happens in
+// memory. Forward-compatible: when the backend gains @RequestParam support,
+// the action signature stays the same, only its URL changes.
+export interface ShipmentFilters {
+  status?: ShipmentStatus
+  shippingProviderId?: string
+  createdAtFrom?: string
+  createdAtTo?: string
+}

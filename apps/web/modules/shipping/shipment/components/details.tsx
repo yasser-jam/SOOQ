@@ -2,11 +2,24 @@
 
 import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Wallet } from "lucide-react"
+import { ExternalLink, Wallet } from "lucide-react"
+import { toast } from "sonner"
 
 import MapRoute from "@/components/system/map-route"
 import { formatSyp } from "@/lib/money"
+import {
+  getAdminOrder,
+  transitionAdminOrderStatus,
+} from "@/modules/order/order/actions"
+import { initOrderTransition } from "@/modules/order/order/init"
+import { ALLOWED_ORDER_TRANSITIONS } from "@/modules/order/order/model"
+import { orderQueryKeys } from "@/modules/order/order/queryKeys"
+import type {
+  OrderStatus,
+  TransitionableOrderStatus,
+} from "@/modules/order/order/types"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -29,6 +42,38 @@ import { shipmentQueryKeys } from "../queryKeys"
 import type { ShipmentStatus } from "../types"
 import ShipmentTimelineCard from "./timeline"
 
+// Maps a shipment terminal/transit status to the order status it implies, plus
+// which order states are valid sources for that transition. Backend doesn't
+// publish a SHP→ORD event yet, so the FE bridges them defensively: only fire
+// the order transition when the order's current status would actually accept
+// the target (per ALLOWED_ORDER_TRANSITIONS).
+const SHIPMENT_TO_ORDER_SYNC: Partial<
+  Record<
+    ShipmentStatus,
+    {
+      orderTarget: TransitionableOrderStatus
+      validFromOrderStates: OrderStatus[]
+    }
+  >
+> = {
+  IN_TRANSIT: {
+    orderTarget: "SHIPPED",
+    validFromOrderStates: ["CONFIRMED", "PROCESSING"],
+  },
+  DELIVERED: {
+    orderTarget: "DELIVERED",
+    validFromOrderStates: ["SHIPPED"],
+  },
+  FAILED: {
+    orderTarget: "FAILED",
+    validFromOrderStates: ["PROCESSING", "SHIPPED"],
+  },
+  RETURNED: {
+    orderTarget: "RETURNED",
+    validFromOrderStates: ["DELIVERED"],
+  },
+}
+
 export default function ShipmentDetailsPageView({ shipmentId }: { shipmentId: string }) {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -41,6 +86,14 @@ export default function ShipmentDetailsPageView({ shipmentId }: { shipmentId: st
   const { data: events, isLoading: isEventsLoading } = useQuery({
     queryKey: shipmentQueryKeys.events(shipmentId),
     queryFn: () => getShipmentEvents(shipmentId),
+  })
+
+  const orderId = shipment?.orderId
+
+  const { data: order } = useQuery({
+    queryKey: orderQueryKeys.detail(orderId ?? ""),
+    queryFn: () => getAdminOrder(orderId as string),
+    enabled: Boolean(orderId),
   })
 
   const status = shipment?.shipmentStatus
@@ -70,12 +123,51 @@ export default function ShipmentDetailsPageView({ shipmentId }: { shipmentId: st
 
   const [targetStatus, setTargetStatus] = useState<ShipmentStatus | "">("")
 
+  const { mutateAsync: syncOrderTransition } = useMutation({
+    mutationFn: transitionAdminOrderStatus,
+  })
+
   const { mutate: transition, isPending: isTransitioning } = useMutation({
     mutationFn: transitionShipment,
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({ queryKey: shipmentQueryKeys.detail(shipmentId) })
       await queryClient.invalidateQueries({ queryKey: shipmentQueryKeys.events(shipmentId) })
       setTargetStatus("")
+
+      // Best-effort sync: when the shipment moves into a state with a clear
+      // order-side counterpart, also transition the order. We re-read the
+      // order state right before deciding so we don't fire on a stale cache.
+      const sync = SHIPMENT_TO_ORDER_SYNC[variables.data.targetStatus]
+      if (!sync || !orderId) return
+
+      const fresh = await queryClient.fetchQuery({
+        queryKey: orderQueryKeys.detail(orderId),
+        queryFn: () => getAdminOrder(orderId),
+      })
+      const currentOrderStatus = fresh?.status
+
+      if (
+        !currentOrderStatus ||
+        !sync.validFromOrderStates.includes(currentOrderStatus) ||
+        !(ALLOWED_ORDER_TRANSITIONS[currentOrderStatus] ?? []).includes(
+          sync.orderTarget
+        )
+      ) {
+        toast.info(
+          "تم تحديث حالة الشحنة. يجب تحديث حالة الطلب يدوياً — حالته الحالية لا تسمح بالانتقال التلقائي."
+        )
+        return
+      }
+
+      try {
+        await syncOrderTransition(
+          initOrderTransition(orderId, { targetStatus: sync.orderTarget })
+        )
+        await queryClient.invalidateQueries({ queryKey: orderQueryKeys.all })
+        toast.success("تم تحديث حالة الطلب تلقائياً")
+      } catch {
+        // The api interceptor already toasts the error; nothing else to do.
+      }
     },
   })
 
@@ -131,9 +223,38 @@ export default function ShipmentDetailsPageView({ shipmentId }: { shipmentId: st
             <CardTitle className="text-xl">بيانات الشحنة</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 text-sm">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Order ID</span>
-              <span dir="ltr">{shipment?.orderId ?? "-"}</span>
+            <div className="flex items-start justify-between gap-4">
+              <span className="text-muted-foreground">الطلب</span>
+              {orderId ? (
+                <div className="flex flex-col items-end gap-1">
+                  <Button
+                    asChild
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0"
+                  >
+                    <Link href={`/orders/${orderId}`} dir="ltr">
+                      {order?.orderNumber
+                        ? `#${order.orderNumber}`
+                        : orderId.slice(0, 8)}
+                      <ExternalLink data-icon="inline-end" />
+                    </Link>
+                  </Button>
+                  {order?.shippingAddress?.recipientName ? (
+                    <span className="text-xs text-muted-foreground">
+                      {order.shippingAddress.recipientName}
+                      {order.shippingAddress.phone ? (
+                        <>
+                          {" · "}
+                          <span dir="ltr">{order.shippingAddress.phone}</span>
+                        </>
+                      ) : null}
+                    </span>
+                  ) : null}
+                </div>
+              ) : (
+                <span>-</span>
+              )}
             </div>
             <div className="flex items-center justify-between gap-4">
               <span className="text-muted-foreground">المزود</span>
