@@ -1,5 +1,8 @@
 {
     "chat.tools.terminal.autoApprove": {
-        "pnpm": true
+        "pnpm": true,
+        "dashboard": true,
+        "/products/collections/[collection-id]/view/page.tsx": true,
+        "/products/collections/[collection-id]/page.tsx": true
     }
 }

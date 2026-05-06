@@ -29,15 +29,12 @@ import {
 	FieldError,
 	FieldLabel,
 } from "@workspace/ui/components/field"
-import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@workspace/ui/components/select"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { Textarea } from "@workspace/ui/components/textarea"
+import { useState } from "react"
+
+import RulesList from "@/modules/product/collection/components/rules-list"
+import RuleDialog from "@/modules/product/collection/components/rule-dialog"
 
 const collectionFormSchema = productCollectionSchema.omit({
 	id: true,
@@ -46,6 +43,8 @@ const collectionFormSchema = productCollectionSchema.omit({
 })
 
 export default function EditCollectionPage() {
+
+	const [isRuleDialogOpen, setIsRuleDialogOpen] = useState(false)
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const params = useParams()
@@ -206,6 +205,17 @@ export default function EditCollectionPage() {
 					<FieldError errors={[form.formState.errors.isActive]} />
 				</UiField>
 			</form>
+
+			{isEdit && collection && (
+				<div className="mt-4">
+					<RulesList collectionId={collection.id} onCreate={() => setIsRuleDialogOpen(true)} />
+					<RuleDialog
+						collectionId={collection.id}
+						open={isRuleDialogOpen}
+						onOpenChange={(v) => setIsRuleDialogOpen(v)}
+					/>
+				</div>
+			)}
 		</PageDialog>
 	)
 }

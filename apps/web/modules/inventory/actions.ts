@@ -6,6 +6,7 @@ import type {
   InventoryAdjustmentInput,
   InventoryMovement,
   InventoryVariantStatus,
+  InventoryLowStockItem,
 } from "./types"
 
 export const getProductInventoryStatus = async (
@@ -73,4 +74,26 @@ export const setInventoryThreshold = async (
       method: "PUT",
     }
   )
+}
+
+export const getAllLowStockVariants = async (): Promise<InventoryLowStockItem[]> => {
+  const { listProducts } = await import("../product/product/actions")
+  const productsRes = await listProducts()
+  const products = productsRes.data || []
+
+  const promises = products.map(async (p) => {
+    try {
+      const variants = await getLowStockVariants(p.id)
+      return (variants || []).map((v) => ({
+        productId: p.id,
+        productTitle: p.titleAr || p.titleEn || p.id,
+        variant: v,
+      }))
+    } catch {
+      return []
+    }
+  })
+
+  const nested = await Promise.all(promises)
+  return nested.flat()
 }

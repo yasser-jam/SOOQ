@@ -13,8 +13,10 @@ import { z } from "zod"
 import Field from "@/components/system/Field"
 import {
   adjustInventory,
+  getLowStockVariants,
   getProductInventoryStatus,
   getVariantInventoryMovements,
+  setInventoryThreshold,
 } from "@/modules/inventory/actions"
 import { inventoryQueryKeys } from "@/modules/inventory/queryKeys"
 import type {
@@ -270,6 +272,16 @@ export default function ProductInventoryPage() {
     enabled: Boolean(productId),
   })
 
+  const {
+    data: lowStockVariants = [],
+    isPending: isLowStockLoading,
+    refetch: refetchLowStock,
+  } = useQuery({
+    queryKey: inventoryQueryKeys.lowStock(productId),
+    queryFn: () => getLowStockVariants(productId),
+    enabled: Boolean(productId),
+  })
+
   const resolvedSelectedVariantId =
     selectedVariantId &&
     statuses.some((variant) => variant.variantId === selectedVariantId)
@@ -329,6 +341,12 @@ export default function ProductInventoryPage() {
   const selectedVariantHealth = getInventoryHealthMeta(selectedVariant)
   const optionNames =
     product?.options?.map((option) => option.optionNameAr).filter(Boolean) ?? []
+  const lowStockVariantIds = new Set(lowStockVariants.map((variant) => variant.variantId))
+  const lowStockManagedVariants = statuses.filter((variant) =>
+    lowStockVariantIds.has(variant.variantId)
+  )
+
+  const [thresholdDrafts, setThresholdDrafts] = useState<Record<string, string>>({})
 
   const handleAdjustmentSubmit = (data: AdjustmentFormOutput) => {
     if (!selectedVariant) {
@@ -347,8 +365,38 @@ export default function ProductInventoryPage() {
     await Promise.all([
       refetchProduct(),
       refetchStatuses(),
+      refetchLowStock(),
       resolvedSelectedVariantId ? refetchMovements() : Promise.resolve(),
     ])
+  }
+
+  const { mutate: updateThreshold, isPending: isUpdatingThreshold } =
+    useMutation({
+      mutationFn: ({ variantId, threshold }: { variantId: string; threshold: number }) =>
+        setInventoryThreshold(variantId, threshold),
+      onSuccess: async () => {
+        toast.success("تم تحديث حد التنبيه بنجاح")
+        await Promise.all([refetchStatuses(), refetchLowStock()])
+      },
+    })
+
+  const handleThresholdChange = (variantId: string, value: string) => {
+    setThresholdDrafts((current) => ({
+      ...current,
+      [variantId]: value,
+    }))
+  }
+
+  const handleThresholdSave = (variant: InventoryVariantStatus) => {
+    const rawValue = thresholdDrafts[variant.variantId]
+    const nextThreshold = Number(rawValue)
+
+    if (!Number.isFinite(nextThreshold) || nextThreshold < 0) {
+      toast.error("أدخل قيمة صحيحة لحد التنبيه")
+      return
+    }
+
+    updateThreshold({ variantId: variant.variantId, threshold: nextThreshold })
   }
 
   return (
@@ -597,6 +645,109 @@ export default function ProductInventoryPage() {
               ) : (
                 <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-8 text-center text-muted-foreground">
                   لا توجد حركات مخزون لهذا المتغير حتى الآن.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="gap-5 py-6">
+            <CardHeader className="pb-0">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-destructive/10 p-2 text-destructive">
+                  <Info className="size-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">إدارة المخزون المنخفض</CardTitle>
+                  <CardDescription>
+                    راجع المتغيرات التي وصلت إلى حد التنبيه وعدل الحد من هنا.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="flex flex-col gap-4">
+              {isLowStockLoading ? (
+                Array.from({ length: 2 }).map((_, index) => (
+                  <div
+                    key={`low-stock-skeleton-${index}`}
+                    className="rounded-2xl border border-border/80 bg-background/70 p-4"
+                  >
+                    <Skeleton className="h-6 w-40" />
+                    <Skeleton className="mt-3 h-4 w-full max-w-sm" />
+                    <Skeleton className="mt-4 h-10 w-full" />
+                  </div>
+                ))
+              ) : lowStockManagedVariants.length ? (
+                lowStockManagedVariants.map((variant) => {
+                  const draftValue =
+                    thresholdDrafts[variant.variantId] ??
+                    String(variant.lowStockThreshold ?? "")
+
+                  return (
+                    <div
+                      key={variant.variantId}
+                      className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4"
+                    >
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                          <p className="text-text text-lg font-semibold">
+                            {variant.sku}
+                          </p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {variant.variantId}
+                          </p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="destructive">مخزون منخفض</Badge>
+                          <Badge variant="outline">
+                            الرصيد: {formatInventoryQuantity(variant.stockQty)}
+                          </Badge>
+                          <Badge variant="secondary-tonal">
+                            الحد الحالي:{" "}
+                            {variant.lowStockThreshold !== null
+                              ? formatInventoryQuantity(variant.lowStockThreshold)
+                              : "غير محدد"}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                        <Field
+                          name={`threshold-${variant.variantId}`}
+                          control={form.control}
+                          label="حد التنبيه الجديد"
+                          placeholder="مثال: 10"
+                          inputProps={{
+                            type: "number",
+                            min: 0,
+                            value: draftValue,
+                            onChange: (event) =>
+                              handleThresholdChange(
+                                variant.variantId,
+                                event.target.value
+                              ),
+                          }}
+                        />
+
+                        <div className="flex items-end">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="w-full sm:w-auto"
+                            loading={isUpdatingThreshold}
+                            onClick={() => handleThresholdSave(variant)}
+                          >
+                            حفظ الحد
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-8 text-center text-muted-foreground">
+                  لا توجد متغيرات منخفضة المخزون حالياً.
                 </div>
               )}
             </CardContent>

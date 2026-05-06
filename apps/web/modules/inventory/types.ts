@@ -7,6 +7,12 @@ export interface InventoryVariantStatus {
   allowOversell: boolean
 }
 
+export interface InventoryLowStockItem {
+  productId: string
+  productTitle: string
+  variant: InventoryVariantStatus
+}
+
 export interface InventoryMovement {
   movementId: string
   variantId: string
