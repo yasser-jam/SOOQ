@@ -46,6 +46,7 @@ export default function RequestOtpPage() {
         body: {
           phone: payload.phone,
           role: "OWNER",
+          tenantSlug: "my-store",
         },
       }),
 
