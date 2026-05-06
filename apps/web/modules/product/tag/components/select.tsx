@@ -22,8 +22,8 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field"
 
-import { listProductTags, productTagKeys } from "../actions"
-import { listProductCategories } from "../../category/actions"
+import { listProductTags } from "../actions"
+import { tagQueryKeys } from "../queryKeys"
 
 type CategorySelectProps<T extends FieldValues> = {
   name: FieldPath<T>
@@ -61,7 +61,7 @@ export default function TagSelect<T extends FieldValues>({
   const fieldId = String(name)
 
   const { data: tags, isPending } = useQuery({
-    queryKey: productTagKeys.all,
+    queryKey: tagQueryKeys.all,
     queryFn: listProductTags
   })
 

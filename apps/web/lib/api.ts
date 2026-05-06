@@ -57,14 +57,13 @@ const apiInstance: AxiosInstance = axios.create({
   // Error Handler
   // ==============================
   const handleError = (error: AxiosError<unknown>) => {
-    
-    // Show toast error
-    toast.error(error.response?.data?.message || "حدث خطأ ما");
+      const responseData = error.response?.data as { message?: string } | undefined;
+
+      // Show toast error
+      toast.error(responseData?.message || "حدث خطأ ما");
 
 
     if (error.response) {
-      const responseData = error.response.data as { message?: string } | undefined;
-
       return {
         status: error.response.status,
         message: responseData?.message || "Something went wrong",

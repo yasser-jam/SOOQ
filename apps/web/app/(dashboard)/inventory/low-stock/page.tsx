@@ -17,16 +17,16 @@ import { inventoryQueryKeys } from "@/modules/inventory/queryKeys"
 
 export default function LowStockDashboardPage() {
   const queryClient = useQueryClient()
-  const { data: items = [] } = useQuery(
-    inventoryQueryKeys.lowStockAll(),
-    getAllLowStockVariants
-  )
+  const { data: items = [] } = useQuery({
+    queryKey: inventoryQueryKeys.lowStockAll(),
+    queryFn: getAllLowStockVariants,
+  })
 
   const [selected, setSelected] = React.useState<Record<string, boolean>>({})
   const [delta, setDelta] = React.useState(0)
   const [isOpen, setIsOpen] = React.useState(false)
 
-  const { mutateAsync: doBulkAdjust, isLoading: adjusting } = useMutation({
+  const { mutateAsync: doBulkAdjust, isPending: adjusting } = useMutation({
     mutationFn: (payload: BulkInventoryAdjustmentInput) =>
       bulkAdjustInventory(payload),
     onSuccess: async () => {
@@ -56,6 +56,7 @@ export default function LowStockDashboardPage() {
     const adjustments = selectedItems.map((it) => ({
       variantId: it.variant.variantId,
       quantityDelta: delta,
+      reasonCode: "MANUAL_ADJUSTMENT" as const,
     }))
 
     await doBulkAdjust({ adjustments })

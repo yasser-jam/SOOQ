@@ -49,6 +49,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { FieldDescription } from "@workspace/ui/components/field"
+import { Input } from "@workspace/ui/components/input"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Separator } from "@workspace/ui/components/separator"
 import { cn } from "@workspace/ui/lib/utils"
@@ -713,22 +714,27 @@ export default function ProductInventoryPage() {
                       </div>
 
                       <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-                        <Field
-                          name={`threshold-${variant.variantId}`}
-                          control={form.control}
-                          label="حد التنبيه الجديد"
-                          placeholder="مثال: 10"
-                          inputProps={{
-                            type: "number",
-                            min: 0,
-                            value: draftValue,
-                            onChange: (event) =>
+                        <div className="space-y-2">
+                          <label
+                            htmlFor={`threshold-${variant.variantId}`}
+                            className="text-sm font-medium"
+                          >
+                            حد التنبيه الجديد
+                          </label>
+                          <Input
+                            id={`threshold-${variant.variantId}`}
+                            type="number"
+                            min={0}
+                            placeholder="مثال: 10"
+                            value={draftValue}
+                            onChange={(event) =>
                               handleThresholdChange(
                                 variant.variantId,
                                 event.target.value
-                              ),
-                          }}
-                        />
+                              )
+                            }
+                          />
+                        </div>
 
                         <div className="flex items-end">
                           <Button

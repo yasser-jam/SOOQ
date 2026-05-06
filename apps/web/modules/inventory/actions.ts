@@ -82,11 +82,18 @@ export const getAllLowStockVariants = async (): Promise<InventoryLowStockItem[]>
   const products = productsRes.data || []
 
   const promises = products.map(async (p) => {
+    if (!p.id) {
+      return []
+    }
+
+    const productId = p.id
+    const productTitle = p.titleAr || p.titleEn || productId
+
     try {
-      const variants = await getLowStockVariants(p.id)
+      const variants = await getLowStockVariants(productId)
       return (variants || []).map((v) => ({
-        productId: p.id,
-        productTitle: p.titleAr || p.titleEn || p.id,
+        productId,
+        productTitle,
         variant: v,
       }))
     } catch {

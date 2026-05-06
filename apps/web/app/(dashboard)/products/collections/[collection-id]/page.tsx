@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -30,8 +30,6 @@ import {
 	FieldLabel,
 } from "@workspace/ui/components/field"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { useState } from "react"
 
 import RulesList from "@/modules/product/collection/components/rules-list"
 import RuleDialog from "@/modules/product/collection/components/rule-dialog"
@@ -206,7 +204,7 @@ export default function EditCollectionPage() {
 				</UiField>
 			</form>
 
-			{isEdit && collection && (
+			{isEdit && collection?.id && (
 				<div className="mt-4">
 					<RulesList collectionId={collection.id} onCreate={() => setIsRuleDialogOpen(true)} />
 					<RuleDialog
