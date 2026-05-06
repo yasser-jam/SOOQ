@@ -1,7 +1,9 @@
 "use client"
 
+import { useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 import { getAdminOrder } from "@/modules/order/order/actions"
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
@@ -21,9 +23,22 @@ export default function OrderReturnsPageView({
     queryFn: () => getAdminOrder(orderId),
   })
 
+  const isCod = order?.paymentMethod === "COD"
+
+  useEffect(() => {
+    if (isCod) {
+      toast.error(
+        "استرداد طلبات الدفع عند التسليم يتم عبر تسوية مزود الشحن، ليس من هنا"
+      )
+      router.push(`/orders/${orderId}`)
+    }
+  }, [isCod, orderId, router])
+
   const handleClose = (open: boolean) => {
     if (!open) router.push(`/orders/${orderId}`)
   }
+
+  if (isCod) return null
 
   return (
     <InitiateRefundDialog
