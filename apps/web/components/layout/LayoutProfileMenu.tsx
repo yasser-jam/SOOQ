@@ -1,5 +1,5 @@
 "use client"
-import { removeCookie } from "@/lib/cookies"
+import { useLogout } from "@/modules/auth/auth/hooks/useLogout"
 import {
   Avatar,
   AvatarFallback,
@@ -14,15 +14,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import { useRouter } from "next/navigation"
 
 export default function LayoutProfileMenu() {
-  const router = useRouter()
-
-  const logout = () => {
-    removeCookie("sooq-access-token")
-    router.push("/request-otp")
-  }
+  const { logout, isPending } = useLogout()
 
   return (
     <DropdownMenu>
@@ -45,7 +39,13 @@ export default function LayoutProfileMenu() {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem variant="destructive" onClick={logout}>
+          <DropdownMenuItem
+            variant="destructive"
+            disabled={isPending}
+            onClick={() => {
+              void logout()
+            }}
+          >
             تسجيل الخروج
           </DropdownMenuItem>
         </DropdownMenuGroup>

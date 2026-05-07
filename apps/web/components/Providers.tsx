@@ -7,6 +7,7 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { usePathname } from "next/navigation"
 import { ThemeProvider } from "next-themes"
+import { useState } from "react"
 import LayoutHeader from "./layout/LayoutHeader"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Toaster } from "./toaster"
@@ -17,7 +18,14 @@ function AppSidebarWithPathname() {
 }
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const queryClient = new QueryClient()
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: { staleTime: 30_000, retry: 1 },
+        },
+      })
+  )
 
   return (
     <>
