@@ -122,7 +122,8 @@ const handleError = (error: AxiosError<unknown>) => {
     status === 401 ||
     mapped.action === "show-field-error" ||
     mapped.action === "show-cooldown" ||
-    mapped.action === "hide-feature"
+    mapped.action === "hide-feature" ||
+    mapped.action === "request-mfa"
 
   if (!suppressToast && typeof window !== "undefined") {
     toast.error(mapped.toastMessage)

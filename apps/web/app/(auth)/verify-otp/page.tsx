@@ -1,8 +1,6 @@
 "use client"
 
-import api from "@/lib/api"
-import { addCookie } from "@/lib/cookies"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   Avatar,
   AvatarFallback,
@@ -25,22 +23,26 @@ import {
 import { Label } from "@workspace/ui/components/label"
 import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import type { FormEvent } from "react"
 import { Suspense, useEffect, useRef, useState } from "react"
+import type { FormEvent } from "react"
+
+import type { ApiError } from "@/lib/api"
+import { cleanVerifyOtpPayload } from "@/modules/auth/auth/init"
+import { getVerifyOtpMutationOptions } from "@/modules/auth/auth/actions"
+import { verifyOtpSchema } from "@/modules/auth/auth/schema"
 
 function VerifyOtpForm() {
-  type VerifyOtpResponse = {
-    data?: {
-      accessToken?: string
-    }
-  }
-
   const router = useRouter()
+  const queryClient = useQueryClient()
   const searchParams = useSearchParams()
   const phoneNumber = searchParams.get("phoneNumber")?.trim() ?? ""
+  const redirectTo = searchParams.get("redirect") || null
 
   const [otp, setOtp] = useState("")
+  const [totp, setTotp] = useState("")
+  const [mfaRequired, setMfaRequired] = useState(false)
   const otpContainerRef = useRef<HTMLDivElement | null>(null)
+  const totpContainerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (!phoneNumber) {
@@ -53,28 +55,45 @@ function VerifyOtpForm() {
     firstOtpInput?.focus()
   }, [])
 
+  useEffect(() => {
+    if (!mfaRequired) return
+    const firstTotpInput = totpContainerRef.current?.querySelector("input")
+    firstTotpInput?.focus()
+  }, [mfaRequired])
+
   const { isPending, mutate } = useMutation({
-    mutationFn: () =>
-      api<VerifyOtpResponse>("/auth/otp/verify", {
-        method: "POST",
-        body: {
-          phone: phoneNumber,
-          otpCode: otp,
+    ...getVerifyOtpMutationOptions({
+      queryClient,
+      onSuccess: (_response, isHub) => {
+        if (isHub) {
+          router.push("/onboarding/create-store")
+          return
         }
-      }),
-    onSuccess: (response: VerifyOtpResponse) => {
-      const accessToken = response?.data?.accessToken
-      if (accessToken) {
-        addCookie('sooq-access-token', accessToken)
+        router.push(redirectTo ?? "/")
+      },
+    }),
+    onError: (error: ApiError) => {
+      if (error.action === "request-mfa") {
+        setMfaRequired(true)
+        return
       }
-      router.push("/onboarding/create-store")
+      if (error.action === "show-field-error" && error.fieldKey === "otpCode") {
+        setOtp("")
+      }
     },
   })
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!phoneNumber || otp.length !== 6) return
-    mutate()
+    if (mfaRequired && totp.length !== 6) return
+
+    const parsed = verifyOtpSchema.parse({
+      phone: phoneNumber,
+      otpCode: otp,
+      totpCode: mfaRequired ? totp : undefined,
+    })
+    mutate(cleanVerifyOtpPayload(parsed))
   }
 
   if (!phoneNumber) {
@@ -97,6 +116,7 @@ function VerifyOtpForm() {
             أدخل الرمز المكوّن من 6 أرقام الذي أرسلناه إلى هاتفك
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">
@@ -117,8 +137,8 @@ function VerifyOtpForm() {
                   onChange={setOtp}
                   required
                 >
-                  <InputOTPGroup >
-                    <InputOTPSlot index={0} className="h-12 w-10 text-base"  />
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} className="h-12 w-10 text-base" />
                     <InputOTPSlot index={1} className="h-12 w-10 text-base" />
                     <InputOTPSlot index={2} className="h-12 w-10 text-base" />
                     <InputOTPSlot index={3} className="h-12 w-10 text-base" />
@@ -128,14 +148,48 @@ function VerifyOtpForm() {
                 </InputOTP>
               </div>
             </div>
+
+            {mfaRequired && (
+              <div className="grid gap-2">
+                <Label htmlFor="totp" className="justify-center gap-2">
+                  <ShieldCheckIcon className="size-4" />
+                  رمز المصادقة الثنائية
+                </Label>
+                <p className="text-muted-foreground text-center text-xs">
+                  افتح تطبيق المصادقة وأدخل الرمز المؤقت
+                </p>
+                <div ref={totpContainerRef} className="mt-2 flex justify-center py-1" dir="ltr">
+                  <InputOTP
+                    maxLength={6}
+                    id="totp"
+                    name="totp"
+                    value={totp}
+                    onChange={setTotp}
+                    required
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} className="h-12 w-10 text-base" />
+                      <InputOTPSlot index={1} className="h-12 w-10 text-base" />
+                      <InputOTPSlot index={2} className="h-12 w-10 text-base" />
+                      <InputOTPSlot index={3} className="h-12 w-10 text-base" />
+                      <InputOTPSlot index={4} className="h-12 w-10 text-base" />
+                      <InputOTPSlot index={5} className="h-12 w-10 text-base" />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
+
         <CardFooter className="mt-12 flex-col gap-2 px-4">
           <Button
             type="submit"
             size="lg"
             loading={isPending}
-            disabled={otp.length !== 6}
+            disabled={
+              otp.length !== 6 || (mfaRequired && totp.length !== 6)
+            }
             className="w-full"
           >
             تأكيد

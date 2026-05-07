@@ -1,11 +1,7 @@
 "use client"
 
-import { api } from "@/lib/api"
-import Field from "@/components/system/Field"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
-
-import { toast } from "sonner"
-
 import {
   Avatar,
   AvatarFallback,
@@ -20,43 +16,72 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { ArrowLeftIcon, PhoneIcon } from "lucide-react"
+import {
+  Field as UiField,
+  FieldError,
+  FieldLabel,
+} from "@workspace/ui/components/field"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
+import { ArrowLeftIcon, PhoneIcon, UserIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { requestOtpSchema } from "@/lib/schema"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { Controller, useForm } from "react-hook-form"
+import { toast } from "sonner"
+import * as z from "zod"
+
+import Field from "@/components/system/Field"
+import type { ApiError } from "@/lib/api"
+import { cleanRequestOtpPayload, requestOtpDefaultValues } from "@/modules/auth/auth/init"
+import {
+  getRequestOtpMutationOptions,
+} from "@/modules/auth/auth/actions"
+import { useOtpCooldown } from "@/modules/auth/auth/hooks/useOtpCooldown"
+import { requestOtpSchema } from "@/modules/auth/auth/schema"
+
+const merchantRoles = [
+  { value: "OWNER", label: "مالك متجر" },
+  { value: "MANAGER", label: "مدير" },
+  { value: "STAFF", label: "موظف" },
+  { value: "PLATFORM_ADMIN", label: "مشرف منصة" },
+] as const
+
+type RequestOtpForm = z.input<typeof requestOtpSchema>
 
 export default function RequestOtpPage() {
   const router = useRouter()
-
-  type RequestOtpForm = z.infer<typeof requestOtpSchema>
+  const cooldown = useOtpCooldown(60)
 
   const form = useForm<RequestOtpForm>({
     resolver: zodResolver(requestOtpSchema),
-    defaultValues: {
-      phone: "",
-    },
+    defaultValues: requestOtpDefaultValues,
   })
 
   const { isPending, mutate } = useMutation({
-    mutationFn: (payload: RequestOtpForm) =>
-      api("/auth/otp/request", {
-        method: "POST",
-        body: {
-          phone: payload.phone,
-          role: "OWNER",
-        },
-      }),
-
-    onSuccess: (_, payload) => {
-      const q = encodeURIComponent(payload.phone.trim())
-      router.push(`/verify-otp?phoneNumber=${q}`)
+    ...getRequestOtpMutationOptions(),
+    onSuccess: (_, variables) => {
+      cooldown.start(60)
+      const phone = encodeURIComponent(variables.phone)
+      router.push(`/verify-otp?phoneNumber=${phone}`)
       toast.success("تم إرسال رمز التحقق بنجاح")
+    },
+    onError: (error: ApiError) => {
+      if (error.action === "show-cooldown") {
+        cooldown.start(error.retryAfterSeconds ?? 60)
+        toast.error(error.message)
+      }
     },
   })
 
-  const handleSubmit = (data: RequestOtpForm) => mutate(data)
+  const handleSubmit = (data: RequestOtpForm) => {
+    mutate(cleanRequestOtpPayload(requestOtpSchema.parse(data)))
+  }
+
+  const submitDisabled = isPending || cooldown.isCooling
 
   return (
     <Card className="w-full max-w-1/3">
@@ -71,37 +96,73 @@ export default function RequestOtpPage() {
 
           <CardTitle>طلب رمز التحقق</CardTitle>
           <CardDescription>
-            أدخل رقم هاتفك لنرسل إليك رمز التحقق عبر الرسائل النصية
+            أدخل رقم هاتفك لنرسل إليك رمز التحقق عبر الواتساب
           </CardDescription>
         </CardHeader>
+
         <CardContent>
-          <div className="flex flex-col gap-6">
-            <div className="grid gap-2">
-              <Field
-                name="phone"
+          <div className="flex flex-col gap-5">
+            <Field<RequestOtpForm>
+              name="phone"
+              control={form.control}
+              placeholder="+963 9XX XXX XXX"
+              label={
+                <>
+                  <PhoneIcon className="size-4" />
+                  رقم الهاتف
+                </>
+              }
+              inputProps={{ type: "tel", dir: "ltr" }}
+            />
+
+            <Field<RequestOtpForm>
+              name="fullName"
+              control={form.control}
+              placeholder="مطلوب فقط لأول تسجيل"
+              label={
+                <>
+                  <UserIcon className="size-4" />
+                  الاسم الكامل (اختياري)
+                </>
+              }
+            />
+
+            <UiField data-invalid={Boolean(form.formState.errors.role)}>
+              <FieldLabel htmlFor="role">نوع الحساب</FieldLabel>
+              <Controller
+                name="role"
                 control={form.control}
-                placeholder="+963 9XX XXX XXX"
-                label={
-                  <>
-                    <PhoneIcon className="size-4" />
-                    رقم الهاتف
-                  </>
-                }
-                inputProps={{
-                  type: "tel",
-                }}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="role" className="w-full">
+                      <SelectValue placeholder="اختر نوع الحساب" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {merchantRoles.map((role) => (
+                        <SelectItem key={role.value} value={role.value}>
+                          {role.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
-            </div>
+              <FieldError errors={[form.formState.errors.role]} />
+            </UiField>
           </div>
         </CardContent>
-        <CardFooter className="mt-12 flex-col gap-2 px-4">
+
+        <CardFooter className="mt-10 flex-col gap-2 px-4">
           <Button
             type="submit"
             size="lg"
             loading={isPending}
+            disabled={submitDisabled}
             className="w-full"
           >
-            إرسال الرمز
+            {cooldown.isCooling
+              ? `حاول بعد ${cooldown.remaining} ثانية`
+              : "إرسال الرمز"}
             <ArrowLeftIcon />
           </Button>
         </CardFooter>

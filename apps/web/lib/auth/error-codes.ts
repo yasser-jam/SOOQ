@@ -6,6 +6,7 @@ export type AuthErrorAction =
   | "show-field-error"
   | "show-toast"
   | "hide-feature"
+  | "request-mfa"
 
 export type MappedAuthError = {
   errorCode?: string
@@ -30,6 +31,12 @@ export const mapAuthError = (raw: RawError): MappedAuthError => {
   const firstFieldError = raw?.fieldErrors?.[0]
 
   switch (code) {
+    case "MFA_REQUIRED":
+      return {
+        errorCode: code,
+        toastMessage: fallbackMessage(raw, "أدخل رمز المصادقة الثنائية"),
+        action: "request-mfa",
+      }
     case "ERR_1001":
       return {
         errorCode: code,

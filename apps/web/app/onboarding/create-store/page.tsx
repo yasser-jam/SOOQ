@@ -8,9 +8,10 @@ import {
 } from "@/components/onboarding/steps/category-step"
 import { DomainCurrencyStep } from "@/components/onboarding/steps/domain-currency-step"
 import { StoreDetailsStep } from "@/components/onboarding/steps/store-details-step"
-import { api } from "@/lib/api"
 import { categoryIdToStoreCategory } from "@/lib/store-category"
-import { useMutation } from "@tanstack/react-query"
+import { getCreateStoreMutationOptions } from "@/modules/auth/store/actions"
+import { initCreateStorePayload } from "@/modules/auth/store/init"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   Avatar,
   AvatarFallback,
@@ -27,14 +28,6 @@ import { useRouter } from "next/navigation"
 import * as React from "react"
 
 const TOTAL_STEPS = 3
-
-type CreateStoreBody = {
-  storeName: string
-  slug: string
-  primaryCurrencyCode: CurrencyCode
-  storeCategory: string
-  themeCode: "DEFAULT"
-}
 
 type OnboardingStepHeader = {
   title: string
@@ -63,6 +56,7 @@ const ONBOARDING_STEP_HEADERS: OnboardingStepHeader[] = [
 
 export default function CreateStorePage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [step, setStep] = React.useState(0)
   const [categoryId, setCategoryId] = React.useState<string | null>(null)
   const [storeName, setStoreName] = React.useState("")
@@ -73,17 +67,15 @@ export default function CreateStorePage() {
   const selectedCategory = STORE_CATEGORIES.find((c) => c.id === categoryId)
 
   const { isPending, mutate } = useMutation({
-    mutationFn: (body: CreateStoreBody) =>
-      api("/auth/stores", {
-        method: "POST",
-        body,
-      }),
-    onSuccess: () => {
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem(SESSION_SHOW_STORE_SETUP_LOADER, "1")
-      }
-      router.push("/")
-    },
+    ...getCreateStoreMutationOptions({
+      queryClient,
+      onSuccess: () => {
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(SESSION_SHOW_STORE_SETUP_LOADER, "1")
+        }
+        router.push("/")
+      },
+    }),
   })
 
   function goNext() {
@@ -105,13 +97,15 @@ export default function CreateStorePage() {
     const storeSlug = slug.trim()
     if (!categoryId || !name || !storeSlug) return
 
-    mutate({
-      storeName: name,
-      slug: storeSlug,
-      primaryCurrencyCode,
-      storeCategory: categoryIdToStoreCategory(categoryId),
-      themeCode: "DEFAULT",
-    })
+    mutate(
+      initCreateStorePayload({
+        storeName: name,
+        slug: storeSlug,
+        primaryCurrencyCode,
+        storeCategory: categoryIdToStoreCategory(categoryId),
+        themeCode: "DEFAULT",
+      })
+    )
   }
 
   const stepHeader = ONBOARDING_STEP_HEADERS[step]!
