@@ -5,6 +5,7 @@ import cookiesConfig from "@/config/cookies-config"
 const PUBLIC_ROUTES = [
   "/request-otp",
   "/verify-otp",
+  "/onboarding",
   "/_next",
   "/favicon.ico",
   "/api/auth",

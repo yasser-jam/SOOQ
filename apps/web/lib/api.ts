@@ -15,9 +15,9 @@ type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
 
 const apiInstance: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // Don't set a default Content-Type. Axios auto-picks the right header per
+  // body type: application/json for plain objects, multipart/form-data with
+  // boundary for FormData, etc. Setting a default here kills that detection.
 })
 
 const INTERNAL_AUTH_PATHS = [

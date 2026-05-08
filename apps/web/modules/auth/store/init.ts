@@ -10,6 +10,7 @@ export const createStoreFormDefaultValues: CreateStoreInput = {
   primaryCurrencyCode: "SYP",
   storeCategory: "GENERAL",
   themeCode: "DEFAULT",
+  storeLogo: "",
 }
 
 export const slugifyStoreName = (name: string): string =>
@@ -28,6 +29,7 @@ export const initCreateStorePayload = (
   storeName: input.storeName.trim(),
   slug: input.slug.trim().toLowerCase(),
   themeCode: input.themeCode || "DEFAULT",
+  storeLogo: input.storeLogo?.trim() || undefined,
 })
 
 export const updateStoreStatusDefaultValues: UpdateStoreStatusInput = {

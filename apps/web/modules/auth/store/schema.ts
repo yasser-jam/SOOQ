@@ -22,6 +22,7 @@ export const createStoreSchema = z.object({
   primaryCurrencyCode: requiredString("العملة الأساسية"),
   storeCategory: requiredString("تصنيف المتجر"),
   themeCode: z.string().trim().min(1).default("DEFAULT"),
+  storeLogo: optionalString(),
 })
 
 export const updateStoreStatusSchema = z

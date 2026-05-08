@@ -1,4 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query"
+import { queryOptions } from "@tanstack/react-query"
 
 import { api } from "@/lib/api"
 import { setSessionTokens } from "@/lib/auth/internal"
@@ -16,6 +17,8 @@ import type {
 export const storeKeys = {
   all: ["stores"] as const,
   detail: (tenantId: string) => [...storeKeys.all, tenantId] as const,
+  slugAvailability: (slug: string) =>
+    [...storeKeys.all, "slug-availability", slug] as const,
 }
 
 type Envelope<T> = {
@@ -23,6 +26,57 @@ type Envelope<T> = {
   data?: T
   message?: string
 }
+
+export type SlugAvailability = {
+  available: boolean
+  slug: string
+}
+
+export const checkStoreSlug = async (
+  slug: string
+): Promise<SlugAvailability> => {
+  const trimmed = slug.trim()
+  // Backend may return the envelope shape, a raw boolean, or {available: boolean}.
+  // Normalize defensively so the caller doesn't have to care.
+  const response = await api<unknown>(
+    `/auth/stores/check-slug?slug=${encodeURIComponent(trimmed)}`
+  )
+
+  if (typeof response === "boolean") {
+    return { available: response, slug: trimmed }
+  }
+  if (response && typeof response === "object") {
+    const obj = response as {
+      data?: unknown
+      available?: unknown
+    }
+    if (typeof obj.data === "boolean") {
+      return { available: obj.data, slug: trimmed }
+    }
+    if (
+      obj.data &&
+      typeof obj.data === "object" &&
+      typeof (obj.data as { available?: unknown }).available === "boolean"
+    ) {
+      return {
+        available: (obj.data as { available: boolean }).available,
+        slug: trimmed,
+      }
+    }
+    if (typeof obj.available === "boolean") {
+      return { available: obj.available, slug: trimmed }
+    }
+  }
+  // Unknown shape — assume taken to err on the safe side.
+  return { available: false, slug: trimmed }
+}
+
+export const checkStoreSlugQueryOptions = (slug: string) =>
+  queryOptions({
+    queryKey: storeKeys.slugAvailability(slug),
+    queryFn: () => checkStoreSlug(slug),
+    staleTime: 30_000,
+  })
 
 export const createStore = async (
   input: CreateStoreInput

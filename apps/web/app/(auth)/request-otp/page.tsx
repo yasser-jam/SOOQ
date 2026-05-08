@@ -16,50 +16,33 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import {
-  Field as UiField,
-  FieldError,
-  FieldLabel,
-} from "@workspace/ui/components/field"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-import { ArrowLeftIcon, PhoneIcon, UserIcon } from "lucide-react"
+import { ArrowLeftIcon, PhoneIcon } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Controller, useForm } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as z from "zod"
 
 import Field from "@/components/system/Field"
 import type { ApiError } from "@/lib/api"
-import { cleanRequestOtpPayload, requestOtpDefaultValues } from "@/modules/auth/auth/init"
-import {
-  getRequestOtpMutationOptions,
-} from "@/modules/auth/auth/actions"
+import { phoneSchema } from "@/lib/schema"
+import { getRequestOtpMutationOptions } from "@/modules/auth/auth/actions"
 import GoogleSignInButton from "@/modules/auth/auth/components/GoogleSignInButton"
 import { useOtpCooldown } from "@/modules/auth/auth/hooks/useOtpCooldown"
-import { requestOtpSchema } from "@/modules/auth/auth/schema"
 
-const merchantRoles = [
-  { value: "OWNER", label: "مالك متجر" },
-  { value: "MANAGER", label: "مدير" },
-  { value: "STAFF", label: "موظف" },
-  { value: "PLATFORM_ADMIN", label: "مشرف منصة" },
-] as const
+const loginFormSchema = z.object({
+  phone: phoneSchema,
+})
 
-type RequestOtpForm = z.input<typeof requestOtpSchema>
+type LoginForm = z.infer<typeof loginFormSchema>
 
 export default function RequestOtpPage() {
   const router = useRouter()
   const cooldown = useOtpCooldown(60)
 
-  const form = useForm<RequestOtpForm>({
-    resolver: zodResolver(requestOtpSchema),
-    defaultValues: requestOtpDefaultValues,
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: { phone: "" },
   })
 
   const { isPending, mutate } = useMutation({
@@ -78,12 +61,20 @@ export default function RequestOtpPage() {
     },
   })
 
-  const handleSubmit = (data: RequestOtpForm) => {
-    mutate(cleanRequestOtpPayload(requestOtpSchema.parse(data)))
+  const handleSubmit = (data: LoginForm) => {
+    // Login is OWNER-by-default — backend resolves the actual role from the
+    // existing user record. Signup uses /onboarding/create-store, which sends
+    // its own role + fullName.
+    mutate({
+      phone: data.phone.trim(),
+      role: "OWNER",
+      fullName: undefined,
+      tenantSlug: undefined,
+      tenantId: undefined,
+    })
   }
 
   const submitDisabled = isPending || cooldown.isCooling
-  const selectedRole = form.watch("role")
 
   return (
     <Card className="w-full max-w-1/3">
@@ -96,65 +87,28 @@ export default function RequestOtpPage() {
             </AvatarFallback>
           </Avatar>
 
-          <CardTitle>طلب رمز التحقق</CardTitle>
+          <CardTitle>تسجيل الدخول</CardTitle>
           <CardDescription>
             أدخل رقم هاتفك لنرسل إليك رمز التحقق عبر الواتساب
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-          <div className="flex flex-col gap-5">
-            <Field<RequestOtpForm>
-              name="phone"
-              control={form.control}
-              placeholder="+963 9XX XXX XXX"
-              label={
-                <>
-                  <PhoneIcon className="size-4" />
-                  رقم الهاتف
-                </>
-              }
-              inputProps={{ type: "tel", dir: "ltr" }}
-            />
-
-            <Field<RequestOtpForm>
-              name="fullName"
-              control={form.control}
-              placeholder="مطلوب فقط لأول تسجيل"
-              label={
-                <>
-                  <UserIcon className="size-4" />
-                  الاسم الكامل (اختياري)
-                </>
-              }
-            />
-
-            <UiField data-invalid={Boolean(form.formState.errors.role)}>
-              <FieldLabel htmlFor="role">نوع الحساب</FieldLabel>
-              <Controller
-                name="role"
-                control={form.control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="role" className="w-full">
-                      <SelectValue placeholder="اختر نوع الحساب" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {merchantRoles.map((role) => (
-                        <SelectItem key={role.value} value={role.value}>
-                          {role.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              <FieldError errors={[form.formState.errors.role]} />
-            </UiField>
-          </div>
+          <Field<LoginForm>
+            name="phone"
+            control={form.control}
+            placeholder="+963 9XX XXX XXX"
+            label={
+              <>
+                <PhoneIcon className="size-4" />
+                رقم الهاتف
+              </>
+            }
+            inputProps={{ type: "tel", dir: "ltr" }}
+          />
         </CardContent>
 
-        <CardFooter className="mt-10 flex-col gap-3 px-4">
+        <CardFooter className="mt-8 flex-col gap-3 px-4">
           <Button
             type="submit"
             size="lg"
@@ -174,7 +128,17 @@ export default function RequestOtpPage() {
             <span className="h-px flex-1 bg-border" />
           </div>
 
-          <GoogleSignInButton role={selectedRole ?? "OWNER"} />
+          <GoogleSignInButton role="OWNER" />
+
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            ليس لديك متجر بعد؟{" "}
+            <Link
+              href="/onboarding/create-store"
+              className="font-medium text-primary hover:underline"
+            >
+              أنشئ متجرك الآن
+            </Link>
+          </p>
         </CardFooter>
       </form>
     </Card>

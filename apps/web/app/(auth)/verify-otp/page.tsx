@@ -25,6 +25,7 @@ import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useRef, useState } from "react"
 import type { FormEvent } from "react"
+import { toast } from "sonner"
 
 import type { ApiError } from "@/lib/api"
 import { cleanVerifyOtpPayload } from "@/modules/auth/auth/init"
@@ -66,6 +67,7 @@ function VerifyOtpForm() {
       queryClient,
       onSuccess: (_response, isHub) => {
         if (isHub) {
+          toast.info("أكمل إعداد متجرك")
           router.push("/onboarding/create-store")
           return
         }

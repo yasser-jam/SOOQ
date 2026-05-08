@@ -27,6 +27,7 @@ export type Store = {
   disabled: boolean
   themeCode?: string
   maintenanceMessage?: string | null
+  storeLogo?: string | null
 }
 
 export type StoreRegistrationResponse = {
