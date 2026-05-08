@@ -71,12 +71,19 @@ const readCurrentUser = (): CurrentUser | null => {
     getCookie(cookiesConfig.tenantSlug) ??
     (typeof payload.tenantSlug === "string" ? payload.tenantSlug : null)
 
+  // Backend JWT layout (see JwtSecurityProvider#issueAuthentication):
+  //   sub      = username (phone number)
+  //   userId   = user UUID (custom claim)
+  //   tenantId = tenant UUID (custom claim)
+  //   tenantSlug = tenant slug (custom claim, optional)
+  const userIdClaim =
+    typeof payload["userId"] === "string"
+      ? (payload["userId"] as string)
+      : ""
+
   return {
-    userId: payload.sub ?? "",
-    username:
-      typeof payload["username"] === "string"
-        ? (payload["username"] as string)
-        : "",
+    userId: userIdClaim,
+    username: payload.sub ?? "",
     tenantId:
       typeof payload.tenantId === "string"
         ? payload.tenantId

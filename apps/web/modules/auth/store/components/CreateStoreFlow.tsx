@@ -60,7 +60,9 @@ import {
 import { useOtpCooldown } from "@/modules/auth/auth/hooks/useOtpCooldown"
 import { uploadMedia } from "@/modules/media/upload/actions"
 import { validateImageFile } from "@/modules/media/upload/init"
+import { useCurrentUser } from "@/modules/auth/auth/hooks/useCurrentUser"
 
+import { buildStorefrontUrl } from "../storefront-url"
 import {
   checkStoreSlugQueryOptions,
   getCreateStoreMutationOptions,
@@ -90,16 +92,14 @@ const PROVISIONING_FAILED_STEP_LABEL: Record<"upload" | "create", string> = {
   create: "إنشاء المتجر",
 }
 
-const buildStorefrontUrl = (slug: string): string | null => {
-  const base = process.env.NEXT_PUBLIC_STOREFRONT_BASE
-  if (!base) return null
-  const trimmedBase = base.replace(/\/+$/, "")
-  return `${trimmedBase}/${encodeURIComponent(slug)}`
-}
-
 export default function CreateStoreFlow() {
   const queryClient = useQueryClient()
   const cooldown = useOtpCooldown(60)
+  const { user, isAuthenticated, isHub } = useCurrentUser()
+  // The user reached /onboarding/create-store already logged into the
+  // registration hub (typically via /request-otp -> /verify-otp). In that
+  // case OTP was already verified — skip the OTP step entirely.
+  const isResumingFromLogin = isAuthenticated && isHub
 
   const [step, setStep] = React.useState<Step>("form")
   const [logoFile, setLogoFile] = React.useState<File | null>(null)
@@ -140,6 +140,16 @@ export default function CreateStoreFlow() {
       form.setValue("slug", generated, { shouldValidate: false })
     }
   }, [storeName, form])
+
+  // Pre-fill phone with the logged-in user's number when resuming from login,
+  // and lock the field — they can't change phone here since OTP was bound to
+  // their existing number.
+  React.useEffect(() => {
+    if (!isResumingFromLogin) return
+    if (!user?.username) return
+    if (form.getValues("phone")) return
+    form.setValue("phone", user.username, { shouldValidate: false })
+  }, [isResumingFromLogin, user?.username, form])
 
   const requestOtpMutation = useMutation({
     ...getRequestOtpMutationOptions(),
@@ -249,10 +259,18 @@ export default function CreateStoreFlow() {
         return
       }
     } catch {
-      // Fall through; the OTP request will surface a clearer error if backend is down.
+      // Fall through; the OTP / provisioning step will surface a clearer error if backend is down.
     }
 
-    // Request OTP.
+    // Resuming from login → already authenticated against the registration
+    // hub. Skip the OTP step and run upload + create directly.
+    if (isResumingFromLogin) {
+      setStep("provisioning")
+      runProvisioning()
+      return
+    }
+
+    // First-time signup path: request OTP.
     try {
       await requestOtpMutation.mutateAsync({
         phone: values.phone,
@@ -438,9 +456,13 @@ export default function CreateStoreFlow() {
               SOOQ
             </AvatarFallback>
           </Avatar>
-          <CardTitle className="text-xl">أنشئ متجرك</CardTitle>
+          <CardTitle className="text-xl">
+            {isResumingFromLogin ? "أكمل إعداد متجرك" : "أنشئ متجرك"}
+          </CardTitle>
           <CardDescription>
-            املأ بيانات متجرك ثم سنرسل رمز تحقق إلى رقم هاتفك لإكمال الإعداد.
+            {isResumingFromLogin
+              ? "أنت مسجّل الدخول بالفعل. أكمل بيانات المتجر لتفعيله."
+              : "املأ بيانات متجرك ثم سنرسل رمز تحقق إلى رقم هاتفك لإكمال الإعداد."}
           </CardDescription>
         </CardHeader>
 
@@ -549,7 +571,8 @@ export default function CreateStoreFlow() {
               inputProps={{
                 type: "tel",
                 dir: "ltr",
-                disabled: isFormSubmitting,
+                disabled: isFormSubmitting || isResumingFromLogin,
+                readOnly: isResumingFromLogin,
               }}
             />
 

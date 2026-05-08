@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation"
 import * as React from "react"
 import { toast } from "sonner"
 
+import { buildStorefrontUrl } from "@/modules/auth/store/storefront-url"
+
 import { getGoogleOAuthMutationOptions } from "../actions"
 import type { Role } from "../types"
 
@@ -77,9 +79,18 @@ export default function GoogleSignInButton({
   const { mutate, isPending } = useMutation({
     ...getGoogleOAuthMutationOptions({
       queryClient,
-      onSuccess: (_response, isHub) => {
+      onSuccess: (response, isHub) => {
         toast.success("تم تسجيل الدخول")
-        router.push(isHub ? "/onboarding/create-store" : "/")
+        if (isHub) {
+          router.push("/onboarding/create-store")
+          return
+        }
+        const target = buildStorefrontUrl(response.tenantSlug)
+        if (target && typeof window !== "undefined") {
+          window.location.href = target
+          return
+        }
+        router.push("/")
       },
     }),
   })

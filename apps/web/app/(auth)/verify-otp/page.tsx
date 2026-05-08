@@ -31,6 +31,7 @@ import type { ApiError } from "@/lib/api"
 import { cleanVerifyOtpPayload } from "@/modules/auth/auth/init"
 import { getVerifyOtpMutationOptions } from "@/modules/auth/auth/actions"
 import { verifyOtpSchema } from "@/modules/auth/auth/schema"
+import { buildStorefrontUrl } from "@/modules/auth/store/storefront-url"
 
 function VerifyOtpForm() {
   const router = useRouter()
@@ -65,13 +66,25 @@ function VerifyOtpForm() {
   const { isPending, mutate } = useMutation({
     ...getVerifyOtpMutationOptions({
       queryClient,
-      onSuccess: (_response, isHub) => {
+      onSuccess: (response, isHub) => {
         if (isHub) {
           toast.info("أكمل إعداد متجرك")
           router.push("/onboarding/create-store")
           return
         }
-        router.push(redirectTo ?? "/")
+        // Honor an explicit ?redirect= first; otherwise hard-navigate to
+        // the merchant's storefront. Falls back to "/" when there's no
+        // tenantSlug or NEXT_PUBLIC_STOREFRONT_BASE isn't set.
+        if (redirectTo) {
+          router.push(redirectTo)
+          return
+        }
+        const target = buildStorefrontUrl(response.tenantSlug)
+        if (target && typeof window !== "undefined") {
+          window.location.href = target
+          return
+        }
+        router.push("/")
       },
     }),
     onError: (error: ApiError) => {
