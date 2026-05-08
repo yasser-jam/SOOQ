@@ -40,6 +40,7 @@ import { cleanRequestOtpPayload, requestOtpDefaultValues } from "@/modules/auth/
 import {
   getRequestOtpMutationOptions,
 } from "@/modules/auth/auth/actions"
+import GoogleSignInButton from "@/modules/auth/auth/components/GoogleSignInButton"
 import { useOtpCooldown } from "@/modules/auth/auth/hooks/useOtpCooldown"
 import { requestOtpSchema } from "@/modules/auth/auth/schema"
 
@@ -82,6 +83,7 @@ export default function RequestOtpPage() {
   }
 
   const submitDisabled = isPending || cooldown.isCooling
+  const selectedRole = form.watch("role")
 
   return (
     <Card className="w-full max-w-1/3">
@@ -152,7 +154,7 @@ export default function RequestOtpPage() {
           </div>
         </CardContent>
 
-        <CardFooter className="mt-10 flex-col gap-2 px-4">
+        <CardFooter className="mt-10 flex-col gap-3 px-4">
           <Button
             type="submit"
             size="lg"
@@ -165,6 +167,14 @@ export default function RequestOtpPage() {
               : "إرسال الرمز"}
             <ArrowLeftIcon />
           </Button>
+
+          <div className="flex w-full items-center gap-3 py-1 text-xs text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            أو
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <GoogleSignInButton role={selectedRole ?? "OWNER"} />
         </CardFooter>
       </form>
     </Card>
