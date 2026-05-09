@@ -59,25 +59,35 @@ const normalizeProduct = (data: any): Product => {
 }
 
 const normalizeGetProduct = (data: any): Product => {
-  return {
-    ...normalizeProduct(data.product),
-    tagIds: data.tags?.map((t: any) => t.productTagId) || [] ,
-    categoryIds: data.categories?.map((c: any) => c.categoryId) || [],
-    basePrice: data.pricing.basePrice,
-    compareAtPrice: data.pricing.compareAtPrice,
-    currencyCode: data.pricing.currencyCode,
-    options:
-      data.variants?.map((o: any) => ({
-        id: o.optionId,
-        titleAr: o.titleAr,
-        titleEn: o.titleEn,
-        values:
-          o.optionValues?.map((v: any) => ({
-            id: v.optionValueId ,
-            titleAr: v.valueAr,
-            titleEn: v.valueEn,
-          })) || [],
+  // `data` is the API response `data` object containing product, pricing, images,
+  // variantMatrix, variants, categories and tags.
+  const product = data.product || {}
+
+  const options: ProductOption[] = (data.variantMatrix?.options || []).map((opt: any) => ({
+    optionNameAr: opt.optionNameAr,
+    optionNameEn: opt.optionNameEn,
+    sortOrder: opt.sortOrder ?? 0,
+    values:
+      (opt.values || []).map((v: any) => ({
+        valueAr: v.valueAr,
+        valueEn: v.valueEn,
+        colorHex: v.colorHex ?? null,
+        sortOrder: v.sortOrder ?? 0,
       })) || [],
+  }))
+
+  return {
+    ...normalizeProduct(product),
+    // keep backwards-compatible id/title/description mapping from normalizeProduct
+    tagIds: data.tags?.map((t: any) => t.productTagId) || [],
+    categoryIds: data.categories?.map((c: any) => c.categoryId) || [],
+    defaultCategoryId: product.defaultCategoryId ?? undefined,
+    basePrice: data.pricing?.basePrice,
+    compareAtPrice: data.pricing?.compareAtPrice,
+    currencyCode: data.pricing?.currencyCode,
+    options,
+    // images in the new API are under `images` with `publicUrl`
+    mediaUrls: (data.images || []).map((m: any) => m.publicUrl),
   }
 }
 
