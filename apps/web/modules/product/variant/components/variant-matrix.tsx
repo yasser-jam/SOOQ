@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useFormContext, useWatch } from "react-hook-form"
-import { Loader2, Save } from "lucide-react"
+import { History, Loader2, Package, Save } from "lucide-react"
 import { toast } from "sonner"
+
+import InventoryAdjustModal from "@/modules/inventory/components/adjust-modal"
+import VariantHistoryDrawer from "@/modules/inventory/components/variant-history-drawer"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -131,6 +134,31 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
 
   // Cells keyed by composed option key (e.g. "S|Red")
   const [cells, setCells] = useState<Record<string, CellState>>({})
+
+  // Adjust modal + history drawer state
+  const [adjustOpen, setAdjustOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [activeVariantId, setActiveVariantId] = useState<string | null>(null)
+  const [activeVariantSku, setActiveVariantSku] = useState<string>("")
+  const [activeVariantStock, setActiveVariantStock] = useState<
+    number | undefined
+  >(undefined)
+
+  const openAdjust = useCallback(
+    (variantId: string, sku: string, stock: number | undefined) => {
+      setActiveVariantId(variantId)
+      setActiveVariantSku(sku)
+      setActiveVariantStock(stock)
+      setAdjustOpen(true)
+    },
+    []
+  )
+
+  const openHistory = useCallback((variantId: string, sku: string) => {
+    setActiveVariantId(variantId)
+    setActiveVariantSku(sku)
+    setHistoryOpen(true)
+  }, [])
 
   const { data: matrix, isLoading: isMatrixLoading } = useQuery({
     queryKey: variantQueryKeys.matrix(productId),
@@ -422,21 +450,54 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
                         />
                       </TableCell>
                       <TableCell className="text-end">
-                        {existingVariant?.variantId ? (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleCellSave(key)}
-                            disabled={isCellSaving}
-                          >
-                            حفظ
-                          </Button>
-                        ) : (
-                          <Badge variant="secondary" className="text-xs">
-                            جديد
-                          </Badge>
-                        )}
+                        <div className="flex items-center justify-end gap-1">
+                          {existingVariant?.variantId ? (
+                            <>
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                onClick={() =>
+                                  openAdjust(
+                                    existingVariant.variantId!,
+                                    cell.sku || existingVariant.sku || "",
+                                    existingVariant.stockQty
+                                  )
+                                }
+                                title="تعديل المخزون"
+                              >
+                                <Package className="size-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                onClick={() =>
+                                  openHistory(
+                                    existingVariant.variantId!,
+                                    cell.sku || existingVariant.sku || ""
+                                  )
+                                }
+                                title="سجلّ الحركات"
+                              >
+                                <History className="size-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleCellSave(key)}
+                                disabled={isCellSaving}
+                              >
+                                حفظ
+                              </Button>
+                            </>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">
+                              جديد
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   )
@@ -464,6 +525,25 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
           </div>
         ) : null}
       </CardContent>
+
+      {activeVariantId ? (
+        <>
+          <InventoryAdjustModal
+            open={adjustOpen}
+            onOpenChange={setAdjustOpen}
+            variantId={activeVariantId}
+            variantSku={activeVariantSku}
+            currentStock={activeVariantStock}
+            productId={productId}
+          />
+          <VariantHistoryDrawer
+            open={historyOpen}
+            onOpenChange={setHistoryOpen}
+            variantId={activeVariantId}
+            variantSku={activeVariantSku}
+          />
+        </>
+      ) : null}
     </Card>
   )
 }

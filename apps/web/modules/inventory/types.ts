@@ -19,8 +19,30 @@ export interface InventoryMovement {
   createdAt: string
 }
 
+export const INVENTORY_REASON_CODES = [
+  "MANUAL_ADJUSTMENT",
+  "ORDER_PLACED",
+  "ORDER_CANCELLED",
+  "RETURN_APPROVED",
+  "IMPORT",
+] as const
+
+export type InventoryReasonCode = (typeof INVENTORY_REASON_CODES)[number]
+
 export interface InventoryAdjustmentInput {
   variantId: string
   quantityDelta: number
-  reasonCode: "MANUAL_ADJUSTMENT"
+  reasonCode: InventoryReasonCode
+  notes?: string
+}
+
+export interface InventoryBulkAdjustmentInput {
+  adjustments: InventoryAdjustmentInput[]
+}
+
+export interface LowStockVariant {
+  variantId: string
+  sku: string
+  stockQty: number
+  lowStockThreshold: number | null
 }

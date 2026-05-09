@@ -11,4 +11,6 @@ export const inventoryQueryKeys = {
       size?: number
     }
   ) => [...inventoryQueryKeys.movementList(variantId), params ?? {}] as const,
+  lowStock: (productId: string) =>
+    [...inventoryQueryKeys.all, "low-stock", productId] as const,
 }
