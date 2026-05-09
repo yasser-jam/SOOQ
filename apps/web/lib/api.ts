@@ -137,7 +137,6 @@ export const api = async <T = unknown>(
   options: ApiOptions = {}
 ): Promise<T> => {
   const { body, headers, method = "GET", ...restOptions } = options;
-  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
 
   // For FormData, the browser must set Content-Type with the multipart
   // boundary itself. Setting Content-Type to undefined here cancels the
