@@ -47,6 +47,8 @@ const buildProductFormData = ({ files, ...product }: ProductFormData) => {
 }
 
 const normalizeProduct = (data: any): Product => {
+  const mediaBase = process.env.NEXT_PUBLIC_MEDIA_URL || ""
+
   return {
     ...data,
     id: data.productId,
@@ -54,7 +56,7 @@ const normalizeProduct = (data: any): Product => {
     titleEn: data.titleEn,
     descriptionAr: data.descriptionAr,
     descriptionEn: data.descriptionEn,
-    mediaUrls: data.media?.map((m: any) => m.url) || [],
+    mediaUrls: data.media?.map((m: any) => `${mediaBase}${m?.url}`) || [],
   }
 }
 
@@ -87,7 +89,7 @@ const normalizeGetProduct = (data: any): Product => {
     currencyCode: data.pricing?.currencyCode,
     options,
     // images in the new API are under `images` with `publicUrl`
-    mediaUrls: (data.images || []).map((m: any) => m.publicUrl),
+    mediaUrls: (data.images || []).map((m: any) => `${process.env.NEXT_PUBLIC_MEDIA_URL || ""}${m?.publicUrl}`),
   }
 }
 
