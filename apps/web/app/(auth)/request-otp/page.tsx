@@ -1,11 +1,7 @@
 "use client"
 
-import { api } from "@/lib/api"
-import Field from "@/components/system/Field"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
-
-import { toast } from "sonner"
-
 import {
   Avatar,
   AvatarFallback,
@@ -21,43 +17,64 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { ArrowLeftIcon, PhoneIcon } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { requestOtpSchema } from "@/lib/schema"
 import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { toast } from "sonner"
+import * as z from "zod"
+
+import Field from "@/components/system/Field"
+import type { ApiError } from "@/lib/api"
+import { phoneSchema } from "@/lib/schema"
+import { getRequestOtpMutationOptions } from "@/modules/auth/auth/actions"
+import GoogleSignInButton from "@/modules/auth/auth/components/GoogleSignInButton"
+import { useOtpCooldown } from "@/modules/auth/auth/hooks/useOtpCooldown"
+
+const loginFormSchema = z.object({
+  phone: phoneSchema,
+})
+
+type LoginForm = z.infer<typeof loginFormSchema>
 
 export default function RequestOtpPage() {
   const router = useRouter()
+  const cooldown = useOtpCooldown(60)
 
-  type RequestOtpForm = z.infer<typeof requestOtpSchema>
-
-  const form = useForm<RequestOtpForm>({
-    resolver: zodResolver(requestOtpSchema),
-    defaultValues: {
-      phone: "",
-    },
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: { phone: "" },
   })
 
   const { isPending, mutate } = useMutation({
-    mutationFn: (payload: RequestOtpForm) =>
-      api("/auth/otp/request", {
-        method: "POST",
-        body: {
-          phone: payload.phone,
-          role: "OWNER",
-          tenantSlug: "my-store",
-        },
-      }),
-
-    onSuccess: (_, payload) => {
-      const q = encodeURIComponent(payload.phone.trim())
-      router.push(`/verify-otp?phoneNumber=${q}`)
+    ...getRequestOtpMutationOptions(),
+    onSuccess: (_, variables) => {
+      cooldown.start(60)
+      const phone = encodeURIComponent(variables.phone)
+      router.push(`/verify-otp?phoneNumber=${phone}`)
       toast.success("تم إرسال رمز التحقق بنجاح")
+    },
+    onError: (error: ApiError) => {
+      if (error.action === "show-cooldown") {
+        cooldown.start(error.retryAfterSeconds ?? 60)
+        toast.error(error.message)
+      }
     },
   })
 
-  const handleSubmit = (data: RequestOtpForm) => mutate(data)
+  const handleSubmit = (data: LoginForm) => {
+    // Login is OWNER-by-default — backend resolves the actual role from the
+    // existing user record. Signup uses /onboarding/create-store, which sends
+    // its own role + fullName.
+    mutate({
+      phone: data.phone.trim(),
+      role: "OWNER",
+      fullName: undefined,
+      tenantSlug: undefined,
+      tenantId: undefined,
+    })
+  }
+
+  const submitDisabled = isPending || cooldown.isCooling
 
   return (
     <Card className="w-full max-w-1/3">
@@ -70,41 +87,58 @@ export default function RequestOtpPage() {
             </AvatarFallback>
           </Avatar>
 
-          <CardTitle>طلب رمز التحقق</CardTitle>
+          <CardTitle>تسجيل الدخول</CardTitle>
           <CardDescription>
-            أدخل رقم هاتفك لنرسل إليك رمز التحقق عبر الرسائل النصية
+            أدخل رقم هاتفك لنرسل إليك رمز التحقق عبر الواتساب
           </CardDescription>
         </CardHeader>
+
         <CardContent>
-          <div className="flex flex-col gap-6">
-            <div className="grid gap-2">
-              <Field
-                name="phone"
-                control={form.control}
-                placeholder="+963 9XX XXX XXX"
-                label={
-                  <>
-                    <PhoneIcon className="size-4" />
-                    رقم الهاتف
-                  </>
-                }
-                inputProps={{
-                  type: "tel",
-                }}
-              />
-            </div>
-          </div>
+          <Field<LoginForm>
+            name="phone"
+            control={form.control}
+            placeholder="+963 9XX XXX XXX"
+            label={
+              <>
+                <PhoneIcon className="size-4" />
+                رقم الهاتف
+              </>
+            }
+            inputProps={{ type: "tel", dir: "ltr" }}
+          />
         </CardContent>
-        <CardFooter className="mt-12 flex-col gap-2 px-4">
+
+        <CardFooter className="mt-8 flex-col gap-3 px-4">
           <Button
             type="submit"
             size="lg"
             loading={isPending}
+            disabled={submitDisabled}
             className="w-full"
           >
-            إرسال الرمز
+            {cooldown.isCooling
+              ? `حاول بعد ${cooldown.remaining} ثانية`
+              : "إرسال الرمز"}
             <ArrowLeftIcon />
           </Button>
+
+          <div className="flex w-full items-center gap-3 py-1 text-xs text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            أو
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <GoogleSignInButton role="OWNER" />
+
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            ليس لديك متجر بعد؟{" "}
+            <Link
+              href="/onboarding/create-store"
+              className="font-medium text-primary hover:underline"
+            >
+              أنشئ متجرك الآن
+            </Link>
+          </p>
         </CardFooter>
       </form>
     </Card>

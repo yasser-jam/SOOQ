@@ -1,165 +1,180 @@
-// ==============================
-// Axios Instance
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+} from "axios"
+import { toast } from "sonner"
 
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
-import { getCookie, removeCookie } from "./cookies";
-import { toast } from "sonner";
-import { humanizeError } from "./error-codes";
-import { getTenantIdFromToken } from "./jwt";
-import type { ApiResponse, FieldError } from "./types";
+import cookiesConfig from "@/config/cookies-config"
+import { mapAuthError } from "@/lib/auth/error-codes"
+import { refreshSession, logoutSession } from "@/lib/auth/internal"
+import { addCookie, getCookie, removeCookie } from "@/lib/cookies"
 
-// ==============================
+type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
+
 const apiInstance: AxiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
-    withCredentials: true,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  // Don't set a default Content-Type. Axios auto-picks the right header per
+  // body type: application/json for plain objects, multipart/form-data with
+  // boundary for FormData, etc. Setting a default here kills that detection.
+})
 
-  // ==============================
-  // Request Interceptor
-  // ==============================
-  apiInstance.interceptors.request.use(
-    (config) => {
-      const url = (config.url ?? "").toString();
-      const isPublic = url.startsWith("/public/") || url.startsWith("public/");
+const INTERNAL_AUTH_PATHS = [
+  "/api/auth/refresh",
+  "/api/auth/session",
+  "/api/auth/logout",
+]
+const BACKEND_REFRESH_PATH = "/auth/refresh"
 
-      config.headers = config.headers ?? {};
+const isInternalAuthRequest = (url?: string): boolean => {
+  if (!url) return false
+  return (
+    INTERNAL_AUTH_PATHS.some((p) => url.includes(p)) ||
+    url.includes(BACKEND_REFRESH_PATH)
+  )
+}
 
-      const setHeader = (key: string, value: string) => {
-        if (typeof config.headers!.set === "function") {
-          config.headers!.set(key, value);
-        } else {
-          (config.headers as Record<string, string>)[key] = value;
-        }
-      };
-
-      if (isPublic) {
-        // Resolution order:
-        //   1. NEXT_PUBLIC_TENANT_ID env (storefront single-tenant builds)
-        //   2. sooq-tenant-id cookie (set explicitly when known)
-        //   3. tenantId claim from the admin JWT (covers admin pages that
-        //      hit /public/* endpoints, e.g. the tracking widget reused on
-        //      both admin order detail and the future storefront)
-        const accessToken = getCookie("sooq-access-token");
-        const tenantId =
-          process.env.NEXT_PUBLIC_TENANT_ID ||
-          getCookie("sooq-tenant-id") ||
-          (accessToken ? getTenantIdFromToken(accessToken) : null) ||
-          null;
-
-        if (tenantId) {
-          setHeader("X-Tenant-Id", tenantId);
-        }
-      } else {
-        const token = getCookie("sooq-access-token");
-
-        if (token) {
-          setHeader("Authorization", `Bearer ${token}`);
-        }
-      }
-
-      return config;
-    },
-    (error) => Promise.reject(error)
-  );
-
-  // ==============================
-  // Response Interceptor
-  // ==============================
-  apiInstance.interceptors.response.use(
-    (response) => response,
-    (error: AxiosError) => {
-      // Handle 401 globally
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        if (typeof window !== "undefined") {
-            removeCookie('sooq-access-token');
-
-          // Redirect to login page
-          window.location.href = "/request-otp";
-        }
-      }
-
-      return Promise.reject(handleError(error as AxiosError<ApiResponse<unknown>>));
+apiInstance.interceptors.request.use(
+  (config) => {
+    const token = getCookie(cookiesConfig.accessToken)
+    if (token) {
+      config.headers.set("Authorization", `Bearer ${token}`)
     }
-  );
+    return config
+  },
+  (error) => Promise.reject(error)
+)
 
-  // ==============================
-  // Error Handler
-  // ==============================
-  export type ApiError = {
-    status: number
-    message: string
-    errorCode?: string
-    fieldErrors?: FieldError[]
-    data?: unknown
+let refreshPromise: Promise<string | null> | null = null
+
+const triggerRefresh = (): Promise<string | null> => {
+  if (!refreshPromise) {
+    refreshPromise = refreshSession()
+      .then((result) => {
+        if (!result?.accessToken) return null
+        addCookie(cookiesConfig.accessToken, result.accessToken)
+        return result.accessToken
+      })
+      .catch(() => null)
+      .finally(() => {
+        refreshPromise = null
+      })
+  }
+  return refreshPromise
+}
+
+const redirectToLogin = () => {
+  if (typeof window === "undefined") return
+  removeCookie(cookiesConfig.accessToken)
+  removeCookie(cookiesConfig.tenantSlug)
+  window.location.href = "/request-otp"
+}
+
+apiInstance.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const original = error.config as RetryableConfig | undefined
+    const status = error.response?.status
+
+    if (
+      status === 401 &&
+      original &&
+      !original._retry &&
+      !isInternalAuthRequest(original.url)
+    ) {
+      original._retry = true
+
+      const newToken = await triggerRefresh()
+      if (newToken) {
+        original.headers.set("Authorization", `Bearer ${newToken}`)
+        return apiInstance.request(original)
+      }
+
+      // Refresh failed — best-effort logout + redirect.
+      await logoutSession().catch(() => undefined)
+      redirectToLogin()
+    }
+
+    return Promise.reject(handleError(error))
+  }
+)
+
+const handleError = (error: AxiosError<unknown>) => {
+  const responseData = (error.response?.data ?? null) as
+    | {
+        success?: boolean
+        errorCode?: string
+        message?: string
+        fieldErrors?: Array<{ field?: string; message?: string }>
+        retryAfterSeconds?: number
+      }
+    | null
+
+  const status = error.response?.status
+  const mapped = mapAuthError(responseData)
+
+  // Suppress toast for handled actions:
+  // - 401 refresh-and-retry already handled silently above
+  // - field errors should be rendered inline by the caller
+  // - cooldown is rendered inline
+  const suppressToast =
+    status === 401 ||
+    mapped.action === "show-field-error" ||
+    mapped.action === "show-cooldown" ||
+    mapped.action === "hide-feature" ||
+    mapped.action === "request-mfa"
+
+  if (!suppressToast && typeof window !== "undefined") {
+    toast.error(mapped.toastMessage)
   }
 
-  const handleError = (error: AxiosError<ApiResponse<unknown>>): ApiError => {
-    const responseData = error.response?.data;
-    const errorCode = responseData?.errorCode;
-    const rawMessage = responseData?.message ?? error.message;
-    const message = humanizeError(errorCode, rawMessage);
-
-    // Show toast error
-    toast.error(message);
-
-    if (error.response) {
-      return {
-        status: error.response.status,
-        message,
-        errorCode,
-        fieldErrors: responseData?.fieldErrors,
-        data: error.response.data,
-      };
+  if (error.response) {
+    return {
+      status: error.response.status,
+      message: mapped.toastMessage,
+      errorCode: mapped.errorCode,
+      fieldKey: mapped.fieldKey,
+      action: mapped.action,
+      retryAfterSeconds: mapped.retryAfterSeconds,
+      data: error.response.data,
     }
+  }
 
-    if (error.request) {
-      return {
-        status: 0,
-        message: "لا يوجد استجابة من الخادم",
-      };
-    }
-
+  if (error.request) {
     return {
       status: 0,
-      message: error.message,
-    };
-  };
+      message: "لا يوجد اتصال بالخادم",
+    }
+  }
 
-  // ==============================
-  // Generic Request Function
-  // ==============================
+  return {
+    status: 0,
+    message: error.message,
+  }
+}
+
 export type ApiOptions = Omit<AxiosRequestConfig, "url" | "data"> & {
-  body?: AxiosRequestConfig["data"];
-};
+  body?: AxiosRequestConfig["data"]
+}
 
 export const api = async <T = unknown>(
   url: string,
   options: ApiOptions = {}
 ): Promise<T> => {
-  const { body, headers, method = "GET", ...restOptions } = options;
-
-  // For FormData, the browser must set Content-Type with the multipart
-  // boundary itself. Setting Content-Type to undefined here cancels the
-  // instance-level "application/json" default for this request only.
-  const isFormData =
-    typeof FormData !== "undefined" && body instanceof FormData;
+  const { body, headers, method = "GET", ...rest } = options
 
   const response = await apiInstance.request<T>({
     url,
     method,
-    withCredentials: true,
     data: body,
-    headers: {
-      ...headers,
-      ...(isFormData ? { "Content-Type": undefined } : {}),
-    },
-    ...restOptions,
-  });
+    headers: { ...headers },
+    ...rest,
+  })
 
-  return response.data;
-};
+  return response.data
+}
 
-export default api;
+export type ApiError = ReturnType<typeof handleError>
+
+export default api
