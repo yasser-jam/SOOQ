@@ -17,14 +17,14 @@
 | **Phase 3A** — Variant Matrix | `KV-Products` | ✅ | 11 / 11 | Done 2026-05-10 |
 | **Phase 3B** — Attribute Definitions | `KV-Products` | ✅ | 13 / 13 | Done 2026-05-10 |
 | **Phase 3C** — Inventory ops | `KV-Products` | ✅ | 14 / 14 | Done 2026-05-10 |
-| **Phase 4A** — Collections sub-resources | `KV-Products` | ⬜ | 0 / 10 | Per user: all phases on KV-Products |
+| **Phase 4A** — Collections sub-resources | `KV-Products` | ✅ | 10 / 10 | Done 2026-05-10 |
 | **Phase 4B** — Bulk import | `KV-Products` | ⬜ | 0 / 16 | Per user: all phases on KV-Products |
 | **Phase 4C** — Small endpoints | `KV-Products` | ⬜ | 0 / 3 | Per user: all phases on KV-Products |
 | **Phase 5** — UX/NFR polish | `KV-Products` | ⬜ | 0 / 17 | After Phase 4 (final) |
 | **Phase 6** — Storefront B1-B5 | TBD | ⬜ | 0 / 1 | Decision required first |
 | **Final verification** | — | ⬜ | 0 / 5 | After all phases |
 
-**Total:** 75 / 127 steps complete (59%)
+**Total:** 85 / 127 steps complete (67%)
 
 > **How to update:** Each time you finish a step, change `- [ ]` to `- [x]` in that step. When a whole phase is done, update its row above: change ⬜ → ✅ and update the steps counter (e.g., `24 / 24`). Move to 🟡 mid-phase.
 

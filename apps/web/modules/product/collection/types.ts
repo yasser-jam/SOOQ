@@ -29,3 +29,34 @@ export type UpdateProductCollectionInput = {
 	id: string
 	data: CreateProductCollectionInput
 }
+
+/* === Sub-resources (Phase 4A) =========================================== */
+
+export type CollectionProductLink = {
+	productId: string
+	sortOrder: number
+	titleAr?: string
+	titleEn?: string
+	primaryImageUrl?: string
+	displayPrice?: string
+	stockStatus?: string
+}
+
+export type CollectionRule = {
+	collectionRuleId?: string
+	fieldKey: string
+	operator: string
+	value: string
+	logicGroup: "AND" | "OR"
+}
+
+export type CollectionRuleInput = Omit<CollectionRule, "collectionRuleId">
+
+/** Lightweight product preview returned by /preview endpoint. */
+export type CollectionPreviewProduct = {
+	productId: string
+	titleAr?: string
+	titleEn?: string
+	primaryImageUrl?: string
+	displayPrice?: string
+}
