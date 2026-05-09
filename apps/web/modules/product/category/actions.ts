@@ -54,3 +54,20 @@ export const deleteProductCategory = (id: string): Promise<void> =>
 	api<void>(`/admin/categories/${id}`, {
 		method: "DELETE",
 	})
+
+/**
+ * GET /api/v1/admin/categories/{categoryId}/children
+ * Returns immediate children only (1 level). Useful for drill-down navigation
+ * without loading the entire tree.
+ */
+export const getCategoryChildren = async (
+	categoryId: string
+): Promise<ProductCategory[]> => {
+	const response = await api<ApiResponse<ProductCategoryApiModel[]>>(
+		`/admin/categories/${categoryId}/children`
+	)
+	return response.data?.map(normalizeProductCategory) ?? []
+}
+
+export const categoryChildrenQueryKey = (parentId: string) =>
+	[...productCategoryKeys.all, "children", parentId] as const
