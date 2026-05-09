@@ -4,6 +4,7 @@ import { optionalString, requiredString } from "@/lib/schema"
 
 export const productCategorySchema = z.object({
 	id: optionalString(),
+	categoryId: optionalString(),
 	nameAr: requiredString("الاسم بالعربية"),
 	nameEn: requiredString("الاسم بالإنجليزية"),
 	slug: requiredString("الاسم المختصر"),
@@ -14,4 +15,5 @@ export const productCategorySchema = z.object({
 	isActive: z.boolean(),
 	createdAt: optionalString(),
 	updatedAt: optionalString(),
+	children: z.array(z.any()).optional()
 })

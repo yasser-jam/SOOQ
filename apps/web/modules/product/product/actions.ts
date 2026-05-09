@@ -1,149 +1,109 @@
 import type { QueryClient } from "@tanstack/react-query"
 import { queryOptions } from "@tanstack/react-query"
 
-import type { Product } from "./types"
+import type { CreateProductInput, Product, ProductOption, UpdateProductInput } from "./types"
+import api from "@/lib/api"
+import { ApiResponse } from "@/lib/types"
+import { ProductCategory } from "../category/types"
+import { ProductTag } from "../tag/types"
 
-export const productKeys = {
-	all: ["products"] as const,
-	detail: (id: string) => [...productKeys.all, id] as const,
+const normalizeProduct = (data: any): Product => {
+  return {
+    ...data,
+    id: data.productId,
+    titleAr: data.titleAr,
+    titleEn: data.titleEn,
+    descriptionAr: data.descriptionAr,
+    descriptionEn: data.descriptionEn,
+    mediaUrls: data.media?.map((m: any) => m.url) || [],
+    
+  }
 }
 
-export type CreateProductInput = Omit<Product, "id" | "createdAt" | "updatedAt">
-
-export type UpdateProductInput = {
-	id: string
-	data: CreateProductInput
+const normalizeGetProduct = (data: any): Product => {
+  return {
+    ...normalizeProduct(data.product),
+    tagIds: data.tags?.map((t: any) => t.productTagId) || [] ,
+    categoryIds: data.categories?.map((c: any) => c.categoryId) || [],
+    basePrice: data.pricing.basePrice,
+    compareAtPrice: data.pricing.compareAtPrice,
+    currencyCode: data.pricing.currencyCode,
+    options:
+      data.variants?.map((o: any) => ({
+        id: o.optionId,
+        titleAr: o.titleAr,
+        titleEn: o.titleEn,
+        values:
+          o.optionValues?.map((v: any) => ({
+            id: v.optionValueId ,
+            titleAr: v.valueAr,
+            titleEn: v.valueEn,
+          })) || [],
+      })) || [],
+  }
 }
 
-const SIMULATED_DELAY_MS = 1000
+export const listProducts = async (): Promise<ApiResponse<Product[]>> => {
+  let products = await api<ApiResponse<Product[]>>("/admin/products")
 
-let productsStore: Product[] | null = null
+  products.data = products.data?.map((el) => normalizeProduct(el)) || []
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-const nowIso = () => new Date().toISOString()
-
-const getProductsStore = async (): Promise<Product[]> => {
-	if (!productsStore) {
-		const { productsData } = await import("./data")
-		productsStore = productsData.map((product) => ({ ...product }))
-	}
-
-	return productsStore
+  return products
 }
 
-export const listProducts = async (): Promise<Product[]> => {
-	await wait(SIMULATED_DELAY_MS)
-	const products = await getProductsStore()
-	return products.map((product) => ({ ...product }))
-}
-
-export const listProductsQueryOptions = () =>
-	queryOptions({
-		queryKey: productKeys.all,
-		queryFn: listProducts,
-	})
+type ProductGetResponse = ApiResponse<{
+  product: Product
+  categories: ProductCategory[]
+  pricing: {
+    basePrice: number
+    compareAtPrice: number
+    currencyCode: "SYP" | "USD"
+    discountPercentage: number
+    displayCompareAt: string
+    displayPrice: string
+    hasDiscount: boolean
+  }
+  tags: ProductTag[]
+  variants: ProductOption[]
+}>
 
 export const getProduct = async (id: string): Promise<Product> => {
-	await wait(SIMULATED_DELAY_MS)
-	const products = await getProductsStore()
-	const product = products.find((currentProduct) => currentProduct.id === id)
+  const response = await api<ProductGetResponse>(`/admin/products/${id}`)
 
-	if (!product) {
-		throw new Error("Product not found")
-	}
+  console.log(response.data);
 
-	return { ...product }
+  console.log('normalized', normalizeGetProduct(response.data));
+  
+  
+
+  return normalizeGetProduct(response.data)
 }
-
-export const getProductQueryOptions = (id: string) =>
-	queryOptions({
-		queryKey: productKeys.detail(id),
-		queryFn: () => getProduct(id),
-	})
 
 export const updateProduct = async ({
-	id,
-	data,
-}: UpdateProductInput): Promise<Product> => {
-	await wait(SIMULATED_DELAY_MS)
-	const products = await getProductsStore()
-	const productIndex = products.findIndex((currentProduct) => currentProduct.id === id)
-
-	if (productIndex === -1) {
-		throw new Error("Product not found")
-	}
-
-	const updatedProduct: Product = {
-		...products[productIndex],
-		...data,
-		updatedAt: nowIso(),
-	}
-
-	products[productIndex] = updatedProduct
-
-	return { ...updatedProduct }
+  id,
+  data,
+}: UpdateProductInput): Promise<void> => {
+  const fd = new FormData()
+  fd.append("product", new Blob([JSON.stringify(data)], { type: "application/json" }))
+  await api(`/admin/products/${id}`, {
+    method: "PUT",
+    body: fd,
+  })
 }
 
-export const createProduct = async (data: CreateProductInput): Promise<Product> => {
-	await wait(SIMULATED_DELAY_MS)
-	const products = await getProductsStore()
-	const nextId = String(Math.max(0, ...products.map((product) => Number(product.id ?? 0))) + 1)
-	const timestamp = nowIso()
-
-	const createdProduct: Product = {
-		id: nextId,
-		...data,
-		createdAt: timestamp,
-		updatedAt: timestamp,
-	}
-
-	products.unshift(createdProduct)
-
-	return { ...createdProduct }
+export const createProduct = async (
+  data: CreateProductInput
+): Promise<void> => {
+  const fd = new FormData()
+  fd.append("product", new Blob([JSON.stringify(data)], { type: "application/json" }))
+  await api("/admin/products", {
+    method: "POST",
+    body: fd,
+  })
 }
 
-export const deleteProduct = async (id: string): Promise<{ id: string }> => {
-	await wait(SIMULATED_DELAY_MS)
-	const products = await getProductsStore()
-	const productIndex = products.findIndex((currentProduct) => currentProduct.id === id)
-
-	if (productIndex === -1) {
-		throw new Error("Product not found")
-	}
-
-	products.splice(productIndex, 1)
-
-	return { id }
+export const deleteProduct = async (id: string): Promise<void> => {
+  await api(`/products/${id}`, {
+    method: "DELETE",
+  })
 }
-
-export const getUpdateProductMutationOptions = ({
-	productId,
-	queryClient,
-	onSuccess,
-}: {
-	productId: string
-	queryClient: QueryClient
-	onSuccess?: () => void
-}) => ({
-	mutationFn: updateProduct,
-	onSuccess: (updatedProduct: Product) => {
-		queryClient.setQueryData(productKeys.detail(updatedProduct.id ?? productId), updatedProduct)
-		queryClient.invalidateQueries({ queryKey: productKeys.all })
-		onSuccess?.()
-	},
-})
-
-export const getCreateProductMutationOptions = ({
-	queryClient,
-	onSuccess,
-}: {
-	queryClient: QueryClient
-	onSuccess?: () => void
-}) => ({
-	mutationFn: createProduct,
-	onSuccess: (createdProduct: Product) => {
-		queryClient.setQueryData(productKeys.detail(createdProduct.id ?? ""), createdProduct)
-		queryClient.invalidateQueries({ queryKey: productKeys.all })
-		onSuccess?.()
-	},
-})

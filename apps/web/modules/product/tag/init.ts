@@ -1,4 +1,4 @@
-import type { CreateProductTagInput, UpdateProductTagInput } from "./actions"
+import { CreateProductTagInput, UpdateProductTagInput } from "./types"
 
 export const initTag = (
   id: string,

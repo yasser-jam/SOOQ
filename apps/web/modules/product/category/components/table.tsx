@@ -1,194 +1,160 @@
 "use client"
 
-import * as React from "react"
+import { useMemo, useState, useEffect } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ColumnDef } from "@tanstack/react-table"
 import { useRouter } from "next/navigation"
-import { Layers3, PencilIcon, Trash2Icon } from "lucide-react"
+import {
+  ArrowBigLeft,
+  ArrowDownAZ,
+  ArrowUpLeft,
+  ArrowUpRight,
+  Layers3,
+  PlusIcon,
+} from "lucide-react"
 
-import ConfirmAlert from "@/components/system/confirm-alert"
+import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
 import { getInitials } from "@/lib/initials"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
 
 import {
-	deleteProductCategory,
-	listProductCategoriesQueryOptions,
-	productCategoryKeys,
+  deleteProductCategory,
+  listProductCategories,
+  productCategoryKeys,
 } from "../actions"
 import type { ProductCategory } from "../types"
-
-function CategoryActions({
-	onUpdate,
-	onDelete,
-}: {
-	onUpdate?: () => void
-	onDelete?: () => void
-}) {
-	const [open, setOpen] = React.useState(false)
-
-	return (
-		<div className="flex items-center justify-end gap-2">
-			<Button
-				variant="primary"
-				className="rounded-lg"
-				size="icon"
-				aria-label="Edit category"
-				onClick={onUpdate}
-			>
-				<PencilIcon data-icon="inline-start" className="p-0.5" />
-			</Button>
-
-			<Button
-				variant="destructive"
-				className="rounded-lg"
-				size="icon"
-				aria-label="Delete category"
-				onClick={() => setOpen(true)}
-			>
-				<Trash2Icon data-icon="inline-start" className="p-0.5" />
-			</Button>
-
-			<ConfirmAlert
-				open={open}
-				onOpenChange={setOpen}
-				variant="destructive"
-				title="حذف الفئة"
-				description="سيتم حذف الفئة نهائيا ولا يمكن التراجع عن هذا الإجراء."
-				actionLabel="حذف"
-				onAction={onDelete}
-				icon={<Trash2Icon data-icon="inline-start" />}
-			/>
-		</div>
-	)
-}
+import { Button } from "@workspace/ui/components/button"
 
 export default function ProductCategoryTable() {
-	const router = useRouter()
-	const queryClient = useQueryClient()
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const pageSize = 10
+  const [pageIndex, setPageIndex] = useState(0)
 
-	const { mutate: deleteCategory } = useMutation({
-		mutationFn: deleteProductCategory,
-		onSuccess: ({ id }) => {
-			queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
-			queryClient.removeQueries({ queryKey: productCategoryKeys.detail(id) })
-		},
-	})
+  // ===== Data Fetching =====
+  const { data: categories, isPending } = useQuery({
+    queryKey: productCategoryKeys.all,
+    queryFn: listProductCategories,
+  })
 
-	const { data: categories } = useQuery(listProductCategoriesQueryOptions())
+  // ===== Mutations =====
+  const { mutate: deleteCategory } = useMutation({
+    mutationFn: deleteProductCategory,
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
+      queryClient.removeQueries({ queryKey: productCategoryKeys.detail(id) })
+    },
+  })
 
-	const parentCategoryNames = React.useMemo(() => {
-		return new Map(
-			(categories ?? []).map((category) => [category.id ?? "", category.nameAr])
-		)
-	}, [categories])
+  // ===== Computed Values =====
+  const totalCount = categories?.length ?? 0
+  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize))
 
-	const columns: ColumnDef<ProductCategory>[] = [
-		{
-			accessorKey: "nameAr",
-			enableSorting: true,
-			header: "الاسم",
-			cell: ({ row }) => {
-				const category = row.original
+  const parentCategoryNames = useMemo(() => {
+    return new Map(
+      (categories ?? []).map((category) => [category.id ?? "", category.nameAr])
+    )
+  }, [categories])
 
-				return (
-					<div className="flex items-center gap-3">
-						<Avatar>
-							<AvatarFallback>
-								{getInitials(category.nameAr || category.nameEn || "C") || <Layers3 size="18" />}
-							</AvatarFallback>
-						</Avatar>
-						<div className="flex flex-col gap-0.5">
-							<span>{category.nameAr}</span>
-							<span className="text-xs text-muted-foreground">{category.nameEn}</span>
-						</div>
-					</div>
-				)
-			},
-		},
-		{
-			accessorKey: "slug",
-			header: "الاسم المختصر",
-			cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.slug}</span>,
-		},
-		{
-			accessorKey: "parentCategoryId",
-			header: "الفئة الأم",
-			cell: ({ row }) => {
-				const category = row.original
-				const parentName = category.parentCategoryId
-					? parentCategoryNames.get(category.parentCategoryId) ?? "—"
-					: "فئة رئيسية"
+  const pagedCategories = useMemo(() => {
+    if (!categories?.length) return []
+    const start = pageIndex * pageSize
+    return categories.slice(start, start + pageSize)
+  }, [pageIndex, pageSize, categories])
 
-				return <span>{parentName}</span>
-			},
-		},
-		{
-			accessorKey: "sortOrder",
-			header: "الترتيب",
-			cell: ({ row }) => <span>{row.original.sortOrder}</span>,
-		},
-		{
-			accessorKey: "isActive",
-			header: "الحالة",
-			cell: ({ row }) => {
-				const category = row.original
+  // ===== Pagination Reset =====
+  useEffect(() => {
+    setPageIndex((current) => Math.min(current, pageCount - 1))
+  }, [pageCount])
 
-				return category.isActive ? (
-					<Badge variant="secondary-tonal">نشطة</Badge>
-				) : (
-					<Badge variant="outline">غير نشطة</Badge>
-				)
-			},
-		},
-		{
-			id: "actions",
-			enableSorting: false,
-			header: () => <div></div>,
-			cell: (category) => {
-				const categoryId = category.row.original.id
+  // ===== Table Columns =====
+  const columns: ColumnDef<ProductCategory>[] = [
+    {
+      accessorKey: "nameAr",
+      enableSorting: true,
+      header: "الاسم",
+      cell: ({ row }) => {
+        const category = row.original
 
-				return (
-					<CategoryActions
-						onUpdate={() => {
-							if (!categoryId) return
-							router.push(`/products/categories/${categoryId}`)
-						}}
-						onDelete={() => {
-							if (!categoryId) return
-							deleteCategory(categoryId)
-						}}
-					/>
-				)
-			},
-		},
-	]
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarFallback>
+                {getInitials(category.nameEn) || <Layers3 size="18" />}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col gap-0.5">
+              <span>{category.nameAr}</span>
+              <span className="text-xs text-muted-foreground">
+                {category.slug}
+              </span>
+            </div>
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: "isActive",
+      header: "الحالة",
+      cell: ({ row }) => {
+        const category = row.original
 
-	const pageSize = 10
-	const [pageIndex, setPageIndex] = React.useState(0)
-	const totalCount = categories?.length ?? 0
-	const pageCount = Math.max(1, Math.ceil(totalCount / pageSize))
+        return category.isActive ? (
+          <Badge variant="secondary-tonal">نشطة</Badge>
+        ) : (
+          <Badge variant="outline">غير نشطة</Badge>
+        )
+      },
+    },
+    {
+      id: "actions",
+      enableSorting: false,
+      header: () => <div></div>,
+      cell: (category) => {
+        const categoryId =
+          category.row.original.id || category.row.original.categoryId
 
-	React.useEffect(() => {
-		setPageIndex((current) => Math.min(current, pageCount - 1))
-	}, [pageCount])
+        return (
+          <TableActions
+            onUpdate={() => {
+              console.log(category)
+              if (!categoryId) return
+              router.push(`/products/categories/${categoryId}`)
+            }}
+            onDelete={() => {
+              if (!categoryId) return
+              deleteCategory(categoryId)
+            }}
+          >
+            <Button
+              variant="secondaryFlat"
+              className="rounded-lg"
+              size="icon"
+              aria-label="Add subcategory"
+              onClick={() =>
+                router.push(`/products/categories/create?parentId=${categoryId}`)
+              }
+            >
+              <PlusIcon data-icon="inline-start" className="p-0.5" />
+            </Button>
+          </TableActions>
+        )
+      },
+    },
+  ]
 
-	const pagedCategories = React.useMemo(() => {
-		if (!categories?.length) return []
-		const start = pageIndex * pageSize
-		return categories.slice(start, start + pageSize)
-	}, [pageIndex, pageSize, categories])
-
-	return (
-		<div className="w-full overflow-hidden rounded-lg border">
-			<DataTable
-				columns={columns}
-				data={pagedCategories}
-				pagination={{ pageIndex, pageSize, pageCount }}
-				onPageChange={setPageIndex}
-			/>
-		</div>
-	)
+  return (
+    <div className="w-full overflow-hidden rounded-lg border">
+      <DataTable
+        columns={columns}
+        data={pagedCategories}
+        pagination={{ pageIndex, pageSize, pageCount }}
+        onPageChange={setPageIndex}
+        isLoading={isPending}
+        subrowsKey="children"
+      />
+    </div>
+  )
 }

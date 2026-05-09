@@ -44,7 +44,7 @@ export function DomainCurrencyStep({
           <div className="grid gap-2">
             <Label htmlFor="storeSlug">
               <Link2 className="size-4" />
-              رابط المتجر (النطاق)
+              اسم المتجر (في الرابط)
             </Label>
             <Input
               id="storeSlug"
@@ -55,7 +55,7 @@ export function DomainCurrencyStep({
                   e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "")
                 )
               }
-              placeholder="https://sooq.com/my-store"
+              placeholder="your-store-name.sooq.store"
               pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
               autoCapitalize="none"
               autoCorrect="off"

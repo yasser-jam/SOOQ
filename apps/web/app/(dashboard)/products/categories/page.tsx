@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
@@ -18,8 +18,8 @@ export default function ProductsCategoriesPage() {
 	const router = useRouter()
 
 	return (
-		<div className="container">
-			<div className="my-6 flex justify-between">
+		<div className="container my-6 flex flex-col gap-6">
+			<div className="flex justify-between items-center">
 				<div className="page-title">فئات المنتجات</div>
 
 				<div className="flex items-center gap-4">
@@ -41,7 +41,7 @@ export default function ProductsCategoriesPage() {
 					<Button
 						size="md"
 						variant="secondary"
-						onClick={() => router.push('/products/categories/create')}
+						onClick={() => router.push("/products/categories/create")}
 					>
 						إضافة فئة
 						<Plus data-icon="inline-end" />

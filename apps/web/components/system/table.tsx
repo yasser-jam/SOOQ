@@ -4,9 +4,11 @@ import * as React from "react"
 import {
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  type ExpandedState,
   type SortingState,
 } from "@tanstack/react-table"
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react"
@@ -28,6 +30,7 @@ import {
   PaginationPrevious,
 } from "@workspace/ui/components/pagination"
 import { Button } from "@workspace/ui/components/button"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { cn } from "@workspace/ui/lib/utils"
 
 type PaginationConfig = {
@@ -41,6 +44,8 @@ type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[]
   pagination?: PaginationConfig
   onPageChange?: (pageIndex: number) => void
+  isLoading?: boolean
+  subrowsKey?: keyof TData & string
 }
 
 export default function DataTable<TData, TValue>({
@@ -48,8 +53,22 @@ export default function DataTable<TData, TValue>({
   columns,
   pagination,
   onPageChange,
+  isLoading,
+  subrowsKey,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
+  const [expanded, setExpanded] = React.useState<ExpandedState>({})
+
+  const getSubRows = React.useCallback(
+    (row: TData) => {
+      if (!subrowsKey) return undefined
+
+      const value = (row as Record<string, unknown>)[subrowsKey]
+
+      return Array.isArray(value) ? (value as TData[]) : undefined
+    },
+    [subrowsKey]
+  )
 
   const paginationState = pagination
     ? {
@@ -62,9 +81,13 @@ export default function DataTable<TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getSubRows,
+    onExpandedChange: setExpanded,
     onSortingChange: setSorting,
     state: {
+      expanded,
       sorting,
       ...(paginationState ? { pagination: paginationState } : {}),
     },
@@ -142,12 +165,53 @@ export default function DataTable<TData, TValue>({
         </TableHeader>
 
         <TableBody>
-          {table.getRowModel().rows.length ? (
+          {isLoading ? (
+            Array.from({ length: pagination?.pageSize ?? 5 }).map((_, rowIndex) => (
+              <TableRow key={rowIndex}>
+                {columns.map((_, colIndex) => (
+                  <TableCell key={colIndex}>
+                    <Skeleton className="h-6 w-full" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                {row.getVisibleCells().map((cell) => (
+                {row.getVisibleCells().map((cell, cellIndex) => (
                   <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {subrowsKey && cellIndex === 0 ? (
+                      <div
+                        className="flex items-center gap-2"
+                        style={{ paddingInlineStart: `${row.depth}rem` }}
+                      >
+                        {row.getCanExpand() ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-6"
+                            onClick={row.getToggleExpandedHandler()}
+                            aria-label={row.getIsExpanded() ? "Collapse row" : "Expand row"}
+                          >
+                            <ChevronDownIcon
+                              className={cn(
+                                "size-4 transition-transform",
+                                row.getIsExpanded() ? "rotate-0" : "rotate-90"
+                              )}
+                            />
+                          </Button>
+                        ) : (
+                          <span className="inline-block size-6" aria-hidden />
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </div>
+                      </div>
+                    ) : (
+                      flexRender(cell.column.columnDef.cell, cell.getContext())
+                    )}
                   </TableCell>
                 ))}
               </TableRow>

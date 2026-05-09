@@ -3,36 +3,33 @@
 import { HomeMockDashboard } from "@/components/home-mock-dashboard"
 import {
   FullPageLoader,
-  SESSION_SHOW_STORE_SETUP_LOADER,
-  STORE_SETUP_LOADER_FULL_CYCLE_MS,
 } from "@/components/full-page-loader"
-import * as React from "react"
-import { toast } from "sonner"
+import { useEffect, useState } from "react"
+import api from "@/lib/api"
+import { useQuery } from "@tanstack/react-query"
+import { ApiResponse } from "@/lib/types"
 
 export default function HomePage() {
-  const [showPostSetupLoader, setShowPostSetupLoader] = React.useState(false)
+  const { data: userProfile, isPending } = useQuery({
+    queryKey: ["user-profile"],
+    queryFn: () => api<ApiResponse<any>>("admin/store/settings"),
+    select: (data) => data?.data,
+  })
 
-  React.useEffect(() => {
-    if (typeof window === "undefined") return
-    if (sessionStorage.getItem(SESSION_SHOW_STORE_SETUP_LOADER) !== "1") return
-    sessionStorage.removeItem(SESSION_SHOW_STORE_SETUP_LOADER)
-    setShowPostSetupLoader(true)
-  }, [])
+  const [loading, setLoading] = useState(true)
 
-  React.useEffect(() => {
-    if (!showPostSetupLoader) return
-
-    const id = window.setTimeout(() => {
-      setShowPostSetupLoader(false)
-      toast.success("تم إنشاء المتجر بنجاح")
-    }, STORE_SETUP_LOADER_FULL_CYCLE_MS)
-
-    return () => window.clearTimeout(id)
-  }, [showPostSetupLoader])
-
+  // stop loader after 2 seconds
+  useEffect(() => {
+    if (!isPending && userProfile) {
+      setTimeout(() => {
+        setLoading(false)
+      }, 2000)
+    }
+  }, [isPending])
+  
   return (
     <>
-      <FullPageLoader active={showPostSetupLoader} loopMessages={false} />
+      <FullPageLoader active={isPending || loading} loopMessages={false} />
 
       <div className="container py-6">
         <HomeMockDashboard />

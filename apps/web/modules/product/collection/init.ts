@@ -1,7 +1,7 @@
 import type {
 	CreateProductCollectionInput,
 	UpdateProductCollectionInput,
-} from "./actions"
+} from "./types"
 import type { ProductCollection } from "./types"
 
 export const collectionFormDefaultValues: CreateProductCollectionInput = {

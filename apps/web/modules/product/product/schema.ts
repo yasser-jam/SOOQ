@@ -42,3 +42,16 @@ export const productSchema = z.object({
 	createdAt: optionalString(),
 	updatedAt: optionalString(),
 })
+
+export const variantOptionSchema = z.object({
+  optionNameAr: z.string().trim().min(1, "اسم الخيار بالعربية مطلوب"),
+  optionNameEn: z.string().trim().min(1, "اسم الخيار بالإنجليزية مطلوب"),
+  values: z
+	.array(
+	  z.object({
+		valueAr: z.string().trim().min(1, "قيمة الخيار بالعربية مطلوبة"),
+		valueEn: z.string().trim().min(1, "قيمة الخيار بالإنجليزية مطلوبة"),
+	  })
+	)
+	.min(1, "أضف قيمة واحدة على الأقل"),
+})

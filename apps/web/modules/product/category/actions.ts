@@ -1,178 +1,56 @@
-import type { QueryClient } from "@tanstack/react-query"
-import { queryOptions } from "@tanstack/react-query"
+import { api } from "@/lib/api"
 
-import type { ProductCategory } from "./types"
+import type { CreateProductCategoryInput, ProductCategory, UpdateProductCategoryInput } from "./types"
+import { ApiResponse } from "@/lib/types"
 
 export const productCategoryKeys = {
 	all: ["product-categories"] as const,
 	detail: (id: string) => [...productCategoryKeys.all, id] as const,
 }
 
-export type CreateProductCategoryInput = Pick<
-	ProductCategory,
-	|
-		"nameAr"
-	|
-		"nameEn"
-	|
-		"slug"
-	|
-		"descriptionAr"
-	|
-		"descriptionEn"
-	|
-		"parentCategoryId"
-	|
-		"sortOrder"
-	|
-		"isActive"
->
-
-export type UpdateProductCategoryInput = {
-	id: string
-	data: CreateProductCategoryInput
+type ProductCategoryApiModel = ProductCategory & {
+	categoryId?: string
 }
 
-const SIMULATED_DELAY_MS = 1000
-
-let productCategoriesStore: ProductCategory[] | null = null
-
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
-const nowIso = () => new Date().toISOString()
-
-const getProductCategoriesStore = async (): Promise<ProductCategory[]> => {
-	if (!productCategoriesStore) {
-		const { productCategories } = await import("./data")
-		productCategoriesStore = productCategories.map((category) => ({ ...category }))
-	}
-
-	return productCategoriesStore
-}
+const normalizeProductCategory = (
+	category: ProductCategoryApiModel
+): ProductCategory => ({
+	...category,
+	id: category.categoryId ?? category.id,
+})
 
 export const listProductCategories = async (): Promise<ProductCategory[]> => {
-	await wait(SIMULATED_DELAY_MS)
-	const categories = await getProductCategoriesStore()
-	return categories.map((category) => ({ ...category }))
-}
+	const response = await api<ApiResponse<ProductCategoryApiModel[]>>(
+		"/admin/categories"
+	)
 
-export const listProductCategoriesQueryOptions = () =>
-	queryOptions({
-		queryKey: productCategoryKeys.all,
-		queryFn: listProductCategories,
-	})
+	return response.data?.map(normalizeProductCategory) ?? []
+}
 
 export const getProductCategory = async (id: string): Promise<ProductCategory> => {
-	await wait(SIMULATED_DELAY_MS)
-	const categories = await getProductCategoriesStore()
-	const category = categories.find((currentCategory) => currentCategory.id === id)
+	const response = await api<ApiResponse<ProductCategoryApiModel>>(
+		`/admin/categories/${id}`
+	)
 
-	if (!category) {
-		throw new Error("Category not found")
-	}
-
-	return { ...category }
+	return normalizeProductCategory(response.data as ProductCategoryApiModel)
 }
 
-export const getProductCategoryQueryOptions = (id: string) =>
-	queryOptions({
-		queryKey: productCategoryKeys.detail(id),
-		queryFn: () => getProductCategory(id),
-	})
-
-export const updateProductCategory = async ({
+export const updateProductCategory = ({
 	id,
 	data,
-}: UpdateProductCategoryInput): Promise<ProductCategory> => {
-	await wait(SIMULATED_DELAY_MS)
-	const categories = await getProductCategoriesStore()
-	const categoryIndex = categories.findIndex((currentCategory) => currentCategory.id === id)
+}: UpdateProductCategoryInput): Promise<void> =>
+	api<void>(`/admin/categories/${id}`, {
+		method: "PUT",
+		body: data,
+	})
 
-	if (categoryIndex === -1) {
-		throw new Error("Category not found")
-	}
+export const createProductCategory = (data: CreateProductCategoryInput): Promise<void> =>
+	api<void>("/admin/categories", {
+		method: "POST",
+		body: data,
+	})
 
-	const updatedCategory: ProductCategory = {
-		...categories[categoryIndex],
-		...data,
-		updatedAt: nowIso(),
-	}
-
-	categories[categoryIndex] = updatedCategory
-
-	return { ...updatedCategory }
-}
-
-export const createProductCategory = async (
-	data: CreateProductCategoryInput
-): Promise<ProductCategory> => {
-	await wait(SIMULATED_DELAY_MS)
-	const categories = await getProductCategoriesStore()
-	const nextId = String(
-		Math.max(0, ...categories.map((category) => Number(category.id ?? 0))) + 1
-	)
-	const timestamp = nowIso()
-
-	const createdCategory: ProductCategory = {
-		id: nextId,
-		...data,
-		createdAt: timestamp,
-		updatedAt: timestamp,
-	}
-
-	categories.unshift(createdCategory)
-
-	return { ...createdCategory }
-}
-
-export const deleteProductCategory = async (id: string): Promise<{ id: string }> => {
-	await wait(SIMULATED_DELAY_MS)
-	const categories = await getProductCategoriesStore()
-	const categoryIndex = categories.findIndex((currentCategory) => currentCategory.id === id)
-
-	if (categoryIndex === -1) {
-		throw new Error("Category not found")
-	}
-
-	categories.splice(categoryIndex, 1)
-
-	return { id }
-}
-
-export const getUpdateCategoryMutationOptions = ({
-	categoryId,
-	queryClient,
-	onSuccess,
-}: {
-	categoryId: string
-	queryClient: QueryClient
-	onSuccess?: () => void
-}) => ({
-	mutationFn: updateProductCategory,
-	onSuccess: (updatedCategory: ProductCategory) => {
-		queryClient.setQueryData(
-			productCategoryKeys.detail(updatedCategory.id ?? categoryId),
-			updatedCategory
-		)
-		queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
-		onSuccess?.()
-	},
-})
-
-export const getCreateCategoryMutationOptions = ({
-	queryClient,
-	onSuccess,
-}: {
-	queryClient: QueryClient
-	onSuccess?: () => void
-}) => ({
-	mutationFn: createProductCategory,
-	onSuccess: (createdCategory: ProductCategory) => {
-		queryClient.setQueryData(
-			productCategoryKeys.detail(createdCategory.id ?? ""),
-			createdCategory
-		)
-		queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
-		onSuccess?.()
-	},
-})
+export const deleteProductCategory = (id: string): Promise<void> =>
+	api<void>(`/admin/categories/${id}`, {
+		method: "DELETE",
+	})
