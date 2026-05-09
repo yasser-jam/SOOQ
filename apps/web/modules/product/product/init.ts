@@ -21,6 +21,11 @@ export const initProduct = (product?: Product) => ({
   mediaAssetIds: product?.mediaAssetIds ?? null,
   // transient: only contains files the user just added in this editor session
   mediaFiles: [] as File[],
+  // EAV custom attribute values; populated by AttributesTab against the schema
+  // returned by GET /admin/product-attributes?categoryId=...
+  attributes: (product as unknown as { attributes?: unknown[] })?.attributes
+    ? ((product as unknown as { attributes: unknown[] }).attributes as never[])
+    : ([] as never[]),
 
   options: (product?.options ?? []).map((option) => ({
     ...option,

@@ -15,7 +15,7 @@
 | **Phase 1** — Critical bug fixes | `KV-Products` | ✅ | 24 / 24 | Pushed 2026-05-10 (commit 8871889) |
 | **Phase 2** — Inline editor restructure | `KV-Products` | ✅ | 13 / 13 | Done 2026-05-10 |
 | **Phase 3A** — Variant Matrix | `KV-Products` | ✅ | 11 / 11 | Done 2026-05-10 |
-| **Phase 3B** — Attribute Definitions | `KV-Products` | ⬜ | 0 / 13 | Per user: all phases on KV-Products |
+| **Phase 3B** — Attribute Definitions | `KV-Products` | ✅ | 13 / 13 | Done 2026-05-10 |
 | **Phase 3C** — Inventory ops | `KV-Products` | ⬜ | 0 / 14 | Per user: all phases on KV-Products |
 | **Phase 4A** — Collections sub-resources | `KV-Products` | ⬜ | 0 / 10 | Per user: all phases on KV-Products |
 | **Phase 4B** — Bulk import | `KV-Products` | ⬜ | 0 / 16 | Per user: all phases on KV-Products |
@@ -24,7 +24,7 @@
 | **Phase 6** — Storefront B1-B5 | TBD | ⬜ | 0 / 1 | Decision required first |
 | **Final verification** | — | ⬜ | 0 / 5 | After all phases |
 
-**Total:** 48 / 127 steps complete (38%)
+**Total:** 61 / 127 steps complete (48%)
 
 > **How to update:** Each time you finish a step, change `- [ ]` to `- [x]` in that step. When a whole phase is done, update its row above: change ⬜ → ✅ and update the steps counter (e.g., `24 / 24`). Move to 🟡 mid-phase.
 

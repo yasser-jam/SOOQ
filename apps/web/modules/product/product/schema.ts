@@ -41,6 +41,16 @@ export const productSchema = z.object({
 	mediaFiles: z.array(z.instanceof(File)).default([]),
 	mediaUrls: z.array(z.string().trim()).default([]),
 	options: z.array(productOptionSchema).default([]),
+	// EAV custom attribute values — see modules/product/attribute/types.ts
+	attributes: z
+		.array(
+			z.object({
+				attributeDefId: z.string(),
+				valueText: z.string().optional(),
+				attributeOptionIds: z.array(z.string()).optional(),
+			})
+		)
+		.default([]),
 	createdAt: optionalString(),
 	updatedAt: optionalString(),
 })
