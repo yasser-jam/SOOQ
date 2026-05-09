@@ -17,6 +17,11 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
+// Backend's OrderItemResponseDto exposes `quantity`, `unitPrice`, `totalPrice`,
+// `productTitle`, `variantTitle`, `sku` — but no inventory health label. The
+// card therefore shows ordering data (qty + price) rather than stock status,
+// which lives on the inventory module page.
+
 interface OrderSummaryCardProps {
   items?: AdminOrderItem[]
   pricing?: AdminOrderPricing | null
@@ -34,8 +39,8 @@ export function OrderLineItemRow({
   const itemTitle =
     item?.title ?? item?.productTitle ?? item?.variantTitle ?? "عنصر الطلب"
   const itemSkuLabel = item ? `SKU: ${item.sku ?? item.variantSku ?? "—"}` : "SKU: —"
-  const inventoryLabel = item?.inventoryLabel ?? item?.inventoryStatus ?? "غير محدد"
   const priceLabel = item?.priceLabel
+  const quantity = item?.quantity
 
   return (
     <div className="rounded-2xl border border-border bg-background/60 p-4">
@@ -57,18 +62,18 @@ export function OrderLineItemRow({
           <div className="flex flex-col gap-1">
             <p className="text-text text-lg font-semibold">{itemTitle}</p>
             <p className="text-sm text-muted-foreground">{itemSkuLabel}</p>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                حالة المخزون
-              </span>
-              {!isLoading && item ? (
-                <Badge variant="secondary-tonal" className="h-7 px-3 text-xs">
-                  {inventoryLabel}
+            {!isLoading && typeof quantity === "number" ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">الكمية</span>
+                <Badge
+                  variant="secondary-tonal"
+                  className="h-7 px-3 text-xs"
+                  dir="ltr"
+                >
+                  × {quantity}
                 </Badge>
-              ) : (
-                <Skeleton className="h-7 w-24 rounded-4xl" />
-              )}
-            </div>
+              </div>
+            ) : null}
           </div>
         </div>
 

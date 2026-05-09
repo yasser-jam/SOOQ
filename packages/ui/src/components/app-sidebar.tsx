@@ -2,12 +2,17 @@
 
 import * as React from "react"
 import {
+  BadgePercent,
   ChevronDown,
   Circle,
   CircleDollarSign,
+  CreditCard,
+  FileText,
   LayoutDashboard,
   Package,
   Palette,
+  Receipt,
+  RotateCcw,
   ShoppingBag,
   Truck,
   Users,
@@ -68,6 +73,20 @@ const navItems: readonly NavItem[] = [
     icon: ShoppingBag,
   },
   {
+    title: "أكواد الخصم",
+    url: "/discount-codes",
+    icon: BadgePercent,
+  },
+  {
+    title: "الفواتير",
+    url: "/invoices",
+    icon: Receipt,
+    children: [
+      { title: "قائمة الفواتير", url: "/invoices" },
+      { title: "قوالب الفاتورة", url: "/invoice-layouts" },
+    ],
+  },
+  {
     title: "الخدمات اللوجستية",
     url: "/logistics",
     icon: Truck,
@@ -93,6 +112,16 @@ const navItems: readonly NavItem[] = [
     children: [
       { title: "تسوية تحصيل COD", url: "/finance/shipping/cod-reconciliation" },
     ],
+  },
+  {
+    title: "بوابات الدفع",
+    url: "/payment-providers",
+    icon: CreditCard,
+  },
+  {
+    title: "الاستردادات",
+    url: "/refunds",
+    icon: RotateCcw,
   },
 ]
 

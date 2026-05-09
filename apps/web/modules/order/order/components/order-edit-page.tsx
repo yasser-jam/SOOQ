@@ -1,30 +1,52 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { zodResolver } from "@hookform/resolvers/zod"
+import {
+  Controller,
+  useFieldArray,
+  useForm,
+  useWatch,
+} from "react-hook-form"
 import { Plus, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
+import Field from "@/components/system/Field"
+import MapPinPicker from "@/components/system/map-pin-picker"
 import PageDialog from "@/components/system/page-dialog"
+import TextareaField from "@/components/system/textarea"
 import { editAdminOrder, getAdminOrder } from "@/modules/order/order/actions"
 import { initOrderEdit } from "@/modules/order/order/init"
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
-import type { AdminOrderShippingAddress, EditOrderPayload } from "@/modules/order/order/types"
+import { editOrderSchema } from "@/modules/order/order/schema"
+import type {
+  EditOrderFormParsed,
+  EditOrderFormValues,
+} from "@/modules/order/order/types"
 import { getOrderShippingAddress } from "@/modules/order/order/utils"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
+import {
+  Field as UiField,
+  FieldError,
+  FieldLabel,
+} from "@workspace/ui/components/field"
 
 interface OrderEditPageViewProps {
   orderId: string
 }
 
-const emptyShippingAddress: AdminOrderShippingAddress = {
-  governorate: "",
-  city: "",
-  district: "",
-  street: "",
-  phone: "",
-  name: "",
+const defaultFormValues: EditOrderFormValues = {
+  items: [],
+  shippingAddress: {
+    // lat/lng start undefined — user must pick on the map. The schema's
+    // z.number() will fail with "حدد موقع التسليم على الخريطة" until set.
+    latitude: undefined as unknown as number,
+    longitude: undefined as unknown as number,
+    recipientName: "",
+    phone: "",
+    addressLabel: "",
+  },
 }
 
 export default function OrderEditPageView({
@@ -32,13 +54,20 @@ export default function OrderEditPageView({
 }: OrderEditPageViewProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
+
   const { data: order } = useQuery({
     queryKey: orderQueryKeys.detail(orderId),
     queryFn: () => getAdminOrder(orderId),
   })
-  const [form, setForm] = useState<EditOrderPayload>({
-    items: [],
-    shippingAddress: emptyShippingAddress,
+
+  const form = useForm<EditOrderFormValues>({
+    resolver: zodResolver(editOrderSchema) as never,
+    defaultValues: defaultFormValues,
+  })
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
   })
 
   useEffect(() => {
@@ -46,18 +75,23 @@ export default function OrderEditPageView({
 
     const shippingAddress = getOrderShippingAddress(order)
 
-    setForm({
+    form.reset({
       items:
         order.items?.map((item) => ({
           variantId: item.variantId ?? "",
           quantity: item.quantity ?? 1,
         })) ?? [],
       shippingAddress: {
-        ...emptyShippingAddress,
-        ...shippingAddress,
+        latitude: shippingAddress?.latitude as number,
+        longitude: shippingAddress?.longitude as number,
+        recipientName:
+          shippingAddress?.recipientName ?? shippingAddress?.name ?? "",
+        phone: shippingAddress?.phone ?? "",
+        addressLabel:
+          shippingAddress?.addressLabel ?? shippingAddress?.details ?? "",
       },
     })
-  }, [order])
+  }, [order, form])
 
   const { mutate, isPending } = useMutation({
     mutationFn: editAdminOrder,
@@ -66,6 +100,27 @@ export default function OrderEditPageView({
       router.push(`/orders/${orderId}`)
     },
   })
+
+  const onSubmit = (values: EditOrderFormParsed) => {
+    mutate(
+      initOrderEdit(orderId, {
+        items: values.items,
+        shippingAddress: {
+          latitude: values.shippingAddress.latitude,
+          longitude: values.shippingAddress.longitude,
+          recipientName: values.shippingAddress.recipientName,
+          phone: values.shippingAddress.phone,
+          addressLabel: values.shippingAddress.addressLabel || undefined,
+        },
+      })
+    )
+  }
+
+  const itemsError = form.formState.errors.items
+  const itemsRootMessage =
+    typeof itemsError === "object" && itemsError && "message" in itemsError
+      ? (itemsError as { message?: string }).message
+      : undefined
 
   return (
     <PageDialog
@@ -83,94 +138,76 @@ export default function OrderEditPageView({
           </Button>
 
           <Button
-            type="button"
+            type="submit"
+            form="order-edit-form"
             variant="secondary"
-            disabled={isPending || form.items.length === 0}
-            onClick={() => mutate(initOrderEdit(orderId, form))}
+            disabled={isPending}
           >
             حفظ التعديلات
           </Button>
         </>
       }
     >
-      <div className="grid gap-6">
+      <form
+        id="order-edit-form"
+        className="grid gap-6"
+        onSubmit={form.handleSubmit(onSubmit as never)}
+      >
         <section className="grid gap-4 rounded-2xl border bg-card p-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-foreground">عناصر الطلب</h3>
+            <h3 className="text-lg font-semibold text-foreground">
+              عناصر الطلب
+            </h3>
 
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() =>
-                setForm((current) => ({
-                  ...current,
-                  items: [...current.items, { variantId: "", quantity: 1 }],
-                }))
-              }
+              onClick={() => append({ variantId: "", quantity: 1 })}
+              disabled={isPending}
             >
               إضافة عنصر
               <Plus data-icon="inline-end" />
             </Button>
           </div>
 
+          {itemsRootMessage ? (
+            <p className="text-sm text-destructive">{itemsRootMessage}</p>
+          ) : null}
+
           <div className="grid gap-3">
-            {form.items.map((item, index) => (
+            {fields.map((fieldRow, index) => (
               <div
-                key={`${item.variantId}-${index}`}
+                key={fieldRow.id}
                 className="grid gap-3 rounded-xl border p-3 md:grid-cols-[1fr_140px_48px]"
               >
-                <Input
-                  value={item.variantId}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      items: current.items.map((currentItem, currentIndex) =>
-                        currentIndex === index
-                          ? {
-                              ...currentItem,
-                              variantId: event.target.value,
-                            }
-                          : currentItem
-                      ),
-                    }))
-                  }
+                <Field
+                  name={`items.${index}.variantId`}
+                  control={form.control}
+                  label="معرّف المتغيّر"
                   placeholder="variantId"
-                  disabled={isPending}
+                  inputProps={{ disabled: isPending }}
                 />
 
-                <Input
-                  type="number"
-                  min={1}
-                  value={item.quantity}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      items: current.items.map((currentItem, currentIndex) =>
-                        currentIndex === index
-                          ? {
-                              ...currentItem,
-                              quantity: Number(event.target.value || 1),
-                            }
-                          : currentItem
-                      ),
-                    }))
-                  }
-                  placeholder="الكمية"
-                  disabled={isPending}
+                <Field
+                  name={`items.${index}.quantity`}
+                  control={form.control}
+                  label="الكمية"
+                  inputProps={{
+                    type: "number",
+                    min: 1,
+                    disabled: isPending,
+                  }}
                 />
 
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  onClick={() =>
-                    setForm((current) => ({
-                      ...current,
-                      items: current.items.filter((_, currentIndex) => currentIndex !== index),
-                    }))
-                  }
-                  disabled={isPending}
+                  className="self-end"
+                  onClick={() => remove(index)}
+                  disabled={isPending || fields.length === 1}
+                  aria-label="حذف العنصر"
                 >
                   <Trash2 className="size-4" />
                 </Button>
@@ -179,98 +216,95 @@ export default function OrderEditPageView({
           </div>
         </section>
 
-        <section className="grid gap-4 rounded-2xl border bg-card p-4 md:grid-cols-2">
-          <Input
-            value={form.shippingAddress.name ?? ""}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                shippingAddress: {
-                  ...current.shippingAddress,
-                  name: event.target.value,
-                },
-              }))
-            }
-            placeholder="اسم المستلم"
-            disabled={isPending}
+        <section className="grid gap-4 rounded-2xl border bg-card p-4">
+          <h3 className="text-lg font-semibold text-foreground">عنوان الشحن</h3>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <Field
+              name="shippingAddress.recipientName"
+              control={form.control}
+              label="اسم المستلم"
+              placeholder="مثال: أحمد علي"
+              inputProps={{ disabled: isPending }}
+            />
+
+            <Field
+              name="shippingAddress.phone"
+              control={form.control}
+              label="رقم الهاتف"
+              placeholder="+963999999999"
+              inputProps={{ disabled: isPending, dir: "ltr", type: "tel" }}
+            />
+          </div>
+
+          <TextareaField
+            name="shippingAddress.addressLabel"
+            control={form.control}
+            label="ملاحظات على العنوان (اختياري)"
+            placeholder="يُعرض على الفاتورة فقط"
+            textareaProps={{ disabled: isPending, rows: 2 }}
           />
 
-          <Input
-            value={form.shippingAddress.phone ?? ""}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                shippingAddress: {
-                  ...current.shippingAddress,
-                  phone: event.target.value,
-                },
-              }))
-            }
-            placeholder="رقم الهاتف"
-            disabled={isPending}
-          />
-
-          <Input
-            value={form.shippingAddress.governorate ?? ""}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                shippingAddress: {
-                  ...current.shippingAddress,
-                  governorate: event.target.value,
-                },
-              }))
-            }
-            placeholder="المحافظة"
-            disabled={isPending}
-          />
-
-          <Input
-            value={form.shippingAddress.city ?? ""}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                shippingAddress: {
-                  ...current.shippingAddress,
-                  city: event.target.value,
-                },
-              }))
-            }
-            placeholder="المدينة"
-            disabled={isPending}
-          />
-
-          <Input
-            value={form.shippingAddress.district ?? ""}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                shippingAddress: {
-                  ...current.shippingAddress,
-                  district: event.target.value,
-                },
-              }))
-            }
-            placeholder="الحي"
-            disabled={isPending}
-          />
-
-          <Input
-            value={form.shippingAddress.street ?? ""}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                shippingAddress: {
-                  ...current.shippingAddress,
-                  street: event.target.value,
-                },
-              }))
-            }
-            placeholder="الشارع والتفاصيل"
+          <ShippingMapPickerField
+            control={form.control}
             disabled={isPending}
           />
         </section>
-      </div>
+      </form>
     </PageDialog>
+  )
+}
+
+interface ShippingMapPickerFieldProps {
+  control: ReturnType<typeof useForm<EditOrderFormValues>>["control"]
+  disabled?: boolean
+}
+
+function ShippingMapPickerField({
+  control,
+  disabled,
+}: ShippingMapPickerFieldProps) {
+  // useWatch keeps the longitude in sync without re-renders cascading from the
+  // parent form; the latitude Controller owns the field state + error display.
+  const longitude = useWatch({ control, name: "shippingAddress.longitude" })
+
+  return (
+    <Controller
+      control={control}
+      name="shippingAddress.latitude"
+      render={({ field, fieldState }) => (
+        <UiField data-invalid={fieldState.invalid}>
+          <FieldLabel>موقع التسليم على الخريطة</FieldLabel>
+          <Controller
+            control={control}
+            name="shippingAddress.longitude"
+            render={({ field: lngField }) => (
+              <MapPinPicker
+                latitude={typeof field.value === "number" ? field.value : null}
+                longitude={typeof longitude === "number" ? longitude : null}
+                onChange={({ latitude, longitude: lng }) => {
+                  field.onChange(latitude)
+                  lngField.onChange(lng)
+                }}
+                height={320}
+                className={disabled ? "pointer-events-none opacity-60" : ""}
+              />
+            )}
+          />
+          {typeof field.value === "number" && typeof longitude === "number" ? (
+            <div className="mt-2 flex items-center justify-between gap-4 rounded-xl bg-muted/30 px-3 py-2 font-mono text-xs text-muted-foreground">
+              <span dir="ltr">{field.value.toFixed(6)}</span>
+              <span>·</span>
+              <span dir="ltr">{longitude.toFixed(6)}</span>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              انقر على الخريطة أو اسحب الـ pin لتحديد عنوان التسليم
+            </p>
+          )}
+          <FieldError errors={[fieldState.error]} />
+        </UiField>
+      )}
+    />
   )
 }

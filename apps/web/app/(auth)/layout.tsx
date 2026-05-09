@@ -2,6 +2,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Info, ShoppingBag, ShoppingCart, Star } from "lucide-react"
 
+import { Toaster } from "@/components/toaster"
+
 export default function AuthLayout({
   children,
 }: {
@@ -35,6 +37,8 @@ export default function AuthLayout({
           {children}
         </QueryClientProvider>
       </div>
+
+      <Toaster />
     </>
   )
 }

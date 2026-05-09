@@ -36,6 +36,19 @@ export interface PaginatedApiResponse<T> {
 export type ListCodReconciliationBatchesParams = {
   page?: number
   size?: number
+  // Filter fields — currently applied client-side because backend
+  // GET /admin/shipping/cod/reconciliation accepts only Pageable. When the
+  // backend gains @RequestParam support for these the action can forward
+  // them as-is without UI changes.
+  shippingProviderId?: string
+  settlementDateFrom?: string
+  settlementDateTo?: string
+}
+
+export interface CodReconciliationFilters {
+  shippingProviderId?: string
+  settlementDateFrom?: string
+  settlementDateTo?: string
 }
 
 export type CreateCodReconciliationBatchPayload = z.infer<typeof createCodReconciliationBatchSchema>
@@ -47,4 +60,13 @@ export type UpdateCodReconciliationStatusPayload = {
 export type UpdateCodReconciliationStatusInput = {
   id: string
   data: UpdateCodReconciliationStatusPayload
+}
+
+export interface CodCollectionEntry {
+  codCollectionEntryId?: string
+  shipmentId?: string
+  paymentTxnId?: string | null
+  expectedAmountSyp?: number | null
+  collectedAmountSyp?: number | null
+  collectedAt?: string | null
 }

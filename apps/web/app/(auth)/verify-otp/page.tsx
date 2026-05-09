@@ -60,6 +60,7 @@ function VerifyOtpForm() {
         body: {
           phone: phoneNumber,
           otpCode: otp,
+          tenantSlug: "my-store",
         }
       }),
     onSuccess: (response: VerifyOtpResponse) => {

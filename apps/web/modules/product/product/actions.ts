@@ -127,18 +127,22 @@ export const updateProduct = async ({
   id,
   data,
 }: UpdateProductInput): Promise<void> => {
+  const fd = new FormData()
+  fd.append("product", new Blob([JSON.stringify(data)], { type: "application/json" }))
   await api(`/admin/products/${id}`, {
     method: "PUT",
-    body: buildProductFormData(data),
+    body: fd,
   })
 }
 
 export const createProduct = async (
   data: CreateProductInput
 ): Promise<void> => {
+  const fd = new FormData()
+  fd.append("product", new Blob([JSON.stringify(data)], { type: "application/json" }))
   await api("/admin/products", {
     method: "POST",
-    body: buildProductFormData(data),
+    body: fd,
   })
 }
 
