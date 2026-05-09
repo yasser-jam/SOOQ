@@ -22,16 +22,19 @@ import type {
   ProductOption,
   ProductOptionValue,
 } from "@/modules/product/product/types"
+import VariantMatrix from "@/modules/product/variant/components/variant-matrix"
 
 type Props = {
   isSubmitting: boolean
+  productId: string
+  isEdit: boolean
 }
 
 /**
  * Phase 2: option-axis builder + display (existing UX preserved verbatim).
  * Phase 3A will add the full Cartesian variant matrix below the options card.
  */
-export default function VariantsTab({ isSubmitting }: Props) {
+export default function VariantsTab({ isSubmitting, productId, isEdit }: Props) {
   const form = useFormContext()
   const [optionsDialogOpen, setOptionsDialogOpen] = useState(false)
 
@@ -42,7 +45,7 @@ export default function VariantsTab({ isSubmitting }: Props) {
     }) as ProductOption[] | undefined) ?? []
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">خيارات المنتج</CardTitle>
@@ -122,6 +125,8 @@ export default function VariantsTab({ isSubmitting }: Props) {
         </CardContent>
       </Card>
 
+      <VariantMatrix productId={productId} isEdit={isEdit} />
+
       <VariantOptionDialog
         open={optionsDialogOpen}
         onOpenChange={setOptionsDialogOpen}
@@ -138,6 +143,6 @@ export default function VariantsTab({ isSubmitting }: Props) {
           )
         }}
       />
-    </>
+    </div>
   )
 }

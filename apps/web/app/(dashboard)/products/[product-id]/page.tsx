@@ -201,7 +201,11 @@ export default function ProductDetailsPage() {
             </TabsContent>
 
             <TabsContent value="variants">
-              <VariantsTab isSubmitting={isSubmitting} />
+              <VariantsTab
+                isSubmitting={isSubmitting}
+                productId={productId}
+                isEdit={isEdit}
+              />
             </TabsContent>
 
             <TabsContent value="inventory">
