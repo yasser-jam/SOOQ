@@ -46,6 +46,12 @@ type DataTableProps<TData, TValue> = {
   onPageChange?: (pageIndex: number) => void
   isLoading?: boolean
   subrowsKey?: keyof TData & string
+  /**
+   * Contextual empty-state node — rendered inside a single full-width row when
+   * data is empty (and not loading). Defaults to a generic 'No results.' string
+   * to preserve backward compatibility with callers that don't pass it.
+   */
+  emptyState?: React.ReactNode
 }
 
 export default function DataTable<TData, TValue>({
@@ -55,6 +61,7 @@ export default function DataTable<TData, TValue>({
   onPageChange,
   isLoading,
   subrowsKey,
+  emptyState,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -218,8 +225,8 @@ export default function DataTable<TData, TValue>({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={colSpan} className="h-24 text-center">
-                No results.
+              <TableCell colSpan={colSpan} className="text-center">
+                {emptyState ?? "No results."}
               </TableCell>
             </TableRow>
           )}

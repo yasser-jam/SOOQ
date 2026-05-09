@@ -20,11 +20,11 @@
 | **Phase 4A** — Collections sub-resources | `KV-Products` | ✅ | 10 / 10 | Done 2026-05-10 |
 | **Phase 4B** — Bulk import | `KV-Products` | ✅ | 16 / 16 | Done 2026-05-10 |
 | **Phase 4C** — Small endpoints | `KV-Products` | ✅ | 3 / 3 | Done 2026-05-10 |
-| **Phase 5** — UX/NFR polish | `KV-Products` | ⬜ | 0 / 17 | After Phase 4 (final) |
+| **Phase 5** — UX/NFR polish | `KV-Products` | ✅ | 17 / 17 | Done 2026-05-10 (EN switcher deferred per plan note) |
 | **Phase 6** — Storefront B1-B5 | TBD | ⬜ | 0 / 1 | Decision required first |
 | **Final verification** | — | ⬜ | 0 / 5 | After all phases |
 
-**Total:** 104 / 127 steps complete (82%)
+**Total:** 121 / 127 steps complete (95%) — Phase 6 storefront (1 step) and Final verification (5 steps) remain. Phases 1-5 fully shipped.
 
 > **How to update:** Each time you finish a step, change `- [ ]` to `- [x]` in that step. When a whole phase is done, update its row above: change ⬜ → ✅ and update the steps counter (e.g., `24 / 24`). Move to 🟡 mid-phase.
 

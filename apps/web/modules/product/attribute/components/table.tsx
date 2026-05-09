@@ -8,6 +8,7 @@ import { Boxes } from "lucide-react"
 
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
+import EmptyState from "@/components/system/empty-state"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
@@ -144,6 +145,17 @@ export default function AttributeTable({ categoryId }: Props) {
         data={attributes ?? []}
         pagination={{ pageIndex, pageSize, pageCount }}
         onPageChange={setPageIndex}
+        emptyState={
+          <EmptyState
+            icon={<Boxes className="size-8" />}
+            title="لا توجد سمات بعد"
+            description="عرّف سمات مخصّصة (لون، مادة، ضمان...) لاستخدامها في الفلاتر."
+            cta={{
+              label: "إضافة سمة",
+              onClick: () => router.push("/products/attributes/create"),
+            }}
+          />
+        }
       />
     </div>
   )

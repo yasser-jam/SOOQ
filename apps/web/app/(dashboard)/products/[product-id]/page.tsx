@@ -22,6 +22,7 @@ import {
   getProduct,
   updateProduct,
 } from "@/modules/product/product/actions"
+import { useProductDraft } from "@/modules/product/product/hooks/use-product-draft"
 import type { ImageUploaderState } from "@/components/system/image-uploader"
 
 import BasicsTab from "@/modules/product/product/components/editor-tabs/basics-tab"
@@ -95,14 +96,23 @@ export default function ProductDetailsPage() {
     form.reset(initProduct(product))
   }, [form, isEdit, product])
 
+  // NFR-UX-006: auto-save form values to localStorage every 30s + restore prompt on mount
+  const draft = useProductDraft({
+    productId: isEdit ? productId : "new",
+    form,
+    enabled: !isLoading,
+  })
+
   const { isPending: isUpdating, mutate: updateProductMutation } = useMutation({
     mutationKey: ["update-product"],
     mutationFn: updateProduct,
+    onSuccess: () => draft.clear(),
   })
 
   const { isPending: isCreating, mutate: createProductMutation } = useMutation({
     mutationKey: ["create-product"],
     mutationFn: createProduct,
+    onSuccess: () => draft.clear(),
   })
 
   const handleSubmit = useCallback(

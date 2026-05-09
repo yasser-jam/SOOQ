@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
+import EmptyState from "@/components/system/empty-state"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 
 import type { ProductTag } from "../types"
@@ -92,6 +93,17 @@ export default function Table() {
         data={tags || []}
         pagination={{ pageIndex, pageSize, pageCount }}
         onPageChange={setPageIndex}
+        emptyState={
+          <EmptyState
+            icon={<LucidePuzzle className="size-8" />}
+            title="لا توجد وسوم"
+            description="استخدم الوسوم لتصنيف المنتجات وفلترتها على واجهة المتجر."
+            cta={{
+              label: "إضافة وسم",
+              onClick: () => router.push("/products/tags/create"),
+            }}
+          />
+        }
       />
     </div>
   )
