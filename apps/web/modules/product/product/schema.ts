@@ -37,6 +37,8 @@ export const productSchema = z.object({
 	defaultCategoryId: optionalString(),
 	categoryIds: z.array(z.string().trim()).min(1, "اختر فئة واحدة على الأقل"),
 	tagIds: z.array(z.string().trim()),
+	mediaAssetIds: z.array(z.string().trim()).nullable().default(null),
+	mediaFiles: z.array(z.instanceof(File)).default([]),
 	mediaUrls: z.array(z.string().trim()).default([]),
 	options: z.array(productOptionSchema).default([]),
 	createdAt: optionalString(),

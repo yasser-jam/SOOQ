@@ -1,6 +1,3 @@
-import type { QueryClient } from "@tanstack/react-query"
-import { queryOptions } from "@tanstack/react-query"
-
 import type { CreateProductInput, Product, ProductOption, UpdateProductInput } from "./types"
 import api from "@/lib/api"
 import { ApiResponse } from "@/lib/types"
@@ -8,6 +5,7 @@ import { ProductCategory } from "../category/types"
 import { ProductTag } from "../tag/types"
 
 const normalizeProduct = (data: any): Product => {
+  const media = (data.media ?? []) as Array<any>
   return {
     ...data,
     id: data.productId,
@@ -15,8 +13,9 @@ const normalizeProduct = (data: any): Product => {
     titleEn: data.titleEn,
     descriptionAr: data.descriptionAr,
     descriptionEn: data.descriptionEn,
-    mediaUrls: data.media?.map((m: any) => m.url) || [],
-    
+    mediaUrls: media.map((m) => m.url ?? m.thumbnailUrl).filter(Boolean),
+    // server-known IDs in their current order. null = unchanged on update; we hydrate with current list so the editor can manipulate it.
+    mediaAssetIds: media.map((m) => m.mediaAssetId ?? m.assetId ?? m.id).filter(Boolean),
   }
 }
 
@@ -79,31 +78,62 @@ export const getProduct = async (id: string): Promise<Product> => {
   return normalizeGetProduct(response.data)
 }
 
+/**
+ * Builds the multipart FormData body for product create/update per spec:
+ * - `product` part: JSON blob with all fields EXCEPT `mediaFiles` and the display-only `mediaUrls`
+ * - `files` parts: repeatable file uploads from `mediaFiles` (server PREPENDS their UUIDs to mediaAssetIds)
+ *
+ * `mediaAssetIds` semantics are preserved as-is in the JSON:
+ * - `null` (or omitted): leave existing images unchanged
+ * - `[]`: remove all images
+ * - `[ids]`: exact list, in that order (index 0 = primary)
+ */
+const buildProductFormData = (
+  data: CreateProductInput | UpdateProductInput["data"]
+): FormData => {
+  const fd = new FormData()
+
+  // Strip transient + display-only fields out of the JSON blob
+  const { mediaFiles, mediaUrls, ...productJson } = data as CreateProductInput & {
+    mediaUrls?: string[]
+  }
+
+  fd.append(
+    "product",
+    new Blob([JSON.stringify(productJson)], { type: "application/json" })
+  )
+
+  // Repeatable `files` parts (NOT `files[]` — backend expects same key repeated)
+  if (mediaFiles && mediaFiles.length > 0) {
+    for (const file of mediaFiles) {
+      fd.append("files", file, file.name)
+    }
+  }
+
+  return fd
+}
+
 export const updateProduct = async ({
   id,
   data,
 }: UpdateProductInput): Promise<void> => {
-  const fd = new FormData()
-  fd.append("product", new Blob([JSON.stringify(data)], { type: "application/json" }))
   await api(`/admin/products/${id}`, {
     method: "PUT",
-    body: fd,
+    body: buildProductFormData(data),
   })
 }
 
 export const createProduct = async (
   data: CreateProductInput
 ): Promise<void> => {
-  const fd = new FormData()
-  fd.append("product", new Blob([JSON.stringify(data)], { type: "application/json" }))
   await api("/admin/products", {
     method: "POST",
-    body: fd,
+    body: buildProductFormData(data),
   })
 }
 
 export const deleteProduct = async (id: string): Promise<void> => {
-  await api(`/products/${id}`, {
+  await api(`/admin/products/${id}`, {
     method: "DELETE",
   })
 }

@@ -17,6 +17,10 @@ export const initProduct = (product?: Product) => ({
   categoryIds: product?.categoryIds?.length ? [...product?.categoryIds] : [],
   tagIds: product?.tagIds?.length ? [...product.tagIds] : [],
   mediaUrls: product?.mediaUrls?.length ? [...product.mediaUrls] : [],
+  // null on edit = leave existing images unchanged; on create the form will populate this with new file UUIDs after upload
+  mediaAssetIds: product?.mediaAssetIds ?? null,
+  // transient: only contains files the user just added in this editor session
+  mediaFiles: [] as File[],
 
   options: (product?.options ?? []).map((option) => ({
     ...option,
