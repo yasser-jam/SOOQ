@@ -4,6 +4,7 @@ import { AppSidebar } from "@workspace/ui/components/app-sidebar"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { usePathname } from "next/navigation"
 import { ThemeProvider } from "next-themes"
+import { useState } from "react"
 import LayoutHeader from "./layout/LayoutHeader"
 import {
   QueryClient,
@@ -29,7 +30,14 @@ function AppSidebarWithPathname() {
 }
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const queryClient = new QueryClient()
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: { staleTime: 30_000, retry: 1 },
+        },
+      })
+  )
 
   return (
     <>

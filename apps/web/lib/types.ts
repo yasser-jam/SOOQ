@@ -22,3 +22,22 @@ export type Page<T> = {
   last?: boolean
   empty?: boolean
 }
+
+export type PaginationMeta = {
+  page: number
+  size: number
+  total: number
+  totalPages: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
+export type PagedApiResponse<T> = {
+  success?: boolean
+  data?: T[]
+  meta?: PaginationMeta
+  message?: string | null
+  timestamp?: number
+  errorCode?: string
+  fieldErrors?: FieldError[]
+}

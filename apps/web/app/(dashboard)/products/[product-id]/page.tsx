@@ -41,7 +41,9 @@ import Textarea from "@/components/system/textarea"
 import CategorySelect from "@/modules/product/category/components/select"
 import TagMultiSelect from "@/modules/product/tag/components/multi-select"
 import { normalizeOptionSortOrder } from "@/modules/product/product/helpers"
-import ImageUploader from "@/components/system/image-uploader"
+import ImageUploader, {
+  type ImageUploaderState,
+} from "@/components/system/image-uploader"
 
 type ProductFormInput = z.input<typeof productSchema>
 type ProductSubmitValues = z.output<typeof productSchema>
@@ -107,10 +109,18 @@ export default function ProductDetailsPage() {
     }) ?? []
 
   const handleImageChange = useCallback(
-    (imageUrls: string[]) => {
-      form.setValue("mediaUrls", imageUrls, {
+    ({ keptExistingIds, newFiles }: ImageUploaderState) => {
+      // Server-known IDs the user wants to keep, in display order.
+      // Server PREPENDS uploaded file UUIDs to this list, so index 0 here
+      // becomes the primary image only when no new files are uploaded.
+      form.setValue("mediaAssetIds", keptExistingIds, {
         shouldDirty: true,
-        shouldValidate: true,
+        shouldValidate: false,
+      })
+      // Transient: not serialized into the `product` JSON, sent as `files` parts
+      form.setValue("mediaFiles", newFiles, {
+        shouldDirty: true,
+        shouldValidate: false,
       })
     },
     [form]
@@ -311,19 +321,24 @@ export default function ProductDetailsPage() {
             </CardContent>
           </Card>
 
-          {isEdit && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">صور المنتج</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ImageUploader
-                  defaultFiles={product?.mediaUrls || []}
-                  onChange={handleImageChange}
-                />
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">صور المنتج</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ImageUploader
+                existing={
+                  isEdit && product?.mediaAssetIds && product?.mediaUrls
+                    ? product.mediaAssetIds.map((id, i) => ({
+                        id,
+                        url: product.mediaUrls?.[i] ?? "",
+                      }))
+                    : []
+                }
+                onChange={handleImageChange}
+              />
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
