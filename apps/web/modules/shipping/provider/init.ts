@@ -10,7 +10,7 @@ export const shippingProviderFormDefaults: ShippingProvider = {
 	providerName: "",
 	apiBaseUrl: "",
 	apiKey: "",
-	webhookSecret: "",
+	webhookSecret: '',
 	priority: 0,
 	isActive: true,
 }
