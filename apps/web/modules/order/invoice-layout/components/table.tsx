@@ -8,6 +8,7 @@ import { FileText, Star } from "lucide-react"
 
 import DataTable from "@/components/system/table"
 import TableActions from "@/components/system/table-actions"
+import { useStorePath } from "@/lib/store-path"
 import { formatOrderDate } from "@/modules/order/order/utils"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
@@ -21,6 +22,7 @@ import type { InvoiceLayoutProfile } from "../types"
 
 export default function InvoiceLayoutsTable() {
 	const router = useRouter()
+	const storePath = useStorePath()
 	const queryClient = useQueryClient()
 
 	const { data: profiles, isPending } = useQuery({
@@ -88,7 +90,7 @@ export default function InvoiceLayoutsTable() {
 					<TableActions
 						onUpdate={() => {
 							if (!id) return
-							router.push(`/invoice-layouts/${id}`)
+							router.push(storePath(`/invoice-layouts/${id}`))
 						}}
 						onDelete={() => {
 							if (!id) return

@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 
+import { useStorePath } from "@/lib/store-path"
 import {
   attributeQueryKeys,
   listAttributeDefinitions,
@@ -53,6 +54,7 @@ type Props = {
  */
 export default function AttributesTab({ isSubmitting }: Props) {
   const form = useFormContext()
+  const storePath = useStorePath()
 
   const defaultCategoryId = useWatch({
     control: form.control,
@@ -116,7 +118,7 @@ export default function AttributesTab({ isSubmitting }: Props) {
         <CardDescription>
           تعريف السمات يتم في{" "}
           <Link
-            href="/products/attributes"
+            href={storePath("/products/attributes")}
             className="underline underline-offset-2"
           >
             صفحة السمات
@@ -125,7 +127,7 @@ export default function AttributesTab({ isSubmitting }: Props) {
         </CardDescription>
         <CardAction>
           <Button asChild variant="ghost" size="sm">
-            <Link href="/products/attributes">
+            <Link href={storePath("/products/attributes")}>
               إدارة السمات <ExternalLink className="size-4" />
             </Link>
           </Button>

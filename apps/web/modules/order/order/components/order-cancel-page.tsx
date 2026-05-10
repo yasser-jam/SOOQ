@@ -6,6 +6,7 @@ import { AlertTriangle } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import PageDialog from "@/components/system/page-dialog"
+import { useStorePath } from "@/lib/store-path"
 import { cancelAdminOrder, getAdminOrder } from "@/modules/order/order/actions"
 import { initOrderCancel } from "@/modules/order/order/init"
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
@@ -21,6 +22,7 @@ export default function OrderCancelPageView({
   orderId,
 }: OrderCancelPageViewProps) {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
   const [reason, setReason] = useState("")
   const { data: order } = useQuery({
@@ -32,7 +34,7 @@ export default function OrderCancelPageView({
     mutationFn: cancelAdminOrder,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: orderQueryKeys.all })
-      router.push(`/orders/${orderId}`)
+      router.push(storePath(`/orders/${orderId}`))
     },
   })
 

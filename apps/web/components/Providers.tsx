@@ -15,6 +15,8 @@ import { Toaster } from "./toaster"
 import { api } from "@/lib/api"
 import { ApiResponse } from "@/lib/types"
 
+const STORE_SLUG_REGEX = /^\/store\/([^/]+)/
+
 function AppSidebarWithPathname() {
   // User Profile
   const { data: user } = useQuery({
@@ -23,10 +25,12 @@ function AppSidebarWithPathname() {
     select: (data) => data?.data
   })
 
-
-
   const pathname = usePathname()
-  return <AppSidebar pathname={pathname} user={user}  />
+  const storeSlug = pathname?.match(STORE_SLUG_REGEX)?.[1] ?? ""
+
+  if (!storeSlug) return null
+
+  return <AppSidebar pathname={pathname} storeSlug={storeSlug} user={user} />
 }
 
 export default function Providers({ children }: { children: React.ReactNode }) {

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 
+import { useStorePath } from "@/lib/store-path"
 import { Button } from "@workspace/ui/components/button"
 
 import type { CodReconciliationFilters } from "../types"
@@ -9,6 +10,7 @@ import CodReconciliationFiltersBar from "./cod-reconciliation-filters"
 import CodReconciliationTable from "./cod-reconciliation-table"
 
 export default function CodReconciliationPageView() {
+  const storePath = useStorePath()
   const [filters, setFilters] = useState<CodReconciliationFilters>({})
 
   return (
@@ -17,7 +19,7 @@ export default function CodReconciliationPageView() {
         <div className="page-title">تسوية تحصيل COD</div>
 
         <Button asChild>
-          <a href="/finance/shipping/cod-reconciliation/create">
+          <a href={storePath("/finance/shipping/cod-reconciliation/create")}>
             إنشاء دفعة تسوية
           </a>
         </Button>

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
+import { useStorePath } from "@/lib/store-path"
 import { Badge } from "@workspace/ui/components/badge"
 
 import type { ShippingProvider } from "../types"
@@ -15,6 +16,7 @@ import { shippingProviderQueryKeys } from "../queryKeys"
 
 export default function ProvidersTable() {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
 
   const { data: providers, isPending } = useQuery({
@@ -74,7 +76,7 @@ export default function ProvidersTable() {
           <TableActions
             onUpdate={() => {
               if (!id) return
-              router.push(`/logistics/shipping/providers/${id}`)
+              router.push(storePath(`/logistics/shipping/providers/${id}`))
             }}
             onDelete={() => {
               if (!id) return

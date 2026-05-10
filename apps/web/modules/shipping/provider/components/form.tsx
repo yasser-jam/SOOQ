@@ -9,6 +9,7 @@ import { ShieldAlert } from "lucide-react"
 
 import PageDialog from "@/components/system/page-dialog"
 import Field from "@/components/system/Field"
+import { useStorePath } from "@/lib/store-path"
 import {
   Alert,
   AlertDescription,
@@ -41,6 +42,7 @@ export default function ShippingProviderUpsertPageView({
   providerId: string
 }) {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
 
   const isEdit = providerId !== "create"
@@ -73,7 +75,7 @@ export default function ShippingProviderUpsertPageView({
       await queryClient.invalidateQueries({
         queryKey: shippingProviderQueryKeys.all,
       })
-      router.push("/logistics/shipping/providers")
+      router.push(storePath("/logistics/shipping/providers"))
     },
   })
 
@@ -83,7 +85,7 @@ export default function ShippingProviderUpsertPageView({
       await queryClient.invalidateQueries({
         queryKey: shippingProviderQueryKeys.all,
       })
-      router.push("/logistics/shipping/providers")
+      router.push(storePath("/logistics/shipping/providers"))
     },
   })
 

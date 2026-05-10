@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react"
 
 import DataTable from "@/components/system/table"
 import { formatSyp } from "@/lib/money"
+import { useStorePath } from "@/lib/store-path"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -31,6 +32,7 @@ export default function CodShipmentEntriesPageView({
   shipmentId,
 }: CodShipmentEntriesPageViewProps) {
   const router = useRouter()
+  const storePath = useStorePath()
 
   const { data: shipment } = useQuery({
     queryKey: shipmentQueryKeys.detail(shipmentId),
@@ -93,7 +95,7 @@ export default function CodShipmentEntriesPageView({
             size="icon"
             aria-label="رجوع"
             onClick={() =>
-              router.push(`/logistics/shipping/shipments/${shipmentId}`)
+              router.push(storePath(`/logistics/shipping/shipments/${shipmentId}`))
             }
           >
             <ArrowRight />

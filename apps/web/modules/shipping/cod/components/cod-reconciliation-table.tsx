@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import DataTable from "@/components/system/table"
 import TableActions from "@/components/system/table-actions"
 import { formatSyp } from "@/lib/money"
+import { useStorePath } from "@/lib/store-path"
 import { Badge } from "@workspace/ui/components/badge"
 
 import type {
@@ -39,6 +40,7 @@ export default function CodReconciliationTable({
   filters,
 }: CodReconciliationTableProps) {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
 
   const [pageIndex, setPageIndex] = useState(0)
@@ -205,7 +207,7 @@ export default function CodReconciliationTable({
           <TableActions
             onUpdate={() => {
               if (!id) return
-              router.push(`/finance/shipping/cod-reconciliation/${id}`)
+              router.push(storePath(`/finance/shipping/cod-reconciliation/${id}`))
             }}
             onDelete={undefined}
           >

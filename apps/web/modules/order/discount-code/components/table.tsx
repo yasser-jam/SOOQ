@@ -9,6 +9,7 @@ import { Percent, ShipWheel, Tag } from "lucide-react"
 import DataTable from "@/components/system/table"
 import TableActions from "@/components/system/table-actions"
 import { formatSyp } from "@/lib/money"
+import { useStorePath } from "@/lib/store-path"
 import { formatOrderDate } from "@/modules/order/order/utils"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
@@ -51,6 +52,7 @@ const formatDiscountValue = (
 
 export default function DiscountCodesTable() {
 	const router = useRouter()
+	const storePath = useStorePath()
 	const queryClient = useQueryClient()
 
 	const { data: codes, isPending } = useQuery({
@@ -173,7 +175,7 @@ export default function DiscountCodesTable() {
 					<TableActions
 						onUpdate={() => {
 							if (!id) return
-							router.push(`/discount-codes/${id}`)
+							router.push(storePath(`/discount-codes/${id}`))
 						}}
 						onDelete={() => {
 							if (!id) return

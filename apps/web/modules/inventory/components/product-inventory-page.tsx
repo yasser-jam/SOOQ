@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 import Field from "@/components/system/Field"
+import { useStorePath } from "@/lib/store-path"
 import {
   adjustInventory,
   getProductInventoryStatus,
@@ -235,6 +236,7 @@ function MovementCard({ movement }: { movement: InventoryMovement }) {
 
 export default function ProductInventoryPage() {
   const router = useRouter()
+  const storePath = useStorePath()
   const params = useParams<{ "product-id": string }>()
   const queryClient = useQueryClient()
   const productId = params["product-id"]
@@ -364,7 +366,7 @@ export default function ProductInventoryPage() {
 
         <div className="flex flex-wrap items-center gap-3">
           <Button variant="outline" asChild>
-            <Link href={`/products/${productId}`}>العودة إلى المنتج</Link>
+            <Link href={storePath(`/products/${productId}`)}>العودة إلى المنتج</Link>
           </Button>
           <Button
             variant="secondary"

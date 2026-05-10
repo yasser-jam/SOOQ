@@ -2,18 +2,34 @@ import { NextRequest, NextResponse } from "next/server"
 
 import cookiesConfig from "@/config/cookies-config"
 
-const PUBLIC_ROUTES = [
+// Paths bypassed entirely (no auth check). Merchant signup/login and infra.
+const PUBLIC_PREFIXES = [
   "/request-otp",
   "/verify-otp",
   "/onboarding",
   "/_next",
   "/favicon.ico",
   "/api/auth",
-  "/store",
 ]
 
-const isPublic = (pathname: string): boolean =>
-  PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`))
+// Customer-facing routes nested under a tenant slug stay public — the customer
+// has not yet logged in when hitting these. Currently only the customer OTP
+// pages live here; Phase C will lift them to `/shop/[slug]/...`.
+const TENANT_PUBLIC_SUBPATHS = ["request-otp", "verify-otp"]
+const TENANT_PUBLIC_PATTERN = new RegExp(
+  `^/store/[^/]+/(?:${TENANT_PUBLIC_SUBPATHS.join("|")})(?:/|$)`
+)
+
+const isPublic = (pathname: string): boolean => {
+  if (
+    PUBLIC_PREFIXES.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`)
+    )
+  ) {
+    return true
+  }
+  return TENANT_PUBLIC_PATTERN.test(pathname)
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

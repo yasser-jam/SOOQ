@@ -1,6 +1,7 @@
 "use client"
 
 import FilterMenu from "@/components/system/filter-menu"
+import { useStorePath } from "@/lib/store-path"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import {
@@ -16,6 +17,7 @@ import ProvidersTable from "./table"
 
 export default function ShippingProvidersPageView() {
   const router = useRouter()
+  const storePath = useStorePath()
 
   return (
     <div className="container">
@@ -41,7 +43,7 @@ export default function ShippingProvidersPageView() {
           <Button
             size="md"
             variant="secondary"
-            onClick={() => router.push("/logistics/shipping/providers/create")}
+            onClick={() => router.push(storePath("/logistics/shipping/providers/create"))}
           >
             إضافة مزود
             <Plus data-icon="inline-end" />

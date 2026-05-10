@@ -8,6 +8,7 @@ import { CreditCard } from "lucide-react"
 
 import DataTable from "@/components/system/table"
 import TableActions from "@/components/system/table-actions"
+import { useStorePath } from "@/lib/store-path"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
@@ -24,6 +25,7 @@ import type { PaymentProviderConfig } from "../types"
 
 export default function PaymentProvidersTable() {
 	const router = useRouter()
+	const storePath = useStorePath()
 	const queryClient = useQueryClient()
 
 	const { data: providers, isPending } = useQuery({
@@ -128,7 +130,7 @@ export default function PaymentProvidersTable() {
 					<TableActions
 						onUpdate={() => {
 							if (!id) return
-							router.push(`/payment-providers/${id}`)
+							router.push(storePath(`/payment-providers/${id}`))
 						}}
 						onDelete={() => {
 							if (!id) return

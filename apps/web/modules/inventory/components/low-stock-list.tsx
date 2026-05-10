@@ -7,6 +7,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { AlertTriangle, ExternalLink } from "lucide-react"
 
 import DataTable from "@/components/system/table"
+import { useStorePath } from "@/lib/store-path"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
@@ -21,6 +22,7 @@ type Props = {
 }
 
 export default function LowStockList({ productId: defaultProductId }: Props) {
+  const storePath = useStorePath()
   const [productId, setProductId] = useState(defaultProductId ?? "")
 
   const { data, isPending, isFetching, refetch } = useQuery({
@@ -126,7 +128,7 @@ export default function LowStockList({ productId: defaultProductId }: Props) {
             ✓ كل متغيّرات هذا المنتج فوق حدّ التنبيه.
           </p>
           <Button variant="ghost" asChild className="mt-2">
-            <Link href={`/products/${productId}/inventory`}>
+            <Link href={storePath(`/products/${productId}/inventory`)}>
               فتح صفحة المخزون
               <ExternalLink className="size-4" />
             </Link>

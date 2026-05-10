@@ -11,6 +11,7 @@ import {
   type OrderStatus,
 } from "@/lib/domain-enums"
 import { formatSyp } from "@/lib/money"
+import { useStorePath } from "@/lib/store-path"
 import DataTable from "@/components/system/table"
 import TableActions from "@/components/system/table-actions"
 import { listAdminOrders } from "@/modules/order/order/actions"
@@ -37,6 +38,7 @@ export default function OrdersListTable({
   searchQuery = "",
 }: OrdersListTableProps) {
   const router = useRouter()
+  const storePath = useStorePath()
   const pageSize = 10
   const [pageIndex, setPageIndex] = useState(0)
 
@@ -180,7 +182,7 @@ export default function OrdersListTable({
         return (
           <TableActions
             onUpdate={() => {
-              router.push(`/orders/${orderId}`)
+              router.push(storePath(`/orders/${orderId}`))
             }}
             onDelete={() => undefined}
           />

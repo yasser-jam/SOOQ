@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
+import { useStorePath } from "@/lib/store-path"
 import { getAdminOrder } from "@/modules/order/order/actions"
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
 import InitiateRefundDialog from "@/modules/payment/refund/components/initiate-refund-dialog"
@@ -17,6 +18,7 @@ export default function OrderReturnsPageView({
   orderId,
 }: OrderReturnsPageViewProps) {
   const router = useRouter()
+  const storePath = useStorePath()
 
   const { data: order } = useQuery({
     queryKey: orderQueryKeys.detail(orderId),
@@ -30,12 +32,12 @@ export default function OrderReturnsPageView({
       toast.error(
         "استرداد طلبات الدفع عند التسليم يتم عبر تسوية مزود الشحن، ليس من هنا"
       )
-      router.push(`/orders/${orderId}`)
+      router.push(storePath(`/orders/${orderId}`))
     }
   }, [isCod, orderId, router])
 
   const handleClose = (open: boolean) => {
-    if (!open) router.push(`/orders/${orderId}`)
+    if (!open) router.push(storePath(`/orders/${orderId}`))
   }
 
   if (isCod) return null

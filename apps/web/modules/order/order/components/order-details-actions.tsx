@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 
 import ConfirmAlert from "@/components/system/confirm-alert"
+import { useStorePath } from "@/lib/store-path"
 import { transitionAdminOrderStatus } from "@/modules/order/order/actions"
 import { initOrderTransition } from "@/modules/order/order/init"
 import {
@@ -94,6 +95,7 @@ export default function OrderDetailsActions({
   destinationLng,
 }: OrderDetailsActionsProps) {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
   const [pendingTransition, setPendingTransition] =
     useState<TransitionableOrderStatus | null>(null)
@@ -198,7 +200,7 @@ export default function OrderDetailsActions({
             type="button"
             size="md"
             variant="outline"
-            onClick={() => router.push(`/orders/${orderId}/returns`)}
+            onClick={() => router.push(storePath(`/orders/${orderId}/returns`))}
           >
             بدء استرداد
             <Receipt data-icon="inline-end" />
@@ -210,7 +212,7 @@ export default function OrderDetailsActions({
             type="button"
             size="md"
             variant="outline"
-            onClick={() => router.push(`/orders/${orderId}/edit`)}
+            onClick={() => router.push(storePath(`/orders/${orderId}/edit`))}
           >
             تعديل الطلب
             <PenLine data-icon="inline-end" />
@@ -286,7 +288,7 @@ export default function OrderDetailsActions({
             type="button"
             size="md"
             variant="destructive"
-            onClick={() => router.push(`/orders/${orderId}/cancel`)}
+            onClick={() => router.push(storePath(`/orders/${orderId}/cancel`))}
           >
             إلغاء الطلب
             <XCircle data-icon="inline-end" />

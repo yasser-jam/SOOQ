@@ -10,6 +10,7 @@ import { ArrowRight, ExternalLink } from "lucide-react"
 import ConfirmAlert from "@/components/system/confirm-alert"
 import DataTable from "@/components/system/table"
 import { formatSyp } from "@/lib/money"
+import { useStorePath } from "@/lib/store-path"
 import { listShipments } from "@/modules/shipping/shipment/actions"
 import { shipmentQueryKeys } from "@/modules/shipping/shipment/queryKeys"
 import type { Shipment } from "@/modules/shipping/shipment/types"
@@ -53,6 +54,7 @@ export default function CodBatchDetailPageView({
   batchId,
 }: CodBatchDetailPageViewProps) {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
   const [pendingTransition, setPendingTransition] =
     useState<CodSettlementStatus | null>(null)
@@ -106,7 +108,7 @@ export default function CodBatchDetailPageView({
         if (!orderId) return <span>-</span>
         return (
           <Button asChild variant="link" size="sm" className="h-auto p-0">
-            <Link href={`/orders/${orderId}`} dir="ltr">
+            <Link href={storePath(`/orders/${orderId}`)} dir="ltr">
               {orderId.slice(0, 8)}
               <ExternalLink data-icon="inline-end" />
             </Link>
@@ -141,7 +143,7 @@ export default function CodBatchDetailPageView({
         if (!id) return null
         return (
           <Button asChild variant="outline" size="sm">
-            <Link href={`/logistics/shipping/shipments/${id}/cod`}>
+            <Link href={storePath(`/logistics/shipping/shipments/${id}/cod`)}>
               حركات COD
             </Link>
           </Button>
@@ -167,7 +169,7 @@ export default function CodBatchDetailPageView({
         </p>
         <Button
           variant="outline"
-          onClick={() => router.push("/finance/shipping/cod-reconciliation")}
+          onClick={() => router.push(storePath("/finance/shipping/cod-reconciliation"))}
         >
           العودة إلى القائمة
         </Button>
@@ -185,7 +187,7 @@ export default function CodBatchDetailPageView({
               size="icon"
               aria-label="رجوع"
               onClick={() =>
-                router.push("/finance/shipping/cod-reconciliation")
+                router.push(storePath("/finance/shipping/cod-reconciliation"))
               }
             >
               <ArrowRight />

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 
 import DataTable from "@/components/system/table"
 import TableActions from "@/components/system/table-actions"
+import { useStorePath } from "@/lib/store-path"
 import { Badge } from "@workspace/ui/components/badge"
 
 import type { Shipment, ShipmentFilters } from "../types"
@@ -36,6 +37,7 @@ const matchesDateRange = (
 
 export default function ShipmentsTable({ filters }: ShipmentsTableProps) {
   const router = useRouter()
+  const storePath = useStorePath()
 
   const { data: shipments, isPending } = useQuery({
     queryKey: shipmentQueryKeys.list(),
@@ -114,7 +116,7 @@ export default function ShipmentsTable({ filters }: ShipmentsTableProps) {
           <TableActions
             onUpdate={() => {
               if (!id) return
-              router.push(`/logistics/shipping/shipments/${id}`)
+              router.push(storePath(`/logistics/shipping/shipments/${id}`))
             }}
             onDelete={undefined}
           />

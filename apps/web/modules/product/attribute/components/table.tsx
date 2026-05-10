@@ -9,6 +9,7 @@ import { Boxes } from "lucide-react"
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
 import EmptyState from "@/components/system/empty-state"
+import { useStorePath } from "@/lib/store-path"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
@@ -33,6 +34,7 @@ type Props = {
 
 export default function AttributeTable({ categoryId }: Props) {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
 
   const { data: attributes, isPending } = useQuery({
@@ -117,7 +119,7 @@ export default function AttributeTable({ categoryId }: Props) {
         return (
           <TableActions
             onUpdate={() => {
-              router.push(`/products/attributes/${id}`)
+              router.push(storePath(`/products/attributes/${id}`))
             }}
             onDelete={() => {
               removeAttribute(id)
@@ -152,7 +154,7 @@ export default function AttributeTable({ categoryId }: Props) {
             description="عرّف سمات مخصّصة (لون، مادة، ضمان...) لاستخدامها في الفلاتر."
             cta={{
               label: "إضافة سمة",
-              onClick: () => router.push("/products/attributes/create"),
+              onClick: () => router.push(storePath("/products/attributes/create")),
             }}
           />
         }

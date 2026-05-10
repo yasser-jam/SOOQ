@@ -16,6 +16,7 @@ import Field from "@/components/system/Field"
 import MapPinPicker from "@/components/system/map-pin-picker"
 import PageDialog from "@/components/system/page-dialog"
 import TextareaField from "@/components/system/textarea"
+import { useStorePath } from "@/lib/store-path"
 import { editAdminOrder, getAdminOrder } from "@/modules/order/order/actions"
 import { initOrderEdit } from "@/modules/order/order/init"
 import { orderQueryKeys } from "@/modules/order/order/queryKeys"
@@ -53,6 +54,7 @@ export default function OrderEditPageView({
   orderId,
 }: OrderEditPageViewProps) {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
 
   const { data: order } = useQuery({
@@ -97,7 +99,7 @@ export default function OrderEditPageView({
     mutationFn: editAdminOrder,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: orderQueryKeys.all })
-      router.push(`/orders/${orderId}`)
+      router.push(storePath(`/orders/${orderId}`))
     },
   })
 

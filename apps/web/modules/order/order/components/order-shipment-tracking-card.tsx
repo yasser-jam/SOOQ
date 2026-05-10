@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 
 import { SHIPMENT_STATUS_META } from "@/lib/domain-enums"
+import { useStorePath } from "@/lib/store-path"
 import { formatOrderDateTime } from "@/modules/order/order/utils"
 import {
   fetchPublicShipmentTracking,
@@ -33,6 +34,7 @@ interface OrderShipmentTrackingCardProps {
 export default function OrderShipmentTrackingCard({
   orderId,
 }: OrderShipmentTrackingCardProps) {
+  const storePath = useStorePath()
   const { data, isPending, isError } = useQuery({
     queryKey: publicShipmentTrackingQueryKey(orderId),
     queryFn: () => fetchPublicShipmentTracking(orderId),
@@ -50,7 +52,7 @@ export default function OrderShipmentTrackingCard({
             {data?.shipmentId ? (
               <Button type="button" size="sm" variant="outline" asChild>
                 <Link
-                  href={`/logistics/shipping/shipments/${data.shipmentId}`}
+                  href={storePath(`/logistics/shipping/shipments/${data.shipmentId}`)}
                 >
                   تفاصيل الشحنة (إدارة)
                   <Settings data-icon="inline-end" />

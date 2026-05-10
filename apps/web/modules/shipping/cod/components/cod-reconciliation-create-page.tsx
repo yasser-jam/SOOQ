@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import PageDialog from "@/components/system/page-dialog"
 import Field from "@/components/system/Field"
 import TextareaField from "@/components/system/textarea"
+import { useStorePath } from "@/lib/store-path"
 import { Button } from "@workspace/ui/components/button"
 import { DialogClose } from "@workspace/ui/components/dialog"
 import {
@@ -39,6 +40,7 @@ type CreateFormValues = {
 
 export default function CodReconciliationCreatePageView() {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
 
   const form = useForm<CreateFormValues>({
@@ -69,7 +71,7 @@ export default function CodReconciliationCreatePageView() {
     mutationFn: createCodReconciliationBatch,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: codReconciliationQueryKeys.all })
-      router.push("/finance/shipping/cod-reconciliation")
+      router.push(storePath("/finance/shipping/cod-reconciliation"))
     },
   })
 

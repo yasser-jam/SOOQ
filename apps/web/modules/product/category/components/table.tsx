@@ -16,6 +16,7 @@ import {
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
 import { getInitials } from "@/lib/initials"
+import { useStorePath } from "@/lib/store-path"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
@@ -29,6 +30,7 @@ import { Button } from "@workspace/ui/components/button"
 
 export default function ProductCategoryTable() {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
   const pageSize = 10
   const [pageIndex, setPageIndex] = useState(0)
@@ -121,7 +123,7 @@ export default function ProductCategoryTable() {
             onUpdate={() => {
               console.log(category)
               if (!categoryId) return
-              router.push(`/products/categories/${categoryId}`)
+              router.push(storePath(`/products/categories/${categoryId}`))
             }}
             onDelete={() => {
               if (!categoryId) return
@@ -134,7 +136,7 @@ export default function ProductCategoryTable() {
               size="icon"
               aria-label="Add subcategory"
               onClick={() =>
-                router.push(`/products/categories/create?parentId=${categoryId}`)
+                router.push(storePath(`/products/categories/create?parentId=${categoryId}`))
               }
             >
               <PlusIcon data-icon="inline-start" className="p-0.5" />

@@ -8,6 +8,7 @@ import { Package } from "lucide-react"
 
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
+import { useStorePath } from "@/lib/store-path"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
@@ -19,6 +20,7 @@ import { productKeys } from "../queryKeys"
 
 export default function ProductTable() {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
 
   const { mutate: removeProduct } = useMutation({
@@ -106,7 +108,7 @@ export default function ProductTable() {
         return (
           <TableActions
             onUpdate={() => {
-              router.push(`/products/${productId}`)
+              router.push(storePath(`/products/${productId}`))
             }}
             onDelete={() => {
               if (!productId) return

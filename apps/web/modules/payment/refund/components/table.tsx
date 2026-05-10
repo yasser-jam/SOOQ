@@ -7,6 +7,7 @@ import { Receipt } from "lucide-react"
 
 import DataTable from "@/components/system/table"
 import { formatSyp } from "@/lib/money"
+import { useStorePath } from "@/lib/store-path"
 import { formatOrderDateTime } from "@/modules/order/order/utils"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
@@ -24,6 +25,7 @@ interface RefundsTableProps {
 export default function RefundsTable({
 	statusFilter = "ALL",
 }: RefundsTableProps) {
+	const storePath = useStorePath()
 	const { data: refunds, isPending } = useQuery({
 		queryKey: refundQueryKeys.all,
 		queryFn: listRefunds,
@@ -93,7 +95,7 @@ export default function RefundsTable({
 			header: () => <div></div>,
 			cell: ({ row }) => (
 				<Button variant="outline" size="sm" asChild>
-					<a href={`/orders/${row.original.orderId}`}>عرض الطلب</a>
+					<a href={storePath(`/orders/${row.original.orderId}`)}>عرض الطلب</a>
 				</Button>
 			),
 		},

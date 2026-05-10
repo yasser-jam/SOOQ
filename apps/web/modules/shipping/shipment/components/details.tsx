@@ -9,6 +9,7 @@ import { toast } from "sonner"
 
 import MapRoute from "@/components/system/map-route"
 import { formatSyp } from "@/lib/money"
+import { useStorePath } from "@/lib/store-path"
 import {
   getAdminOrder,
   transitionAdminOrderStatus,
@@ -76,6 +77,7 @@ const SHIPMENT_TO_ORDER_SYNC: Partial<
 
 export default function ShipmentDetailsPageView({ shipmentId }: { shipmentId: string }) {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
 
   const { data: shipment, isLoading: isShipmentLoading } = useQuery({
@@ -233,7 +235,7 @@ export default function ShipmentDetailsPageView({ shipmentId }: { shipmentId: st
                     size="sm"
                     className="h-auto p-0"
                   >
-                    <Link href={`/orders/${orderId}`} dir="ltr">
+                    <Link href={storePath(`/orders/${orderId}`)} dir="ltr">
                       {order?.orderNumber
                         ? `#${order.orderNumber}`
                         : orderId.slice(0, 8)}

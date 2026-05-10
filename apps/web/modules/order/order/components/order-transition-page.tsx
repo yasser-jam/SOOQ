@@ -6,6 +6,7 @@ import { CircleCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import PageDialog from "@/components/system/page-dialog"
+import { useStorePath } from "@/lib/store-path"
 import { getAdminOrder, transitionAdminOrderStatus } from "@/modules/order/order/actions"
 import { initOrderTransition } from "@/modules/order/order/init"
 import { ORDER_LIST_STATUS_META } from "@/modules/order/order/model"
@@ -33,6 +34,7 @@ export default function OrderTransitionPageView({
   orderId,
 }: OrderTransitionPageViewProps) {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
   const { data: order } = useQuery({
     queryKey: orderQueryKeys.detail(orderId),
@@ -46,7 +48,7 @@ export default function OrderTransitionPageView({
     mutationFn: transitionAdminOrderStatus,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: orderQueryKeys.all })
-      router.push(`/orders/${orderId}`)
+      router.push(storePath(`/orders/${orderId}`))
     },
   })
 

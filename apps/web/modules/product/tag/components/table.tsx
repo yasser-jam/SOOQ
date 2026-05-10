@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
 import EmptyState from "@/components/system/empty-state"
+import { useStorePath } from "@/lib/store-path"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 
 import type { ProductTag } from "../types"
@@ -17,6 +18,7 @@ import { tagQueryKeys } from "../queryKeys"
 
 export default function Table() {
   const router = useRouter()
+  const storePath = useStorePath()
   const queryClient = useQueryClient()
 
   const { data: tags, isPending } = useQuery({
@@ -65,7 +67,7 @@ export default function Table() {
         return (
           <TableActions
             onUpdate={() => {
-              router.push(`/products/tags/${tagId}`)
+              router.push(storePath(`/products/tags/${tagId}`))
             }}
             onDelete={() => {
               deleteTag(tagId!)
@@ -100,7 +102,7 @@ export default function Table() {
             description="استخدم الوسوم لتصنيف المنتجات وفلترتها على واجهة المتجر."
             cta={{
               label: "إضافة وسم",
-              onClick: () => router.push("/products/tags/create"),
+              onClick: () => router.push(storePath("/products/tags/create")),
             }}
           />
         }

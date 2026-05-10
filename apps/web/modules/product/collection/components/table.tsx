@@ -8,6 +8,7 @@ import { Bot, Hand, Layers3 } from "lucide-react"
 
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
+import { useStorePath } from "@/lib/store-path"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
@@ -20,6 +21,7 @@ import { collectionQueryKeys } from "../queryKeys"
 
 export default function ProductCollectionTable() {
 	const router = useRouter()
+	const storePath = useStorePath()
 	const queryClient = useQueryClient()
 
 	const { mutate: deleteCollection } = useMutation({
@@ -105,7 +107,7 @@ export default function ProductCollectionTable() {
 					<TableActions
 						onUpdate={() => {
 							if (!collectionId) return
-							router.push(`/products/collections/${collectionId}`)
+							router.push(storePath(`/products/collections/${collectionId}`))
 						}}
 						onDelete={() => {
 							if (!collectionId) return

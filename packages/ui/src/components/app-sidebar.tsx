@@ -51,92 +51,95 @@ type NavItem = {
   children?: readonly NavChild[]
 }
 
-const navItems: readonly NavItem[] = [
-  {
-    title: "لوحة التحكم",
-    url: "/",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "المنتجات",
-    url: "/products",
-    icon: Package,
-    children: [
-      { title: "المنتجات", url: "/products" },
-      { title: "الفئات", url: "/products/categories" },
-      { title: "الوسوم", url: "/products/tags" },
-      { title: "المجموعات", url: "/products/collections" },
-      { title: "السمات المخصّصة", url: "/products/attributes" },
-      { title: "استيراد منتجات", url: "/products/import" },
-      { title: "سجلّ الاستيراد", url: "/products/import/batches" },
-    ],
-  },
-  {
-    title: "المخزون",
-    url: "/inventory",
-    icon: Warehouse,
-    children: [
-      { title: "المخزون المنخفض", url: "/inventory/low-stock" },
-      { title: "تعديل متعدّد", url: "/inventory/bulk-adjust" },
-    ],
-  },
-  {
-    title: "الطلبات",
-    url: "/orders",
-    icon: ShoppingBag,
-  },
-  {
-    title: "أكواد الخصم",
-    url: "/discount-codes",
-    icon: BadgePercent,
-  },
-  {
-    title: "الفواتير",
-    url: "/invoices",
-    icon: Receipt,
-    children: [
-      { title: "قائمة الفواتير", url: "/invoices" },
-      { title: "قوالب الفاتورة", url: "/invoice-layouts" },
-    ],
-  },
-  {
-    title: "الخدمات اللوجستية",
-    url: "/logistics",
-    icon: Truck,
-    children: [
-      { title: "مزودي الشحن", url: "/logistics/shipping/providers" },
-      { title: "الشحنات", url: "/logistics/shipping/shipments" },
-    ],
-  },
-  {
-    title: "استوديو التصميم",
-    url: "/design-studio",
-    icon: Palette,
-  },
-  {
-    title: "العملاء",
-    url: "/customers",
-    icon: Users,
-  },
-  {
-    title: "المالية",
-    url: "/finance",
-    icon: CircleDollarSign,
-    children: [
-      { title: "تسوية تحصيل COD", url: "/finance/shipping/cod-reconciliation" },
-    ],
-  },
-  {
-    title: "بوابات الدفع",
-    url: "/payment-providers",
-    icon: CreditCard,
-  },
-  {
-    title: "الاستردادات",
-    url: "/refunds",
-    icon: RotateCcw,
-  },
-]
+function buildNavItems(storeSlug: string): readonly NavItem[] {
+  const base = `/store/${storeSlug}`
+  return [
+    {
+      title: "لوحة التحكم",
+      url: base,
+      icon: LayoutDashboard,
+    },
+    {
+      title: "المنتجات",
+      url: `${base}/products`,
+      icon: Package,
+      children: [
+        { title: "المنتجات", url: `${base}/products` },
+        { title: "الفئات", url: `${base}/products/categories` },
+        { title: "الوسوم", url: `${base}/products/tags` },
+        { title: "المجموعات", url: `${base}/products/collections` },
+        { title: "السمات المخصّصة", url: `${base}/products/attributes` },
+        { title: "استيراد منتجات", url: `${base}/products/import` },
+        { title: "سجلّ الاستيراد", url: `${base}/products/import/batches` },
+      ],
+    },
+    {
+      title: "المخزون",
+      url: `${base}/inventory`,
+      icon: Warehouse,
+      children: [
+        { title: "المخزون المنخفض", url: `${base}/inventory/low-stock` },
+        { title: "تعديل متعدّد", url: `${base}/inventory/bulk-adjust` },
+      ],
+    },
+    {
+      title: "الطلبات",
+      url: `${base}/orders`,
+      icon: ShoppingBag,
+    },
+    {
+      title: "أكواد الخصم",
+      url: `${base}/discount-codes`,
+      icon: BadgePercent,
+    },
+    {
+      title: "الفواتير",
+      url: `${base}/invoices`,
+      icon: Receipt,
+      children: [
+        { title: "قائمة الفواتير", url: `${base}/invoices` },
+        { title: "قوالب الفاتورة", url: `${base}/invoice-layouts` },
+      ],
+    },
+    {
+      title: "الخدمات اللوجستية",
+      url: `${base}/logistics`,
+      icon: Truck,
+      children: [
+        { title: "مزودي الشحن", url: `${base}/logistics/shipping/providers` },
+        { title: "الشحنات", url: `${base}/logistics/shipping/shipments` },
+      ],
+    },
+    {
+      title: "استوديو التصميم",
+      url: `${base}/design-studio`,
+      icon: Palette,
+    },
+    {
+      title: "العملاء",
+      url: `${base}/customers`,
+      icon: Users,
+    },
+    {
+      title: "المالية",
+      url: `${base}/finance`,
+      icon: CircleDollarSign,
+      children: [
+        { title: "تسوية تحصيل COD", url: `${base}/finance/shipping/cod-reconciliation` },
+      ],
+    },
+    {
+      title: "بوابات الدفع",
+      url: `${base}/payment-providers`,
+      icon: CreditCard,
+    },
+    {
+      title: "الاستردادات",
+      url: `${base}/refunds`,
+      icon: RotateCcw,
+    },
+  ]
+}
 
 /** Matches `SidebarMenuButton` default variant hover/active tokens */
 const subNavLinkClass =
@@ -178,7 +181,7 @@ function NavMenuItem({
     children?.some((c) => isRouteActive(pathname, c.url))
   )
 
-  
+
   const [open, setOpen] = useState(hasActiveChild)
 
   useEffect(() => {
@@ -189,7 +192,7 @@ function NavMenuItem({
     isRouteActive(pathname, item.url) || hasActiveChild
 
   if (!hasChildren) {
-    
+
     return (
       <SidebarMenuItem>
         <SidebarMenuButton isActive={isRouteActive(pathname, item.url)} asChild>
@@ -256,12 +259,15 @@ function NavMenuItem({
 export type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   /** When set (e.g. `usePathname()` in the Next.js app), active state updates on client navigation. */
   pathname?: string
+  /** Tenant slug — required so nav links are scoped to the current store. */
+  storeSlug: string
   user: any
 }
 
-export function AppSidebar({ pathname: pathnameProp, user, ...props }: AppSidebarProps) {
+export function AppSidebar({ pathname: pathnameProp, storeSlug, user, ...props }: AppSidebarProps) {
   const fallbackPathname = useFallbackPathname()
   const pathname = pathnameProp ?? fallbackPathname
+  const navItems = buildNavItems(storeSlug)
 
   return (
     <Sidebar {...props} side="right" dir="rtl">
