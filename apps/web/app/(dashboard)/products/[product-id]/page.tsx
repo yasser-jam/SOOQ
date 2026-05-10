@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { FormProvider, useForm } from "react-hook-form"
 import { z } from "zod"
@@ -22,7 +22,10 @@ import {
   getProduct,
   updateProduct,
 } from "@/modules/product/product/actions"
+import { productKeys } from "@/modules/product/product/queryKeys"
 import { useProductDraft } from "@/modules/product/product/hooks/use-product-draft"
+import { variantQueryKeys } from "@/modules/product/variant/queryKeys"
+import { inventoryQueryKeys } from "@/modules/inventory/queryKeys"
 import type { ImageUploaderState } from "@/components/system/image-uploader"
 
 import BasicsTab from "@/modules/product/product/components/editor-tabs/basics-tab"
@@ -74,13 +77,15 @@ export default function ProductDetailsPage() {
     [router]
   )
 
+  const queryClient = useQueryClient()
+
   const form = useForm<ProductFormInput, unknown, ProductSubmitValues>({
     resolver: zodResolver(productSchema),
     defaultValues: initProduct(),
   })
 
   const { data: product, isLoading } = useQuery({
-    queryKey: ["products", productId],
+    queryKey: productKeys.detail(productId),
     queryFn: () => getProduct(productId),
     enabled: isEdit,
   })
@@ -103,16 +108,41 @@ export default function ProductDetailsPage() {
     enabled: !isLoading,
   })
 
+  // After product save we must refresh:
+  //  - the detail query (so basics/SEO/options reflect server-side changes,
+  //    e.g. options regenerated via the upsert)
+  //  - the variant matrix (saving the product can mutate axes / variants)
+  //  - the inventory status (variant changes ripple to per-product status)
+  //  - the global product list (title / status / image flips show there too)
+  const invalidateProductCaches = useCallback(() => {
+    if (productId) {
+      queryClient.invalidateQueries({ queryKey: productKeys.detail(productId) })
+      queryClient.invalidateQueries({
+        queryKey: variantQueryKeys.matrix(productId),
+      })
+      queryClient.invalidateQueries({
+        queryKey: inventoryQueryKeys.status(productId),
+      })
+    }
+    queryClient.invalidateQueries({ queryKey: productKeys.all })
+  }, [queryClient, productId])
+
   const { isPending: isUpdating, mutate: updateProductMutation } = useMutation({
     mutationKey: ["update-product"],
     mutationFn: updateProduct,
-    onSuccess: () => draft.clear(),
+    onSuccess: () => {
+      draft.clear()
+      invalidateProductCaches()
+    },
   })
 
   const { isPending: isCreating, mutate: createProductMutation } = useMutation({
     mutationKey: ["create-product"],
     mutationFn: createProduct,
-    onSuccess: () => draft.clear(),
+    onSuccess: () => {
+      draft.clear()
+      invalidateProductCaches()
+    },
   })
 
   const handleSubmit = useCallback(

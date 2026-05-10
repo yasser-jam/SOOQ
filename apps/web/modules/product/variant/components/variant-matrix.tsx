@@ -36,6 +36,8 @@ import {
   updateSingleVariant,
 } from "@/modules/product/variant/actions"
 import { variantQueryKeys } from "@/modules/product/variant/queryKeys"
+import { productKeys } from "@/modules/product/product/queryKeys"
+import { inventoryQueryKeys } from "@/modules/inventory/queryKeys"
 import type {
   VariantDto,
   VariantMatrixRequest,
@@ -181,14 +183,33 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
     enabled: isEdit && Boolean(productId),
   })
 
+  /**
+   * After any matrix mutation we must invalidate three places:
+   *  1. the matrix query itself (so the table refetches options + variants)
+   *  2. the product detail query that backs the editor (basics tab, options
+   *     dialog, etc. all read from the product detail) — without this the
+   *     30s staleTime would serve cached pre-save data when the user
+   *     navigates back to /products/[id]
+   *  3. the inventory status for this product (stock changes here propagate)
+   */
+  const invalidateAfterMatrixMutation = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: variantQueryKeys.matrix(productId),
+    })
+    queryClient.invalidateQueries({
+      queryKey: productKeys.detail(productId),
+    })
+    queryClient.invalidateQueries({
+      queryKey: inventoryQueryKeys.status(productId),
+    })
+  }, [queryClient, productId])
+
   const { mutate: bulkSave, isPending: isBulkSaving } = useMutation({
     mutationFn: (payload: VariantMatrixRequest) =>
       saveVariantMatrix(productId, payload),
     onSuccess: () => {
       toast.success("تم حفظ مصفوفة المتغيّرات")
-      queryClient.invalidateQueries({
-        queryKey: variantQueryKeys.matrix(productId),
-      })
+      invalidateAfterMatrixMutation()
     },
   })
 
@@ -210,9 +231,7 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
       }),
     onSuccess: () => {
       toast.success("تم تحديث المتغيّر")
-      queryClient.invalidateQueries({
-        queryKey: variantQueryKeys.matrix(productId),
-      })
+      invalidateAfterMatrixMutation()
     },
   })
 
