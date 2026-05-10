@@ -16,6 +16,7 @@ import {
   ShoppingBag,
   Truck,
   Users,
+  Warehouse,
 } from "lucide-react"
 
 // import { SearchForm } from "@workspace/ui/components/search-form"
@@ -61,10 +62,22 @@ const navItems: readonly NavItem[] = [
     url: "/products",
     icon: Package,
     children: [
-      { title: "المجموعات", url: "/products/collections" },
       { title: "المنتجات", url: "/products" },
-      { title: "الوسوم", url: "/products/tags" },
       { title: "الفئات", url: "/products/categories" },
+      { title: "الوسوم", url: "/products/tags" },
+      { title: "المجموعات", url: "/products/collections" },
+      { title: "السمات المخصّصة", url: "/products/attributes" },
+      { title: "استيراد منتجات", url: "/products/import" },
+      { title: "سجلّ الاستيراد", url: "/products/import/batches" },
+    ],
+  },
+  {
+    title: "المخزون",
+    url: "/inventory",
+    icon: Warehouse,
+    children: [
+      { title: "المخزون المنخفض", url: "/inventory/low-stock" },
+      { title: "تعديل متعدّد", url: "/inventory/bulk-adjust" },
     ],
   },
   {
