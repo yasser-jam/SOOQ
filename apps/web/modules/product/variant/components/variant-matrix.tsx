@@ -39,6 +39,7 @@ import { variantQueryKeys } from "@/modules/product/variant/queryKeys"
 import { productKeys } from "@/modules/product/product/queryKeys"
 import { inventoryQueryKeys } from "@/modules/inventory/queryKeys"
 import type {
+  SingleVariantUpdate,
   VariantDto,
   VariantMatrixRequest,
   VariantOptionDto,
@@ -151,6 +152,13 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
 
   // Cells keyed by composed option key (e.g. "S|Red")
   const [cells, setCells] = useState<Record<string, CellState>>({})
+  // Snapshot of what the server returned, by the same composed key. Used to
+  // diff per-cell saves so we only PUT fields the user actually changed —
+  // important because backend rejects re-PUTting an unchanged SKU as "already
+  // exists" (uniqueness check doesn't always exclude self-reference).
+  const [serverSnapshot, setServerSnapshot] = useState<
+    Record<string, CellState>
+  >({})
 
   // Adjust modal + history drawer state
   const [adjustOpen, setAdjustOpen] = useState(false)
@@ -219,23 +227,22 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
       patch,
     }: {
       variantId: string
-      patch: Partial<CellState>
-    }) =>
-      updateSingleVariant(productId, variantId, {
-        sku: patch.sku,
-        price: patch.price ? Number(patch.price) : undefined,
-        stockQty: patch.stockQty ? Number(patch.stockQty) : undefined,
-        costPrice: patch.costPrice ? Number(patch.costPrice) : undefined,
-        barcode: patch.barcode,
-        isActive: patch.isActive,
-      }),
-    onSuccess: () => {
-      toast.success("تم تحديث المتغيّر")
+      patch: SingleVariantUpdate
+    }) => updateSingleVariant(productId, variantId, patch),
+    onSuccess: (_data, { patch }) => {
+      const fieldCount = Object.keys(patch).length
+      toast.success(
+        fieldCount === 0
+          ? "لا تغييرات للحفظ"
+          : `تم تحديث المتغيّر (${fieldCount} حقل)`
+      )
       invalidateAfterMatrixMutation()
     },
   })
 
-  // Hydrate cell state from server response (for edit mode)
+  // Hydrate cell state + server snapshot from API response (for edit mode).
+  // The snapshot is the source of truth for "what does the server have today";
+  // diffing against it lets per-cell save send only changed fields.
   useEffect(() => {
     if (!matrix?.variants) return
     const next: Record<string, CellState> = {}
@@ -251,6 +258,8 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
         isActive: v.isActive ?? true,
       }
     }
+    setServerSnapshot(next)
+    // Don't clobber in-flight user edits — only fill cells the user hasn't touched
     setCells((prev) => ({ ...next, ...prev }))
   }, [matrix])
 
@@ -260,6 +269,23 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
     const valuesPerAxis = productOptions.map((opt) => opt.values)
     return cartesian(valuesPerAxis)
   }, [productOptions])
+
+  // Find SKUs that appear on more than one cell — backend's uniqueness
+  // constraint (ERR_1003) will reject a save with duplicates.
+  const duplicateSkus = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const row of rows) {
+      const key = composeKey(row)
+      const sku = (cells[key]?.sku ?? "").trim()
+      if (!sku) continue
+      counts.set(sku, (counts.get(sku) ?? 0) + 1)
+    }
+    return new Set(
+      Array.from(counts.entries())
+        .filter(([, count]) => count > 1)
+        .map(([sku]) => sku)
+    )
+  }, [rows, cells])
 
   const handleCellChange = useCallback(
     (key: string, field: keyof CellState, value: string | boolean) => {
@@ -278,6 +304,12 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
     }
     if (rows.length === 0) {
       toast.error("لا توجد متغيّرات لتوليدها — تحقّق من قيم الخيارات")
+      return
+    }
+    if (duplicateSkus.size > 0) {
+      toast.error(
+        `لا يمكن الحفظ — الرموز التالية مكرّرة: ${Array.from(duplicateSkus).join(", ")}`
+      )
       return
     }
 
@@ -308,7 +340,7 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
     }
 
     bulkSave({ options: optionsDto, variantOverrides })
-  }, [productOptions, rows, cells, bulkSave])
+  }, [productOptions, rows, cells, bulkSave, duplicateSkus])
 
   const handleCellSave = useCallback(
     (key: string) => {
@@ -317,9 +349,54 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
         toast.error("احفظ المصفوفة أولاً قبل التعديل الفردي")
         return
       }
-      cellSave({ variantId: variant.variantId, patch: cells[key] ?? {} })
+      const current = cells[key] ?? emptyCell()
+      const original = serverSnapshot[key] ?? emptyCell()
+
+      // Build a SingleVariantUpdate containing ONLY fields that actually
+      // changed. This matters because:
+      //  - Backend rejects re-PUTting the same SKU as "ERR_1003 already exists"
+      //    (its uniqueness check doesn't always exclude self-reference).
+      //  - Smaller payloads = clearer audit trails server-side.
+      const patch: SingleVariantUpdate = {}
+      if (current.sku !== original.sku) patch.sku = current.sku
+      if (current.price !== original.price) {
+        patch.price = current.price ? Number(current.price) : 0
+      }
+      if (current.stockQty !== original.stockQty) {
+        patch.stockQty = current.stockQty ? Number(current.stockQty) : 0
+      }
+      if (current.costPrice !== original.costPrice) {
+        patch.costPrice = current.costPrice
+          ? Number(current.costPrice)
+          : null
+      }
+      if (current.barcode !== original.barcode) {
+        patch.barcode = current.barcode || null
+      }
+      if (current.isActive !== original.isActive) {
+        patch.isActive = current.isActive
+      }
+
+      if (Object.keys(patch).length === 0) {
+        toast("لا تغييرات للحفظ في هذا الصف")
+        return
+      }
+
+      // Catch SKU collisions before round-tripping to the backend
+      if (
+        patch.sku &&
+        patch.sku.trim() &&
+        duplicateSkus.has(patch.sku.trim())
+      ) {
+        toast.error(
+          `الرمز "${patch.sku}" مكرّر على صفّ آخر — غيّر أحدهما قبل الحفظ`
+        )
+        return
+      }
+
+      cellSave({ variantId: variant.variantId, patch })
     },
-    [matrix, cells, cellSave]
+    [matrix, cells, serverSnapshot, cellSave, duplicateSkus]
   )
 
   // Show server-known variants the new options no longer cover (will be soft-deleted on bulk save)
@@ -446,8 +523,20 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
                           onChange={(e) =>
                             handleCellChange(key, "sku", e.target.value)
                           }
-                          className="h-8 w-32"
+                          className={
+                            "h-8 w-32 " +
+                            (cell.sku.trim() &&
+                            duplicateSkus.has(cell.sku.trim())
+                              ? "border-destructive ring-1 ring-destructive"
+                              : "")
+                          }
                           placeholder="SKU-001"
+                          aria-invalid={
+                            cell.sku.trim() &&
+                            duplicateSkus.has(cell.sku.trim())
+                              ? "true"
+                              : "false"
+                          }
                         />
                       </TableCell>
                       <TableCell>
