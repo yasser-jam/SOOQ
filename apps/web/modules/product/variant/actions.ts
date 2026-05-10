@@ -8,8 +8,24 @@ import type {
 } from "./types"
 
 /**
+ * Compose the canonical key used to look variants up in the matrix.
+ * Mirrors the front-end's variant-matrix composeKey — uses valueEn first
+ * (or valueAr as fallback) joined by "|".
+ */
+const composeVariantKey = (
+  optionValues: Array<{ valueAr?: string; valueEn?: string }> | undefined
+): string =>
+  (optionValues ?? [])
+    .map((v) => v.valueEn || v.valueAr || "")
+    .join("|")
+
+/**
  * GET /api/v1/admin/products/{productId}/variants
  * Returns the option axes + generated variants for a product.
+ *
+ * Backend ProductVariantResponseDto carries `optionValues[]` rather than a
+ * pre-composed `optionKey`. We compute the key client-side here so the
+ * variant-matrix UI can match each row to its server variant.
  */
 export const getVariantMatrix = async (
   productId: string
@@ -17,12 +33,22 @@ export const getVariantMatrix = async (
   const response = await api<ApiResponse<VariantMatrixResponse>>(
     `/admin/products/${productId}/variants`
   )
-  return (
-    response.data ?? {
-      options: [],
-      variants: [],
-    }
-  )
+  const data = response.data
+  if (!data) return { options: [], variants: [] }
+
+  return {
+    options: data.options ?? [],
+    variants: (data.variants ?? []).map((v) => ({
+      ...v,
+      optionKey:
+        v.optionKey ??
+        composeVariantKey(
+          (v as unknown as {
+            optionValues?: Array<{ valueAr?: string; valueEn?: string }>
+          }).optionValues
+        ),
+    })),
+  }
 }
 
 /**

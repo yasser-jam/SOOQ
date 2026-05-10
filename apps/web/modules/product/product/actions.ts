@@ -20,25 +20,38 @@ const normalizeProduct = (data: any): Product => {
 }
 
 const normalizeGetProduct = (data: any): Product => {
+  // Backend AdminProductDetailResponseDto carries option axes inside
+  // `variantMatrix.options[]` (see ProductOptionResponseDto). Older code in
+  // this file was reading `data.variants` and looking for `o.titleAr` —
+  // both wrong: data.variants is a flat list of SKUs, and option fields are
+  // named `optionNameAr/optionNameEn` + values use `valueAr/valueEn`.
+  const matrixOptions: any[] =
+    (Array.isArray(data?.variantMatrix?.options) && data.variantMatrix.options) ||
+    (Array.isArray(data?.options) && data.options) ||
+    []
+
   return {
     ...normalizeProduct(data.product),
-    tagIds: data.tags?.map((t: any) => t.productTagId) || [] ,
+    tagIds: data.tags?.map((t: any) => t.productTagId) || [],
     categoryIds: data.categories?.map((c: any) => c.categoryId) || [],
     basePrice: data.pricing.basePrice,
     compareAtPrice: data.pricing.compareAtPrice,
     currencyCode: data.pricing.currencyCode,
-    options:
-      data.variants?.map((o: any) => ({
-        id: o.optionId,
-        titleAr: o.titleAr,
-        titleEn: o.titleEn,
-        values:
-          o.optionValues?.map((v: any) => ({
-            id: v.optionValueId ,
-            titleAr: v.valueAr,
-            titleEn: v.valueEn,
-          })) || [],
-      })) || [],
+    options: matrixOptions.map((o: any) => ({
+      id: o.productOptionId ?? o.optionId,
+      // Schema-aligned names (form uses these via productOptionSchema)
+      optionNameAr: o.optionNameAr ?? o.titleAr ?? "",
+      optionNameEn: o.optionNameEn ?? o.titleEn ?? "",
+      sortOrder: o.sortOrder ?? 0,
+      values:
+        (o.values ?? o.optionValues ?? []).map((v: any) => ({
+          id: v.optionValueId,
+          valueAr: v.valueAr ?? v.titleAr ?? "",
+          valueEn: v.valueEn ?? v.titleEn ?? "",
+          colorHex: v.colorHex ?? null,
+          sortOrder: v.sortOrder ?? 0,
+        })),
+    })),
   }
 }
 
