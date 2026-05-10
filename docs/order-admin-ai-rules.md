@@ -173,9 +173,9 @@ If an admin API represents a clear admin action and no page exists yet, create a
 
 For this module, that means route pages like:
 
-- `/orders/[order_id]/transition`
-- `/orders/[order_id]/cancel`
-- `/orders/[order_id]/edit`
+- `/store/[storeSlug]/orders/[order_id]/transition`
+- `/store/[storeSlug]/orders/[order_id]/cancel`
+- `/store/[storeSlug]/orders/[order_id]/edit`
 
 Rules:
 

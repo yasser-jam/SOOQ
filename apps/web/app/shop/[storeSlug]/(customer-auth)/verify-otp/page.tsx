@@ -43,7 +43,7 @@ function CustomerVerifyOtpForm() {
 
   useEffect(() => {
     if (!phoneNumber) {
-      router.replace(`/store/${storeSlug}/request-otp`)
+      router.replace(`/shop/${storeSlug}/request-otp`)
     }
   }, [phoneNumber, router, storeSlug])
 
@@ -56,7 +56,7 @@ function CustomerVerifyOtpForm() {
     ...getVerifyCustomerOtpMutationOptions({
       queryClient,
       onSuccess: () => {
-        router.push(`/store/${storeSlug}`)
+        router.push(`/shop/${storeSlug}`)
       },
     }),
     onError: (error: ApiError) => {
@@ -142,7 +142,7 @@ function CustomerVerifyOtpForm() {
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => router.push(`/store/${storeSlug}/request-otp`)}
+              onClick={() => router.push(`/shop/${storeSlug}/request-otp`)}
             >
               تغيير الرقم
             </Button>

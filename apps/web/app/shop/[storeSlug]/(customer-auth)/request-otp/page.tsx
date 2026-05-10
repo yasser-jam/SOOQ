@@ -54,7 +54,7 @@ export default function CustomerRequestOtpPage() {
     onSuccess: (_data, variables) => {
       cooldown.start(60)
       const phone = encodeURIComponent(variables.phone)
-      router.push(`/store/${storeSlug}/verify-otp?phoneNumber=${phone}`)
+      router.push(`/shop/${storeSlug}/verify-otp?phoneNumber=${phone}`)
       toast.success("تم إرسال رمز التحقق")
     },
     onError: (error: ApiError) => {
