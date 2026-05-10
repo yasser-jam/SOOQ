@@ -30,6 +30,19 @@ const normalizeGetProduct = (data: any): Product => {
     (Array.isArray(data?.options) && data.options) ||
     []
 
+  // Dedupe options by name (lowercased EN, fallback AR). Backend has been
+  // observed to leak duplicate axes when a product is saved without echoing
+  // productOptionId for existing options. Keep the first one.
+  const dedupSeen = new Set<string>()
+  const dedupedOptions = matrixOptions.filter((o: any) => {
+    const k = String(o.optionNameEn ?? o.titleEn ?? o.optionNameAr ?? o.titleAr ?? "")
+      .trim()
+      .toLowerCase()
+    if (!k || dedupSeen.has(k)) return false
+    dedupSeen.add(k)
+    return true
+  })
+
   return {
     ...normalizeProduct(data.product),
     tagIds: data.tags?.map((t: any) => t.productTagId) || [],
@@ -37,19 +50,19 @@ const normalizeGetProduct = (data: any): Product => {
     basePrice: data.pricing.basePrice,
     compareAtPrice: data.pricing.compareAtPrice,
     currencyCode: data.pricing.currencyCode,
-    options: matrixOptions.map((o: any) => ({
+    options: dedupedOptions.map((o: any, i: number) => ({
       id: o.productOptionId ?? o.optionId,
       // Schema-aligned names (form uses these via productOptionSchema)
       optionNameAr: o.optionNameAr ?? o.titleAr ?? "",
       optionNameEn: o.optionNameEn ?? o.titleEn ?? "",
-      sortOrder: o.sortOrder ?? 0,
+      sortOrder: i,
       values:
-        (o.values ?? o.optionValues ?? []).map((v: any) => ({
+        (o.values ?? o.optionValues ?? []).map((v: any, vi: number) => ({
           id: v.optionValueId,
           valueAr: v.valueAr ?? v.titleAr ?? "",
           valueEn: v.valueEn ?? v.titleEn ?? "",
           colorHex: v.colorHex ?? null,
-          sortOrder: v.sortOrder ?? 0,
+          sortOrder: vi,
         })),
     })),
   }

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useFormContext, useWatch } from "react-hook-form"
-import { History, Loader2, Package, Save } from "lucide-react"
+import { AlertTriangle, History, Loader2, Package, Save } from "lucide-react"
 import { toast } from "sonner"
 
 import InventoryAdjustModal from "@/modules/inventory/components/adjust-modal"
@@ -127,10 +127,25 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
     control: form.control,
     name: "options",
   }) as OptionView[] | undefined
-  const productOptions: OptionView[] = useMemo(
-    () => watchedOptions ?? [],
-    [watchedOptions]
-  )
+  // Dedupe by option name (case-insensitive). Backend has been observed to
+  // emit duplicate axes when a product is saved multiple times without
+  // productOptionId echoed back; we collapse them here so the matrix stays
+  // sane until the user re-saves the matrix to clean it up server-side.
+  const productOptions: OptionView[] = useMemo(() => {
+    const list = watchedOptions ?? []
+    const seen = new Set<string>()
+    const out: OptionView[] = []
+    for (const o of list) {
+      const k = (optionEn(o) || optionAr(o)).trim().toLowerCase()
+      if (!k || seen.has(k)) continue
+      seen.add(k)
+      out.push(o)
+    }
+    return out
+  }, [watchedOptions])
+
+  const formAxisDuplicateCount =
+    (watchedOptions?.length ?? 0) - productOptions.length
 
   // Cells keyed by composed option key (e.g. "S|Red")
   const [cells, setCells] = useState<Record<string, CellState>>({})
@@ -341,6 +356,25 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
         </CardAction>
       </CardHeader>
       <CardContent>
+        {(matrix?.duplicateOptionCount ?? 0) > 0 ||
+        formAxisDuplicateCount > 0 ? (
+          <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900 flex flex-col gap-2">
+            <div className="flex items-center gap-2 font-medium text-sm">
+              <AlertTriangle className="size-4" />
+              تم اكتشاف محاور خيارات مكرّرة
+            </div>
+            <p className="text-xs">
+              {matrix?.duplicateOptionCount
+                ? `${matrix.duplicateOptionCount} محور إضافي على الخادم بنفس الاسم — `
+                : ""}
+              {formAxisDuplicateCount
+                ? `${formAxisDuplicateCount} محور مكرّر في النموذج. `
+                : ""}
+              المحاور المكرّرة تم تجاهلها هنا. اضغط "حفظ المصفوفة" لإعادة كتابة
+              الخيارات بقائمة نظيفة (سيمسح الخيارات المكرّرة من قاعدة البيانات).
+            </p>
+          </div>
+        ) : null}
         {isMatrixLoading ? (
           <div className="flex flex-col gap-2">
             <Skeleton className="h-10 w-full" />
