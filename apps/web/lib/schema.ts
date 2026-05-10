@@ -1,4 +1,3 @@
-import { isPossiblePhoneNumber } from "react-phone-number-input"
 import * as z from "zod"
 
 export const requiredString = (fieldName: string) =>
@@ -8,17 +7,17 @@ export const optionalString = () =>
   z.string().trim().optional()
 
 /**
- * Accepts any E.164 international phone number (with leading `+`). Validation
- * uses `isPossiblePhoneNumber` (lenient) rather than `isValidPhoneNumber`
- * (strict) — we only enforce a plausible length per country code, not the
- * full national-prefix rules, because the backend is the authority on phone
- * acceptance and only stores digits (`PhoneNumbers.toStoredDigits`).
+ * Accepts any E.164-shaped international phone number: leading `+` and 7–15
+ * digits (per the ITU E.164 spec range). No per-country length or
+ * national-prefix checks — the backend is the authority on phone acceptance
+ * and stores digits only via `PhoneNumbers.toStoredDigits`.
  */
 export const phoneSchema = z
   .string()
   .trim()
   .min(1, "رقم الهاتف مطلوب")
-  .refine((value) => isPossiblePhoneNumber(value), {
+  .transform((value) => value.replace(/\s+/g, ""))
+  .refine((value) => /^\+\d{7,15}$/.test(value), {
     message: "رقم الهاتف غير صالح",
   })
 
