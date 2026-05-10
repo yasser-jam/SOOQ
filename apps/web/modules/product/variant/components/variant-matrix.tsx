@@ -229,13 +229,8 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
       variantId: string
       patch: SingleVariantUpdate
     }) => updateSingleVariant(productId, variantId, patch),
-    onSuccess: (_data, { patch }) => {
-      const fieldCount = Object.keys(patch).length
-      toast.success(
-        fieldCount === 0
-          ? "لا تغييرات للحفظ"
-          : `تم تحديث المتغيّر (${fieldCount} حقل)`
-      )
+    onSuccess: () => {
+      toast.success("تم تحديث المتغيّر")
       invalidateAfterMatrixMutation()
     },
   })
@@ -352,46 +347,42 @@ export default function VariantMatrix({ productId, isEdit }: Props) {
       const current = cells[key] ?? emptyCell()
       const original = serverSnapshot[key] ?? emptyCell()
 
-      // Build a SingleVariantUpdate containing ONLY fields that actually
-      // changed. This matters because:
-      //  - Backend rejects re-PUTting the same SKU as "ERR_1003 already exists"
-      //    (its uniqueness check doesn't always exclude self-reference).
-      //  - Smaller payloads = clearer audit trails server-side.
-      const patch: SingleVariantUpdate = {}
-      if (current.sku !== original.sku) patch.sku = current.sku
-      if (current.price !== original.price) {
-        patch.price = current.price ? Number(current.price) : 0
-      }
-      if (current.stockQty !== original.stockQty) {
-        patch.stockQty = current.stockQty ? Number(current.stockQty) : 0
-      }
-      if (current.costPrice !== original.costPrice) {
-        patch.costPrice = current.costPrice
-          ? Number(current.costPrice)
-          : null
-      }
-      if (current.barcode !== original.barcode) {
-        patch.barcode = current.barcode || null
-      }
-      if (current.isActive !== original.isActive) {
-        patch.isActive = current.isActive
-      }
-
-      if (Object.keys(patch).length === 0) {
+      // Quick exit: nothing changed → don't hit the backend.
+      const isSame =
+        current.sku === original.sku &&
+        current.price === original.price &&
+        current.stockQty === original.stockQty &&
+        current.costPrice === original.costPrice &&
+        current.barcode === original.barcode &&
+        current.isActive === original.isActive
+      if (isSame) {
         toast("لا تغييرات للحفظ في هذا الصف")
         return
       }
 
-      // Catch SKU collisions before round-tripping to the backend
-      if (
-        patch.sku &&
-        patch.sku.trim() &&
-        duplicateSkus.has(patch.sku.trim())
-      ) {
+      // Frontend pre-flight: catch LOCAL SKU duplicates (between matrix rows)
+      // before round-tripping. Backend uniqueness check excludes self-reference
+      // (existsBySkuAndVariantIdNot) so legitimate unchanged-SKU saves pass —
+      // only collisions with OTHER variants in the same tenant trigger backend
+      // ERR_1003.
+      const skuTrim = current.sku.trim()
+      if (skuTrim && duplicateSkus.has(skuTrim)) {
         toast.error(
-          `الرمز "${patch.sku}" مكرّر على صفّ آخر — غيّر أحدهما قبل الحفظ`
+          `الرمز "${current.sku}" مكرّر على صفّ آخر — غيّر أحدهما قبل الحفظ`
         )
         return
+      }
+
+      // Send the FULL ProductVariantUpdateDto. Backend marks sku/price/
+      // stockQty/isActive as @NotBlank/@NotNull so partial PATCH-style
+      // payloads get rejected with VALIDATION_ERROR.
+      const patch: SingleVariantUpdate = {
+        sku: current.sku,
+        price: current.price ? Number(current.price) : 0,
+        stockQty: current.stockQty ? Number(current.stockQty) : 0,
+        isActive: current.isActive,
+        costPrice: current.costPrice ? Number(current.costPrice) : null,
+        barcode: current.barcode || null,
       }
 
       cellSave({ variantId: variant.variantId, patch })
