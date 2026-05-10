@@ -4,10 +4,9 @@ import axios, {
   AxiosRequestConfig,
   InternalAxiosRequestConfig,
 } from "axios"
-import { toast } from "sonner"
 
 import cookiesConfig from "@/config/cookies-config"
-import { mapAuthError } from "@/lib/auth/error-codes"
+import { handleApiError } from "@/lib/api-error"
 import { refreshSession, logoutSession } from "@/lib/auth/internal"
 import { addCookie, getCookie, removeCookie } from "@/lib/cookies"
 
@@ -96,63 +95,9 @@ apiInstance.interceptors.response.use(
       redirectToLogin()
     }
 
-    return Promise.reject(handleError(error))
+    return Promise.reject(handleApiError(error))
   }
 )
-
-const handleError = (error: AxiosError<unknown>) => {
-  const responseData = (error.response?.data ?? null) as
-    | {
-        success?: boolean
-        errorCode?: string
-        message?: string
-        fieldErrors?: Array<{ field?: string; message?: string }>
-        retryAfterSeconds?: number
-      }
-    | null
-
-  const status = error.response?.status
-  const mapped = mapAuthError(responseData)
-
-  // Suppress toast for handled actions:
-  // - 401 refresh-and-retry already handled silently above
-  // - field errors should be rendered inline by the caller
-  // - cooldown is rendered inline
-  const suppressToast =
-    status === 401 ||
-    mapped.action === "show-field-error" ||
-    mapped.action === "show-cooldown" ||
-    mapped.action === "hide-feature" ||
-    mapped.action === "request-mfa"
-
-  if (!suppressToast && typeof window !== "undefined") {
-    toast.error(mapped.toastMessage)
-  }
-
-  if (error.response) {
-    return {
-      status: error.response.status,
-      message: mapped.toastMessage,
-      errorCode: mapped.errorCode,
-      fieldKey: mapped.fieldKey,
-      action: mapped.action,
-      retryAfterSeconds: mapped.retryAfterSeconds,
-      data: error.response.data,
-    }
-  }
-
-  if (error.request) {
-    return {
-      status: 0,
-      message: "لا يوجد اتصال بالخادم",
-    }
-  }
-
-  return {
-    status: 0,
-    message: error.message,
-  }
-}
 
 export type ApiOptions = Omit<AxiosRequestConfig, "url" | "data"> & {
   body?: AxiosRequestConfig["data"]
@@ -175,6 +120,6 @@ export const api = async <T = unknown>(
   return response.data
 }
 
-export type ApiError = ReturnType<typeof handleError>
+export type { ApiErrorShape as ApiError } from "@/lib/api-error"
 
 export default api
