@@ -6,6 +6,7 @@ import { api } from "@/lib/api"
 import { decodeJwt } from "@/lib/auth/jwt"
 import { setSessionTokens } from "@/lib/auth/internal"
 import { getCookie } from "@/lib/cookies"
+import { formatStoredPhoneForDisplay } from "@/lib/schema"
 
 import type {
   AuthTokenResponse,
@@ -83,7 +84,9 @@ const readCurrentUser = (): CurrentUser | null => {
 
   return {
     userId: userIdClaim,
-    username: payload.sub ?? "",
+    // Backend stores phones digit-only (see PhoneNumbers.toStoredDigits in
+    // SOOQ-Back commit 90de019). Re-attach the `+` for display / form prefill.
+    username: formatStoredPhoneForDisplay(payload.sub ?? ""),
     tenantId:
       typeof payload.tenantId === "string"
         ? payload.tenantId

@@ -22,6 +22,7 @@ import { toast } from "sonner"
 import * as z from "zod"
 
 import Field from "@/components/system/Field"
+import PhoneField from "@/components/system/PhoneField"
 import type { ApiError } from "@/lib/api"
 import { useOtpCooldown } from "@/modules/auth/auth/hooks/useOtpCooldown"
 import {
@@ -94,17 +95,17 @@ export default function CustomerRequestOtpPage() {
           </CardHeader>
 
           <CardContent className="flex flex-col gap-4">
-            <Field<RequestForm>
+            <PhoneField<RequestForm>
               name="phone"
               control={form.control}
-              placeholder="+963 9XX XXX XXX"
+              placeholder="9XX XXX XXX"
               label={
                 <>
                   <PhoneIcon className="size-4" />
                   رقم الهاتف
                 </>
               }
-              inputProps={{ type: "tel", dir: "ltr" }}
+              disabled={isPending}
             />
 
             <Field<RequestForm>

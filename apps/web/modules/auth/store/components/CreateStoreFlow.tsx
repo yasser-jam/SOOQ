@@ -40,6 +40,7 @@ import { toast } from "sonner"
 import * as z from "zod"
 
 import Field from "@/components/system/Field"
+import PhoneField from "@/components/system/PhoneField"
 import {
   FullPageLoader,
   SESSION_SHOW_STORE_SETUP_LOADER,
@@ -558,22 +559,17 @@ export default function CreateStoreFlow() {
           <section className="flex flex-col gap-4">
             <h2 className="text-sm font-semibold text-foreground">التواصل</h2>
 
-            <Field<FormValues>
+            <PhoneField<FormValues>
               name="phone"
               control={form.control}
-              placeholder="+963 9XX XXX XXX"
+              placeholder="9XX XXX XXX"
               label={
                 <>
                   <PhoneIcon className="size-4" />
                   رقم الهاتف
                 </>
               }
-              inputProps={{
-                type: "tel",
-                dir: "ltr",
-                disabled: isFormSubmitting || isResumingFromLogin,
-                readOnly: isResumingFromLogin,
-              }}
+              disabled={isFormSubmitting || isResumingFromLogin}
             />
 
             <Field<FormValues>

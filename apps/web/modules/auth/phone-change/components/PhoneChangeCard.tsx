@@ -28,7 +28,7 @@ import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as z from "zod"
 
-import Field from "@/components/system/Field"
+import PhoneField from "@/components/system/PhoneField"
 import { useCurrentUser } from "@/modules/auth/auth/hooks/useCurrentUser"
 
 import {
@@ -220,17 +220,17 @@ export default function PhoneChangeCard() {
             </UiField>
           )}
 
-          <Field<RequestForm>
+          <PhoneField<RequestForm>
             name="newPhone"
             control={requestForm.control}
-            placeholder="+963 9XX XXX XXX"
+            placeholder="9XX XXX XXX"
             label={
               <>
                 <PhoneIcon className="size-4" />
                 الرقم الجديد
               </>
             }
-            inputProps={{ type: "tel", dir: "ltr" }}
+            disabled={requestMutation.isPending}
           />
         </CardContent>
 

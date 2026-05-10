@@ -23,7 +23,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as z from "zod"
 
-import Field from "@/components/system/Field"
+import PhoneField from "@/components/system/PhoneField"
 import type { ApiError } from "@/lib/api"
 import { phoneSchema } from "@/lib/schema"
 import { getRequestOtpMutationOptions } from "@/modules/auth/auth/actions"
@@ -94,17 +94,17 @@ export default function RequestOtpPage() {
         </CardHeader>
 
         <CardContent>
-          <Field<LoginForm>
+          <PhoneField<LoginForm>
             name="phone"
             control={form.control}
-            placeholder="+963 9XX XXX XXX"
+            placeholder="9XX XXX XXX"
             label={
               <>
                 <PhoneIcon className="size-4" />
                 رقم الهاتف
               </>
             }
-            inputProps={{ type: "tel", dir: "ltr" }}
+            disabled={isPending}
           />
         </CardContent>
 
