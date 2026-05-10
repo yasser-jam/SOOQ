@@ -1,4 +1,4 @@
-import { isValidPhoneNumber } from "react-phone-number-input"
+import { isPossiblePhoneNumber } from "react-phone-number-input"
 import * as z from "zod"
 
 export const requiredString = (fieldName: string) =>
@@ -9,15 +9,16 @@ export const optionalString = () =>
 
 /**
  * Accepts any E.164 international phone number (with leading `+`). Validation
- * is delegated to libphonenumber-js via `react-phone-number-input` so the rule
- * matches the country selected in the UI. The backend stores digits only and
- * normalizes via `PhoneNumbers.toStoredDigits` — sending `+963…` is safe.
+ * uses `isPossiblePhoneNumber` (lenient) rather than `isValidPhoneNumber`
+ * (strict) — we only enforce a plausible length per country code, not the
+ * full national-prefix rules, because the backend is the authority on phone
+ * acceptance and only stores digits (`PhoneNumbers.toStoredDigits`).
  */
 export const phoneSchema = z
   .string()
   .trim()
   .min(1, "رقم الهاتف مطلوب")
-  .refine((value) => isValidPhoneNumber(value), {
+  .refine((value) => isPossiblePhoneNumber(value), {
     message: "رقم الهاتف غير صالح",
   })
 
