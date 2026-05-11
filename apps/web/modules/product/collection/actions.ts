@@ -10,7 +10,7 @@ import type {
 	ProductCollection,
 	ProductCollectionApiModel,
 	UpdateProductCollectionInput,
-} from './types'
+} from "./types"
 
 const normalizeProductCollection = (
 	collection: ProductCollectionApiModel
