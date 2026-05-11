@@ -4,6 +4,11 @@ import "react-phone-number-input/style.css"
 
 import { forwardRef, type ComponentProps, type ReactNode } from "react"
 import PhoneInput, { type Country } from "react-phone-number-input"
+// Bundle the flag SVGs locally instead of falling back to the library's
+// default `https://purecatamphetamine.github.io/country-flag-icons/...` CDN.
+// On Vercel that external request can be blocked/slow and the country picker
+// renders without flags.
+import flags from "react-phone-number-input/flags"
 import {
   Controller,
   type Control,
@@ -69,6 +74,7 @@ export default function PhoneField<T extends FieldValues>({
             disabled={disabled}
             placeholder={placeholder}
             inputComponent={ForwardedInput}
+            flags={flags}
             // Phone number is always LTR even inside an RTL form.
             dir="ltr"
             className={cn(
