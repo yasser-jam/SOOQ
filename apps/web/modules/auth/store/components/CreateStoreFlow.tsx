@@ -142,15 +142,17 @@ export default function CreateStoreFlow() {
     }
   }, [storeName, form])
 
-  // Pre-fill phone with the logged-in user's number when resuming from login,
-  // and lock the field — they can't change phone here since OTP was bound to
-  // their existing number.
+  // Pre-fill phone with the logged-in user's number when resuming from an
+  // OTP login — the phone is already bound to their account and the field
+  // is locked downstream. OAuth users (`user.phone === null`) skip this:
+  // they must enter their phone fresh, since the JWT only carries their
+  // email.
   React.useEffect(() => {
     if (!isResumingFromLogin) return
-    if (!user?.username) return
+    if (!user?.phone) return
     if (form.getValues("phone")) return
-    form.setValue("phone", user.username, { shouldValidate: false })
-  }, [isResumingFromLogin, user?.username, form])
+    form.setValue("phone", user.phone, { shouldValidate: false })
+  }, [isResumingFromLogin, user?.phone, form])
 
   const requestOtpMutation = useMutation({
     ...getRequestOtpMutationOptions(),
@@ -569,7 +571,7 @@ export default function CreateStoreFlow() {
                   رقم الهاتف
                 </>
               }
-              disabled={isFormSubmitting || isResumingFromLogin}
+              disabled={isFormSubmitting || (isResumingFromLogin && !!user?.phone)}
             />
 
             <Field<FormValues>
