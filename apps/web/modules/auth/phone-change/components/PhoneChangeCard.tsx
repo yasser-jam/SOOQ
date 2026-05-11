@@ -208,12 +208,12 @@ export default function PhoneChangeCard() {
         </CardHeader>
 
         <CardContent className="flex flex-col gap-4">
-          {user?.username && (
+          {user?.phone && (
             <UiField>
               <FieldLabel htmlFor="current-phone">الرقم الحالي</FieldLabel>
               <Input
                 id="current-phone"
-                value={user.username}
+                value={user.phone}
                 disabled
                 dir="ltr"
               />

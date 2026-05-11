@@ -68,31 +68,37 @@ const readCurrentUser = (): CurrentUser | null => {
   const payload = decodeJwt(token)
   if (!payload) return null
 
+  const readString = (key: string): string | null => {
+    const value = payload[key]
+    return typeof value === "string" && value.length > 0 ? value : null
+  }
+
   const tenantSlug =
-    getCookie(cookiesConfig.tenantSlug) ??
-    (typeof payload.tenantSlug === "string" ? payload.tenantSlug : null)
+    getCookie(cookiesConfig.tenantSlug) ?? readString("tenantSlug")
 
   // Backend JWT layout (see JwtSecurityProvider#issueAuthentication):
-  //   sub      = username (phone number)
-  //   userId   = user UUID (custom claim)
-  //   tenantId = tenant UUID (custom claim)
-  //   tenantSlug = tenant slug (custom claim, optional)
-  const userIdClaim =
-    typeof payload["userId"] === "string"
-      ? (payload["userId"] as string)
-      : ""
+  //   sub      = user UUID  (OIDC-aligned stable identifier)
+  //   userId   = user UUID  (duplicate for legacy readers)
+  //   username = primary login channel — phone for OTP, email for OAuth
+  //   phone    = phone digits or omitted/null
+  //   email    = lowercase email or omitted/null
+  //   tenantId = tenant UUID
+  //   tenantSlug = tenant slug (optional)
+  const userId = readString("userId") ?? readString("sub") ?? ""
+  const username = readString("username") ?? ""
+  const phoneClaim = readString("phone")
+  const emailClaim = readString("email")
 
   return {
-    userId: userIdClaim,
-    // Backend stores phones digit-only (see PhoneNumbers.toStoredDigits in
-    // SOOQ-Back commit 90de019). Re-attach the `+` for display / form prefill.
-    username: formatStoredPhoneForDisplay(payload.sub ?? ""),
-    tenantId:
-      typeof payload.tenantId === "string"
-        ? payload.tenantId
-        : typeof payload["tid"] === "string"
-          ? (payload["tid"] as string)
-          : "",
+    userId,
+    username: phoneClaim
+      ? formatStoredPhoneForDisplay(phoneClaim)
+      : (emailClaim ?? username),
+    // Phone is stored digit-only by the backend (PhoneNumbers.toStoredDigits).
+    // Re-attach the `+` here so form prefill renders as E.164.
+    phone: phoneClaim ? formatStoredPhoneForDisplay(phoneClaim) : null,
+    email: emailClaim,
+    tenantId: readString("tenantId") ?? readString("tid") ?? "",
     tenantSlug,
     jti: payload.jti,
     roles: (payload.roles ?? []) as Role[],

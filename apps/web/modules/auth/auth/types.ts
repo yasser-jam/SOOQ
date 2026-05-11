@@ -36,7 +36,15 @@ export type AuthTokenResponse = {
 
 export type CurrentUser = {
   userId: string
+  /**
+   * Primary login channel — phone for OTP users, email for Google OAuth.
+   * Mirrors the backend `username` claim. Use this for display ("logged in
+   * as …") and session lookup. For data entry fall back to `phone`/`email`
+   * directly so callers aren't forced to guess the channel.
+   */
   username: string
+  phone: string | null
+  email: string | null
   tenantId: string
   tenantSlug?: string | null
   jti?: string
