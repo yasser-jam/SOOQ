@@ -4,10 +4,13 @@ import { useCallback, useEffect, useMemo } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FormProvider, useForm } from "react-hook-form"
+import { FormProvider, useForm, type Path } from "react-hook-form"
+import { toast } from "sonner"
 import { z } from "zod"
 
 import { Button } from "@workspace/ui/components/button"
+
+import type { ApiError } from "@/lib/api"
 
 import {
   Tabs,
@@ -67,12 +70,35 @@ const CREATE_TAB_SEQUENCE: TabValue[] = [
   "attributes",
 ]
 
+// Map a backend `fieldErrors[].field` (often dotted or snake_case) to the form
+// path used by react-hook-form. Falls back to the raw key. Surfaced via
+// `form.setError` so the field highlights inline.
+const PRODUCT_FIELD_ALIASES: Record<string, Path<ProductFormInput>> = {
+  slug: "slug",
+  title_ar: "titleAr",
+  titleAr: "titleAr",
+  title_en: "titleEn",
+  titleEn: "titleEn",
+}
+
+// Which tab a given form field lives on, so we can switch to it when the
+// backend rejects a save with a field error.
+const FIELD_TO_TAB: Partial<Record<Path<ProductFormInput>, TabValue>> = {
+  slug: "basics",
+  titleAr: "basics",
+  titleEn: "basics",
+  descriptionAr: "basics",
+  descriptionEn: "basics",
+}
+
 export default function ProductDetailsPage() {
   const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
+  const storeSlug = params?.storeSlug?.toString() ?? ""
   const productId = params?.["product-id"]?.toString() ?? ""
   const isEdit = productId !== "create"
+  const productsListPath = `/store/${storeSlug}/products`
 
   const tabFromUrl = searchParams?.get("tab") ?? null
   const activeTab: TabValue = isValidTab(tabFromUrl) ? tabFromUrl : "basics"
@@ -140,13 +166,42 @@ export default function ProductDetailsPage() {
     queryClient.invalidateQueries({ queryKey: productKeys.all })
   }, [queryClient, productId])
 
+  // Surface backend validation errors (e.g. duplicate slug → ERR_1003) on
+  // the actual field instead of letting them disappear silently. The axios
+  // interceptor already suppresses the toast for `show-field-error`, so we
+  // emit a brief toast here too and jump to the tab that owns the field —
+  // otherwise the merchant might be on a different tab when the inline
+  // error appears and never notice.
+  const handleMutationError = useCallback(
+    (error: ApiError) => {
+      if (error.action === "show-field-error" && error.fieldKey) {
+        const formField =
+          PRODUCT_FIELD_ALIASES[error.fieldKey] ??
+          (error.fieldKey as Path<ProductFormInput>)
+        form.setError(formField, {
+          type: "server",
+          message: error.message,
+        })
+        const targetTab = FIELD_TO_TAB[formField]
+        if (targetTab && targetTab !== activeTab) {
+          handleTabChange(targetTab)
+        }
+        toast.error(error.message)
+      }
+    },
+    [activeTab, form, handleTabChange]
+  )
+
   const { isPending: isUpdating, mutate: updateProductMutation } = useMutation({
     mutationKey: ["update-product"],
     mutationFn: updateProduct,
     onSuccess: () => {
       draft.clear()
       invalidateProductCaches()
+      toast.success("تم حفظ المنتج")
+      router.push(productsListPath)
     },
+    onError: handleMutationError,
   })
 
   const { isPending: isCreating, mutate: createProductMutation } = useMutation({
@@ -155,7 +210,10 @@ export default function ProductDetailsPage() {
     onSuccess: () => {
       draft.clear()
       invalidateProductCaches()
+      toast.success("تم إنشاء المنتج")
+      router.push(productsListPath)
     },
+    onError: handleMutationError,
   })
 
   const handleSubmit = useCallback(

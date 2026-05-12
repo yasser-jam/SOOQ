@@ -649,10 +649,13 @@ export default function ProductInventoryPage() {
                 ) : null}
               </div>
 
-              <form
-                className="flex flex-col gap-4"
-                onSubmit={form.handleSubmit(handleAdjustmentSubmit)}
-              >
+              {/* NOTE: this component is rendered inside the product editor
+                  page, which itself wraps everything in a parent `<form>`.
+                  HTML doesn't allow nested forms — the browser silently drops
+                  the inner one, so a real <form> here would make the "تطبيق
+                  التعديل" button submit the OUTER product form instead.
+                  Use a <div> and trigger handleSubmit on click. */}
+              <div className="flex flex-col gap-4">
                 <Field
                   name="quantityDelta"
                   control={form.control}
@@ -701,15 +704,16 @@ export default function ProductInventoryPage() {
                 </div>
 
                 <Button
-                  type="submit"
+                  type="button"
                   variant="secondary"
                   size="md"
                   loading={isAdjustingInventory}
                   disabled={!selectedVariant}
+                  onClick={form.handleSubmit(handleAdjustmentSubmit)}
                 >
                   تطبيق التعديل
                 </Button>
-              </form>
+              </div>
             </CardContent>
           </Card>
 
