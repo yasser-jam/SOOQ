@@ -5,7 +5,7 @@ import { useCurrentUser } from "@/modules/auth/auth/hooks/useCurrentUser"
 import StoreRateLimitForm from "@/modules/auth/store/components/StoreRateLimitForm"
 import StoreStatusForm from "@/modules/auth/store/components/StoreStatusForm"
 
-function StoreSettingsContent() {
+function StoreAccessContent() {
   const { user } = useCurrentUser()
   const tenantId = user?.tenantId ?? ""
 
@@ -25,18 +25,18 @@ function StoreSettingsContent() {
   )
 }
 
-export default function StoreSettingsPage() {
+export default function StoreAccessPage() {
   return (
     <div className="container flex flex-col gap-6 py-8">
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">إعدادات المتجر</h1>
+        <h1 className="text-2xl font-semibold">إدارة الوصول</h1>
         <p className="text-sm text-muted-foreground">
           تحكّم في توفّر المتجر وحدّ المعدّل. هذه الصفحة متاحة لمالكي المتجر والمدراء فقط.
         </p>
       </header>
 
       <RequireRole roles={["OWNER", "MANAGER", "PLATFORM_ADMIN"]}>
-        <StoreSettingsContent />
+        <StoreAccessContent />
       </RequireRole>
     </div>
   )

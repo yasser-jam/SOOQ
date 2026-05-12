@@ -1,13 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Loader2, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 
 import {
   addCollectionProduct,
@@ -16,6 +22,8 @@ import {
   reorderCollectionProducts,
 } from "@/modules/product/collection/actions"
 import { collectionQueryKeys } from "@/modules/product/collection/queryKeys"
+import { listProducts } from "@/modules/product/product/actions"
+import { productKeys } from "@/modules/product/product/queryKeys"
 
 type Props = {
   collectionId: string
@@ -29,6 +37,37 @@ export default function ManualProductsTab({ collectionId }: Props) {
     queryKey: collectionQueryKeys.products(collectionId, 0),
     queryFn: () => listCollectionProducts(collectionId, { page: 0, size: 100 }),
   })
+
+  // Catalog: full product list to populate the picker. Cached globally so it
+  // doesn't refetch when navigating between collections.
+  const { data: catalogResponse, isPending: isLoadingCatalog } = useQuery({
+    queryKey: productKeys.all,
+    queryFn: listProducts,
+  })
+  const catalogProducts = catalogResponse?.data ?? []
+
+  // Hide products that are already in this collection so the merchant can't
+  // pick a duplicate (the backend would reject it anyway).
+  const alreadyInCollectionIds = useMemo(
+    () => new Set((products ?? []).map((p) => p.productId)),
+    [products]
+  )
+  // The admin collection-products endpoint filters by `status = ACTIVE`
+  // (CollectionService.getProductsRaw in SOOQ-Back), so a DRAFT product gets
+  // saved into the join table but never appears in the list — a UX dead-end
+  // (can't see, can't remove from this screen). Filter the picker to ACTIVE
+  // products only and surface a hint about it in the empty state.
+  const draftCount = catalogProducts.filter((p) => p.status === "DRAFT").length
+  const availableProducts = useMemo(
+    () =>
+      catalogProducts.filter(
+        (p) =>
+          p.id &&
+          p.status === "ACTIVE" &&
+          !alreadyInCollectionIds.has(p.id)
+      ),
+    [catalogProducts, alreadyInCollectionIds]
+  )
 
   const invalidate = () =>
     queryClient.invalidateQueries({
@@ -85,16 +124,38 @@ export default function ManualProductsTab({ collectionId }: Props) {
             htmlFor="add-product-id"
             className="block text-sm font-medium mb-1"
           >
-            إضافة منتج بالـ productId
+            إضافة منتج
           </label>
-          <Input
-            id="add-product-id"
+          <Select
             value={productIdToAdd}
-            onChange={(e) => setProductIdToAdd(e.target.value)}
-            placeholder="UUID"
-            dir="ltr"
-            disabled={isAdding}
-          />
+            onValueChange={setProductIdToAdd}
+            disabled={isAdding || isLoadingCatalog}
+          >
+            <SelectTrigger id="add-product-id" className="w-full">
+              <SelectValue
+                placeholder={
+                  isLoadingCatalog
+                    ? "جارٍ تحميل المنتجات..."
+                    : availableProducts.length === 0
+                      ? "لا توجد منتجات متاحة للإضافة"
+                      : "اختر منتجاً"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {availableProducts.map((product) => (
+                <SelectItem key={product.id} value={product.id ?? ""}>
+                  {product.titleAr || product.titleEn || product.slug}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {!isLoadingCatalog && draftCount > 0 ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              منتجات بحالة "مسودة" غير معروضة هنا — انشرها أوّلاً لتتمكن من
+              إضافتها للمجموعة.
+            </p>
+          ) : null}
         </div>
         <Button
           type="button"
@@ -111,7 +172,7 @@ export default function ManualProductsTab({ collectionId }: Props) {
       ) : !products || products.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center">
           <p className="text-sm text-muted-foreground">
-            لا توجد منتجات في هذه المجموعة بعد. أضف منتجاً من الحقل أعلاه.
+            لا توجد منتجات في هذه المجموعة بعد. اختر منتجاً من القائمة أعلاه.
           </p>
         </div>
       ) : (

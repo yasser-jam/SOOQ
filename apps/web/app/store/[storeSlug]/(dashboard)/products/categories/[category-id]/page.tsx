@@ -138,7 +138,7 @@ export default function EditCategoryPage() {
           name="nameAr"
           control={form.control}
           label="الاسم بالعربية"
-          placeholder="أدخل الاسم بالعربية"
+          placeholder="مثال: إلكترونيات"
           inputProps={{ disabled: isSubmitting }}
         />
 
@@ -146,7 +146,7 @@ export default function EditCategoryPage() {
           name="nameEn"
           control={form.control}
           label="الاسم بالإنجليزية"
-          placeholder="أدخل الاسم بالإنجليزية"
+          placeholder="Example: Electronics"
           inputProps={{ disabled: isSubmitting }}
         />
 
@@ -154,7 +154,7 @@ export default function EditCategoryPage() {
           name="slug"
           control={form.control}
           label="الاسم المختصر"
-          placeholder="أدخل الاسم المختصر"
+          placeholder="مثال: electronics"
           inputProps={{ disabled: isSubmitting }}
         />
 
@@ -170,7 +170,7 @@ export default function EditCategoryPage() {
           <TextareaField
             label="الوصف بالعربية"
             name="descriptionAr"
-            placeholder="أدخل الوصف بالعربية"
+            placeholder="مثال: أحدث الأجهزة الإلكترونية والملحقات بأسعار منافسة"
             control={form.control}
           ></TextareaField>
         </div>
@@ -179,7 +179,7 @@ export default function EditCategoryPage() {
           <TextareaField
             label="الوصف بالإنجليزية"
             name="descriptionEn"
-            placeholder="أدخل الوصف بالإنجليزية"
+            placeholder="Example: Latest electronic devices and accessories at competitive prices"
             control={form.control}
           ></TextareaField>
         </div>

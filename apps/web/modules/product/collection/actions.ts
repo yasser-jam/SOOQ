@@ -47,11 +47,20 @@ export const updateProductCollection = async ({
 
 export const createProductCollection = async (
 	data: CreateProductCollectionInput
-): Promise<void> => {
-	await api<ApiResponse<unknown>>("/admin/collections", {
-		method: "POST",
-		body: data,
-	})
+): Promise<ProductCollection> => {
+	// Backend echoes the created collection (with `collectionId`) — return the
+	// normalized form so callers can route straight to its detail page instead
+	// of guessing the new id from the list.
+	const response = await api<ApiResponse<ProductCollectionApiModel>>(
+		"/admin/collections",
+		{
+			method: "POST",
+			body: data,
+		}
+	)
+	return normalizeProductCollection(
+		(response.data ?? {}) as ProductCollectionApiModel
+	)
 }
 
 export const deleteProductCollection = async (
