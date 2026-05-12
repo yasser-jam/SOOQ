@@ -14,9 +14,11 @@ import RequireRole from "@/modules/auth/auth/components/RequireRole"
 import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 import AddressTab from "@/modules/store/settings/components/AddressTab"
 import BrandingTab from "@/modules/store/settings/components/BrandingTab"
+import BusinessHoursTab from "@/modules/store/settings/components/BusinessHoursTab"
 import CurrencyDisplayTab from "@/modules/store/settings/components/CurrencyDisplayTab"
 import GeneralTab from "@/modules/store/settings/components/GeneralTab"
 import LocaleTab from "@/modules/store/settings/components/LocaleTab"
+import SocialLinksTab from "@/modules/store/settings/components/SocialLinksTab"
 
 function StoreSettingsContent() {
   const { data, isLoading, isError } = useQuery(getStoreSettingsQueryOptions())
@@ -48,6 +50,8 @@ function StoreSettingsContent() {
         <TabsTrigger value="branding">الشعار</TabsTrigger>
         <TabsTrigger value="currency">العملة</TabsTrigger>
         <TabsTrigger value="locale">المنطقة الزمنية</TabsTrigger>
+        <TabsTrigger value="social">روابط التواصل</TabsTrigger>
+        <TabsTrigger value="hours">ساعات العمل</TabsTrigger>
       </TabsList>
 
       <TabsContent value="general">
@@ -64,6 +68,12 @@ function StoreSettingsContent() {
       </TabsContent>
       <TabsContent value="locale">
         <LocaleTab settings={data} />
+      </TabsContent>
+      <TabsContent value="social">
+        <SocialLinksTab settings={data} />
+      </TabsContent>
+      <TabsContent value="hours">
+        <BusinessHoursTab settings={data} />
       </TabsContent>
     </Tabs>
   )
