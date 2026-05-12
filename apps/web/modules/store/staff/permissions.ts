@@ -1,3 +1,6 @@
+// Source of truth: SOOQ-Back AuthPermissionCatalog.ASSIGNABLE_STAFF_PERMISSIONS.
+// Keep this list in sync — any value not in the backend set is rejected with
+// 400 ERR_1001 "Invalid permission".
 export const ASSIGNABLE_PERMISSIONS = [
   "products:read",
   "products:write",
@@ -5,9 +8,9 @@ export const ASSIGNABLE_PERMISSIONS = [
   "inventory:write",
   "orders:read",
   "orders:update",
-  "shipments:read",
-  "shipments:update",
-  "settings:write",
+  "shipping:read",
+  "shipping:write",
+  "analytics:read",
 ] as const
 
 export type AssignablePermission = (typeof ASSIGNABLE_PERMISSIONS)[number]
@@ -74,29 +77,29 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
-    key: "shipments",
+    key: "shipping",
     title: "الشحن",
     permissions: [
       {
-        value: "shipments:read",
-        label: "عرض الشحنات",
-        description: "عرض الشحنات وتتبّعها.",
+        value: "shipping:read",
+        label: "عرض الشحن",
+        description: "عرض مزوّدي الشحن والشحنات وتتبّعها.",
       },
       {
-        value: "shipments:update",
-        label: "تحديث الشحنات",
-        description: "تحديث حالة الشحنات.",
+        value: "shipping:write",
+        label: "تعديل الشحن",
+        description: "إدارة مزوّدي الشحن وتحديث حالة الشحنات.",
       },
     ],
   },
   {
-    key: "settings",
-    title: "إعدادات المتجر",
+    key: "analytics",
+    title: "التحليلات",
     permissions: [
       {
-        value: "settings:write",
-        label: "تعديل الإعدادات",
-        description: "تعديل إعدادات المتجر العامة.",
+        value: "analytics:read",
+        label: "عرض التحليلات",
+        description: "عرض لوحة التحليلات والتقارير.",
       },
     ],
   },
