@@ -123,7 +123,7 @@ export default function EditTagPage() {
           name="tagName"
           control={form.control}
           label="الاسم"
-          placeholder="أدخل الاسم"
+          placeholder="مثال: عرض خاص"
           inputProps={{ disabled: isSubmitting }}
         />
 
@@ -131,7 +131,7 @@ export default function EditTagPage() {
           name="slug"
           control={form.control}
           label="الرابط"
-          placeholder="أدخل الرابط"
+          placeholder="مثال: special-offer"
           inputProps={{ disabled: isSubmitting }}
         />
       </form>

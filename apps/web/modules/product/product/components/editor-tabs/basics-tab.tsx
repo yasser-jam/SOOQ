@@ -38,7 +38,7 @@ export default function BasicsTab({ isSubmitting }: Props) {
               name="titleAr"
               control={form.control}
               label="العنوان بالعربية"
-              placeholder="أدخل العنوان بالعربية"
+              placeholder="مثال: هاتف ذكي 128GB"
               inputProps={{ disabled: isSubmitting }}
             />
 
@@ -46,7 +46,7 @@ export default function BasicsTab({ isSubmitting }: Props) {
               name="titleEn"
               control={form.control}
               label="العنوان بالإنجليزية"
-              placeholder="أدخل العنوان بالإنجليزية"
+              placeholder="Example: Smartphone 128GB"
               inputProps={{ disabled: isSubmitting }}
             />
 
@@ -54,7 +54,7 @@ export default function BasicsTab({ isSubmitting }: Props) {
               name="slug"
               control={form.control}
               label="الرابط"
-              placeholder="أدخل رابط المنتج"
+              placeholder="مثال: smartphone-128gb"
               inputProps={{ disabled: isSubmitting }}
             />
 
@@ -78,7 +78,7 @@ export default function BasicsTab({ isSubmitting }: Props) {
               name="descriptionAr"
               control={form.control}
               label="الوصف بالعربية"
-              placeholder="أدخل الوصف بالعربية"
+              placeholder="مثال: شاشة 6.5 إنش، بطارية 5000mAh، ضمان سنة"
               textareaProps={{ disabled: isSubmitting }}
             />
 
@@ -86,7 +86,7 @@ export default function BasicsTab({ isSubmitting }: Props) {
               name="descriptionEn"
               control={form.control}
               label="الوصف بالإنجليزية"
-              placeholder="أدخل الوصف بالإنجليزية"
+              placeholder="Example: 6.5-inch display, 5000mAh battery, 1-year warranty"
               textareaProps={{ disabled: isSubmitting }}
             />
           </div>

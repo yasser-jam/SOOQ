@@ -195,14 +195,14 @@ export default function EditCollectionPage() {
 										name="collectionName"
 										control={form.control}
 										label="اسم المجموعة"
-										placeholder="أدخل اسم المجموعة"
+										placeholder="مثال: مجموعة الصيف 2026"
 										inputProps={{ disabled: isSubmitting }}
 									/>
 									<Field
 										name="collectionSlug"
 										control={form.control}
 										label="الرابط"
-										placeholder="أدخل الرابط"
+										placeholder="مثال: summer-2026"
 										inputProps={{ disabled: isSubmitting }}
 									/>
 								</div>
@@ -220,7 +220,7 @@ export default function EditCollectionPage() {
 											<Textarea
 												{...field}
 												id="descriptionAr"
-												placeholder="أدخل الوصف بالعربية"
+												placeholder="مثال: أبرز المنتجات الموسمية بأسعار مخفّضة"
 												disabled={isSubmitting}
 												className="min-h-24"
 											/>
@@ -244,7 +244,7 @@ export default function EditCollectionPage() {
 											<Textarea
 												{...field}
 												id="descriptionEn"
-												placeholder="أدخل الوصف بالإنجليزية"
+												placeholder="Example: Highlighted seasonal products on sale"
 												disabled={isSubmitting}
 												className="min-h-24"
 											/>

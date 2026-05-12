@@ -40,7 +40,7 @@ export default function SeoTab({ isSubmitting }: Props) {
             name="seoTitle"
             control={form.control}
             label="عنوان SEO"
-            placeholder="أدخل عنوان SEO"
+            placeholder="مثال: اشترِ هاتف ذكي 128GB بأفضل سعر"
             inputProps={{ disabled: isSubmitting }}
           />
 
@@ -48,7 +48,7 @@ export default function SeoTab({ isSubmitting }: Props) {
             name="seoDescription"
             control={form.control}
             label="وصف SEO"
-            placeholder="أدخل وصف SEO"
+            placeholder="مثال: هاتف ذكي بشاشة عالية الدقة وبطارية طويلة الأمد مع ضمان وتوصيل سريع"
             textareaProps={{ disabled: isSubmitting }}
           />
 
