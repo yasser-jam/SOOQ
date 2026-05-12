@@ -16,6 +16,7 @@ import AddressTab from "@/modules/store/settings/components/AddressTab"
 import BrandingTab from "@/modules/store/settings/components/BrandingTab"
 import BusinessHoursTab from "@/modules/store/settings/components/BusinessHoursTab"
 import CurrencyDisplayTab from "@/modules/store/settings/components/CurrencyDisplayTab"
+import DangerZoneTab from "@/modules/store/settings/components/DangerZoneTab"
 import GeneralTab from "@/modules/store/settings/components/GeneralTab"
 import LocaleTab from "@/modules/store/settings/components/LocaleTab"
 import SocialLinksTab from "@/modules/store/settings/components/SocialLinksTab"
@@ -52,6 +53,9 @@ function StoreSettingsContent() {
         <TabsTrigger value="locale">المنطقة الزمنية</TabsTrigger>
         <TabsTrigger value="social">روابط التواصل</TabsTrigger>
         <TabsTrigger value="hours">ساعات العمل</TabsTrigger>
+        <TabsTrigger value="danger" className="text-destructive">
+          منطقة الخطر
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="general">
@@ -74,6 +78,9 @@ function StoreSettingsContent() {
       </TabsContent>
       <TabsContent value="hours">
         <BusinessHoursTab settings={data} />
+      </TabsContent>
+      <TabsContent value="danger">
+        <DangerZoneTab settings={data} />
       </TabsContent>
     </Tabs>
   )
