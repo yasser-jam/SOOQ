@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
+import { toast } from "sonner"
 
 import Field from "@/components/system/Field"
 import {
@@ -106,14 +107,29 @@ export default function EditCollectionPage() {
 		mutationFn: updateProductCollection,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: collectionQueryKeys.all })
+			toast.success("تم حفظ المجموعة")
 		},
 	})
 
 	const { isPending: isCreating, mutate: createCollection } = useMutation({
 		mutationFn: createProductCollection,
-		onSuccess: () => {
+		onSuccess: (created) => {
 			queryClient.invalidateQueries({ queryKey: collectionQueryKeys.all })
-			router.push(storePath("/products/collections"))
+			toast.success("تم إنشاء المجموعة")
+			// Create is the first step of a wizard. Once the collection exists,
+			// jump straight to its products / rules tab so the merchant can finish
+			// configuring it without having to come back via the list.
+			if (created?.id) {
+				const isAutomatedCreated =
+					created.collectionType === "AUTOMATED" ||
+					created.collectionType === "AUTOMATIC"
+				const nextTab = isAutomatedCreated ? "rules" : "products"
+				router.push(
+					storePath(`/products/collections/${created.id}?tab=${nextTab}`)
+				)
+			} else {
+				router.push(storePath("/products/collections"))
+			}
 		},
 	})
 
