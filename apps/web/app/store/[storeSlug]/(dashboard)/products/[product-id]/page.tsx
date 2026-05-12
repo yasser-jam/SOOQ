@@ -54,6 +54,19 @@ type TabValue = (typeof VALID_TABS)[number]
 const isValidTab = (value: string | null): value is TabValue =>
   value !== null && (VALID_TABS as readonly string[]).includes(value)
 
+// Tabs the user steps through with the "Next" button when creating a new
+// product. `inventory` is disabled in create mode (it needs a saved
+// productId) so we skip it here. In edit mode the merchant can save from
+// any tab, so we don't use this sequence there.
+const CREATE_TAB_SEQUENCE: TabValue[] = [
+  "basics",
+  "categorization",
+  "media",
+  "variants",
+  "seo",
+  "attributes",
+]
+
 export default function ProductDetailsPage() {
   const router = useRouter()
   const params = useParams()
@@ -160,6 +173,21 @@ export default function ProductDetailsPage() {
 
   const isSubmitting = isUpdating || isLoading || isCreating
 
+  // When creating a new product, the primary action is "Next" until the
+  // merchant reaches the last tab — then it becomes "Save". Edit mode keeps
+  // a single "Save" button on every tab because all data already exists and
+  // each tab is an independent partial update.
+  const createTabIndex = isEdit ? -1 : CREATE_TAB_SEQUENCE.indexOf(activeTab)
+  const isOnLastCreateTab =
+    !isEdit && createTabIndex === CREATE_TAB_SEQUENCE.length - 1
+  const showNextButton = !isEdit && createTabIndex >= 0 && !isOnLastCreateTab
+
+  const handleNextTab = useCallback(() => {
+    if (createTabIndex < 0) return
+    const next = CREATE_TAB_SEQUENCE[createTabIndex + 1]
+    if (next) handleTabChange(next)
+  }, [createTabIndex, handleTabChange])
+
   const handleImageChange = useCallback(
     ({ keptExistingIds, newFiles }: ImageUploaderState) => {
       // Server-known IDs the user wants to keep, in display order.
@@ -199,9 +227,19 @@ export default function ProductDetailsPage() {
           >
             إلغاء
           </Button>
-          <Button type="submit" form="product-form" disabled={isSubmitting}>
-            حفظ
-          </Button>
+          {showNextButton ? (
+            <Button
+              type="button"
+              onClick={handleNextTab}
+              disabled={isSubmitting}
+            >
+              التالي
+            </Button>
+          ) : (
+            <Button type="submit" form="product-form" disabled={isSubmitting}>
+              حفظ
+            </Button>
+          )}
         </div>
       </div>
 
