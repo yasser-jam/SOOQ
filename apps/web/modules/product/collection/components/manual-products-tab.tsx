@@ -52,8 +52,20 @@ export default function ManualProductsTab({ collectionId }: Props) {
     () => new Set((products ?? []).map((p) => p.productId)),
     [products]
   )
+  // The admin collection-products endpoint filters by `status = ACTIVE`
+  // (CollectionService.getProductsRaw in SOOQ-Back), so a DRAFT product gets
+  // saved into the join table but never appears in the list — a UX dead-end
+  // (can't see, can't remove from this screen). Filter the picker to ACTIVE
+  // products only and surface a hint about it in the empty state.
+  const draftCount = catalogProducts.filter((p) => p.status === "DRAFT").length
   const availableProducts = useMemo(
-    () => catalogProducts.filter((p) => p.id && !alreadyInCollectionIds.has(p.id)),
+    () =>
+      catalogProducts.filter(
+        (p) =>
+          p.id &&
+          p.status === "ACTIVE" &&
+          !alreadyInCollectionIds.has(p.id)
+      ),
     [catalogProducts, alreadyInCollectionIds]
   )
 
@@ -138,6 +150,12 @@ export default function ManualProductsTab({ collectionId }: Props) {
               ))}
             </SelectContent>
           </Select>
+          {!isLoadingCatalog && draftCount > 0 ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              منتجات بحالة "مسودة" غير معروضة هنا — انشرها أوّلاً لتتمكن من
+              إضافتها للمجموعة.
+            </p>
+          ) : null}
         </div>
         <Button
           type="button"
