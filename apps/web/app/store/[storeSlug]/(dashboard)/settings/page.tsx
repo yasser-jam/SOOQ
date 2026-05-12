@@ -13,6 +13,8 @@ import {
 import RequireRole from "@/modules/auth/auth/components/RequireRole"
 import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 import AddressTab from "@/modules/store/settings/components/AddressTab"
+import BrandingTab from "@/modules/store/settings/components/BrandingTab"
+import CurrencyDisplayTab from "@/modules/store/settings/components/CurrencyDisplayTab"
 import GeneralTab from "@/modules/store/settings/components/GeneralTab"
 import LocaleTab from "@/modules/store/settings/components/LocaleTab"
 
@@ -43,6 +45,8 @@ function StoreSettingsContent() {
       <TabsList className="flex-wrap h-auto">
         <TabsTrigger value="general">عام</TabsTrigger>
         <TabsTrigger value="address">العنوان</TabsTrigger>
+        <TabsTrigger value="branding">الشعار</TabsTrigger>
+        <TabsTrigger value="currency">العملة</TabsTrigger>
         <TabsTrigger value="locale">المنطقة الزمنية</TabsTrigger>
       </TabsList>
 
@@ -51,6 +55,12 @@ function StoreSettingsContent() {
       </TabsContent>
       <TabsContent value="address">
         <AddressTab settings={data} />
+      </TabsContent>
+      <TabsContent value="branding">
+        <BrandingTab settings={data} />
+      </TabsContent>
+      <TabsContent value="currency">
+        <CurrencyDisplayTab settings={data} />
       </TabsContent>
       <TabsContent value="locale">
         <LocaleTab settings={data} />
