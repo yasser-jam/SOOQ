@@ -13,8 +13,10 @@ import {
   Palette,
   Receipt,
   RotateCcw,
+  Settings,
   ShoppingBag,
   Truck,
+  UserCog,
   Users,
   Warehouse,
 } from "lucide-react"
@@ -137,6 +139,20 @@ function buildNavItems(storeSlug: string): readonly NavItem[] {
       title: "الاستردادات",
       url: `${base}/refunds`,
       icon: RotateCcw,
+    },
+    {
+      title: "الموظفون",
+      url: `${base}/staff`,
+      icon: UserCog,
+    },
+    {
+      title: "الإعدادات",
+      url: `${base}/settings`,
+      icon: Settings,
+      children: [
+        { title: "الإعدادات العامة", url: `${base}/settings` },
+        { title: "إدارة الوصول", url: `${base}/settings/access` },
+      ],
     },
   ]
 }
