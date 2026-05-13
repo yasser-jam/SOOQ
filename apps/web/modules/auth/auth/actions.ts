@@ -12,9 +12,9 @@ import type {
   AuthTokenResponse,
   CurrentUser,
   GoogleOAuthInput,
-  RequestOtpInput,
+  RequestOtpCommand,
   Role,
-  VerifyOtpInput,
+  VerifyOtpCommand,
 } from "./types"
 import { REGISTRATION_HUB_SLUG } from "./types"
 
@@ -29,20 +29,26 @@ type Envelope<T> = {
   message?: string
 }
 
-export const requestOtp = async (input: RequestOtpInput): Promise<string> => {
+export const requestOtp = async (
+  command: RequestOtpCommand
+): Promise<string> => {
+  const { tenantSlug, ...body } = command
   const response = await api<Envelope<string>>("/auth/otp/request", {
     method: "POST",
-    body: input,
+    body,
+    headers: tenantSlug ? { "X-Tenant-Slug": tenantSlug } : undefined,
   })
   return response.data ?? ""
 }
 
 export const verifyOtp = async (
-  input: VerifyOtpInput
+  command: VerifyOtpCommand
 ): Promise<AuthTokenResponse> => {
+  const { tenantSlug, ...body } = command
   const response = await api<Envelope<AuthTokenResponse>>("/auth/otp/verify", {
     method: "POST",
-    body: input,
+    body,
+    headers: tenantSlug ? { "X-Tenant-Slug": tenantSlug } : undefined,
   })
   if (!response.data) {
     throw new Error("Empty verify-otp response")
@@ -102,7 +108,6 @@ const readCurrentUser = (): CurrentUser | null => {
     tenantSlug,
     jti: payload.jti,
     roles: (payload.roles ?? []) as Role[],
-    permissions: payload.permissions ?? [],
     expiresAtSec: payload.exp,
   }
 }

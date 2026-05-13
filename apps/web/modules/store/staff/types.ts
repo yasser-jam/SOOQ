@@ -1,18 +1,14 @@
 import type * as z from "zod"
 
-import type { createStaffSchema, updateStaffPermissionsSchema } from "./schema"
+import type { createStaffSchema } from "./schema"
 
 export type StaffCreateRequestDto = z.infer<typeof createStaffSchema>
-export type StaffPermissionUpdateRequestDto = z.infer<
-  typeof updateStaffPermissionsSchema
->
 
 export type StaffResponseDto = {
   staffId: string
   userId: string
   fullName: string
   phone: string
-  permissions: string[]
   isActive: boolean
   lastLoginAt?: string | null
   createdAt: string

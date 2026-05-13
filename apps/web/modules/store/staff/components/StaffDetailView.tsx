@@ -15,7 +15,7 @@ import {
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { AlertTriangle, Power, PowerOff, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 
 import ConfirmAlert from "@/components/system/confirm-alert"
@@ -24,14 +24,7 @@ import {
   getDeleteStaffMutationOptions,
   getReactivateStaffMutationOptions,
   getStaffQueryOptions,
-  getUpdateStaffPermissionsMutationOptions,
 } from "../actions"
-import {
-  ASSIGNABLE_PERMISSIONS,
-  isAssignablePermission,
-  type AssignablePermission,
-} from "../permissions"
-import PermissionsPicker from "./PermissionsPicker"
 
 const formatDateTime = (value?: string | null): string => {
   if (!value) return "—"
@@ -57,28 +50,8 @@ export default function StaffDetailView({
 
   const { data, isLoading, isError } = useQuery(getStaffQueryOptions(staffId))
 
-  const [permissions, setPermissions] = useState<AssignablePermission[]>([])
   const [confirmDeactivate, setConfirmDeactivate] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
-
-  useEffect(() => {
-    if (!data) return
-    const assignable = (data.permissions ?? []).filter(
-      isAssignablePermission
-    ) as AssignablePermission[]
-    setPermissions(assignable)
-  }, [data])
-
-  const updatePerms = useMutation({
-    ...getUpdateStaffPermissionsMutationOptions({
-      queryClient,
-      onSuccess: () => {
-        toast.success(
-          "تم حفظ الصلاحيات. ستُفعَّل عند تسجيل الدخول التالي للموظف."
-        )
-      },
-    }),
-  })
 
   const deactivate = useMutation({
     ...getDeactivateStaffMutationOptions({
@@ -128,13 +101,6 @@ export default function StaffDetailView({
     )
   }
 
-  const initialPermissions = (data.permissions ?? []).filter(
-    isAssignablePermission
-  ) as AssignablePermission[]
-  const dirty =
-    permissions.length !== initialPermissions.length ||
-    permissions.some((p) => !initialPermissions.includes(p))
-
   return (
     <div className="flex flex-col gap-6">
       <Card>
@@ -175,42 +141,11 @@ export default function StaffDetailView({
         <CardHeader>
           <CardTitle>الصلاحيات</CardTitle>
           <CardDescription>
-            تستبدل الصلاحيات بشكل كامل. تأخذ مفعولها عند تسجيل الدخول التالي للموظف.
+            يحصل دور <strong>STAFF</strong> على مجموعة صلاحيات ثابتة محدّدة من
+            النظام (قراءة المنتجات والمخزون والطلبات والشحن). لا يمكن تخصيصها
+            لكل موظف.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <PermissionsPicker
-            value={permissions}
-            onChange={setPermissions}
-            disabled={updatePerms.isPending}
-          />
-        </CardContent>
-        <CardFooter className="justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={!dirty || updatePerms.isPending}
-            onClick={() => setPermissions(initialPermissions)}
-          >
-            تراجع
-          </Button>
-          <Button
-            type="button"
-            loading={updatePerms.isPending}
-            disabled={!dirty}
-            onClick={() => {
-              const assignablePermissions = permissions.filter((p) =>
-                (ASSIGNABLE_PERMISSIONS as readonly string[]).includes(p)
-              )
-              updatePerms.mutate({
-                staffId,
-                data: { permissions: assignablePermissions },
-              })
-            }}
-          >
-            حفظ الصلاحيات
-          </Button>
-        </CardFooter>
       </Card>
 
       <Card className="border-destructive/40">

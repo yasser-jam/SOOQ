@@ -1,6 +1,6 @@
 import * as z from "zod"
 
-import { optionalString, requiredString } from "@/lib/schema"
+import { optionalString } from "@/lib/schema"
 
 export const storeStatusSchema = z.enum([
   "ACTIVE",
@@ -10,20 +10,9 @@ export const storeStatusSchema = z.enum([
   "CLOSED",
 ])
 
-const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-
-export const createStoreSchema = z.object({
-  storeName: requiredString("اسم المتجر"),
-  slug: z
-    .string()
-    .trim()
-    .min(1, "الرابط مطلوب")
-    .regex(slugRegex, "أحرف لاتينية صغيرة وأرقام مفصولة بشرطة فقط"),
-  primaryCurrencyCode: requiredString("العملة الأساسية"),
-  storeCategory: requiredString("تصنيف المتجر"),
-  themeCode: z.string().trim().min(1).default("DEFAULT"),
-  storeLogo: optionalString(),
-})
+// The onboarding identity schema now lives in modules/store/settings/schema.ts
+// (re-exported as `identitySchema`) since it submits via the STR settings
+// endpoint. The wizard imports from there directly.
 
 export const updateStoreStatusSchema = z
   .object({

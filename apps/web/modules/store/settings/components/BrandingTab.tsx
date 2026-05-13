@@ -1,13 +1,11 @@
 "use client"
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
@@ -16,18 +14,18 @@ import {
   FieldError,
   FieldLabel,
 } from "@workspace/ui/components/field"
-import { Input } from "@workspace/ui/components/input"
-import { ImageIcon } from "lucide-react"
-import { Controller, useForm } from "react-hook-form"
+import { ImageIcon, Loader2, Trash2, Upload } from "lucide-react"
+import * as React from "react"
+import { useFormContext } from "react-hook-form"
 import { toast } from "sonner"
-import * as z from "zod"
 
-import { getUpdateStoreSettingsMutationOptions } from "../actions"
-import { buildBrandingDefaults } from "../init"
-import { brandingSettingsSchema } from "../schema"
-import type { StoreSettingsResponseDto, UpdateStoreSettingsInput } from "../types"
+import { uploadMedia } from "@/modules/media/upload/actions"
+import { validateImageFile } from "@/modules/media/upload/init"
+import { MEDIA_CONSTRAINTS } from "@/modules/media/upload/types"
 
-type FormInput = z.infer<typeof brandingSettingsSchema>
+import type { AllSettingsInput, StoreSettingsResponseDto } from "../types"
+
+const ACCEPT_ATTR = MEDIA_CONSTRAINTS.allowedTypes.join(",")
 
 function ImagePreview({
   url,
@@ -57,110 +55,147 @@ function ImagePreview({
   )
 }
 
-export default function BrandingTab({
-  settings,
-}: {
-  settings: StoreSettingsResponseDto
-}) {
-  const queryClient = useQueryClient()
-  const form = useForm<FormInput>({
-    resolver: zodResolver(brandingSettingsSchema),
-    defaultValues: buildBrandingDefaults(settings),
-  })
+type ImageFieldName = "logoUrl" | "faviconUrl"
 
-  const logoUrl = form.watch("logoUrl")
-  const faviconUrl = form.watch("faviconUrl")
+function ImageUploadField({
+  fieldName,
+  label,
+  previewSize,
+  helperText,
+}: {
+  fieldName: ImageFieldName
+  label: string
+  previewSize?: string
+  helperText?: string
+}) {
+  const form = useFormContext<AllSettingsInput>()
+  const inputRef = React.useRef<HTMLInputElement | null>(null)
+  const value = form.watch(fieldName)
+  const error = form.formState.errors[fieldName]
 
   const { isPending, mutate } = useMutation({
-    ...getUpdateStoreSettingsMutationOptions({
-      queryClient,
-      onSuccess: () => {
-        toast.success("تم تحديث الشعار")
-      },
-    }),
+    mutationFn: uploadMedia,
+    onSuccess: (response) => {
+      const uploaded = response.items[0]
+      if (!uploaded) {
+        toast.error("لم يتم استلام رابط الصورة من الخادم")
+        return
+      }
+      form.setValue(fieldName, uploaded.publicUrl, {
+        shouldDirty: true,
+        shouldValidate: true,
+      })
+      toast.success("تم رفع الصورة")
+    },
+    onError: () => {
+      // The axios interceptor already surfaces the error toast.
+    },
   })
 
-  const handleSubmit = (data: FormInput) => {
-    const payload: UpdateStoreSettingsInput = {}
-    const initial = buildBrandingDefaults(settings)
-    if ((data.logoUrl ?? "") !== initial.logoUrl)
-      payload.logoUrl = data.logoUrl ?? ""
-    if ((data.faviconUrl ?? "") !== initial.faviconUrl)
-      payload.faviconUrl = data.faviconUrl ?? ""
+  const pickFile = () => inputRef.current?.click()
 
-    if (Object.keys(payload).length === 0) {
-      toast.info("لا تغييرات للحفظ")
+  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    // Reset so picking the same file twice re-fires onChange.
+    event.target.value = ""
+    if (!file) return
+
+    const validation = validateImageFile(file)
+    if (!validation.ok) {
+      toast.error(validation.error)
       return
     }
-    mutate(payload)
+    mutate([file])
+  }
+
+  const clear = () => {
+    form.setValue(fieldName, "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
   }
 
   return (
-    <Card>
-      <form onSubmit={form.handleSubmit(handleSubmit)}>
-        <CardHeader>
-          <CardTitle>الشعار والـ favicon</CardTitle>
-          <CardDescription>
-            ألصق رابط الصورة (https). تظهر المعاينة فور كتابة الرابط.
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-6">
-          <div className="flex items-start gap-4">
-            <ImagePreview url={logoUrl ?? ""} alt="logo" />
-            <UiField
-              className="flex-1"
-              data-invalid={Boolean(form.formState.errors.logoUrl)}
-            >
-              <FieldLabel htmlFor="logoUrl">رابط الشعار</FieldLabel>
-              <Controller
-                name="logoUrl"
-                control={form.control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="logoUrl"
-                    type="url"
-                    placeholder="https://cdn.example.com/logo.png"
-                    dir="ltr"
-                  />
-                )}
-              />
-              <FieldError errors={[form.formState.errors.logoUrl]} />
-            </UiField>
-          </div>
-
-          <div className="flex items-start gap-4">
-            <ImagePreview url={faviconUrl ?? ""} alt="favicon" size="size-12" />
-            <UiField
-              className="flex-1"
-              data-invalid={Boolean(form.formState.errors.faviconUrl)}
-            >
-              <FieldLabel htmlFor="faviconUrl">رابط Favicon</FieldLabel>
-              <Controller
-                name="faviconUrl"
-                control={form.control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id="faviconUrl"
-                    type="url"
-                    placeholder="https://cdn.example.com/favicon.png"
-                    dir="ltr"
-                  />
-                )}
-              />
-              <FieldError errors={[form.formState.errors.faviconUrl]} />
-            </UiField>
-          </div>
-        </CardContent>
-
-        <CardFooter className="justify-end">
-          <Button type="submit" loading={isPending}>
-            حفظ
+    <div className="flex items-start gap-4">
+      <ImagePreview url={value ?? ""} alt={label} size={previewSize} />
+      <UiField className="flex-1" data-invalid={Boolean(error)}>
+        <FieldLabel>{label}</FieldLabel>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={ACCEPT_ATTR}
+          className="hidden"
+          onChange={onFileChange}
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={pickFile}
+            disabled={isPending}
+          >
+            {isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Upload className="size-4" />
+            )}
+            {value ? "استبدال الصورة" : "اختر صورة"}
           </Button>
-        </CardFooter>
-      </form>
+          {value && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={clear}
+              disabled={isPending}
+            >
+              <Trash2 className="size-4 text-destructive" />
+              إزالة
+            </Button>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {helperText ?? "JPG أو PNG أو WebP، حتى 5 ميغابايت."}
+        </p>
+        {value && (
+          <p
+            className="truncate text-xs text-muted-foreground"
+            title={value}
+            dir="ltr"
+          >
+            {value}
+          </p>
+        )}
+        <FieldError errors={[error]} />
+      </UiField>
+    </div>
+  )
+}
+
+export default function BrandingTab({
+  settings: _settings,
+}: {
+  settings: StoreSettingsResponseDto
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>الشعار والـ favicon</CardTitle>
+        <CardDescription>
+          اختر الصورة من جهازك. سيتم رفعها فوراً وحفظ رابطها عند الضغط
+          على «حفظ كل الإعدادات».
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="flex flex-col gap-6">
+        <ImageUploadField fieldName="logoUrl" label="شعار المتجر" />
+        <ImageUploadField
+          fieldName="faviconUrl"
+          label="Favicon"
+          previewSize="size-12"
+          helperText="صورة صغيرة (32×32 أو 64×64) تظهر في علامة تبويب المتصفح."
+        />
+      </CardContent>
     </Card>
   )
 }

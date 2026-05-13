@@ -8,7 +8,6 @@ import type {
   StaffCreateRequestDto,
   StaffListParams,
   StaffListResult,
-  StaffPermissionUpdateRequestDto,
   StaffResponseDto,
 } from "./types"
 
@@ -84,23 +83,6 @@ export const createStaff = async (
   return response.data
 }
 
-export const updateStaffPermissions = async ({
-  staffId,
-  data,
-}: {
-  staffId: string
-  data: StaffPermissionUpdateRequestDto
-}): Promise<StaffResponseDto> => {
-  const response = await api<ApiResponse<StaffResponseDto>>(
-    `${STAFF_PATH}/${staffId}/permissions`,
-    { method: "PUT", body: data }
-  )
-  if (!response.data) {
-    throw new Error("Empty update-permissions response")
-  }
-  return response.data
-}
-
 export const deactivateStaff = async (
   staffId: string
 ): Promise<StaffResponseDto> => {
@@ -142,21 +124,6 @@ export const getCreateStaffMutationOptions = ({
 }) => ({
   mutationFn: createStaff,
   onSuccess: (staff: StaffResponseDto) => {
-    queryClient.invalidateQueries({ queryKey: staffKeys.all })
-    onSuccess?.(staff)
-  },
-})
-
-export const getUpdateStaffPermissionsMutationOptions = ({
-  queryClient,
-  onSuccess,
-}: {
-  queryClient: QueryClient
-  onSuccess?: (staff: StaffResponseDto) => void
-}) => ({
-  mutationFn: updateStaffPermissions,
-  onSuccess: (staff: StaffResponseDto) => {
-    queryClient.setQueryData(staffKeys.detail(staff.staffId), staff)
     queryClient.invalidateQueries({ queryKey: staffKeys.all })
     onSuccess?.(staff)
   },

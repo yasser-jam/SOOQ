@@ -25,10 +25,8 @@ import type * as z from "zod"
 import PhoneField from "@/components/system/PhoneField"
 import type { ApiError } from "@/lib/api"
 import { getCreateStaffMutationOptions } from "../actions"
-import type { AssignablePermission } from "../permissions"
 import { createStaffSchema } from "../schema"
 import type { StaffCreateRequestDto } from "../types"
-import PermissionsPicker from "./PermissionsPicker"
 
 type FormInput = z.input<typeof createStaffSchema>
 
@@ -41,7 +39,6 @@ export default function StaffForm({ storeSlug }: { storeSlug: string }) {
     defaultValues: {
       fullName: "",
       phone: "",
-      permissions: [],
     },
   })
 
@@ -100,24 +97,6 @@ export default function StaffForm({ storeSlug }: { storeSlug: string }) {
               name="phone"
               control={form.control}
               label="رقم الهاتف"
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <span className="text-sm font-medium">الصلاحيات</span>
-            <p className="text-xs text-muted-foreground">
-              اختر ما يستطيع الموظف الوصول إليه. يمكن تركها فارغة وتعيينها لاحقاً.
-            </p>
-            <Controller
-              name="permissions"
-              control={form.control}
-              render={({ field }) => (
-                <PermissionsPicker
-                  value={(field.value ?? []) as AssignablePermission[]}
-                  onChange={field.onChange}
-                  disabled={isPending}
-                />
-              )}
             />
           </div>
         </CardContent>

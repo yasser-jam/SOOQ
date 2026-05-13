@@ -17,8 +17,6 @@ export const ROLES = [
 
 export type Role = (typeof ROLES)[number]
 
-export type Permission = string
-
 export type AuthTokenResponse = {
   accessToken: string
   refreshToken: string
@@ -31,7 +29,6 @@ export type AuthTokenResponse = {
   tenantId: string
   tenantSlug?: string | null
   roles: Role[]
-  permissions: Permission[]
 }
 
 export type CurrentUser = {
@@ -49,12 +46,20 @@ export type CurrentUser = {
   tenantSlug?: string | null
   jti?: string
   roles: Role[]
-  permissions: Permission[]
   expiresAtSec?: number
 }
 
 export type RequestOtpInput = z.infer<typeof requestOtpSchema>
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>
 export type GoogleOAuthInput = z.infer<typeof googleOAuthSchema>
+
+/**
+ * Merchant OTP commands carry both the request body and an optional
+ * `tenantSlug` value that the actions layer lifts into the
+ * `X-Tenant-Slug` request header. Omit for registration (new store);
+ * set to the public store slug for a returning-login OTP cycle.
+ */
+export type RequestOtpCommand = RequestOtpInput & { tenantSlug?: string }
+export type VerifyOtpCommand = VerifyOtpInput & { tenantSlug?: string }
 
 export const REGISTRATION_HUB_SLUG = "registration-hub"

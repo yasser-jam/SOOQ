@@ -17,7 +17,6 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { ArrowLeftIcon, PhoneIcon } from "lucide-react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -62,15 +61,11 @@ export default function RequestOtpPage() {
   })
 
   const handleSubmit = (data: LoginForm) => {
-    // Login is OWNER-by-default — backend resolves the actual role from the
-    // existing user record. Signup uses /onboarding/create-store, which sends
-    // its own role + fullName.
+    // Hub login: omit X-Tenant-Slug. Backend resolves the tenant by
+    // looking up the phone globally (AUTH.md §B). Returning login from a
+    // known store slug must pass `tenantSlug` here as the header value.
     mutate({
       phone: data.phone.trim(),
-      role: "OWNER",
-      fullName: undefined,
-      tenantSlug: undefined,
-      tenantId: undefined,
     })
   }
 
@@ -129,16 +124,6 @@ export default function RequestOtpPage() {
           </div>
 
           <GoogleSignInButton role="OWNER" />
-
-          <p className="mt-2 text-center text-sm text-muted-foreground">
-            ليس لديك متجر بعد؟{" "}
-            <Link
-              href="/onboarding/create-store"
-              className="font-medium text-primary hover:underline"
-            >
-              أنشئ متجرك الآن
-            </Link>
-          </p>
         </CardFooter>
       </form>
     </Card>

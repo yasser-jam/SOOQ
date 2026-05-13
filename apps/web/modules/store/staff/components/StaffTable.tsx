@@ -134,21 +134,6 @@ export default function StaffTable() {
       ),
     },
     {
-      accessorKey: "permissions",
-      header: "الصلاحيات",
-      cell: ({ row }) => {
-        const perms = row.original.permissions ?? []
-        if (perms.length === 0) {
-          return <Badge variant="outline">بدون</Badge>
-        }
-        return (
-          <div title={perms.join("\n")}>
-            <Badge variant="secondary">{perms.length}</Badge>
-          </div>
-        )
-      },
-    },
-    {
       accessorKey: "isActive",
       header: "الحالة",
       cell: ({ row }) =>

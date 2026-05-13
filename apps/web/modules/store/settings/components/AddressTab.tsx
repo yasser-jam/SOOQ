@@ -1,13 +1,9 @@
 "use client"
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Button } from "@workspace/ui/components/button"
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
@@ -17,71 +13,59 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { Controller, useForm } from "react-hook-form"
-import { toast } from "sonner"
-import * as z from "zod"
+import { Button } from "@workspace/ui/components/button"
+import dynamic from "next/dynamic"
+import { Controller, useFormContext } from "react-hook-form"
 
-import { getUpdateStoreSettingsMutationOptions } from "../actions"
-import { buildAddressDefaults } from "../init"
-import { addressSettingsSchema } from "../schema"
-import type { StoreSettingsResponseDto, UpdateStoreSettingsInput } from "../types"
+import type { AllSettingsInput, StoreSettingsResponseDto } from "../types"
 
-type FormInput = z.infer<typeof addressSettingsSchema>
+// Leaflet binds to `window`, so the picker is loaded client-only.
+const MapPinPicker = dynamic(
+  () => import("@/components/system/map-pin-picker"),
+  { ssr: false }
+)
+
+const COORDINATE_DISPLAY_PRECISION = 6
 
 export default function AddressTab({
-  settings,
+  settings: _settings,
 }: {
   settings: StoreSettingsResponseDto
 }) {
-  const queryClient = useQueryClient()
-  const form = useForm<FormInput>({
-    resolver: zodResolver(addressSettingsSchema),
-    defaultValues: buildAddressDefaults(settings),
-  })
+  const form = useFormContext<AllSettingsInput>()
 
-  const { isPending, mutate } = useMutation({
-    ...getUpdateStoreSettingsMutationOptions({
-      queryClient,
-      onSuccess: () => {
-        toast.success("تم تحديث العنوان")
-      },
-    }),
-  })
+  const latitude = form.watch("latitude")
+  const longitude = form.watch("longitude")
 
-  const handleSubmit = (data: FormInput) => {
-    const payload: UpdateStoreSettingsInput = {}
-    const initial = buildAddressDefaults(settings)
-    if ((data.governorate ?? "") !== initial.governorate)
-      payload.governorate = data.governorate ?? ""
-    if ((data.city ?? "") !== initial.city) payload.city = data.city ?? ""
-    if ((data.street ?? "") !== initial.street)
-      payload.street = data.street ?? ""
-
-    if (Object.keys(payload).length === 0) {
-      toast.info("لا تغييرات للحفظ")
-      return
-    }
-    mutate(payload)
+  const clearPin = () => {
+    form.setValue("latitude", null, { shouldDirty: true, shouldValidate: true })
+    form.setValue("longitude", null, { shouldDirty: true, shouldValidate: true })
   }
 
   return (
     <Card>
-      <form onSubmit={form.handleSubmit(handleSubmit)}>
-        <CardHeader>
-          <CardTitle>عنوان المتجر</CardTitle>
-          <CardDescription>
-            عنوان النشاط التجاري الذي يظهر في صفحة الاتصال والفواتير.
-          </CardDescription>
-        </CardHeader>
+      <CardHeader>
+        <CardTitle>عنوان المتجر</CardTitle>
+        <CardDescription>
+          عنوان النشاط التجاري الذي يظهر في صفحة الاتصال والفواتير. يمكنك
+          أيضاً تحديد موقع المتجر على الخريطة لإظهاره للزبائن.
+        </CardDescription>
+      </CardHeader>
 
-        <CardContent className="grid gap-4 md:grid-cols-3">
+      <CardContent className="flex flex-col gap-6">
+        <div className="grid gap-4 md:grid-cols-3">
           <UiField data-invalid={Boolean(form.formState.errors.governorate)}>
             <FieldLabel htmlFor="governorate">المحافظة</FieldLabel>
             <Controller
               name="governorate"
               control={form.control}
               render={({ field }) => (
-                <Input {...field} id="governorate" placeholder="دمشق" />
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  id="governorate"
+                  placeholder="دمشق"
+                />
               )}
             />
             <FieldError errors={[form.formState.errors.governorate]} />
@@ -93,7 +77,12 @@ export default function AddressTab({
               name="city"
               control={form.control}
               render={({ field }) => (
-                <Input {...field} id="city" placeholder="دمشق" />
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  id="city"
+                  placeholder="دمشق"
+                />
               )}
             />
             <FieldError errors={[form.formState.errors.city]} />
@@ -105,19 +94,66 @@ export default function AddressTab({
               name="street"
               control={form.control}
               render={({ field }) => (
-                <Input {...field} id="street" placeholder="الحمراء" />
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  id="street"
+                  placeholder="الحمراء"
+                />
               )}
             />
             <FieldError errors={[form.formState.errors.street]} />
           </UiField>
-        </CardContent>
+        </div>
 
-        <CardFooter className="justify-end">
-          <Button type="submit" loading={isPending}>
-            حفظ
-          </Button>
-        </CardFooter>
-      </form>
+        <UiField data-invalid={Boolean(form.formState.errors.latitude)}>
+          <FieldLabel>الموقع على الخريطة</FieldLabel>
+          <p className="text-xs text-muted-foreground">
+            انقر على الخريطة أو اسحب الدبوس لتعيين موقع المتجر. ستظهر
+            إحداثيات (خط العرض / خط الطول) أسفل الخريطة.
+          </p>
+          <MapPinPicker
+            latitude={latitude ?? null}
+            longitude={longitude ?? null}
+            onChange={({ latitude: lat, longitude: lng }) => {
+              form.setValue("latitude", lat, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+              form.setValue("longitude", lng, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }}
+          />
+          <div
+            className="mt-2 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground"
+            dir="ltr"
+          >
+            <span className="font-mono">
+              {latitude != null && longitude != null ? (
+                <>
+                  lat: {latitude.toFixed(COORDINATE_DISPLAY_PRECISION)} · lng:{" "}
+                  {longitude.toFixed(COORDINATE_DISPLAY_PRECISION)}
+                </>
+              ) : (
+                <span dir="rtl">لم يتم تحديد موقع بعد</span>
+              )}
+            </span>
+            {(latitude != null || longitude != null) && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={clearPin}
+              >
+                <span dir="rtl">إزالة الدبوس</span>
+              </Button>
+            )}
+          </div>
+          <FieldError errors={[form.formState.errors.latitude]} />
+        </UiField>
+      </CardContent>
     </Card>
   )
 }
