@@ -14,6 +14,7 @@ import {
 import { Toaster } from "./toaster"
 import { api } from "@/lib/api"
 import { ApiResponse } from "@/lib/types"
+import StoreConfigurationGate from "@/modules/auth/store/components/StoreConfigurationGate"
 
 const STORE_SLUG_REGEX = /^\/store\/([^/]+)/
 
@@ -54,7 +55,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               <SidebarInset>
                 <LayoutHeader />
 
-                {children}
+                <StoreConfigurationGate>{children}</StoreConfigurationGate>
               </SidebarInset>
             </SidebarProvider>
           </DirectionProvider>

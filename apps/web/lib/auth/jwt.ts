@@ -4,7 +4,6 @@ export type JwtPayload = {
   exp?: number
   iat?: number
   roles?: string[]
-  permissions?: string[]
   tenantId?: string
   [key: string]: unknown
 }

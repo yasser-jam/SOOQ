@@ -1,16 +1,13 @@
 import type {
-  CreateStoreInput,
+  SaveStoreSettingsInput,
   UpdateStoreRateLimitInput,
   UpdateStoreStatusInput,
 } from "./types"
 
-export const createStoreFormDefaultValues: CreateStoreInput = {
+export const saveStoreSettingsDefaultValues: SaveStoreSettingsInput = {
   storeName: "",
   slug: "",
   primaryCurrencyCode: "SYP",
-  storeCategory: "GENERAL",
-  themeCode: "DEFAULT",
-  storeLogo: "",
 }
 
 export const slugifyStoreName = (name: string): string =>
@@ -22,14 +19,12 @@ export const slugifyStoreName = (name: string): string =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
 
-export const initCreateStorePayload = (
-  input: CreateStoreInput
-): CreateStoreInput => ({
-  ...input,
+export const initSaveStoreSettingsPayload = (
+  input: SaveStoreSettingsInput
+): SaveStoreSettingsInput => ({
   storeName: input.storeName.trim(),
   slug: input.slug.trim().toLowerCase(),
-  themeCode: input.themeCode || "DEFAULT",
-  storeLogo: input.storeLogo?.trim() || undefined,
+  primaryCurrencyCode: input.primaryCurrencyCode.trim().toUpperCase(),
 })
 
 export const updateStoreStatusDefaultValues: UpdateStoreStatusInput = {

@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query"
 
 import { currentUserQueryOptions, isHubTenant } from "../actions"
-import type { Permission, Role } from "../types"
+import type { Role } from "../types"
 
 export const useCurrentUser = () => {
   const { data: user, isLoading, isFetching } = useQuery(currentUserQueryOptions())
@@ -14,12 +14,6 @@ export const useCurrentUser = () => {
     return roles.some((r) => user.roles.includes(r))
   }
 
-  const hasPermission = (permission: Permission | Permission[]): boolean => {
-    if (!user) return false
-    const perms = Array.isArray(permission) ? permission : [permission]
-    return perms.some((p) => user.permissions.includes(p))
-  }
-
   return {
     user: user ?? null,
     isAuthenticated: Boolean(user),
@@ -27,6 +21,5 @@ export const useCurrentUser = () => {
     isLoading,
     isFetching,
     hasRole,
-    hasPermission,
   }
 }

@@ -6,12 +6,12 @@ import { ROLES } from "./types"
 
 export const roleSchema = z.enum(ROLES)
 
+// Merchant OTP request/verify bodies match `MerchantOtpRequestDto` /
+// `MerchantOtpVerifyDto` on the backend — tenant context is conveyed via
+// the `X-Tenant-Slug` header (handled in actions.ts), not in the body.
 export const requestOtpSchema = z.object({
   phone: phoneSchema,
-  role: roleSchema.default("OWNER"),
   fullName: optionalString(),
-  tenantSlug: optionalString(),
-  tenantId: optionalString(),
 })
 
 export const verifyOtpSchema = z.object({
@@ -28,8 +28,6 @@ export const verifyOtpSchema = z.object({
     .optional()
     .or(z.literal("")),
   backupCode: optionalString(),
-  tenantSlug: optionalString(),
-  tenantId: optionalString(),
 })
 
 export const googleOAuthSchema = z.object({

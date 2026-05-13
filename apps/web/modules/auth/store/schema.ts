@@ -11,18 +11,23 @@ export const storeStatusSchema = z.enum([
 ])
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const currencyRegex = /^[A-Z]{3}$/
 
-export const createStoreSchema = z.object({
+// Onboarding identity submit — matches the STR `StoreSettingsUpdateRequestDto`
+// fields that flip `tenant.configured=true` when all three are sent
+// together (see STR.md §"API Endpoints"). Logo / theme / category live on
+// other DTO paths and are added in later iterations.
+export const saveStoreSettingsSchema = z.object({
   storeName: requiredString("اسم المتجر"),
   slug: z
     .string()
     .trim()
     .min(1, "الرابط مطلوب")
     .regex(slugRegex, "أحرف لاتينية صغيرة وأرقام مفصولة بشرطة فقط"),
-  primaryCurrencyCode: requiredString("العملة الأساسية"),
-  storeCategory: requiredString("تصنيف المتجر"),
-  themeCode: z.string().trim().min(1).default("DEFAULT"),
-  storeLogo: optionalString(),
+  primaryCurrencyCode: z
+    .string()
+    .trim()
+    .regex(currencyRegex, "رمز عملة من 3 أحرف لاتينية كبيرة"),
 })
 
 export const updateStoreStatusSchema = z

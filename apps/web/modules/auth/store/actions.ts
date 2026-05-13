@@ -2,13 +2,12 @@ import type { QueryClient } from "@tanstack/react-query"
 import { queryOptions } from "@tanstack/react-query"
 
 import { api } from "@/lib/api"
-import { setSessionTokens } from "@/lib/auth/internal"
 import { authKeys } from "@/modules/auth/auth/actions"
-import { REGISTRATION_HUB_SLUG } from "@/modules/auth/auth/types"
 
+import { storeSettingsKeys } from "./settings-actions"
 import type {
-  CreateStoreInput,
-  StoreRegistrationResponse,
+  SaveStoreSettingsInput,
+  StoreSettings,
   TenantSummary,
   UpdateStoreRateLimitInput,
   UpdateStoreStatusInput,
@@ -39,7 +38,7 @@ export const checkStoreSlug = async (
   // Backend may return the envelope shape, a raw boolean, or {available: boolean}.
   // Normalize defensively so the caller doesn't have to care.
   const response = await api<unknown>(
-    `/auth/stores/check-slug?slug=${encodeURIComponent(trimmed)}`
+    `/admin/store/settings/check-slug?slug=${encodeURIComponent(trimmed)}`
   )
 
   if (typeof response === "boolean") {
@@ -78,15 +77,15 @@ export const checkStoreSlugQueryOptions = (slug: string) =>
     staleTime: 30_000,
   })
 
-export const createStore = async (
-  input: CreateStoreInput
-): Promise<StoreRegistrationResponse> => {
-  const response = await api<Envelope<StoreRegistrationResponse>>("/auth/stores", {
-    method: "POST",
+export const saveStoreSettings = async (
+  input: SaveStoreSettingsInput
+): Promise<StoreSettings> => {
+  const response = await api<Envelope<StoreSettings>>("/admin/store/settings", {
+    method: "PUT",
     body: input,
   })
   if (!response.data) {
-    throw new Error("Empty create-store response")
+    throw new Error("Empty save-store-settings response")
   }
   return response.data
 }
@@ -133,33 +132,27 @@ export const updateStoreRateLimit = async ({
   return response.data
 }
 
-export const getCreateStoreMutationOptions = ({
+export const getSaveStoreSettingsMutationOptions = ({
   queryClient,
   onSuccess,
 }: {
   queryClient: QueryClient
-  onSuccess?: (response: StoreRegistrationResponse, didRotateAuth: boolean) => void
+  onSuccess?: (settings: StoreSettings) => void
 }) => ({
-  mutationFn: createStore,
-  onSuccess: async (response: StoreRegistrationResponse) => {
-    let didRotate = false
-
-    if (response.auth) {
-      const slug =
-        response.auth.tenantSlug ?? response.store.slug ?? null
-      const isStillHub = slug === REGISTRATION_HUB_SLUG ? null : slug
-
-      await setSessionTokens({
-        accessToken: response.auth.accessToken,
-        refreshToken: response.auth.refreshToken,
-        tenantSlug: isStillHub,
-      })
-      queryClient.invalidateQueries({ queryKey: authKeys.currentUser })
-      didRotate = true
-    }
-
-    queryClient.invalidateQueries({ queryKey: storeKeys.all })
-    onSuccess?.(response, didRotate)
+  mutationFn: saveStoreSettings,
+  onSuccess: async (settings: StoreSettings) => {
+    // The merchant stays on the same tenant after the identity submit;
+    // the backend flips `tenant.configured=true` and the JWT `tenantSlug`
+    // claim rotates from the temporary `tmp-…` slug to the chosen public
+    // slug on the next refresh. Invalidate the current-user query so
+    // downstream guards re-read the JWT and the settings cache so the
+    // dashboard `isConfigured` preflight sees the fresh value.
+    await queryClient.invalidateQueries({ queryKey: authKeys.currentUser })
+    await queryClient.invalidateQueries({
+      queryKey: storeSettingsKeys.current,
+    })
+    await queryClient.invalidateQueries({ queryKey: storeKeys.all })
+    onSuccess?.(settings)
   },
 })
 
