@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import * as React from "react"
 
-import { storeSettingsQueryOptions } from "../settings-actions"
+import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 
 const ONBOARDING_PATH = "/onboarding/create-store"
 
@@ -30,7 +30,7 @@ export default function StoreConfigurationGate({
   const router = useRouter()
   const pathname = usePathname()
   const { data: settings, isLoading } = useQuery({
-    ...storeSettingsQueryOptions(),
+    ...getStoreSettingsQueryOptions(),
     retry: false,
   })
 

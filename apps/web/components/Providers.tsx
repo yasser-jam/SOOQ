@@ -12,26 +12,23 @@ import {
   useQuery,
 } from "@tanstack/react-query"
 import { Toaster } from "./toaster"
-import { api } from "@/lib/api"
-import { ApiResponse } from "@/lib/types"
+import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 import StoreConfigurationGate from "@/modules/auth/store/components/StoreConfigurationGate"
 
 const STORE_SLUG_REGEX = /^\/store\/([^/]+)/
 
 function AppSidebarWithPathname() {
-  // User Profile
-  const { data: user } = useQuery({
-    queryKey: ["user-profile"],
-    queryFn: () => api<ApiResponse<any>>("admin/store/settings"),
-    select: (data) => data?.data
-  })
+  // Sidebar consumes the same merchant store-settings query that the
+  // settings/dashboard pages use, so saving in any tab (or the
+  // onboarding wizard) refreshes the sidebar via shared cache key.
+  const { data: settings } = useQuery(getStoreSettingsQueryOptions())
 
   const pathname = usePathname()
   const storeSlug = pathname?.match(STORE_SLUG_REGEX)?.[1] ?? ""
 
   if (!storeSlug) return null
 
-  return <AppSidebar pathname={pathname} storeSlug={storeSlug} user={user} />
+  return <AppSidebar pathname={pathname} storeSlug={storeSlug} user={settings} />
 }
 
 export default function Providers({ children }: { children: React.ReactNode }) {

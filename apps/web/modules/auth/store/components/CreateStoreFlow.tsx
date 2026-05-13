@@ -47,13 +47,16 @@ import { refreshSession } from "@/lib/auth/internal"
 import { useCurrentUser } from "@/modules/auth/auth/hooks/useCurrentUser"
 
 import { buildStorefrontUrl } from "../storefront-url"
+import { slugifyStoreName } from "../init"
 import {
   checkStoreSlug,
-  getSaveStoreSettingsMutationOptions,
-} from "../actions"
-import { initSaveStoreSettingsPayload, slugifyStoreName } from "../init"
-import { saveStoreSettingsSchema } from "../schema"
-import type { SaveStoreSettingsInput, StoreSettings } from "../types"
+  getUpdateStoreSettingsMutationOptions,
+} from "@/modules/store/settings/actions"
+import { identitySchema } from "@/modules/store/settings/schema"
+import type {
+  IdentitySettingsInput,
+  StoreSettings,
+} from "@/modules/store/settings/types"
 
 type StepKey = "name" | "slug" | "currency" | "review"
 
@@ -88,8 +91,8 @@ export default function CreateStoreFlow() {
     return () => window.clearTimeout(handle)
   }, [currentStep])
 
-  const form = useForm<SaveStoreSettingsInput>({
-    resolver: zodResolver(saveStoreSettingsSchema),
+  const form = useForm<IdentitySettingsInput>({
+    resolver: zodResolver(identitySchema),
     defaultValues: {
       storeName: "",
       slug: "",
@@ -146,11 +149,13 @@ export default function CreateStoreFlow() {
   })
 
   const saveSettingsMutation = useMutation({
-    ...getSaveStoreSettingsMutationOptions({
+    ...getUpdateStoreSettingsMutationOptions({
       queryClient,
       onSuccess: async (settings: StoreSettings) => {
         // Refresh the JWT so the new `tenantSlug` claim is in cookies
-        // before we hard-navigate to the merchant dashboard.
+        // before we hard-navigate to the merchant dashboard. The page
+        // reload below re-reads cookies + re-runs the auth context, so
+        // we don't need to invalidate `authKeys.currentUser` here.
         await refreshSession().catch(() => undefined)
 
         if (typeof window !== "undefined") {
@@ -226,7 +231,11 @@ export default function CreateStoreFlow() {
   const submitWizard = form.handleSubmit(async (values) => {
     setSubmitting(true)
     try {
-      const payload = initSaveStoreSettingsPayload(values)
+      const payload = {
+        storeName: values.storeName.trim(),
+        slug: values.slug.trim().toLowerCase(),
+        primaryCurrencyCode: values.primaryCurrencyCode.trim().toUpperCase(),
+      }
       await saveSettingsMutation.mutateAsync(payload)
     } catch {
       // mutation.onError already handled — keep the wizard up.
@@ -291,7 +300,7 @@ export default function CreateStoreFlow() {
       <form onSubmit={handleFormSubmit} noValidate>
         <CardContent className="flex flex-col gap-6 min-h-[180px]">
           {currentStep === "name" && (
-            <Field<SaveStoreSettingsInput>
+            <Field<IdentitySettingsInput>
               name="storeName"
               control={form.control}
               label="اسم المتجر"
@@ -421,7 +430,7 @@ function StepIndicator({ stepIndex }: { stepIndex: number }) {
 }
 
 type SlugStepProps = {
-  form: ReturnType<typeof useForm<SaveStoreSettingsInput>>
+  form: ReturnType<typeof useForm<IdentitySettingsInput>>
   userTouchedSlug: React.MutableRefObject<boolean>
   slug: string
   debouncedSlug: string
@@ -446,7 +455,7 @@ function SlugStep({
 
   return (
     <div className="flex flex-col gap-2">
-      <Field<SaveStoreSettingsInput>
+      <Field<IdentitySettingsInput>
         name="slug"
         control={form.control}
         label="رابط المتجر"
@@ -499,7 +508,7 @@ function ReviewStep({
   values,
   onEdit,
 }: {
-  values: SaveStoreSettingsInput
+  values: IdentitySettingsInput
   onEdit: (step: StepKey) => void
 }) {
   return (

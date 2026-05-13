@@ -1,4 +1,13 @@
+export type UploadedMedia = {
+  assetId: string
+  publicUrl: string
+  mimeType: string
+  filename: string
+}
+
 export type UploadMediaResponse = {
+  items: UploadedMedia[]
+  /** Convenience — same order as `items` for callers that only need the ids. */
   assetIds: string[]
 }
 
