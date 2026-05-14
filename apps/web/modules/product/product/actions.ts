@@ -1,4 +1,11 @@
-import type { CreateProductInput, Product, ProductOption, UpdateProductInput } from "./types"
+import type {
+  CategoryRef,
+  CreateProductInput,
+  Product,
+  ProductOption,
+  TagRef,
+  UpdateProductInput,
+} from "./types"
 import api from "@/lib/api"
 import { ApiResponse } from "@/lib/types"
 import { ProductCategory } from "../category/types"
@@ -45,8 +52,11 @@ const normalizeGetProduct = (data: any): Product => {
 
   return {
     ...normalizeProduct(data.product),
-    tagIds: data.tags?.map((t: any) => t.productTagId) || [],
-    categoryIds: data.categories?.map((c: any) => c.categoryId) || [],
+    // Phase 1: form state uses TagRef[]/CategoryRef[]. Server returns full
+    // entities here, so every entry is an id-shaped ref. The merchant adds
+    // `{name}`/`{nameAr,nameEn}` entries through the inline creator UI.
+    tags: (data.tags ?? []).map((t: any) => ({ id: t.productTagId })) as TagRef[],
+    categories: (data.categories ?? []).map((c: any) => ({ id: c.categoryId })) as CategoryRef[],
     basePrice: data.pricing.basePrice,
     compareAtPrice: data.pricing.compareAtPrice,
     currencyCode: data.pricing.currencyCode,
@@ -95,12 +105,6 @@ type ProductGetResponse = ApiResponse<{
 export const getProduct = async (id: string): Promise<Product> => {
   const response = await api<ProductGetResponse>(`/admin/products/${id}`)
 
-  console.log(response.data);
-
-  console.log('normalized', normalizeGetProduct(response.data));
-  
-  
-
   return normalizeGetProduct(response.data)
 }
 
@@ -108,6 +112,11 @@ export const getProduct = async (id: string): Promise<Product> => {
  * Builds the multipart FormData body for product create/update per spec:
  * - `product` part: JSON blob with all fields EXCEPT `mediaFiles` and the display-only `mediaUrls`
  * - `files` parts: repeatable file uploads from `mediaFiles` (server PREPENDS their UUIDs to mediaAssetIds)
+ *
+ * Phase 1 wire format: `tags[]` and `categories[]` carry mixed `{id}` +
+ * `{name}`/`{nameAr,nameEn}` refs. We always send the new shape — never the
+ * legacy `tagIds`/`categoryIds` — because mixing both in one request is a
+ * 400 from the backend.
  *
  * `mediaAssetIds` semantics are preserved as-is in the JSON:
  * - `null` (or omitted): leave existing images unchanged
@@ -119,9 +128,21 @@ const buildProductFormData = (
 ): FormData => {
   const fd = new FormData()
 
-  // Strip transient + display-only fields out of the JSON blob
-  const { mediaFiles, mediaUrls, ...productJson } = data as CreateProductInput & {
-    mediaUrls?: string[]
+  const {
+    mediaFiles,
+    mediaUrls,
+    defaultCategoryId,
+    ...rest
+  } = data as CreateProductInput & { mediaUrls?: string[] }
+
+  const productJson: Record<string, unknown> = { ...rest }
+
+  // Default category is restricted to existing categories only. Send it as a
+  // structured `defaultCategory: {id}` ref to keep the payload consistent
+  // with the new tags/categories shape. Omit entirely when unset — backend
+  // falls back to the first item in `categories`.
+  if (defaultCategoryId) {
+    productJson.defaultCategory = { id: defaultCategoryId }
   }
 
   fd.append(

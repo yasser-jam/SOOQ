@@ -18,6 +18,7 @@ import {
 } from "@workspace/ui/components/select"
 import {
   Field as UiField,
+  FieldDescription,
   FieldError,
   FieldLabel,
 } from "@workspace/ui/components/field"
@@ -30,6 +31,13 @@ type CategorySelectProps<T extends FieldValues> = {
   label: React.ReactNode
   placeholder?: string
   disabled?: boolean
+  /**
+   * Optional helper text rendered under the select. Used by the product
+   * editor to explain the "first category becomes default if unset" fallback
+   * — kept opt-in so callers reusing this select (e.g. the attributes page)
+   * don't inherit a misleading caption.
+   */
+  description?: React.ReactNode
 }
 
 export default function CategorySelect<T extends FieldValues>({
@@ -38,6 +46,7 @@ export default function CategorySelect<T extends FieldValues>({
   label,
   placeholder = "اختر الفئة",
   disabled,
+  description,
 }: CategorySelectProps<T>) {
   const fieldId = String(name)
 
@@ -83,6 +92,7 @@ export default function CategorySelect<T extends FieldValues>({
                 </SelectGroup>
               </SelectContent>
             </Select>
+            {description && <FieldDescription>{description}</FieldDescription>}
             <FieldError errors={[fieldState.error]} />
           </UiField>
         )

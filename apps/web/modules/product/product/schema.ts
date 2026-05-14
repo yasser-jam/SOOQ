@@ -18,6 +18,28 @@ export const productOptionSchema = z.object({
 	values: z.array(productOptionValueSchema).min(1, "يجب إضافة قيمة واحدة على الأقل"),
 })
 
+// Phase 1: tags/categories carry mixed `{id}` + `{name}` refs. Each entry
+// must have either an id or a name (validated via refine to keep the row
+// rejected cleanly when both are missing).
+export const tagRefSchema = z
+	.object({
+		id: z.string().trim().optional(),
+		name: z.string().trim().optional(),
+	})
+	.refine((v) => !!(v.id || v.name), {
+		message: "tag ref requires id or name",
+	})
+
+export const categoryRefSchema = z
+	.object({
+		id: z.string().trim().optional(),
+		nameAr: z.string().trim().optional(),
+		nameEn: z.string().trim().optional(),
+	})
+	.refine((v) => !!(v.id || v.nameAr), {
+		message: "category ref requires id or nameAr",
+	})
+
 export const productSchema = z.object({
 	id: optionalString(),
 	titleAr: requiredString("العنوان بالعربية"),
@@ -35,8 +57,8 @@ export const productSchema = z.object({
 	seoDescription: requiredString("وصف SEO"),
 	allowOversell: z.boolean(),
 	defaultCategoryId: optionalString(),
-	categoryIds: z.array(z.string().trim()).min(1, "اختر فئة واحدة على الأقل"),
-	tagIds: z.array(z.string().trim()),
+	categories: z.array(categoryRefSchema).min(1, "اختر فئة واحدة على الأقل أو أضف فئة جديدة"),
+	tags: z.array(tagRefSchema).default([]),
 	mediaAssetIds: z.array(z.string().trim()).nullable().default(null),
 	mediaFiles: z.array(z.instanceof(File)).default([]),
 	mediaUrls: z.array(z.string().trim()).default([]),
