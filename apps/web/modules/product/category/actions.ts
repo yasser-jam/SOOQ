@@ -6,6 +6,27 @@ import { ApiResponse } from "@/lib/types"
 export const productCategoryKeys = {
 	all: ["product-categories"] as const,
 	detail: (id: string) => [...productCategoryKeys.all, id] as const,
+	// Phase 5 (PRD): code-defined attribute templates exposed by the backend.
+	templates: () => [...productCategoryKeys.all, "templates"] as const,
+}
+
+/**
+ * Phase 5 (PRD): a single starter template for category attribute seeding.
+ * Returned by GET /admin/categories/templates. The list is essentially
+ * static per backend release — cache with a long staleTime.
+ */
+export type CategoryTemplate = {
+	key: string
+	labelEn: string
+	labelAr: string
+	attributeKeys: string[]
+}
+
+export const getCategoryTemplates = async (): Promise<CategoryTemplate[]> => {
+	const response = await api<ApiResponse<CategoryTemplate[]>>(
+		"/admin/categories/templates"
+	)
+	return response.data ?? []
 }
 
 type ProductCategoryApiModel = ProductCategory & {

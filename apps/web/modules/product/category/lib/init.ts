@@ -9,4 +9,8 @@ export const init = (category?: ProductCategory) : ProductCategory => ({
   descriptionAr: category?.descriptionAr || '',
   descriptionEn: category?.descriptionEn || '',
   isActive: category?.isActive ?? true,
+  // Phase 5 (PRD): "__none__" = "بدون قالب" sentinel for the Select
+  // (Radix SelectItem disallows empty-string values). Stripped to undefined
+  // in initCategoryPayload before sending.
+  templateKey: '__none__',
 })
