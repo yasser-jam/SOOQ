@@ -183,10 +183,12 @@ export const getProduct = async (id: string): Promise<Product> => {
  * `options` field is UI-only (drives the matrix Cartesian render) and is
  * NOT sent on the wire — sending both shapes in one request is a 400.
  *
- * `mediaAssetIds` semantics are preserved as-is in the JSON:
- * - `null` (or omitted): leave existing images unchanged
- * - `[]`: remove all images
- * - `[ids]`: exact list, in that order (index 0 = primary)
+ * Phase 4 wire format: media + EAV attributes use explicit wrappers. The
+ * legacy tri-state shape (null = unchanged, [] = clear, [ids] = set) is no
+ * longer sent — `mediaAssetIds` and `attributes` are translated 1:1 to
+ * `mediaAssets` and `attributesUpdate` here in the serializer. Sending both
+ * the wrapper and the legacy field in one request is a 400, so we strip the
+ * legacy fields off `rest` first.
  */
 const buildProductFormData = (
   data: CreateProductInput | UpdateProductInput["data"]
@@ -196,11 +198,17 @@ const buildProductFormData = (
   const {
     mediaFiles,
     mediaUrls,
+    mediaAssetIds,
     defaultCategoryId,
     options,
     variants,
+    attributes,
     ...rest
-  } = data as CreateProductInput & { mediaUrls?: string[]; options?: unknown }
+  } = data as CreateProductInput & {
+    mediaUrls?: string[]
+    options?: unknown
+    attributes?: unknown[]
+  }
 
   const productJson: Record<string, unknown> = { ...rest }
 
@@ -220,6 +228,25 @@ const buildProductFormData = (
       const { variantId: _variantId, ...rest } = v as VariantRequest
       return rest
     })
+  }
+
+  // Phase 4 (PRD): tri-state mediaAssetIds → explicit mediaAssets wrapper.
+  // Mapping mirrors the previous semantics 1:1 — null/undefined means
+  // "leave unchanged" so we omit the wrapper entirely.
+  if (mediaAssetIds === null || mediaAssetIds === undefined) {
+    // omit → backend leaves images unchanged
+  } else if (mediaAssetIds.length === 0) {
+    productJson.mediaAssets = { clear: true }
+  } else {
+    productJson.mediaAssets = { set: mediaAssetIds }
+  }
+
+  // Phase 4 (PRD): EAV attributes array → explicit attributesUpdate wrapper.
+  // The form's Zod schema always defaults `attributes` to [], so the legacy
+  // shape always behaved as "clear-and-replace" — preserve that by always
+  // sending `{ set: [...] }` when the field is present at runtime.
+  if (attributes !== undefined) {
+    productJson.attributesUpdate = { set: attributes }
   }
 
   fd.append(
