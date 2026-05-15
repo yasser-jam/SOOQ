@@ -31,6 +31,8 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea"
 import { init } from "@/modules/product/category/lib/init"
 import ProductMultipleCategorySelect from "@/modules/product/category/components/multiple-category-select"
+import CategoryTemplateSelect from "@/modules/product/category/components/template-select"
+import { attributeQueryKeys } from "@/modules/product/attribute/actions"
 import TextareaField from "@/components/system/textarea"
 
 export default function EditCategoryPage() {
@@ -86,6 +88,10 @@ export default function EditCategoryPage() {
     mutationFn: createProductCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
+      // Phase 5 (PRD): a templated create seeds attribute defs server-side.
+      // Defensively invalidate the attribute cache so any open editor that
+      // already fetched a tenant-wide list reflects the seeded entries.
+      queryClient.invalidateQueries({ queryKey: attributeQueryKeys.all })
       router.push(storePath("/products/categories"))
     },
   })
@@ -165,6 +171,16 @@ export default function EditCategoryPage() {
           placeholder="اختر الفئة الأم"
           disabled={isSubmitting || isEdit}
         />
+
+        {!isEdit && (
+          <div className="md:col-span-2">
+            <CategoryTemplateSelect
+              name="templateKey"
+              control={form.control}
+              disabled={isSubmitting}
+            />
+          </div>
+        )}
 
         <div className="md:col-span-2">
           <TextareaField

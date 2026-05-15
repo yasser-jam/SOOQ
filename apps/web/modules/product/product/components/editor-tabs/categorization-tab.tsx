@@ -8,11 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { FieldError } from "@workspace/ui/components/field"
 
 import CategorySelect from "@/modules/product/category/components/select"
-import ProductMultipleCategorySelect from "@/modules/product/category/components/multiple-category-select"
-import TagMultiSelect from "@/modules/product/tag/components/multi-select"
+import CreatableCategorySelect from "@/modules/product/category/components/creatable-category-select"
+import CreatableTagSelect from "@/modules/product/tag/components/creatable-tag-select"
 
 type Props = {
   isSubmitting: boolean
@@ -35,10 +34,11 @@ export default function CategorizationTab({ isSubmitting }: Props) {
               label="الفئة الافتراضية"
               placeholder="اختر الفئة الافتراضية"
               disabled={isSubmitting}
+              description="إذا لم تحدد فئة افتراضية، ستصبح أول فئة في القائمة هي الافتراضية تلقائياً"
             />
 
-            <ProductMultipleCategorySelect
-              name="categoryIds"
+            <CreatableCategorySelect
+              name="categories"
               control={form.control}
               label="الفئات"
               placeholder="اختر الفئات"
@@ -53,12 +53,13 @@ export default function CategorizationTab({ isSubmitting }: Props) {
           <CardTitle className="text-2xl">الوسوم</CardTitle>
         </CardHeader>
         <CardContent>
-          <TagMultiSelect
+          <CreatableTagSelect
+            name="tags"
             control={form.control}
-            name="tagIds"
             label="الوسوم"
+            placeholder="اختر الوسوم"
+            disabled={isSubmitting}
           />
-          <FieldError errors={[form.formState.errors.tagIds]} />
         </CardContent>
       </Card>
     </div>

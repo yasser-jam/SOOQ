@@ -58,23 +58,3 @@ export const deleteProductTag = (id: string): Promise<void> =>
   api<void>(`/admin/tags/${id}`, {
     method: "DELETE",
   })
-
-/**
- * GET /api/v1/admin/tags/products/{productId}
- * Returns all tags currently assigned to a product.
- * (Useful in product detail / inspector contexts.)
- */
-export const getProductTags = async (
-  productId: string
-): Promise<ProductTag[]> => {
-  const response = await api<ApiResponse<ProductTagResponse[]>>(
-    `/admin/tags/products/${productId}`
-  )
-  return response.data?.map((el) => ({ ...el, id: el.productTagId })) ?? []
-}
-
-export const getProductTagsQueryOptions = (productId: string) =>
-  queryOptions({
-    queryKey: [...productTagKeys.all, "by-product", productId] as const,
-    queryFn: () => getProductTags(productId),
-  })
