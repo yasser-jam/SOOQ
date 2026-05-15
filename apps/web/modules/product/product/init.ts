@@ -1,4 +1,4 @@
-import type { CategoryRef, Product, TagRef } from "./types"
+import type { CategoryRef, Product, TagRef, VariantRequest } from "./types"
 
 export const initProduct = (product?: Product) => ({
   titleAr: product?.titleAr || "",
@@ -34,5 +34,12 @@ export const initProduct = (product?: Product) => ({
   options: (product?.options ?? []).map((option) => ({
     ...option,
     values: option.values.map((value) => ({ ...value })),
+  })),
+  // Phase 2 (PRD): hydrated by normalizeGetProduct from variantMatrix.variants[].
+  // Each entry carries an `attributes` map (axis name → value) plus optional
+  // SKU/price/stock and a transient variantId for the inventory adjust modal.
+  variants: ((product?.variants ?? []) as VariantRequest[]).map((v) => ({
+    ...v,
+    attributes: { ...v.attributes },
   })),
 })

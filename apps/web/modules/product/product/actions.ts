@@ -5,6 +5,7 @@ import type {
   ProductOption,
   TagRef,
   UpdateProductInput,
+  VariantRequest,
 } from "./types"
 import api from "@/lib/api"
 import { ApiResponse } from "@/lib/types"
@@ -50,6 +51,78 @@ const normalizeGetProduct = (data: any): Product => {
     return true
   })
 
+  const normalizedOptions = dedupedOptions.map((o: any, i: number) => ({
+    id: o.productOptionId ?? o.optionId,
+    // Schema-aligned names (form uses these via productOptionSchema)
+    optionNameAr: o.optionNameAr ?? o.titleAr ?? "",
+    optionNameEn: o.optionNameEn ?? o.titleEn ?? "",
+    sortOrder: i,
+    values:
+      (o.values ?? o.optionValues ?? []).map((v: any, vi: number) => ({
+        id: v.optionValueId,
+        valueAr: v.valueAr ?? v.titleAr ?? "",
+        valueEn: v.valueEn ?? v.titleEn ?? "",
+        colorHex: v.colorHex ?? null,
+        sortOrder: vi,
+      })),
+  }))
+
+  // Phase 2 (PRD): convert read-side variants into the new request shape so the
+  // matrix UI can bind directly to form.variants. Each variant comes back from
+  // the backend with an `optionValues[]` array — pair each value's id with its
+  // parent option to recover the (axisKey → value) `attributes` map.
+  // SOOQ-Front convention: axis key = optionNameAr (with EN fallback).
+  const optionMetaByValueId = new Map<string, { axisKey: string; valueLabel: (raw: any) => string }>()
+  for (const opt of normalizedOptions) {
+    const axisKey = (opt.optionNameAr || opt.optionNameEn || "").trim()
+    if (!axisKey) continue
+    for (const v of opt.values) {
+      if (!v.id) continue
+      optionMetaByValueId.set(v.id, {
+        axisKey,
+        valueLabel: () => (v.valueAr || v.valueEn || "").trim(),
+      })
+    }
+  }
+
+  const rawVariants: any[] = Array.isArray(data?.variantMatrix?.variants)
+    ? data.variantMatrix.variants
+    : Array.isArray(data?.variants)
+      ? data.variants
+      : []
+
+  const variants: VariantRequest[] = rawVariants.map((v: any) => {
+    const attributes: Record<string, string> = {}
+    for (const ov of v.optionValues ?? []) {
+      const valueId = ov.optionValueId ?? ov.id
+      const meta = valueId ? optionMetaByValueId.get(valueId) : undefined
+      if (meta) {
+        attributes[meta.axisKey] = meta.valueLabel(ov)
+      } else {
+        // Fallback: if the value isn't linked to a known option (shouldn't
+        // happen, but defensive), use the value's own label keyed by the
+        // option name shipped on the value itself.
+        const axis = (ov.optionNameAr ?? ov.optionNameEn ?? "").trim()
+        const label = (ov.valueAr ?? ov.valueEn ?? "").trim()
+        if (axis && label) attributes[axis] = label
+      }
+    }
+    return {
+      attributes,
+      sku: v.sku ?? undefined,
+      price: v.price ?? null,
+      compareAtPrice: v.compareAtPrice ?? null,
+      costPrice: v.costPrice ?? null,
+      costCurrencyCode: v.costCurrencyCode ?? null,
+      stockQty: v.stockQty ?? null,
+      lowStockThreshold: v.lowStockThreshold ?? null,
+      weightGrams: v.weightGrams ?? null,
+      barcode: v.barcode ?? null,
+      isActive: v.isActive ?? true,
+      variantId: v.variantId,
+    }
+  })
+
   return {
     ...normalizeProduct(data.product),
     // Phase 1: form state uses TagRef[]/CategoryRef[]. Server returns full
@@ -60,21 +133,8 @@ const normalizeGetProduct = (data: any): Product => {
     basePrice: data.pricing.basePrice,
     compareAtPrice: data.pricing.compareAtPrice,
     currencyCode: data.pricing.currencyCode,
-    options: dedupedOptions.map((o: any, i: number) => ({
-      id: o.productOptionId ?? o.optionId,
-      // Schema-aligned names (form uses these via productOptionSchema)
-      optionNameAr: o.optionNameAr ?? o.titleAr ?? "",
-      optionNameEn: o.optionNameEn ?? o.titleEn ?? "",
-      sortOrder: i,
-      values:
-        (o.values ?? o.optionValues ?? []).map((v: any, vi: number) => ({
-          id: v.optionValueId,
-          valueAr: v.valueAr ?? v.titleAr ?? "",
-          valueEn: v.valueEn ?? v.titleEn ?? "",
-          colorHex: v.colorHex ?? null,
-          sortOrder: vi,
-        })),
-    })),
+    options: normalizedOptions,
+    variants,
   }
 }
 
@@ -118,6 +178,11 @@ export const getProduct = async (id: string): Promise<Product> => {
  * legacy `tagIds`/`categoryIds` — because mixing both in one request is a
  * 400 from the backend.
  *
+ * Phase 2 wire format: `variants[]` carries `{attributes: {axis: value}, sku?, price?, ...}`.
+ * Backend derives option axes from the union of `attributes` keys. The form's
+ * `options` field is UI-only (drives the matrix Cartesian render) and is
+ * NOT sent on the wire — sending both shapes in one request is a 400.
+ *
  * `mediaAssetIds` semantics are preserved as-is in the JSON:
  * - `null` (or omitted): leave existing images unchanged
  * - `[]`: remove all images
@@ -132,8 +197,10 @@ const buildProductFormData = (
     mediaFiles,
     mediaUrls,
     defaultCategoryId,
+    options,
+    variants,
     ...rest
-  } = data as CreateProductInput & { mediaUrls?: string[] }
+  } = data as CreateProductInput & { mediaUrls?: string[]; options?: unknown }
 
   const productJson: Record<string, unknown> = { ...rest }
 
@@ -143,6 +210,16 @@ const buildProductFormData = (
   // falls back to the first item in `categories`.
   if (defaultCategoryId) {
     productJson.defaultCategory = { id: defaultCategoryId }
+  }
+
+  // Phase 2: strip the transient `variantId` (used to wire the inventory
+  // adjust modal to a saved row) before sending. Backend ignores unknown
+  // fields, but keeping the wire payload clean prevents future surprises.
+  if (Array.isArray(variants)) {
+    productJson.variants = variants.map((v) => {
+      const { variantId: _variantId, ...rest } = v as VariantRequest
+      return rest
+    })
   }
 
   fd.append(

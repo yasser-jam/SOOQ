@@ -27,7 +27,6 @@ import {
 } from "@/modules/product/product/actions"
 import { productKeys } from "@/modules/product/product/queryKeys"
 import { useProductDraft } from "@/modules/product/product/hooks/use-product-draft"
-import { variantQueryKeys } from "@/modules/product/variant/queryKeys"
 import { inventoryQueryKeys } from "@/modules/inventory/queryKeys"
 import type { ImageUploaderState } from "@/components/system/image-uploader"
 
@@ -148,17 +147,13 @@ export default function ProductDetailsPage() {
   })
 
   // After product save we must refresh:
-  //  - the detail query (so basics/SEO/options reflect server-side changes,
-  //    e.g. options regenerated via the upsert)
-  //  - the variant matrix (saving the product can mutate axes / variants)
+  //  - the detail query (so basics/SEO/options/variants reflect server-side
+  //    changes, e.g. variants regenerated via the upsert)
   //  - the inventory status (variant changes ripple to per-product status)
   //  - the global product list (title / status / image flips show there too)
   const invalidateProductCaches = useCallback(() => {
     if (productId) {
       queryClient.invalidateQueries({ queryKey: productKeys.detail(productId) })
-      queryClient.invalidateQueries({
-        queryKey: variantQueryKeys.matrix(productId),
-      })
       queryClient.invalidateQueries({
         queryKey: inventoryQueryKeys.status(productId),
       })
@@ -340,7 +335,6 @@ export default function ProductDetailsPage() {
               <VariantsTab
                 isSubmitting={isSubmitting}
                 productId={productId}
-                isEdit={isEdit}
               />
             </TabsContent>
 

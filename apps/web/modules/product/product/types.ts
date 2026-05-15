@@ -7,6 +7,9 @@ import {
 	productStatusSchema,
 	variantOptionSchema,
 } from "./schema"
+import type { VariantRequest } from "../variant/types"
+
+export type { VariantRequest }
 
 export type ProductStatus = z.infer<typeof productStatusSchema>
 export type Product = z.infer<typeof productSchema>
@@ -63,8 +66,10 @@ export interface CreateProductInput {
 	 * NOT serialized into the `product` JSON blob — appended as repeatable `files` parts.
 	 */
 	mediaFiles?: File[]
+	/** UI-only: option axes the merchant defined. Not sent on the wire. */
 	options?: ProductOption[]
-	variantOverrides?: any[]
+	/** Phase 2 (PRD): inline variants list. Sent to POST/PUT /admin/products. */
+	variants?: VariantRequest[]
 }
 
 export type UpdateProductPayload = Partial<CreateProductInput> &

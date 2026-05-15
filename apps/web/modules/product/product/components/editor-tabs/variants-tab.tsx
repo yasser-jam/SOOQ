@@ -27,14 +27,14 @@ import VariantMatrix from "@/modules/product/variant/components/variant-matrix"
 type Props = {
   isSubmitting: boolean
   productId: string
-  isEdit: boolean
 }
 
 /**
- * Phase 2: option-axis builder + display (existing UX preserved verbatim).
- * Phase 3A will add the full Cartesian variant matrix below the options card.
+ * Option-axis builder + variant matrix (PRD Phase 2): the matrix is now bound
+ * directly to the product form's `variants` field, so it works on create and
+ * edit alike — no separate save button, no second endpoint.
  */
-export default function VariantsTab({ isSubmitting, productId, isEdit }: Props) {
+export default function VariantsTab({ isSubmitting, productId }: Props) {
   const form = useFormContext()
   const [optionsDialogOpen, setOptionsDialogOpen] = useState(false)
 
@@ -125,7 +125,7 @@ export default function VariantsTab({ isSubmitting, productId, isEdit }: Props) 
         </CardContent>
       </Card>
 
-      <VariantMatrix productId={productId} isEdit={isEdit} />
+      <VariantMatrix productId={productId} />
 
       <VariantOptionDialog
         open={optionsDialogOpen}
