@@ -1,5 +1,17 @@
 # Development Guidelines for SOOQ Frontend Project
 
+## Environment Status
+
+**IMPORTANT**: This project is NOT in production. This is a development environment.
+- Database operations (DELETE, DROP, TRUNCATE, etc.) are safe to use
+- Data can be freely modified, added, or deleted without fear of data loss
+- No production data exists in this environment
+
+**مهم**: هذا المشروع ليس في بيئة الإنتاج. هذه بيئة تطوير.
+- عمليات قاعدة البيانات (حذف، إسقاط، تفريغ، إلخ) آمنة للاستخدام
+- يمكن تعديل البيانات وإضافتها أو حذفها بحرية دون الخوف من فقدان البيانات
+- لا توجد بيانات إنتاج في هذه البيئة
+
 ## Project Structure Compliance
 - **Strictly follow the existing project structure** - do not create new directories or files outside the established patterns
 - Use the monorepo structure with `apps/web/` for the main application

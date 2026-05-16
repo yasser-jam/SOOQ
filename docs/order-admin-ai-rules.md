@@ -2,6 +2,18 @@
 
 This document defines the rules future AI agents should follow when adding or binding `Order` admin APIs and pages.
 
+## Environment Status
+
+**IMPORTANT**: This project is NOT in production. This is a development environment.
+- Database operations (DELETE, DROP, TRUNCATE, etc.) are safe to use
+- Data can be freely modified, added, or deleted without fear of data loss
+- No production data exists in this environment
+
+**مهم**: هذا المشروع ليس في بيئة الإنتاج. هذه بيئة تطوير.
+- عمليات قاعدة البيانات (حذف، إسقاط، تفريغ، إلخ) آمنة للاستخدام
+- يمكن تعديل البيانات وإضافتها أو حذفها بحرية دون الخوف من فقدان البيانات
+- لا توجد بيانات إنتاج في هذه البيئة
+
 ## Goal
 
 Keep the `Order` module consistent with the lightweight style already used in simple modules like `Product Tag`.
