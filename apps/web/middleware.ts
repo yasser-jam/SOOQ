@@ -24,6 +24,39 @@ const isPublic = (pathname: string): boolean =>
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // --- إضافة للتطوير فقط: تخطي تسجيل الدخول ---
+  if (process.env.NODE_ENV === "development") {
+    return NextResponse.next()
+  }
+  // -------------------------------------------
+
+  if (isPublic(pathname)) {
+    return NextResponse.next()
+  }
+
+  const accessToken = request.cookies.get(cookiesConfig.accessToken)?.value
+  const refreshToken = request.cookies.get(cookiesConfig.refreshToken)?.value
+
+  if (accessToken || refreshToken) {
+    return NextResponse.next()
+  }
+
+  const loginUrl = new URL("/request-otp", request.url)
+  loginUrl.searchParams.set("redirect", pathname)
+  return NextResponse.redirect(loginUrl)
+}
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+}
+
+
+
+
+
+/*export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
   if (isPublic(pathname)) {
     return NextResponse.next()
   }
@@ -45,3 +78,4 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 }
+*/

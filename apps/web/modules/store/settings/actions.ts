@@ -3,6 +3,7 @@ import { queryOptions } from "@tanstack/react-query"
 
 import { api } from "@/lib/api"
 import type { ApiResponse } from "@/lib/types"
+import { devAuthEnabled } from "@/modules/auth/auth/init"
 
 import type {
   StoreDeletionRequestDto,
@@ -18,8 +19,63 @@ export const settingsKeys = {
 }
 
 const SETTINGS_PATH = "/admin/store/settings"
+const DEV_STORE_SETTINGS_KEY = "sooq-dev-store-settings"
+
+const readDevStoreSettings = (): StoreSettingsResponseDto | null => {
+  if (!devAuthEnabled || typeof window === "undefined") return null
+  const raw = window.localStorage.getItem(DEV_STORE_SETTINGS_KEY)
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as StoreSettingsResponseDto
+  } catch {
+    return null
+  }
+}
+
+const writeDevStoreSettings = (
+  settings: StoreSettingsResponseDto
+): StoreSettingsResponseDto => {
+  if (devAuthEnabled && typeof window !== "undefined") {
+    window.localStorage.setItem(DEV_STORE_SETTINGS_KEY, JSON.stringify(settings))
+  }
+  return settings
+}
+
+const makeDevStoreSettings = (
+  input: UpdateStoreSettingsInput = {}
+): StoreSettingsResponseDto => ({
+  storeConfigId: "dev-store-config",
+  tenantId: "dev-registration-tenant",
+  storeName: input.storeName ?? "متجر SOOQ التجريبي",
+  slug: input.slug ?? "sooq-store",
+  primaryCurrencyCode: input.primaryCurrencyCode ?? "SYP",
+  isConfigured: Boolean(input.storeName && input.slug && input.primaryCurrencyCode),
+  profileNameAr: input.profileNameAr ?? "",
+  profileNameEn: input.profileNameEn ?? "",
+  profileDescription: input.profileDescription ?? "",
+  contactEmail: input.contactEmail ?? "",
+  contactPhone: input.contactPhone ?? "",
+  governorate: input.governorate ?? "",
+  city: input.city ?? "",
+  street: input.street ?? "",
+  latitude: input.latitude ?? null,
+  longitude: input.longitude ?? null,
+  logoUrl: input.logoUrl ?? "",
+  faviconUrl: input.faviconUrl ?? "",
+  currencySymbolPosition: input.currencySymbolPosition ?? "AFTER",
+  currencyDecimalPlaces: input.currencyDecimalPlaces ?? 0,
+  numeralSystem: input.numeralSystem ?? "LATIN",
+  timezone: input.timezone ?? "Asia/Damascus",
+  socialLinks: input.socialLinks ?? [],
+  businessHours: input.businessHours ?? [],
+  deletionRequested: false,
+})
 
 export const getStoreSettings = async (): Promise<StoreSettingsResponseDto> => {
+  if (devAuthEnabled) {
+    return readDevStoreSettings() ?? makeDevStoreSettings()
+  }
+
   const response = await api<ApiResponse<StoreSettingsResponseDto>>(SETTINGS_PATH)
   if (!response.data) {
     throw new Error("Empty store-settings response")
@@ -50,6 +106,11 @@ export const checkStoreSlug = async (
   slug: string
 ): Promise<SlugAvailability> => {
   const trimmed = slug.trim()
+  if (devAuthEnabled) {
+    const currentSlug = readDevStoreSettings()?.slug
+    return { available: !currentSlug || currentSlug === trimmed, slug: trimmed }
+  }
+
   const response = await api<unknown>(
     `${SETTINGS_PATH}/check-slug?slug=${encodeURIComponent(trimmed)}`
   )
@@ -89,6 +150,22 @@ export const checkStoreSlugQueryOptions = (slug: string) =>
 export const updateStoreSettings = async (
   input: UpdateStoreSettingsInput
 ): Promise<StoreSettingsResponseDto> => {
+  if (devAuthEnabled) {
+    const nextSettings = {
+      ...makeDevStoreSettings(input),
+      ...readDevStoreSettings(),
+      ...input,
+    }
+    return writeDevStoreSettings({
+      ...nextSettings,
+      isConfigured: Boolean(
+        nextSettings.storeName &&
+          nextSettings.slug &&
+          nextSettings.primaryCurrencyCode
+      ),
+    })
+  }
+
   const response = await api<ApiResponse<StoreSettingsResponseDto>>(SETTINGS_PATH, {
     method: "PUT",
     body: input,

@@ -45,6 +45,7 @@ import {
 import type { ApiError } from "@/lib/api"
 import { refreshSession } from "@/lib/auth/internal"
 import { useCurrentUser } from "@/modules/auth/auth/hooks/useCurrentUser"
+import type { CurrentUser } from "@/modules/auth/auth/types"
 
 import { buildStorefrontUrl } from "../storefront-url"
 import { slugifyStoreName } from "../init"
@@ -68,6 +69,19 @@ const STEPS: Array<{ key: StepKey; label: string }> = [
 ]
 
 const SLUG_DEBOUNCE_MS = 400
+const DEFAULT_STORE_NAME = "متجر SOOQ التجريبي"
+const DEFAULT_CURRENCY_CODE: CurrencyCode = "SYP"
+
+const makeDefaultSlug = (user: CurrentUser | null): string => {
+  const rawSuffix =
+    user?.tenantId || user?.userId || user?.phone || user?.email || ""
+  const suffix = rawSuffix
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(-8)
+
+  return suffix ? `sooq-store-${suffix}` : "sooq-store"
+}
 
 export default function CreateStoreFlow() {
   const router = useRouter()
@@ -94,9 +108,9 @@ export default function CreateStoreFlow() {
   const form = useForm<IdentitySettingsInput>({
     resolver: zodResolver(identitySchema),
     defaultValues: {
-      storeName: "",
-      slug: "",
-      primaryCurrencyCode: "SYP",
+      storeName: DEFAULT_STORE_NAME,
+      slug: "sooq-store",
+      primaryCurrencyCode: DEFAULT_CURRENCY_CODE,
     },
     mode: "onChange",
   })
@@ -104,11 +118,22 @@ export default function CreateStoreFlow() {
   const storeName = form.watch("storeName")
   const slug = form.watch("slug")
   const primaryCurrencyCode = form.watch("primaryCurrencyCode") as CurrencyCode
+  const userTouchedSlugRef = React.useRef(false)
+
+  React.useEffect(() => {
+    if (!user || form.formState.isDirty) return
+
+    form.reset({
+      storeName: DEFAULT_STORE_NAME,
+      slug: makeDefaultSlug(user),
+      primaryCurrencyCode: DEFAULT_CURRENCY_CODE,
+    })
+    userTouchedSlugRef.current = true
+  }, [form, user])
 
   // Auto-fill slug from storeName until the user manually edits it.
-  const userTouchedSlug = React.useRef(false)
   React.useEffect(() => {
-    if (userTouchedSlug.current) return
+    if (userTouchedSlugRef.current) return
     const generated = slugifyStoreName(storeName ?? "")
     if (generated !== form.getValues("slug")) {
       form.setValue("slug", generated, { shouldValidate: false })
@@ -312,7 +337,7 @@ export default function CreateStoreFlow() {
           {currentStep === "slug" && (
             <SlugStep
               form={form}
-              userTouchedSlug={userTouchedSlug}
+              userTouchedSlugRef={userTouchedSlugRef}
               slug={slug}
               debouncedSlug={debouncedSlug}
               slugLocallyValid={slugLocallyValid}
@@ -431,7 +456,7 @@ function StepIndicator({ stepIndex }: { stepIndex: number }) {
 
 type SlugStepProps = {
   form: ReturnType<typeof useForm<IdentitySettingsInput>>
-  userTouchedSlug: React.MutableRefObject<boolean>
+  userTouchedSlugRef: React.MutableRefObject<boolean>
   slug: string
   debouncedSlug: string
   slugLocallyValid: boolean
@@ -442,7 +467,7 @@ type SlugStepProps = {
 
 function SlugStep({
   form,
-  userTouchedSlug,
+  userTouchedSlugRef,
   slug,
   debouncedSlug,
   slugLocallyValid,
@@ -465,7 +490,7 @@ function SlugStep({
           disabled,
           dir: "ltr",
           onInput: () => {
-            userTouchedSlug.current = true
+            userTouchedSlugRef.current = true
           },
         }}
       />

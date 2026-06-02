@@ -28,7 +28,10 @@ import type { FormEvent } from "react"
 import { toast } from "sonner"
 
 import type { ApiError } from "@/lib/api"
-import { cleanVerifyOtpPayload } from "@/modules/auth/auth/init"
+import {
+  cleanVerifyOtpPayload,
+  verifyOtpDefaultValues,
+} from "@/modules/auth/auth/init"
 import { getVerifyOtpMutationOptions } from "@/modules/auth/auth/actions"
 import { verifyOtpSchema } from "@/modules/auth/auth/schema"
 import { buildStorefrontUrl } from "@/modules/auth/store/storefront-url"
@@ -40,8 +43,8 @@ function VerifyOtpForm() {
   const phoneNumber = searchParams.get("phoneNumber")?.trim() ?? ""
   const redirectTo = searchParams.get("redirect") || null
 
-  const [otp, setOtp] = useState("")
-  const [totp, setTotp] = useState("")
+  const [otp, setOtp] = useState(verifyOtpDefaultValues.otpCode)
+  const [totp, setTotp] = useState(verifyOtpDefaultValues.totpCode ?? "")
   const [mfaRequired, setMfaRequired] = useState(false)
   const otpContainerRef = useRef<HTMLDivElement | null>(null)
   const totpContainerRef = useRef<HTMLDivElement | null>(null)

@@ -8,6 +8,11 @@ import { setSessionTokens } from "@/lib/auth/internal"
 import { getCookie } from "@/lib/cookies"
 import { formatStoredPhoneForDisplay } from "@/lib/schema"
 
+import {
+  createDevAuthResponse,
+  isDevRequestOtp,
+  isDevVerifyOtp,
+} from "./init"
 import type {
   AuthTokenResponse,
   CurrentUser,
@@ -32,6 +37,10 @@ type Envelope<T> = {
 export const requestOtp = async (
   command: RequestOtpCommand
 ): Promise<string> => {
+  if (isDevRequestOtp(command)) {
+    return "dev-otp-sent"
+  }
+
   const { tenantSlug, ...body } = command
   const response = await api<Envelope<string>>("/auth/otp/request", {
     method: "POST",
@@ -44,6 +53,10 @@ export const requestOtp = async (
 export const verifyOtp = async (
   command: VerifyOtpCommand
 ): Promise<AuthTokenResponse> => {
+  if (isDevVerifyOtp(command)) {
+    return createDevAuthResponse()
+  }
+
   const { tenantSlug, ...body } = command
   const response = await api<Envelope<AuthTokenResponse>>("/auth/otp/verify", {
     method: "POST",

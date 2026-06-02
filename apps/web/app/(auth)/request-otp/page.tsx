@@ -28,6 +28,7 @@ import { phoneSchema } from "@/lib/schema"
 import { getRequestOtpMutationOptions } from "@/modules/auth/auth/actions"
 import GoogleSignInButton from "@/modules/auth/auth/components/GoogleSignInButton"
 import { useOtpCooldown } from "@/modules/auth/auth/hooks/useOtpCooldown"
+import { requestOtpDefaultValues } from "@/modules/auth/auth/init"
 
 const loginFormSchema = z.object({
   phone: phoneSchema,
@@ -41,7 +42,7 @@ export default function RequestOtpPage() {
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginFormSchema),
-    defaultValues: { phone: "" },
+    defaultValues: { phone: requestOtpDefaultValues.phone },
   })
 
   const { isPending, mutate } = useMutation({

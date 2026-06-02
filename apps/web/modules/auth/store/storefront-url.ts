@@ -17,8 +17,7 @@ import { REGISTRATION_HUB_SLUG } from "@/modules/auth/auth/types"
 export const buildStorefrontUrl = (slug: string | null | undefined): string | null => {
   if (!slug) return null
   if (slug === REGISTRATION_HUB_SLUG) return null
-  const base = process.env.NEXT_PUBLIC_STOREFRONT_BASE
-  if (!base) return null
+  const base = process.env.NEXT_PUBLIC_STOREFRONT_BASE || "/store"
   const trimmedBase = base.replace(/\/+$/, "")
   return `${trimmedBase}/${encodeURIComponent(slug)}`
 }

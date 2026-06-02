@@ -1,32 +1,26 @@
 "use client"
 
 import { HomeMockDashboard } from "@/components/home-mock-dashboard"
-import {
-  FullPageLoader,
-} from "@/components/full-page-loader"
-import { useEffect, useState } from "react"
-import api from "@/lib/api"
+import { FullPageLoader } from "@/components/full-page-loader"
+import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 import { useQuery } from "@tanstack/react-query"
-import { ApiResponse } from "@/lib/types"
+import { useEffect, useState } from "react"
 
 export default function HomePage() {
-  const { data: userProfile, isPending } = useQuery({
-    queryKey: ["user-profile"],
-    queryFn: () => api<ApiResponse<any>>("admin/store/settings"),
-    select: (data) => data?.data,
-  })
+  const { data: settings, isPending } = useQuery(getStoreSettingsQueryOptions())
 
   const [loading, setLoading] = useState(true)
 
   // stop loader after 2 seconds
   useEffect(() => {
-    if (!isPending && userProfile) {
-      setTimeout(() => {
+    if (!isPending && settings) {
+      const timeoutId = window.setTimeout(() => {
         setLoading(false)
       }, 2000)
+      return () => window.clearTimeout(timeoutId)
     }
-  }, [isPending])
-  
+  }, [isPending, settings])
+
   return (
     <>
       <FullPageLoader active={isPending || loading} loopMessages={false} />
