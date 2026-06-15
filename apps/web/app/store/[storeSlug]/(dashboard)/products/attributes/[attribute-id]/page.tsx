@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import { Switch } from "@workspace/ui/components/switch"
 
 import {
   attributeQueryKeys,
@@ -136,6 +137,8 @@ export default function EditAttributeDefinitionPage() {
             type="submit"
             form="attribute-form"
             disabled={isSubmitting}
+            style={{ backgroundColor: "#BA7B1B" }}
+            className="text-white px-6 py-2"
           >
             حفظ
           </Button>
@@ -144,123 +147,207 @@ export default function EditAttributeDefinitionPage() {
     >
       <form
         id="attribute-form"
-        className="grid gap-4"
+        className="flex flex-col gap-8"
         onSubmit={form.handleSubmit(handleSubmit)}
       >
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Field
-            name="attributeNameAr"
-            control={form.control}
-            label="الاسم بالعربية"
-            placeholder="مثال: اللون"
-            inputProps={{ disabled: isSubmitting }}
-          />
+        {/* المعلومات الأساسية */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-bold" style={{ color: "#122640" }}>
+            المعلومات الأساسية
+          </h3>
 
-          <Field
-            name="attributeNameEn"
-            control={form.control}
-            label="الاسم بالإنجليزية"
-            placeholder="e.g. Color"
-            inputProps={{ disabled: isSubmitting }}
-          />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-1" style={{ color: "#122640" }}>
+                الاسم بالعربية
+                <span className="text-red-500">*</span>
+              </label>
+              <Field
+                name="attributeNameAr"
+                control={form.control}
+                inputProps={{
+                  disabled: isSubmitting,
+                  placeholder: "مثال: اللون",
+                  className: "rounded-lg",
+                }}
+              />
+            </div>
 
-          <Field
-            name="attributeKey"
-            control={form.control}
-            label="المفتاح (key)"
-            placeholder="color"
-            inputProps={{ disabled: isSubmitting, dir: "ltr" }}
-          />
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-1" style={{ color: "#122640" }}>
+                الاسم بالإنجليزية
+                <span className="text-red-500">*</span>
+              </label>
+              <Field
+                name="attributeNameEn"
+                control={form.control}
+                inputProps={{
+                  disabled: isSubmitting,
+                  placeholder: "e.g. Color",
+                  className: "rounded-lg",
+                }}
+              />
+            </div>
 
-          <UiField data-invalid={Boolean(form.formState.errors.dataType)}>
-            <FieldLabel htmlFor="dataType">النوع</FieldLabel>
-            <Controller
-              name="dataType"
-              control={form.control}
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={isSubmitting}
-                >
-                  <SelectTrigger id="dataType">
-                    <SelectValue placeholder="اختر النوع" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ATTRIBUTE_DATA_TYPES.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {dataTypeLabels[t]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            <FieldError errors={[form.formState.errors.dataType]} />
-          </UiField>
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-1" style={{ color: "#122640" }}>
+                المفتاح (Key)
+                <span className="text-red-500">*</span>
+              </label>
+              <Field
+                name="attributeKey"
+                control={form.control}
+                inputProps={{
+                  disabled: isSubmitting,
+                  placeholder: "color",
+                  dir: "ltr",
+                  className: "rounded-lg",
+                }}
+              />
+              <p className="text-xs text-gray-500">
+                هذا الحقل يستخدم برمجياً، يفضل استخدامه بالإنجليزية وبدون مسافات
+              </p>
+            </div>
 
-          <CategorySelect
-            name="categoryId"
-            control={form.control}
-            label="نطاق الفئة (اختياري)"
-            placeholder="فارغ = على المتجر كاملاً"
-            disabled={isSubmitting}
-          />
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-1" style={{ color: "#122640" }}>
+                النوع
+                <span className="text-red-500">*</span>
+              </label>
+              <UiField data-invalid={Boolean(form.formState.errors.dataType)}>
+                <Controller
+                  name="dataType"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger className="rounded-lg">
+                        <SelectValue placeholder="اختر النوع" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ATTRIBUTE_DATA_TYPES.map((t) => (
+                          <SelectItem key={t} value={t}>
+                            {dataTypeLabels[t]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <FieldError errors={[form.formState.errors.dataType]} />
+              </UiField>
+            </div>
 
-          <Field
-            name="sortOrder"
-            control={form.control}
-            label="ترتيب العرض"
-            inputProps={{ disabled: isSubmitting, type: "number", min: 0 }}
-          />
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium" style={{ color: "#122640" }}>
+                نطاق الفئة (اختياري)
+              </label>
+              <CategorySelect
+                name="categoryId"
+                control={form.control}
+                placeholder="فارغ = على المتجر كاملاً"
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium" style={{ color: "#122640" }}>
+                ترتيب العرض
+              </label>
+              <Field
+                name="sortOrder"
+                control={form.control}
+                inputProps={{
+                  disabled: isSubmitting,
+                  type: "number",
+                  min: 0,
+                  className: "rounded-lg",
+                }}
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 rounded-lg border p-3">
-          <UiField className="flex items-center gap-2">
-            <input
-              id="isRequired"
-              type="checkbox"
-              {...form.register("isRequired")}
-              disabled={isSubmitting}
-              className="size-4"
-            />
-            <FieldLabel htmlFor="isRequired" className="m-0">
-              إلزامي عند إنشاء المنتج
-            </FieldLabel>
-          </UiField>
+        {/* الإعدادات الإضافية */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-bold" style={{ color: "#122640" }}>
+            الإعدادات الإضافية
+          </h3>
 
-          <UiField className="flex items-center gap-2">
-            <input
-              id="isFilterable"
-              type="checkbox"
-              {...form.register("isFilterable")}
-              disabled={isSubmitting}
-              className="size-4"
-            />
-            <FieldLabel htmlFor="isFilterable" className="m-0">
-              قابل للفلترة في الواجهة
-            </FieldLabel>
-          </UiField>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="flex items-center justify-between rounded-lg border p-4" style={{ borderColor: "#E5E7EB" }}>
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-medium">إلزامي عند إنشاء المنتج</span>
+                <span className="text-xs text-muted-foreground">
+                  يطلب من التاجر إدخال هذه السمة
+                </span>
+              </div>
+              <Controller
+                name="isRequired"
+                control={form.control}
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isSubmitting}
+                  />
+                )}
+              />
+            </div>
 
-          <UiField className="flex items-center gap-2">
-            <input
-              id="isVisibleOnStorefront"
-              type="checkbox"
-              {...form.register("isVisibleOnStorefront")}
-              disabled={isSubmitting}
-              className="size-4"
-            />
-            <FieldLabel htmlFor="isVisibleOnStorefront" className="m-0">
-              مرئي على الواجهة
-            </FieldLabel>
-          </UiField>
+            <div className="flex items-center justify-between rounded-lg border p-4" style={{ borderColor: "#E5E7EB" }}>
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-medium">قابل للفلترة في الواجهة</span>
+                <span className="text-xs text-muted-foreground">
+                  يظهر في فلترات البحث
+                </span>
+              </div>
+              <Controller
+                name="isFilterable"
+                control={form.control}
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isSubmitting}
+                  />
+                )}
+              />
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border p-4" style={{ borderColor: "#E5E7EB" }}>
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-medium">مرئي على الواجهة</span>
+                <span className="text-xs text-muted-foreground">
+                  يظهر في صفحة المنتج
+                </span>
+              </div>
+              <Controller
+                name="isVisibleOnStorefront"
+                control={form.control}
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isSubmitting}
+                  />
+                )}
+              />
+            </div>
+          </div>
         </div>
 
+        {/* الخيارات المتاحة */}
         {isSelectType ? (
-          <div className="flex flex-col gap-3 rounded-lg border p-3">
+          <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-0.5">
-                <span className="font-medium">الخيارات المتاحة</span>
+                <h3 className="text-lg font-bold" style={{ color: "#122640" }}>
+                  الخيارات المتاحة
+                </h3>
                 <span className="text-xs text-muted-foreground">
                   مطلوب على الأقل خيار واحد لـ SELECT/MULTI_SELECT
                 </span>
@@ -268,7 +355,6 @@ export default function EditAttributeDefinitionPage() {
               <Button
                 type="button"
                 size="sm"
-                variant="secondary"
                 onClick={() =>
                   optionsArray.append({
                     optionValueAr: "",
@@ -277,40 +363,60 @@ export default function EditAttributeDefinitionPage() {
                   })
                 }
                 disabled={isSubmitting}
+                style={{ backgroundColor: "#BA7B1B" }}
+                className="text-white"
               >
-                <Plus className="size-4" />
+                <Plus className="size-4 ml-2" />
                 إضافة خيار
               </Button>
             </div>
 
             {optionsArray.fields.length === 0 ? (
-              <p className="rounded border border-dashed p-3 text-center text-sm text-muted-foreground">
-                لا توجد خيارات بعد. اضغط «إضافة خيار» لبدء التعريف.
-              </p>
+              <div className="rounded-lg border border-dashed p-8 text-center" style={{ borderColor: "#E5E7EB" }}>
+                <p className="text-sm text-muted-foreground">
+                  لا توجد خيارات بعد. اضغط «إضافة خيار» لبدء التعريف.
+                </p>
+              </div>
             ) : (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-4">
                 {optionsArray.fields.map((field, index) => (
                   <div
                     key={field.id}
-                    className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] items-end gap-2 rounded border p-2"
+                    className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_auto] items-end rounded-lg border p-4"
+                    style={{ borderColor: "#E5E7EB" }}
                   >
-                    <Field
-                      name={`options.${index}.optionValueAr`}
-                      control={form.control}
-                      label={`القيمة بالعربية #${index + 1}`}
-                      placeholder="مثال: أحمر"
-                      inputProps={{ disabled: isSubmitting }}
-                    />
-                    <Field
-                      name={`options.${index}.optionValueEn`}
-                      control={form.control}
-                      label="بالإنجليزية"
-                      placeholder="Red"
-                      inputProps={{ disabled: isSubmitting, dir: "ltr" }}
-                    />
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" style={{ color: "#122640" }}>
+                        القيمة بالعربية #{index + 1}
+                      </label>
+                      <Field
+                        name={`options.${index}.optionValueAr`}
+                        control={form.control}
+                        inputProps={{
+                          disabled: isSubmitting,
+                          placeholder: "مثال: أحمر",
+                          className: "rounded-lg",
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" style={{ color: "#122640" }}>
+                        بالإنجليزية
+                      </label>
+                      <Field
+                        name={`options.${index}.optionValueEn`}
+                        control={form.control}
+                        inputProps={{
+                          disabled: isSubmitting,
+                          placeholder: "Red",
+                          dir: "ltr",
+                          className: "rounded-lg",
+                        }}
+                      />
+                    </div>
                     <Button
                       type="button"
-                      variant="destructive"
+                      variant="ghost"
                       size="icon"
                       onClick={() => optionsArray.remove(index)}
                       disabled={isSubmitting}

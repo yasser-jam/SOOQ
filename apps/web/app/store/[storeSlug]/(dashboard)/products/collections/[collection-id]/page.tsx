@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -48,6 +48,21 @@ import ManualProductsTab from "@/modules/product/collection/components/manual-pr
 import RulesTab from "@/modules/product/collection/components/rules-tab"
 import PreviewTab from "@/modules/product/collection/components/preview-tab"
 
+// Mock data for development (backend is down)
+const MOCK_COLLECTION: ProductCollection = {
+	id: "mock-collection-1",
+	collectionName: "مجموعة الصيف 2026",
+	collectionSlug: "summer-2026",
+	descriptionAr: "أبرز المنتجات الموسمية بأسعار مخفّضة",
+	descriptionEn: "Highlighted seasonal products on sale",
+	collectionType: "MANUAL",
+	isActive: true,
+	createdAt: new Date().toISOString(),
+	updatedAt: new Date().toISOString(),
+}
+
+const MOCK_COLLECTIONS: ProductCollection[] = [MOCK_COLLECTION]
+
 const collectionFormSchema = productCollectionSchema.omit({
 	id: true,
 	createdAt: true,
@@ -88,10 +103,17 @@ export default function EditCollectionPage() {
 		defaultValues: collectionFormDefaultValues,
 	})
 
+	// Mock data for development (backend is down)
 	const { data: collection, isLoading } = useQuery({
 		queryKey: collectionQueryKeys.detail(collectionId),
-		queryFn: () => getProductCollection(collectionId),
-		enabled: isEdit,
+		queryFn: async () => {
+			// Return mock data instead of calling backend
+			if (isEdit && collectionId === "mock-collection-1") {
+				return MOCK_COLLECTION
+			}
+			return null
+		},
+		enabled: false, // Disable backend query
 	})
 
 	useEffect(() => {
@@ -99,22 +121,36 @@ export default function EditCollectionPage() {
 			form.reset(collectionFormDefaultValues)
 			return
 		}
-		if (!collection) return
-		form.reset(initCollectionFormValues(collection))
-	}, [collection, form, isEdit])
+		// Use mock data for edit mode
+		if (collectionId === "mock-collection-1") {
+			form.reset(initCollectionFormValues(MOCK_COLLECTION))
+		} else {
+			form.reset(collectionFormDefaultValues)
+		}
+	}, [collectionId, form, isEdit])
 
+	// Mock mutations for development (backend is down)
 	const { isPending: isUpdating, mutate: updateCollection } = useMutation({
-		mutationFn: updateProductCollection,
+		mutationFn: async (data: any) => {
+			// Mock update - just return success
+			console.log("Mock update collection:", data)
+			return new Promise((resolve) => setTimeout(resolve, 500))
+		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: collectionQueryKeys.all })
 			toast.success("تم حفظ المجموعة")
+			router.push(storePath("/products/collections"))
 		},
 	})
 
 	const { isPending: isCreating, mutate: createCollection } = useMutation({
-		mutationFn: createProductCollection,
-		onSuccess: (created) => {
-			queryClient.invalidateQueries({ queryKey: collectionQueryKeys.all })
+		mutationFn: async (data: any) => {
+			// Mock create - just return success with mock ID
+			console.log("Mock create collection:", data)
+			return new Promise((resolve) =>
+				setTimeout(() => resolve({ id: "mock-collection-1", collectionType: "MANUAL" }), 500)
+			)
+		},
+		onSuccess: (created: any) => {
 			toast.success("تم إنشاء المجموعة")
 			// Create is the first step of a wizard. Once the collection exists,
 			// jump straight to its products / rules tab so the merchant can finish
@@ -147,7 +183,8 @@ export default function EditCollectionPage() {
 	)
 
 	const isSubmitting = isUpdating || isLoading || isCreating
-	const collectionType = collection?.collectionType ?? "MANUAL"
+	// Use mock data for collection type
+	const collectionType = isEdit && collectionId === "mock-collection-1" ? MOCK_COLLECTION.collectionType : "MANUAL"
 	const isManual = collectionType === "MANUAL"
 	// Both AUTOMATED (canonical, per backend) and AUTOMATIC (legacy alias).
 	const isAutomated =

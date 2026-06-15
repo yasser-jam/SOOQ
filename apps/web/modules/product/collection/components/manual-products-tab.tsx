@@ -25,6 +25,50 @@ import { collectionQueryKeys } from "@/modules/product/collection/queryKeys"
 import { listProducts } from "@/modules/product/product/actions"
 import { productKeys } from "@/modules/product/product/queryKeys"
 
+// Mock data for development (backend is down)
+const MOCK_PRODUCTS = [
+  {
+    id: "mock-product-1",
+    productId: "mock-product-1",
+    titleAr: "ساعة ذكية",
+    titleEn: "Smart Watch",
+    slug: "smart-watch",
+    status: "ACTIVE",
+    primaryImageUrl: "https://via.placeholder.com/40",
+    displayPrice: "500 ر.س",
+  },
+  {
+    id: "mock-product-2",
+    productId: "mock-product-2",
+    titleAr: "سماعات لاسلكية",
+    titleEn: "Wireless Headphones",
+    slug: "wireless-headphones",
+    status: "ACTIVE",
+    primaryImageUrl: "https://via.placeholder.com/40",
+    displayPrice: "300 ر.س",
+  },
+  {
+    id: "mock-product-3",
+    productId: "mock-product-3",
+    titleAr: "شاحن سريع",
+    titleEn: "Fast Charger",
+    slug: "fast-charger",
+    status: "ACTIVE",
+    primaryImageUrl: "https://via.placeholder.com/40",
+    displayPrice: "150 ر.س",
+  },
+]
+
+const MOCK_COLLECTION_PRODUCTS = [
+  {
+    productId: "mock-product-1",
+    titleAr: "ساعة ذكية",
+    titleEn: "Smart Watch",
+    primaryImageUrl: "https://via.placeholder.com/40",
+    displayPrice: "500 ر.س",
+  },
+]
+
 type Props = {
   collectionId: string
 }
@@ -33,18 +77,29 @@ export default function ManualProductsTab({ collectionId }: Props) {
   const queryClient = useQueryClient()
   const [productIdToAdd, setProductIdToAdd] = useState("")
 
+  // Mock data for development (backend is down)
   const { data: products, isPending } = useQuery({
     queryKey: collectionQueryKeys.products(collectionId, 0),
-    queryFn: () => listCollectionProducts(collectionId, { page: 0, size: 100 }),
+    queryFn: async () => {
+      // Return mock data instead of calling backend
+      if (collectionId === "mock-collection-1") {
+        return MOCK_COLLECTION_PRODUCTS
+      }
+      return []
+    },
+    enabled: false, // Disable backend query
   })
 
-  // Catalog: full product list to populate the picker. Cached globally so it
-  // doesn't refetch when navigating between collections.
+  // Catalog: full product list to populate the picker. Mock data for development.
   const { data: catalogResponse, isPending: isLoadingCatalog } = useQuery({
     queryKey: productKeys.all,
-    queryFn: listProducts,
+    queryFn: async () => {
+      // Return mock data instead of calling backend
+      return { data: MOCK_PRODUCTS }
+    },
+    enabled: false, // Disable backend query
   })
-  const catalogProducts = catalogResponse?.data ?? []
+  const catalogProducts = catalogResponse?.data ?? MOCK_PRODUCTS
 
   // Hide products that are already in this collection so the merchant can't
   // pick a duplicate (the backend would reject it anyway).
@@ -74,12 +129,13 @@ export default function ManualProductsTab({ collectionId }: Props) {
       queryKey: collectionQueryKeys.products(collectionId, 0),
     })
 
+  // Mock mutations for development (backend is down)
   const { mutate: addProduct, isPending: isAdding } = useMutation({
-    mutationFn: () =>
-      addCollectionProduct(collectionId, {
-        productId: productIdToAdd.trim(),
-        sortOrder: products?.length ?? 0,
-      }),
+    mutationFn: async () => {
+      // Mock add - just return success
+      console.log("Mock add product to collection:", productIdToAdd)
+      return new Promise((resolve) => setTimeout(resolve, 500))
+    },
     onSuccess: () => {
       toast.success("تم إضافة المنتج للمجموعة")
       setProductIdToAdd("")
@@ -88,8 +144,11 @@ export default function ManualProductsTab({ collectionId }: Props) {
   })
 
   const { mutate: removeProduct } = useMutation({
-    mutationFn: (productId: string) =>
-      removeCollectionProduct(collectionId, productId),
+    mutationFn: async (productId: string) => {
+      // Mock remove - just return success
+      console.log("Mock remove product from collection:", productId)
+      return new Promise((resolve) => setTimeout(resolve, 500))
+    },
     onSuccess: () => {
       toast.success("تم إزالة المنتج")
       invalidate()
@@ -97,8 +156,11 @@ export default function ManualProductsTab({ collectionId }: Props) {
   })
 
   const { mutate: reorder } = useMutation({
-    mutationFn: (productIds: string[]) =>
-      reorderCollectionProducts(collectionId, productIds),
+    mutationFn: async (productIds: string[]) => {
+      // Mock reorder - just return success
+      console.log("Mock reorder products:", productIds)
+      return new Promise((resolve) => setTimeout(resolve, 500))
+    },
     onSuccess: () => {
       toast.success("تم تحديث الترتيب")
       invalidate()

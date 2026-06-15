@@ -3,58 +3,34 @@ import { NextRequest, NextResponse } from "next/server"
 import cookiesConfig from "@/config/cookies-config"
 
 // Paths bypassed entirely (no auth check):
-// - Merchant signup/login at the app root (/request-otp, /verify-otp, /onboarding)
+// - Marketing landing page at "/" (rendered by app/page.tsx — falls through to
+//   authenticated redirects when a session exists)
+// - Merchant signup/login (/request-otp, /verify-otp, /onboarding)
 // - Customer-facing storefront and its auth at /shop/[slug]/...
+// - Static assets in `/images` — `next/image` makes an internal fetch to
+//   the source path while optimising, so without this entry the landing's
+//   pictures get redirected to /request-otp and the optimiser returns 400.
 // - Next.js internals and the auth API
 const PUBLIC_PREFIXES = [
   "/request-otp",
   "/verify-otp",
   "/onboarding",
   "/shop",
+  "/images",
   "/_next",
   "/favicon.ico",
   "/api/auth",
 ]
 
-const isPublic = (pathname: string): boolean =>
-  PUBLIC_PREFIXES.some(
+const isPublic = (pathname: string): boolean => {
+  // "/" can't go through the prefix-match below — every path starts with "/".
+  if (pathname === "/") return true
+  return PUBLIC_PREFIXES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   )
+}
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-
-  // --- إضافة للتطوير فقط: تخطي تسجيل الدخول ---
-  if (process.env.NODE_ENV === "development") {
-    return NextResponse.next()
-  }
-  // -------------------------------------------
-
-  if (isPublic(pathname)) {
-    return NextResponse.next()
-  }
-
-  const accessToken = request.cookies.get(cookiesConfig.accessToken)?.value
-  const refreshToken = request.cookies.get(cookiesConfig.refreshToken)?.value
-
-  if (accessToken || refreshToken) {
-    return NextResponse.next()
-  }
-
-  const loginUrl = new URL("/request-otp", request.url)
-  loginUrl.searchParams.set("redirect", pathname)
-  return NextResponse.redirect(loginUrl)
-}
-
-export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
-}
-
-
-
-
-
-/*export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (isPublic(pathname)) {
@@ -78,4 +54,3 @@ export const config = {
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 }
-*/

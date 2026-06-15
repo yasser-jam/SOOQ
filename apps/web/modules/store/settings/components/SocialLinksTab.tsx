@@ -49,10 +49,10 @@ export default function SocialLinksTab({
   }
 
   return (
-    <Card>
+    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
       <CardHeader>
-        <CardTitle>روابط التواصل الاجتماعي</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg font-bold text-[#1e3a47]">روابط التواصل الاجتماعي</CardTitle>
+        <CardDescription className="text-sm text-gray-600 font-medium">
           تظهر في تذييل صفحة المتجر وصفحة الاتصال.
         </CardDescription>
       </CardHeader>

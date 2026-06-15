@@ -45,10 +45,10 @@ export default function VariantsTab({ isSubmitting, productId }: Props) {
     }) as ProductOption[] | undefined) ?? []
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">خيارات المنتج</CardTitle>
+    <div className="flex flex-col gap-6">
+      <Card className="border-2">
+        <CardHeader className="border-b bg-gradient-to-r from-rose-50 to-pink-50">
+          <CardTitle className="text-xl font-semibold">خيارات المنتج</CardTitle>
           <CardDescription>
             حتى 3 محاور خيارات (المقاس، اللون، المادة...). كل قيمة تُولّد متغيّراً
             تلقائياً.
@@ -65,12 +65,12 @@ export default function VariantsTab({ isSubmitting, productId }: Props) {
             </Button>
           </CardAction>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {productOptions.map((option, optionIndex) => (
-              <Card key={`${option.optionNameAr}-${optionIndex}`} size="sm">
+              <Card key={`${option.optionNameAr}-${optionIndex}`} size="sm" className="border-2">
                 <CardHeader>
-                  <CardTitle className="text-lg">
+                  <CardTitle className="text-lg font-semibold">
                     {option.optionNameAr}
                   </CardTitle>
                   <CardDescription>{option.optionNameEn}</CardDescription>
@@ -116,7 +116,7 @@ export default function VariantsTab({ isSubmitting, productId }: Props) {
             ))}
 
             {!productOptions.length && (
-              <div className="rounded-lg border p-4 text-sm text-muted-foreground">
+              <div className="rounded-lg border-2 border-dashed p-6 text-sm text-muted-foreground bg-gray-50">
                 لا يوجد خيارات مضافة بعد.
               </div>
             )}

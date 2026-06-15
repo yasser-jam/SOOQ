@@ -28,10 +28,10 @@ export default function GeneralTab({
   const form = useFormContext<AllSettingsInput>()
 
   return (
-    <Card>
+    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
       <CardHeader>
-        <CardTitle>الملف العام</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg font-bold text-[#1e3a47]">الملف العام</CardTitle>
+        <CardDescription className="text-sm text-gray-600 font-medium">
           اسم المتجر والوصف وبيانات التواصل.
         </CardDescription>
       </CardHeader>

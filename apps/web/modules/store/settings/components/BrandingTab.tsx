@@ -178,10 +178,10 @@ export default function BrandingTab({
   settings: StoreSettingsResponseDto
 }) {
   return (
-    <Card>
+    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
       <CardHeader>
-        <CardTitle>الشعار والـ favicon</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg font-bold text-[#1e3a47]">الشعار والـ favicon</CardTitle>
+        <CardDescription className="text-sm text-gray-600 font-medium">
           اختر الصورة من جهازك. سيتم رفعها فوراً وحفظ رابطها عند الضغط
           على «حفظ كل الإعدادات».
         </CardDescription>

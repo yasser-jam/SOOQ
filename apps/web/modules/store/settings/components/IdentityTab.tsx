@@ -68,10 +68,10 @@ export default function IdentityTab({
     slugChanged && slugLocallyValid && debouncedSlug === slugTrimmed
 
   return (
-    <Card>
+    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
       <CardHeader>
-        <CardTitle>هوية المتجر</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg font-bold text-[#1e3a47]">هوية المتجر</CardTitle>
+        <CardDescription className="text-sm text-gray-600 font-medium">
           الاسم العام، الرابط (Slug) الذي يظهر في عنوان المتجر، والعملة
           الأساسية. تغيير الرابط يؤثر على روابط متجرك القائمة.
         </CardDescription>

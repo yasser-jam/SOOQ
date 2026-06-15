@@ -1,10 +1,11 @@
 "use client"
 
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
+import { Check } from "lucide-react"
 
 import Field from "@/components/system/Field"
 import PageDialog from "@/components/system/page-dialog"
@@ -34,6 +35,12 @@ import ProductMultipleCategorySelect from "@/modules/product/category/components
 import CategoryTemplateSelect from "@/modules/product/category/components/template-select"
 import { attributeQueryKeys } from "@/modules/product/attribute/actions"
 import TextareaField from "@/components/system/textarea"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/system/tabs"
 
 export default function EditCategoryPage() {
   const router = useRouter()
@@ -47,6 +54,7 @@ export default function EditCategoryPage() {
   const parentId = searchParams.get("parentId")
 
   const isEdit = categoryId !== "create"
+  const [languageTab, setLanguageTab] = useState("ar")
 
   const form = useForm({
     resolver: zodResolver(productCategorySchema),
@@ -126,10 +134,15 @@ export default function EditCategoryPage() {
       actions={
         <>
           <DialogClose asChild>
-            <Button variant="outline">إلغاء</Button>
+            <Button variant="ghost">إلغاء</Button>
           </DialogClose>
 
-          <Button type="submit" form="category-form" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            form="category-form"
+            disabled={isSubmitting}
+            style={{ backgroundColor: "#BA7B1B" }}
+          >
             حفظ
           </Button>
         </>
@@ -137,73 +150,192 @@ export default function EditCategoryPage() {
     >
       <form
         id="category-form"
-        className="grid grid-cols-1 gap-4 md:grid-cols-2"
+        className="flex flex-col gap-8"
         onSubmit={form.handleSubmit(handleSubmit)}
       >
-        <Field
-          name="nameAr"
-          control={form.control}
-          label="الاسم بالعربية"
-          placeholder="مثال: إلكترونيات"
-          inputProps={{ disabled: isSubmitting }}
-        />
+        {/* المعلومات الأساسية */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-bold" style={{ color: "#122640" }}>
+            المعلومات الأساسية
+          </h3>
 
-        <Field
-          name="nameEn"
-          control={form.control}
-          label="الاسم بالإنجليزية"
-          placeholder="Example: Electronics"
-          inputProps={{ disabled: isSubmitting }}
-        />
+          <Tabs value={languageTab} onValueChange={setLanguageTab} className="w-full">
+            <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+              <TabsTrigger
+                value="ar"
+                className="data-[state=active]:text-white"
+                style={
+                  languageTab === "ar"
+                    ? { backgroundColor: "#BA7B1B" }
+                    : undefined
+                }
+              >
+                العربية
+              </TabsTrigger>
+              <TabsTrigger
+                value="en"
+                className="data-[state=active]:text-white"
+                style={
+                  languageTab === "en"
+                    ? { backgroundColor: "#BA7B1B" }
+                    : undefined
+                }
+              >
+                الإنجليزية
+              </TabsTrigger>
+            </TabsList>
 
-        <Field
-          name="slug"
-          control={form.control}
-          label="الاسم المختصر"
-          placeholder="مثال: electronics"
-          inputProps={{ disabled: isSubmitting }}
-        />
+            <TabsContent value="ar" className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium" style={{ color: "#122640" }}>
+                    الاسم بالعربية
+                  </label>
+                  {form.watch("nameAr") && !form.formState.errors.nameAr && (
+                    <Check className="size-4 text-green-500" />
+                  )}
+                </div>
+                <Field
+                  name="nameAr"
+                  control={form.control}
+                  inputProps={{
+                    disabled: isSubmitting,
+                    placeholder: "مثال: إلكترونيات",
+                  }}
+                />
+                <p className="text-xs text-gray-500">
+                  اسم الفئة باللغة العربية كما سيظهر للمستخدمين
+                </p>
+              </div>
 
-        <ProductMultipleCategorySelect
-          name="parentCategoryId"
-          control={form.control}
-          label="معرف الفئة الأم"
-          placeholder="اختر الفئة الأم"
-          disabled={isSubmitting || isEdit}
-        />
+              <div className="space-y-2">
+                <label className="text-sm font-medium" style={{ color: "#122640" }}>
+                  الوصف بالعربية
+                </label>
+                <TextareaField
+                  name="descriptionAr"
+                  control={form.control}
+                  textareaProps={{
+                    disabled: isSubmitting,
+                    placeholder: "مثال: أحدث الأجهزة الإلكترونية والملحقات بأسعار منافسة",
+                    rows: 4,
+                  }}
+                />
+                <p className="text-xs text-gray-500">
+                  وصف تفصيلي للفئة باللغة العربية
+                </p>
+              </div>
+            </TabsContent>
 
-        {!isEdit && (
-          <div className="md:col-span-2">
-            <CategoryTemplateSelect
-              name="templateKey"
+            <TabsContent value="en" className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium" style={{ color: "#122640" }}>
+                    الاسم بالإنجليزية
+                  </label>
+                  {form.watch("nameEn") && !form.formState.errors.nameEn && (
+                    <Check className="size-4 text-green-500" />
+                  )}
+                </div>
+                <Field
+                  name="nameEn"
+                  control={form.control}
+                  inputProps={{
+                    disabled: isSubmitting,
+                    placeholder: "Example: Electronics",
+                  }}
+                />
+                <p className="text-xs text-gray-500">
+                  اسم الفئة باللغة الإنجليزية كما سيظهر للمستخدمين
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium" style={{ color: "#122640" }}>
+                  الوصف بالإنجليزية
+                </label>
+                <TextareaField
+                  name="descriptionEn"
+                  control={form.control}
+                  textareaProps={{
+                    disabled: isSubmitting,
+                    placeholder: "Example: Latest electronic devices and accessories at competitive prices",
+                    rows: 4,
+                  }}
+                />
+                <p className="text-xs text-gray-500">
+                  وصف تفصيلي للفئة باللغة الإنجليزية
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* تصنيف الفئة */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-bold" style={{ color: "#122640" }}>
+            تصنيف الفئة
+          </h3>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium" style={{ color: "#122640" }}>
+              الاسم المختصر
+            </label>
+            <Field
+              name="slug"
               control={form.control}
-              disabled={isSubmitting}
+              inputProps={{
+                disabled: isSubmitting,
+                placeholder: "مثال: electronics",
+              }}
             />
+            <p className="text-xs text-gray-500">
+              معرف فريد للفئة يظهر في رابط URL
+            </p>
           </div>
-        )}
 
-        <div className="md:col-span-2">
-          <TextareaField
-            label="الوصف بالعربية"
-            name="descriptionAr"
-            placeholder="مثال: أحدث الأجهزة الإلكترونية والملحقات بأسعار منافسة"
-            control={form.control}
-          ></TextareaField>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" style={{ color: "#122640" }}>
+              الفئة الأم
+            </label>
+            <ProductMultipleCategorySelect
+              name="parentCategoryId"
+              control={form.control}
+              placeholder="اختر الفئة الأم"
+              disabled={isSubmitting || isEdit}
+            />
+            <p className="text-xs text-gray-500">
+              الفئة الرئيسية التي تنتمي إليها هذه الفئة
+            </p>
+          </div>
+
+          {!isEdit && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium" style={{ color: "#122640" }}>
+                قالب الفئة
+              </label>
+              <CategoryTemplateSelect
+                name="templateKey"
+                control={form.control}
+                disabled={isSubmitting}
+              />
+              <p className="text-xs text-gray-500">
+                اختر قالباً لتحديد السمات الافتراضية للفئة
+              </p>
+            </div>
+          )}
         </div>
 
-        <div className="md:col-span-2">
-          <TextareaField
-            label="الوصف بالإنجليزية"
-            name="descriptionEn"
-            placeholder="Example: Latest electronic devices and accessories at competitive prices"
-            control={form.control}
-          ></TextareaField>
-        </div>
+        {/* حالة الفئة */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-bold" style={{ color: "#122640" }}>
+            حالة الفئة
+          </h3>
 
-        <div className="md:col-span-2">
           <UiField
             data-invalid={Boolean(form.formState.errors.isActive)}
             className="rounded-lg border p-4"
+            style={{ borderColor: "#E5E7EB" }}
           >
             <FieldLabel
               htmlFor="isActive"
@@ -217,9 +349,9 @@ export default function EditCategoryPage() {
                 className="size-4"
               />
               <div className="flex flex-col gap-1">
-                <span>الفئة نشطة</span>
+                <span className="font-medium">الفئة نشطة</span>
                 <span className="text-xs text-muted-foreground">
-                  إظهار الفئة في القوائم
+                  إظهار الفئة في القوائم والبحث
                 </span>
               </div>
             </FieldLabel>

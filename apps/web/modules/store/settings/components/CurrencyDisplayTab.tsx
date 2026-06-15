@@ -71,10 +71,10 @@ export default function CurrencyDisplayTab({
   })
 
   return (
-    <Card>
+    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
       <CardHeader>
-        <CardTitle>عرض العملة</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg font-bold text-[#1e3a47]">عرض العملة</CardTitle>
+        <CardDescription className="text-sm text-gray-600 font-medium">
           كيفية عرض الأسعار في المتجر والفواتير.
         </CardDescription>
       </CardHeader>

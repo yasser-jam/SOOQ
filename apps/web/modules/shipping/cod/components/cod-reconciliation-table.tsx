@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
+import { FileBox } from "lucide-react"
 
 import DataTable from "@/components/system/table"
 import TableActions from "@/components/system/table-actions"
@@ -232,8 +233,28 @@ export default function CodReconciliationTable({
     },
   ]
 
+  // Empty State
+  if (!isPending && filteredBatches.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-xl border bg-white py-16 shadow-sm">
+        <div
+          className="mb-4 rounded-full p-4"
+          style={{ backgroundColor: "#F3F4F6" }}
+        >
+          <FileBox className="size-12" style={{ color: "#9CA3AF" }} />
+        </div>
+        <h3 className="mb-2 text-lg font-semibold" style={{ color: "#122640" }}>
+          لا توجد تسويات مطابقة
+        </h3>
+        <p className="text-sm text-gray-500">
+          جرب تغيير إعدادات الفلترة أو قم بإنشاء دفعة تسوية جديدة
+        </p>
+      </div>
+    )
+  }
+
   return (
-    <div className="w-full overflow-hidden rounded-lg border">
+    <div className="w-full overflow-hidden rounded-xl border bg-white shadow-sm">
       <DataTable
         columns={columns}
         isLoading={isPending}

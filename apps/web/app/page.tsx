@@ -1,33 +1,32 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
+import { LandingPage } from "@/components/landing/landing-page"
 import cookiesConfig from "@/config/cookies-config"
 import { decodeJwtPayload } from "@/lib/jwt"
 import { REGISTRATION_HUB_SLUG } from "@/modules/auth/auth/types"
 
 /**
- * Root entry point. Before the multi-tenant routing refactor the dashboard
- * itself lived at `/`; after it moved to `/store/[slug]`, hitting `/` with
- * a valid session leaves Next.js with no page to render and the user sees a
- * 404. Resolve that here: pick the right destination from the JWT and
- * server-redirect there so there's never a visible 404.
+ * Root entry point.
  *
- * - No access token → `/request-otp`
- * - Token + real tenant slug → `/store/${slug}` (merchant dashboard)
- * - Token but still on the registration hub → `/onboarding/create-store`
+ * - **No / malformed session** → render the marketing landing page. Its CTAs
+ *   point at `/request-otp` for the actual signup flow.
+ * - **Token + real tenant slug** → server-redirect to `/store/${slug}`
+ *   (merchant dashboard).
+ * - **Token but still on the registration hub** → server-redirect to
+ *   `/onboarding/create-store`.
+ *
+ * Server-side decoding (instead of letting the client mount and bounce) keeps
+ * the authenticated experience flash-free — the visitor never sees the
+ * landing for an instant on their way to the dashboard.
  */
 export default async function RootPage() {
   const cookieStore = await cookies()
   const accessToken = cookieStore.get(cookiesConfig.accessToken)?.value
+  const payload = accessToken ? decodeJwtPayload(accessToken) : null
 
-  if (!accessToken) {
-    redirect("/request-otp")
-  }
-
-  const payload = decodeJwtPayload(accessToken)
-  if (!payload) {
-    // Token cookie exists but is malformed — treat as unauthenticated.
-    redirect("/request-otp")
+  if (!accessToken || !payload) {
+    return <LandingPage />
   }
 
   const slugFromCookie = cookieStore.get(cookiesConfig.tenantSlug)?.value || null

@@ -1,15 +1,11 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { X } from "lucide-react"
+import { X, Calendar, Filter } from "lucide-react"
 
 import { listShippingProviders } from "@/modules/shipping/provider/actions"
 import { shippingProviderQueryKeys } from "@/modules/shipping/provider/queryKeys"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Field as UiField,
-  FieldLabel,
-} from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import {
   Select,
@@ -52,10 +48,35 @@ export default function CodReconciliationFiltersBar({
       [key]: value,
     })
 
+  const clearFilters = () => {
+    onChange({})
+  }
+
   return (
-    <div className="grid gap-4 rounded-2xl border bg-card p-4 md:grid-cols-[2fr_1fr_1fr_auto]">
-      <UiField>
-        <FieldLabel htmlFor="cod-filter-provider">مزود الشحن</FieldLabel>
+    <div className="flex items-center gap-4 rounded-xl border border-slate-100 bg-white px-5 py-3 shadow-sm">
+      {/* Title & Status */}
+      <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
+        <Filter className="size-4" style={{ color: "#BA7B1B" }} />
+        <div className="flex flex-col">
+          <span className="text-xs font-medium" style={{ color: "#122640" }}>
+            الفلاتر
+          </span>
+          <span className="text-[10px] text-gray-500">
+            {hasActiveFilter
+              ? `${Object.keys(filters).length} نشط`
+              : "غير نشط"}
+          </span>
+        </div>
+      </div>
+
+      {/* Shipping Provider */}
+      <div className="flex flex-col gap-1">
+        <label
+          htmlFor="cod-filter-provider"
+          className="text-[10px] font-medium text-gray-500"
+        >
+          مزود الشحن
+        </label>
         <Select
           value={filters.shippingProviderId ?? ALL_PROVIDERS_VALUE}
           onValueChange={(value) =>
@@ -65,7 +86,10 @@ export default function CodReconciliationFiltersBar({
             )
           }
         >
-          <SelectTrigger id="cod-filter-provider">
+          <SelectTrigger
+            id="cod-filter-provider"
+            className="h-9 w-[180px] rounded-lg border-slate-200 bg-slate-50 text-xs focus:border-[#BA7B1B] focus:ring-[#BA7B1B]"
+          >
             <SelectValue placeholder="كل المزودين" />
           </SelectTrigger>
           <SelectContent>
@@ -77,48 +101,55 @@ export default function CodReconciliationFiltersBar({
             ))}
           </SelectContent>
         </Select>
-      </UiField>
+      </div>
 
-      <UiField>
-        <FieldLabel htmlFor="cod-filter-from">من تاريخ</FieldLabel>
-        <Input
-          id="cod-filter-from"
-          type="date"
-          dir="ltr"
-          value={filters.settlementDateFrom ?? ""}
-          onChange={(event) =>
-            updateField("settlementDateFrom", event.target.value || undefined)
-          }
-          max={filters.settlementDateTo}
-        />
-      </UiField>
+      {/* Date Range */}
+      <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-500">من</label>
+          <div className="relative">
+            <Input
+              type="date"
+              dir="ltr"
+              value={filters.settlementDateFrom ?? ""}
+              onChange={(event) =>
+                updateField("settlementDateFrom", event.target.value || undefined)
+              }
+              max={filters.settlementDateTo}
+              className="h-9 w-[140px] rounded-lg border-slate-200 bg-slate-50 pr-3 pl-3 text-xs focus:border-[#BA7B1B] focus:ring-[#BA7B1B]"
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-medium text-gray-500">إلى</label>
+          <div className="relative">
+            <Input
+              type="date"
+              dir="ltr"
+              value={filters.settlementDateTo ?? ""}
+              onChange={(event) =>
+                updateField("settlementDateTo", event.target.value || undefined)
+              }
+              min={filters.settlementDateFrom}
+              className="h-9 w-[140px] rounded-lg border-slate-200 bg-slate-50 pr-3 pl-3 text-xs focus:border-[#BA7B1B] focus:ring-[#BA7B1B]"
+            />
+          </div>
+        </div>
+      </div>
 
-      <UiField>
-        <FieldLabel htmlFor="cod-filter-to">إلى تاريخ</FieldLabel>
-        <Input
-          id="cod-filter-to"
-          type="date"
-          dir="ltr"
-          value={filters.settlementDateTo ?? ""}
-          onChange={(event) =>
-            updateField("settlementDateTo", event.target.value || undefined)
-          }
-          min={filters.settlementDateFrom}
-        />
-      </UiField>
-
-      <div className="flex items-end">
+      {/* Clear Button */}
+      {hasActiveFilter && (
         <Button
           type="button"
-          variant="outline"
-          size="md"
-          onClick={() => onChange({})}
-          disabled={!hasActiveFilter}
+          variant="ghost"
+          size="sm"
+          onClick={clearFilters}
+          className="h-9 px-3 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900"
         >
-          مسح الفلاتر
-          <X data-icon="inline-end" />
+          <X className="ml-1.5 size-3.5" />
+          مسح
         </Button>
-      </div>
+      )}
     </div>
   )
 }

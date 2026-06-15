@@ -27,10 +27,10 @@ export default function BusinessHoursTab({
   const hours = form.watch("businessHours")
 
   return (
-    <Card>
+    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
       <CardHeader>
-        <CardTitle>ساعات العمل</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg font-bold text-[#1e3a47]">ساعات العمل</CardTitle>
+        <CardDescription className="text-sm text-gray-600 font-medium">
           حدّد أيام عمل المتجر وساعاته. تظهر للعملاء على واجهة المتجر.
         </CardDescription>
       </CardHeader>

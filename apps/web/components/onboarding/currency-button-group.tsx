@@ -1,6 +1,5 @@
 "use client"
 
-import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 import { Coins, DollarSign } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
@@ -12,8 +11,8 @@ const ITEMS: {
   shortLabel: string
   Icon: LucideIcon
 }[] = [
-  { code: "SYP", shortLabel: "ليرة سورية", Icon: Coins },
-  { code: "USD", shortLabel: "دولار أمريكي", Icon: DollarSign },
+  { code: "SYP", shortLabel: "ل.س", Icon: Coins },
+  { code: "USD", shortLabel: "$", Icon: DollarSign },
 ]
 
 type CurrencyButtonGroupProps = {
@@ -32,32 +31,30 @@ export function CurrencyButtonGroup({
   "aria-label": ariaLabel = "العملة الافتراضية",
 }: CurrencyButtonGroupProps) {
   return (
-    <div className={cn("grid gap-2", className)}>
-      <span className="flex items-center gap-2 text-sm leading-none font-medium">
-        <Coins className="size-4 shrink-0" aria-hidden />
-        العملة الافتراضية
-      </span>
-
+    <div className={cn("w-full", className)}>
       <div
-        className="grid grid-cols-2 gap-2"
+        className="inline-flex items-center bg-gray-100 rounded-xl p-1 w-full"
         role="group"
         aria-label={ariaLabel}
       >
         {ITEMS.map(({ code, shortLabel, Icon }) => {
           const selected = value === code
           return (
-            <Button
+            <button
               key={code}
               type="button"
-              variant={selected ? "default" : "outline"}
-              size="sm"
-              className="h-auto min-h-0 flex items-center gap-2 py-2"
-              aria-pressed={selected}
               onClick={() => onValueChange(code)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                selected
+                  ? "bg-white text-[#1e3a47] shadow-sm"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+              )}
+              aria-pressed={selected}
             >
-              <span className="text-xs font-medium leading-tight">{shortLabel}</span>
-              <Icon className="size-3.5" strokeWidth={2} />
-            </Button>
+              <Icon className="size-4" strokeWidth={2} />
+              <span>{shortLabel}</span>
+            </button>
           )
         })}
       </div>

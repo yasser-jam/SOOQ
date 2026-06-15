@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/tabs"
 import { FormProvider, useForm } from "react-hook-form"
 import { toast } from "sonner"
+import * as React from "react"
 
 import type { ApiError } from "@/lib/api"
 import RequireRole from "@/modules/auth/auth/components/RequireRole"
@@ -83,6 +84,8 @@ function StoreSettingsForm({ settings }: { settings: StoreSettingsResponseDto })
     form.reset(buildAllSettingsDefaults(settings, user?.phone))
   }
 
+  const [showAdvanced, setShowAdvanced] = React.useState(false)
+
   return (
     <FormProvider {...form}>
       <form
@@ -90,59 +93,72 @@ function StoreSettingsForm({ settings }: { settings: StoreSettingsResponseDto })
         className="flex flex-col gap-6 pb-24"
         noValidate
       >
-        <Tabs defaultValue="identity" className="w-full">
-          <TabsList className="flex-wrap h-auto">
-            <TabsTrigger value="identity">الهوية</TabsTrigger>
-            <TabsTrigger value="general">عام</TabsTrigger>
-            <TabsTrigger value="address">العنوان</TabsTrigger>
-            <TabsTrigger value="branding">الشعار</TabsTrigger>
-            <TabsTrigger value="currency">العملة</TabsTrigger>
-            <TabsTrigger value="locale">المنطقة الزمنية</TabsTrigger>
-            <TabsTrigger value="social">روابط التواصل</TabsTrigger>
-            <TabsTrigger value="hours">ساعات العمل</TabsTrigger>
-            <TabsTrigger value="danger" className="text-destructive">
-              منطقة الخطر
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="identity">
+        {/* Bento Grid Layout - تجميع الإعدادات المترابطة في بطاقات */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* بطاقة هوية المتجر - الاسم، الرابط، العملة */}
+          <div className="md:col-span-2 lg:col-span-2">
             <IdentityTab settings={settings} />
-          </TabsContent>
-          <TabsContent value="general">
-            <GeneralTab settings={settings} />
-          </TabsContent>
-          <TabsContent value="address">
-            <AddressTab settings={settings} />
-          </TabsContent>
-          <TabsContent value="branding">
-            <BrandingTab settings={settings} />
-          </TabsContent>
-          <TabsContent value="currency">
-            <CurrencyDisplayTab settings={settings} />
-          </TabsContent>
-          <TabsContent value="locale">
-            <LocaleTab settings={settings} />
-          </TabsContent>
-          <TabsContent value="social">
-            <SocialLinksTab settings={settings} />
-          </TabsContent>
-          <TabsContent value="hours">
-            <BusinessHoursTab settings={settings} />
-          </TabsContent>
-          <TabsContent value="danger">
-            {/* Danger zone uses its own mutations (deletion request /
-                cancel) and is intentionally outside the shared save. */}
-            <DangerZoneTab settings={settings} />
-          </TabsContent>
-        </Tabs>
+          </div>
 
-        {/* Sticky save bar — covers every tab except Danger. */}
-        <div className="sticky bottom-0 z-10 border-t bg-background/95 px-2 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 -mx-2 flex items-center justify-end gap-2">
+          {/* بطاقة الشعار */}
+          <div>
+            <BrandingTab settings={settings} />
+          </div>
+
+          {/* بطاقة الملف العام */}
+          <div className="md:col-span-2 lg:col-span-2">
+            <GeneralTab settings={settings} />
+          </div>
+
+          {/* بطاقة العمليات - عرض العملة والمنطقة الزمنية */}
+          <div className="flex flex-col gap-6">
+            <CurrencyDisplayTab settings={settings} />
+            <LocaleTab settings={settings} />
+          </div>
+
+          {/* بطاقة العنوان */}
+          <div className="md:col-span-2 lg:col-span-3">
+            <AddressTab settings={settings} />
+          </div>
+
+          {/* بطاقة ساعات العمل */}
+          <div className="md:col-span-2 lg:col-span-2">
+            <BusinessHoursTab settings={settings} />
+          </div>
+
+          {/* بطاقة روابط التواصل */}
+          <div>
+            <SocialLinksTab settings={settings} />
+          </div>
+        </div>
+
+        {/* Progressive Disclosure - الإعدادات المتقدمة */}
+        <div className="border-t pt-6">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            {showAdvanced ? "إخفاء الإعدادات المتقدمة" : "إظهار الإعدادات المتقدمة"}
+          </Button>
+
+          {showAdvanced && (
+            <div className="mt-6">
+              {/* منطقة الخطر - منفصلة عن الحفظ المشترك */}
+              <DangerZoneTab settings={settings} />
+            </div>
+          )}
+        </div>
+
+        {/* Sticky save bar — شريط إجراءات عائم بتأثير زجاجي */}
+        <div className="sticky bottom-0 z-10 border-t border-gray-200/50 bg-white/80 backdrop-blur-md px-6 py-4 shadow-lg -mx-6 flex items-center justify-end gap-3">
           <Button
             type="button"
             variant="outline"
             onClick={handleDiscard}
             disabled={isPending || !form.formState.isDirty}
+            className="rounded-xl"
           >
             تراجع عن التغييرات
           </Button>
@@ -150,6 +166,7 @@ function StoreSettingsForm({ settings }: { settings: StoreSettingsResponseDto })
             type="submit"
             loading={isPending}
             disabled={isPending || !form.formState.isDirty}
+            className="rounded-xl bg-[#1e3a47] hover:bg-[#152933]"
           >
             حفظ كل الإعدادات
           </Button>
@@ -186,10 +203,10 @@ function StoreSettingsContent() {
 
 export default function StoreSettingsPage() {
   return (
-    <div className="container flex flex-col gap-6 py-8">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">إعدادات المتجر</h1>
-        <p className="text-sm text-muted-foreground">
+    <div className="container flex flex-col gap-6 py-8 bg-[#F8F9FA] min-h-screen">
+      <header className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold text-[#1e3a47] tracking-tight">إعدادات المتجر</h1>
+        <p className="text-base text-gray-600 font-medium">
           الملف العام والعنوان والمنطقة الزمنية وغير ذلك. متاحة لمالكي المتجر والمدراء فقط.
         </p>
       </header>

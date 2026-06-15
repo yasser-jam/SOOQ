@@ -1,11 +1,9 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { X } from "lucide-react"
 
 import { listShippingProviders } from "@/modules/shipping/provider/actions"
 import { shippingProviderQueryKeys } from "@/modules/shipping/provider/queryKeys"
-import { Button } from "@workspace/ui/components/button"
 import {
   Field as UiField,
   FieldLabel,
@@ -53,13 +51,6 @@ export default function ShipmentsFiltersBar({
     queryFn: listShippingProviders,
   })
 
-  const hasActiveFilter = Boolean(
-    filters.status ||
-      filters.shippingProviderId ||
-      filters.createdAtFrom ||
-      filters.createdAtTo
-  )
-
   const updateField = <K extends keyof ShipmentFilters>(
     key: K,
     value: ShipmentFilters[K] | undefined
@@ -70,36 +61,11 @@ export default function ShipmentsFiltersBar({
     })
 
   return (
-    <div className="grid gap-4 rounded-2xl border bg-card p-4 md:grid-cols-[1.4fr_1.4fr_1fr_1fr_auto]">
+    <div className="grid gap-5 md:grid-cols-2">
       <UiField>
-        <FieldLabel htmlFor="shipment-filter-status">الحالة</FieldLabel>
-        <Select
-          value={filters.status ?? ALL_STATUSES_VALUE}
-          onValueChange={(value) =>
-            updateField(
-              "status",
-              value === ALL_STATUSES_VALUE
-                ? undefined
-                : (value as ShipmentStatus)
-            )
-          }
-        >
-          <SelectTrigger id="shipment-filter-status">
-            <SelectValue placeholder="كل الحالات" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={ALL_STATUSES_VALUE}>كل الحالات</SelectItem>
-            {STATUS_VALUES.map((status) => (
-              <SelectItem key={status} value={status}>
-                {SHIPMENT_STATUS_META[status].label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </UiField>
-
-      <UiField>
-        <FieldLabel htmlFor="shipment-filter-provider">مزود الشحن</FieldLabel>
+        <FieldLabel htmlFor="shipment-filter-provider" className="text-sm font-medium" style={{ color: "#122640" }}>
+          مزود الشحن
+        </FieldLabel>
         <Select
           value={filters.shippingProviderId ?? ALL_PROVIDERS_VALUE}
           onValueChange={(value) =>
@@ -109,7 +75,7 @@ export default function ShipmentsFiltersBar({
             )
           }
         >
-          <SelectTrigger id="shipment-filter-provider">
+          <SelectTrigger id="shipment-filter-provider" className="h-11 rounded-lg border-gray-200 text-sm focus:border-[#BA7B1B] focus:ring-[#BA7B1B]">
             <SelectValue placeholder="كل المزودين" />
           </SelectTrigger>
           <SelectContent>
@@ -124,45 +90,34 @@ export default function ShipmentsFiltersBar({
       </UiField>
 
       <UiField>
-        <FieldLabel htmlFor="shipment-filter-from">من تاريخ</FieldLabel>
-        <Input
-          id="shipment-filter-from"
-          type="date"
-          dir="ltr"
-          value={filters.createdAtFrom ?? ""}
-          onChange={(event) =>
-            updateField("createdAtFrom", event.target.value || undefined)
-          }
-          max={filters.createdAtTo}
-        />
+        <FieldLabel htmlFor="shipment-filter-date" className="text-sm font-medium" style={{ color: "#122640" }}>
+          التاريخ
+        </FieldLabel>
+        <div className="grid grid-cols-2 gap-2">
+          <Input
+            id="shipment-filter-from"
+            type="date"
+            dir="ltr"
+            value={filters.createdAtFrom ?? ""}
+            onChange={(event) =>
+              updateField("createdAtFrom", event.target.value || undefined)
+            }
+            max={filters.createdAtTo}
+            className="h-11 rounded-lg border-gray-200 text-sm focus:border-[#BA7B1B] focus:ring-[#BA7B1B]"
+          />
+          <Input
+            id="shipment-filter-to"
+            type="date"
+            dir="ltr"
+            value={filters.createdAtTo ?? ""}
+            onChange={(event) =>
+              updateField("createdAtTo", event.target.value || undefined)
+            }
+            min={filters.createdAtFrom}
+            className="h-11 rounded-lg border-gray-200 text-sm focus:border-[#BA7B1B] focus:ring-[#BA7B1B]"
+          />
+        </div>
       </UiField>
-
-      <UiField>
-        <FieldLabel htmlFor="shipment-filter-to">إلى تاريخ</FieldLabel>
-        <Input
-          id="shipment-filter-to"
-          type="date"
-          dir="ltr"
-          value={filters.createdAtTo ?? ""}
-          onChange={(event) =>
-            updateField("createdAtTo", event.target.value || undefined)
-          }
-          min={filters.createdAtFrom}
-        />
-      </UiField>
-
-      <div className="flex items-end">
-        <Button
-          type="button"
-          variant="outline"
-          size="md"
-          onClick={() => onChange({})}
-          disabled={!hasActiveFilter}
-        >
-          مسح الفلاتر
-          <X data-icon="inline-end" />
-        </Button>
-      </div>
     </div>
   )
 }

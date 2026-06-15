@@ -26,15 +26,15 @@ export default function SeoTab({ isSubmitting }: Props) {
   const slug = useWatch({ control: form.control, name: "slug" }) ?? ""
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-2xl">إعدادات SEO</CardTitle>
+    <Card className="border-2">
+      <CardHeader className="border-b bg-gradient-to-r from-violet-50 to-purple-50">
+        <CardTitle className="text-xl font-semibold">إعدادات SEO</CardTitle>
         <CardDescription>
           هذه الحقول تظهر في نتائج محرّكات البحث وعلى وسائل التواصل عند مشاركة
           صفحة المنتج.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         <div className="flex flex-col gap-4">
           <Field
             name="seoTitle"
@@ -49,10 +49,10 @@ export default function SeoTab({ isSubmitting }: Props) {
             control={form.control}
             label="وصف SEO"
             placeholder="مثال: هاتف ذكي بشاشة عالية الدقة وبطارية طويلة الأمد مع ضمان وتوصيل سريع"
-            textareaProps={{ disabled: isSubmitting }}
+            textareaProps={{ disabled: isSubmitting, rows: 4 }}
           />
 
-          <div className="rounded-lg border bg-muted/30 p-3">
+          <div className="rounded-lg border-2 border-dashed bg-muted/30 p-4">
             <p className="text-xs font-medium text-muted-foreground">
               معاينة الرابط
             </p>

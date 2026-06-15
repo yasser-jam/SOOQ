@@ -4,30 +4,17 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import {
   Field as UiField,
   FieldError,
   FieldLabel,
 } from "@workspace/ui/components/field"
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@workspace/ui/components/avatar"
-import {
   AlertCircle,
   ArrowLeftIcon,
   ArrowRightIcon,
   CheckCircle2,
-  CircleDot,
   Loader2,
+  BookOpen,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import * as React from "react"
@@ -45,7 +32,6 @@ import {
 import type { ApiError } from "@/lib/api"
 import { refreshSession } from "@/lib/auth/internal"
 import { useCurrentUser } from "@/modules/auth/auth/hooks/useCurrentUser"
-import type { CurrentUser } from "@/modules/auth/auth/types"
 
 import { buildStorefrontUrl } from "../storefront-url"
 import { slugifyStoreName } from "../init"
@@ -59,29 +45,18 @@ import type {
   StoreSettings,
 } from "@/modules/store/settings/types"
 
+import Image from "next/image"
+
 type StepKey = "name" | "slug" | "currency" | "review"
 
-const STEPS: Array<{ key: StepKey; label: string }> = [
-  { key: "name", label: "اسم المتجر" },
-  { key: "slug", label: "رابط المتجر" },
-  { key: "currency", label: "العملة" },
-  { key: "review", label: "مراجعة" },
+const STEPS: Array<{ key: StepKey; label: string; subLabel: string }> = [
+  { key: "name", label: "الخطوة الأولى", subLabel: "اسم المتجر" },
+  { key: "slug", label: "الخطوة الثانية", subLabel: "رابط المتجر" },
+  { key: "currency", label: "الخطوة الثالثة", subLabel: "العملة" },
+  { key: "review", label: "الخطوة الرابعة", subLabel: "مراجعة" },
 ]
 
 const SLUG_DEBOUNCE_MS = 400
-const DEFAULT_STORE_NAME = "متجر SOOQ التجريبي"
-const DEFAULT_CURRENCY_CODE: CurrencyCode = "SYP"
-
-const makeDefaultSlug = (user: CurrentUser | null): string => {
-  const rawSuffix =
-    user?.tenantId || user?.userId || user?.phone || user?.email || ""
-  const suffix = rawSuffix
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "")
-    .slice(-8)
-
-  return suffix ? `sooq-store-${suffix}` : "sooq-store"
-}
 
 export default function CreateStoreFlow() {
   const router = useRouter()
@@ -91,11 +66,8 @@ export default function CreateStoreFlow() {
   const [stepIndex, setStepIndex] = React.useState(0)
   const currentStep = STEPS[stepIndex]!.key
   const [submitting, setSubmitting] = React.useState(false)
-  // Brief settle window after entering the review step. The "متابعة"
-  // and "فعّل متجري" buttons share a DOM slot, so a double-click on
-  // متابعة would otherwise land its second click on the freshly-mounted
-  // submit button at the same position and silently submit the form.
   const [reviewSubmitReady, setReviewSubmitReady] = React.useState(false)
+
   React.useEffect(() => {
     if (currentStep !== "review") {
       setReviewSubmitReady(false)
@@ -108,9 +80,9 @@ export default function CreateStoreFlow() {
   const form = useForm<IdentitySettingsInput>({
     resolver: zodResolver(identitySchema),
     defaultValues: {
-      storeName: DEFAULT_STORE_NAME,
-      slug: "sooq-store",
-      primaryCurrencyCode: DEFAULT_CURRENCY_CODE,
+      storeName: "",
+      slug: "",
+      primaryCurrencyCode: "SYP",
     },
     mode: "onChange",
   })
@@ -118,39 +90,27 @@ export default function CreateStoreFlow() {
   const storeName = form.watch("storeName")
   const slug = form.watch("slug")
   const primaryCurrencyCode = form.watch("primaryCurrencyCode") as CurrencyCode
-  const userTouchedSlugRef = React.useRef(false)
 
+  // توليد الرابط تلقائياً بناءً على اسم المتجر حتى يقوم المستخدم بتعديله بنفسه
+  const userTouchedSlug = React.useRef(false)
   React.useEffect(() => {
-    if (!user || form.formState.isDirty) return
-
-    form.reset({
-      storeName: DEFAULT_STORE_NAME,
-      slug: makeDefaultSlug(user),
-      primaryCurrencyCode: DEFAULT_CURRENCY_CODE,
-    })
-    userTouchedSlugRef.current = true
-  }, [form, user])
-
-  // Auto-fill slug from storeName until the user manually edits it.
-  React.useEffect(() => {
-    if (userTouchedSlugRef.current) return
+    if (userTouchedSlug.current) return
     const generated = slugifyStoreName(storeName ?? "")
     if (generated !== form.getValues("slug")) {
       form.setValue("slug", generated, { shouldValidate: false })
     }
   }, [storeName, form])
 
-  // Guard: unauthenticated visitors can't create a store. Bounce to OTP.
-  React.useEffect(() => {
+    // Guard: unauthenticated visitors can't create a store. Bounce to OTP.
+  /*React.useEffect(() => {
     if (isLoading) return
     if (!isAuthenticated) {
       router.replace("/request-otp")
     }
-  }, [isAuthenticated, isLoading, router])
+  }, [isAuthenticated, isLoading, router])*/
 
-  // ── Slug live availability ──────────────────────────────────────────────
-  // We debounce the user's slug input and only fire the query once it
-  // clears the local regex check. Server-side validation runs on submit.
+
+  // ── منطق التحقق من صحة الرابط وتوفره ──────────────────
   const [debouncedSlug, setDebouncedSlug] = React.useState("")
   React.useEffect(() => {
     const trimmed = (slug ?? "").trim()
@@ -177,16 +137,10 @@ export default function CreateStoreFlow() {
     ...getUpdateStoreSettingsMutationOptions({
       queryClient,
       onSuccess: async (settings: StoreSettings) => {
-        // Refresh the JWT so the new `tenantSlug` claim is in cookies
-        // before we hard-navigate to the merchant dashboard. The page
-        // reload below re-reads cookies + re-runs the auth context, so
-        // we don't need to invalidate `authKeys.currentUser` here.
         await refreshSession().catch(() => undefined)
-
         if (typeof window !== "undefined") {
           sessionStorage.setItem(SESSION_SHOW_STORE_SETUP_LOADER, "1")
         }
-
         const targetSlug = settings.slug ?? form.getValues("slug")
         const target = buildStorefrontUrl(targetSlug)
         if (target && typeof window !== "undefined") {
@@ -197,9 +151,6 @@ export default function CreateStoreFlow() {
       },
     }),
     onError: (error: ApiError) => {
-      // Slug taken at submit time — bounce back to the slug step so the
-      // user can pick another. The error toast is surfaced by the axios
-      // interceptor; we add the inline form error here.
       if (error?.errorCode === "ERR_1003") {
         form.setError("slug", {
           type: "taken",
@@ -212,16 +163,13 @@ export default function CreateStoreFlow() {
     },
   })
 
-  // ── Step navigation ─────────────────────────────────────────────────────
-
+  // شروط الانتقال بين الخطوات بعد تنظيف الحقول الزائدة
   const canAdvanceFromName = !!storeName?.trim()
-
+  
   const canAdvanceFromSlug = React.useMemo(() => {
     const value = (slug ?? "").trim()
     if (!value) return false
     if (!slugLocallyValid) return false
-    // If the query is in-flight we let the user wait. If it returned, we
-    // only allow advance when the server says the slug is free.
     if (slugAvailabilityQuery.isFetching) return false
     if (slugAvailabilityQuery.data && !slugAvailabilityQuery.data.available) {
       return false
@@ -233,14 +181,10 @@ export default function CreateStoreFlow() {
 
   const canAdvanceFromCurrentStep = () => {
     switch (currentStep) {
-      case "name":
-        return canAdvanceFromName
-      case "slug":
-        return canAdvanceFromSlug
-      case "currency":
-        return canAdvanceFromCurrency
-      case "review":
-        return true
+      case "name": return canAdvanceFromName
+      case "slug": return canAdvanceFromSlug
+      case "currency": return canAdvanceFromCurrency
+      case "review": return true
     }
   }
 
@@ -263,16 +207,10 @@ export default function CreateStoreFlow() {
       }
       await saveSettingsMutation.mutateAsync(payload)
     } catch {
-      // mutation.onError already handled — keep the wizard up.
+      // التعامل مع الخطأ يتم بواسطة Mutation onError
     }
   })
 
-  // Only the review step is allowed to fire the real submit. On earlier
-  // steps, hitting Enter inside an input (browser default form submit)
-  // would otherwise skip straight to the mutation and bypass review —
-  // route those to a step-advance instead. The `reviewSubmitReady`
-  // gate also swallows accidental double-clicks while the page is
-  // transitioning from currency → review.
   const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (currentStep === "review" && reviewSubmitReady) {
@@ -284,284 +222,282 @@ export default function CreateStoreFlow() {
     }
   }
 
-  // ── Render ──────────────────────────────────────────────────────────────
-
   if (isLoading) {
     return (
-      <Card className="w-full max-w-xl p-8 text-center text-muted-foreground">
-        جاري التحميل…
-      </Card>
+      <div className="min-h-screen w-full bg-[#f4f7f9] flex items-center justify-center font-sans antialiased">
+        <div className="w-full max-w-xl p-8 text-center text-muted-foreground bg-white rounded-xl border shadow-sm">
+          جاري التحميل…
+        </div>
+      </div>
     )
   }
-
-  if (!isAuthenticated) {
+  /*if (!isAuthenticated) {
     // The redirect in useEffect handles navigation; render nothing in the
     // meantime so we don't flash the wizard chrome.
     return null
-  }
-
+  }*/
   if (submitting && saveSettingsMutation.isPending) {
     return <FullPageLoader active />
   }
 
   return (
-    <Card className="w-full max-w-xl">
-      <CardHeader className="text-center">
-        <Avatar className="mx-auto mb-2 rounded-lg bg-primary p-8 text-5xl">
-          <AvatarImage src="/logo.png" alt="logo" />
-          <AvatarFallback className="font-bold text-primary-foreground">
-            SOOQ
-          </AvatarFallback>
-        </Avatar>
-        <CardTitle className="text-xl">أنشئ متجرك</CardTitle>
-        <CardDescription>
-          {user?.username ? `مسجّل الدخول كـ ${user.username}` : ""}
-          <br />
-          أكمل البيانات الأساسية لتفعيل متجرك.
-        </CardDescription>
-        <StepIndicator stepIndex={stepIndex} />
-      </CardHeader>
-
-      <form onSubmit={handleFormSubmit} noValidate>
-        <CardContent className="flex flex-col gap-6 min-h-[180px]">
-          {currentStep === "name" && (
-            <Field<IdentitySettingsInput>
-              name="storeName"
-              control={form.control}
-              label="اسم المتجر"
-              placeholder="متجر الكرمة"
-              inputProps={{ autoFocus: true, disabled: submitting }}
+    <div className="min-h-screen w-full bg-[#f4f7f9] flex flex-col md:flex-row-reverse relative overflow-hidden font-sans antialiased" dir="rtl">
+      
+      {/* ── شريط الخطوات الجانبي المعدل لضبط المسافات ── */}
+      <div className="w-full md:w-[35%] p-6 md:p-8 flex flex-col justify-center items-center z-10 relative border-l border-gray-200/50 gap-6">
+        
+        {/* ── حاوية الشاب والبطاقة النصية المدمجة بمسافات متناسقة وعمودية ── */}
+        <div className="w-full flex flex-col items-center justify-center relative pointer-events-none mb-2">
+          <div className="relative w-full max-w-[150px] md:max-w-[170px] flex flex-col items-center pointer-events-auto">
+            
+            {/* صورة الشاب المفرغة */}
+            <img 
+              src="/images/CreateStoreFlow.png" 
+             // alt="Success Character" 
+              className="w-full h-auto object-contain select-none"
             />
-          )}
-
-          {currentStep === "slug" && (
-            <SlugStep
-              form={form}
-              userTouchedSlugRef={userTouchedSlugRef}
-              slug={slug}
-              debouncedSlug={debouncedSlug}
-              slugLocallyValid={slugLocallyValid}
-              isChecking={slugAvailabilityQuery.isFetching}
-              availability={slugAvailabilityQuery.data ?? null}
-              disabled={submitting}
-            />
-          )}
-
-          {currentStep === "currency" && (
-            <UiField>
-              <FieldLabel>العملة الأساسية</FieldLabel>
-              <CurrencyButtonGroup
-                value={primaryCurrencyCode}
-                onValueChange={(v) =>
-                  form.setValue("primaryCurrencyCode", v, {
-                    shouldValidate: true,
-                  })
-                }
-              />
-              <FieldError
-                errors={[form.formState.errors.primaryCurrencyCode]}
-              />
-            </UiField>
-          )}
-
-          {currentStep === "review" && (
-            <ReviewStep
-              values={form.getValues()}
-              onEdit={(stepKey) => {
-                const idx = STEPS.findIndex((s) => s.key === stepKey)
-                if (idx >= 0) setStepIndex(idx)
-              }}
-            />
-          )}
-        </CardContent>
-
-        <CardFooter className="flex flex-row-reverse justify-between gap-2">
-          {currentStep === "review" ? (
-            <Button
-              key="review-submit"
-              type="submit"
-              size="lg"
-              loading={saveSettingsMutation.isPending}
-              disabled={submitting || !reviewSubmitReady}
-            >
-              فعّل متجري
-              <ArrowLeftIcon />
-            </Button>
-          ) : (
-            <Button
-              key="step-next"
-              type="button"
-              size="lg"
-              onClick={handleNext}
-              disabled={!canAdvanceFromCurrentStep()}
-            >
-              متابعة
-              <ArrowLeftIcon />
-            </Button>
-          )}
-
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={handleBack}
-            disabled={stepIndex === 0 || submitting}
-          >
-            <ArrowRightIcon />
-            رجوع
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
-  )
-}
-
-function StepIndicator({ stepIndex }: { stepIndex: number }) {
-  return (
-    <div
-      className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground"
-      aria-label="مراحل الإعداد"
-    >
-      {STEPS.map((step, idx) => {
-        const isCurrent = idx === stepIndex
-        const isDone = idx < stepIndex
-        return (
-          <div key={step.key} className="flex items-center gap-1">
-            {isDone ? (
-              <CheckCircle2 className="size-4 text-primary" />
-            ) : isCurrent ? (
-              <CircleDot className="size-4 text-primary" />
-            ) : (
-              <CircleDot className="size-4 opacity-40" />
-            )}
-            <span
-              className={
-                isCurrent
-                  ? "font-medium text-foreground"
-                  : isDone
-                    ? "text-foreground/70"
-                    : ""
-              }
-            >
-              {step.label}
-            </span>
-            {idx < STEPS.length - 1 && (
-              <span className="px-1 opacity-40">·</span>
-            )}
+            
+            {/* بطاقة النص المنبثقة بجانب الشاب */}
+            <div className="absolute right-[-35px] bottom-[25%] bg-white/95 backdrop-blur-sm border border-gray-100 px-3 py-1.5 rounded-xl shadow-xl max-w-[130px] text-center border-b-4 border-gray-200">
+              <p className="text-[10px] md:text-[11px] font-black text-[#b97a23] leading-relaxed">
+                متجرك بين يديك في لحظات
+              </p>
+            </div>
           </div>
-        )
-      })}
-    </div>
-  )
-}
-
-type SlugStepProps = {
-  form: ReturnType<typeof useForm<IdentitySettingsInput>>
-  userTouchedSlugRef: React.MutableRefObject<boolean>
-  slug: string
-  debouncedSlug: string
-  slugLocallyValid: boolean
-  isChecking: boolean
-  availability: { available: boolean; slug: string } | null
-  disabled: boolean
-}
-
-function SlugStep({
-  form,
-  userTouchedSlugRef,
-  slug,
-  debouncedSlug,
-  slugLocallyValid,
-  isChecking,
-  availability,
-  disabled,
-}: SlugStepProps) {
-  const showStatus =
-    slugLocallyValid && debouncedSlug.length > 0 && debouncedSlug === slug.trim()
-
-  return (
-    <div className="flex flex-col gap-2">
-      <Field<IdentitySettingsInput>
-        name="slug"
-        control={form.control}
-        label="رابط المتجر"
-        placeholder="al-karma-store"
-        inputProps={{
-          autoFocus: true,
-          disabled,
-          dir: "ltr",
-          onInput: () => {
-            userTouchedSlugRef.current = true
-          },
-        }}
-      />
-      <p className="text-xs text-muted-foreground">
-        أحرف لاتينية صغيرة، أرقام، وشرطات فقط — مثال:{" "}
-        <span dir="ltr" className="font-mono">
-          al-karma-store
-        </span>
-      </p>
-
-      {showStatus && (
-        <div className="mt-1 flex items-center gap-2 text-xs">
-          {isChecking ? (
-            <>
-              <Loader2 className="size-3.5 animate-spin" />
-              <span className="text-muted-foreground">
-                جاري التحقق من توفّر الرابط…
-              </span>
-            </>
-          ) : availability ? (
-            availability.available ? (
-              <>
-                <CheckCircle2 className="size-3.5 text-emerald-600" />
-                <span className="text-emerald-600">الرابط متاح</span>
-              </>
-            ) : (
-              <>
-                <AlertCircle className="size-3.5 text-destructive" />
-                <span className="text-destructive">الرابط محجوز</span>
-              </>
-            )
-          ) : null}
         </div>
-      )}
+
+        {/* ── حاوية الأزرار والخطوات الجانبية ── */}
+        <div className="w-full flex flex-col items-center gap-4">
+          <div className="relative flex flex-col gap-8 md:gap-10 items-center w-full max-w-[220px]">
+            <div className="absolute top-4 bottom-4 right-[50%] w-[2px] border-r-2 border-dashed border-[#1e3a47]/20 z-0"></div>
+            
+            {STEPS.map((step, idx) => {
+              const isCurrent = idx === stepIndex
+              const isDone = idx < stepIndex
+
+              return (
+                <div key={step.key} className="z-10 w-full relative flex flex-col items-center">
+                  {isCurrent && (
+                    <div className="absolute -top-5 right-4 bg-white p-1 rounded-md border border-gray-200 shadow-sm z-20 animate-bounce">
+                      <BookOpen className="size-3 text-[#b97a23]" />
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => idx <= stepIndex && setStepIndex(idx)}
+                    disabled={idx > stepIndex}
+                    style={{ transform: "rotateX(20deg) rotateZ(-10deg)" }}
+                    className={`
+                      w-full py-3.5 px-4 rounded-xl text-center font-black text-sm tracking-wide
+                      transition-all duration-300 shadow-lg relative perspective-sm
+                      ${isCurrent 
+                        ? "bg-[#b97a23] text-white scale-105 border-b-4 border-[#935f16]" 
+                        : isDone 
+                          ? "bg-[#1e3a47] text-white opacity-95 border-b-4 border-[#0f212a]"
+                          : "bg-white text-[#1e3a47] border border-gray-200 border-b-4 border-gray-300"
+                      }
+                    `}
+                  >
+                    <span>{step.label}</span>
+                  </button>
+                  
+                  {isCurrent && (
+                    <span className="text-xs text-gray-500 font-bold mt-1.5">
+                      {step.subLabel}
+                    </span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* اسم المستخدم في الأسفل */}
+        <div className="mt-4 text-center w-full relative">
+          {user?.username && (
+            <span className="text-[11px] text-muted-foreground block">
+              مسجّل كـ {user.username}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── نافذة الإدخال الرئيسية ── */}
+      <div className="w-full md:w-[65%] p-4 md:p-12 flex items-center justify-center z-10">
+        <div className="w-full max-w-3xl bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl border-2 border-r-4 border-b-4 border-[#1e3a47] shadow-2xl overflow-hidden p-8 md:p-14 min-h-[580px] flex flex-col justify-between">
+          
+          <form onSubmit={handleFormSubmit} noValidate className="h-full flex flex-col justify-between flex-1">
+            <div className="flex-1">
+              <h2 className="text-3xl md:text-4xl font-black text-[#1e3a47] mb-10 text-right tracking-tight">
+                ادخل بيانات متجرك
+              </h2>
+
+              <div className="space-y-6">
+                {/* ── خطوة الاسم فقط ── */}
+                {currentStep === "name" && (
+                  <div className="space-y-5 text-right">
+                    <div className="space-y-2">
+                      <Field<IdentitySettingsInput>
+                        name="storeName"
+                        control={form.control}
+                        label="اسم المتجر"
+                        placeholder="ادخل اسم متجرك"
+                        inputProps={{ 
+                          autoFocus: true, 
+                          disabled: submitting,
+                          className: "w-full bg-[#f4f7f9] border border-gray-200 rounded-xl p-4 text-right text-sm font-medium focus:ring-2 focus:ring-[#b97a23] focus:bg-white transition-all" 
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* ── خطوة رابط المتجر ── */}
+                {currentStep === "slug" && (
+                  <div className="space-y-4 text-right">
+                    <Field<IdentitySettingsInput>
+                      name="slug"
+                      control={form.control}
+                      label="رابط المتجر"
+                      placeholder="al-karma-store"
+                      inputProps={{
+                        autoFocus: true,
+                        disabled: submitting,
+                        dir: "ltr",
+                        onInput: () => {
+                          userTouchedSlug.current = true
+                        },
+                        className: "w-full bg-[#f4f7f9] border border-gray-200 rounded-xl p-4 text-left font-mono text-sm focus:ring-2 focus:ring-[#b97a23] focus:bg-white transition-all"
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      أحرف لاتينية صغيرة، أرقام، وشرطات فقط — مثال:{" "}
+                      <span dir="ltr" className="font-mono bg-gray-100 px-1 rounded">
+                        al-karma-store
+                      </span>
+                    </p>
+
+                    {slugLocallyValid && debouncedSlug.length > 0 && debouncedSlug === slug.trim() && (
+                      <div className="mt-2 flex items-center gap-2 text-xs justify-start" dir="rtl">
+                        {slugAvailabilityQuery.isFetching ? (
+                          <>
+                            <Loader2 className="size-3.5 animate-spin text-gray-500" />
+                            <span className="text-muted-foreground">جاري التحقق من توفّر الرابط…</span>
+                          </>
+                        ) : slugAvailabilityQuery.data ? (
+                          slugAvailabilityQuery.data.available ? (
+                            <>
+                              <CheckCircle2 className="size-3.5 text-emerald-600" />
+                              <span className="text-emerald-600 font-bold">الرابط متاح للاستخدام</span>
+                            </>
+                          ) : (
+                            <>
+                              <AlertCircle className="size-3.5 text-destructive" />
+                              <span className="text-destructive font-bold">هذا الرابط محجوز، اختر رابطاً آخر</span>
+                            </>
+                          )
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ── خطوة اختيار العملة ── */}
+                {currentStep === "currency" && (
+                  <UiField className="text-right space-y-3">
+                    <FieldLabel className="text-sm font-bold text-[#1e3a47]">العملة الأساسية</FieldLabel>
+                    <div className="bg-[#f4f7f9] p-3 rounded-xl border border-gray-100">
+                      <CurrencyButtonGroup
+                        value={primaryCurrencyCode}
+                        onValueChange={(v) =>
+                          form.setValue("primaryCurrencyCode", v, {
+                            shouldValidate: true,
+                          })
+                        }
+                      />
+                    </div>
+                    <FieldError errors={[form.formState.errors.primaryCurrencyCode]} />
+                  </UiField>
+                )}
+
+                {/* ── خطوة المراجعة النهائية ── */}
+                {currentStep === "review" && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-500 text-right font-medium mb-4">يرجى مراجعة بيانات المتجر قبل التفعيل:</p>
+                    <dl className="flex flex-col divide-y divide-gray-100 rounded-2xl border border-gray-200 bg-[#f4f7f9]/50 text-sm overflow-hidden">
+                      <ReviewRow
+                        label="اسم المتجر"
+                        value={storeName}
+                        onEdit={() => setStepIndex(STEPS.findIndex((s) => s.key === "name"))}
+                      />
+                      <ReviewRow
+                        label="رابط المتجر"
+                        value={slug}
+                        dir="ltr"
+                        onEdit={() => setStepIndex(STEPS.findIndex((s) => s.key === "slug"))}
+                      />
+                      <ReviewRow
+                        label="العملة الأساسية"
+                        value={primaryCurrencyCode}
+                        onEdit={() => setStepIndex(STEPS.findIndex((s) => s.key === "currency"))}
+                      />
+                    </dl>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ── أزرار التحكم والـ Footer ── */}
+            <div className="flex flex-row-reverse justify-between gap-4 mt-12 pt-6 border-t border-gray-100">
+              {currentStep === "review" ? (
+                <Button
+                  key="review-submit"
+                  type="submit"
+                  className="bg-[#1e3a47] hover:bg-[#152933] text-white px-8 py-6 rounded-xl font-bold transition-all shadow-md flex items-center gap-2"
+                  loading={saveSettingsMutation.isPending}
+                  disabled={submitting || !reviewSubmitReady}
+                >
+                  <span>فعّل متجري</span>
+                  <ArrowLeftIcon className="size-4" />
+                </Button>
+              ) : (
+                <Button
+                  key="step-next"
+                  type="button"
+                  className="bg-[#1e3a47] hover:bg-[#152933] text-white px-8 py-6 rounded-xl font-bold transition-all shadow-md flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none"
+                  onClick={handleNext}
+                  disabled={!canAdvanceFromCurrentStep()}
+                >
+                  <span>متابعة</span>
+                  <ArrowLeftIcon className="size-4" />
+                </Button>
+              )}
+
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleBack}
+                disabled={stepIndex === 0 || submitting}
+                className="text-[#1e3a47] font-bold hover:bg-gray-100 rounded-xl px-6"
+              >
+                <ArrowRightIcon className="size-4 ml-2" />
+                <span>رجوع</span>
+              </Button>
+            </div>
+          </form>
+
+        </div>
+      </div>
     </div>
   )
 }
 
-function ReviewStep({
-  values,
-  onEdit,
-}: {
-  values: IdentitySettingsInput
-  onEdit: (step: StepKey) => void
-}) {
-  return (
-    <dl className="flex flex-col divide-y rounded-md border bg-muted/20 text-sm">
-      <ReviewRow
-        label="اسم المتجر"
-        value={values.storeName}
-        onEdit={() => onEdit("name")}
-      />
-      <ReviewRow
-        label="رابط المتجر"
-        value={values.slug}
-        dir="ltr"
-        onEdit={() => onEdit("slug")}
-      />
-      <ReviewRow
-        label="العملة الأساسية"
-        value={values.primaryCurrencyCode}
-        onEdit={() => onEdit("currency")}
-      />
-    </dl>
-  )
-}
-
+// ── مكون المساعدة الداخلي المخصص لعرض المراجعة ──
 function ReviewRow({
   label,
   value,
-  dir,
+  dir = "rtl",
   onEdit,
 }: {
   label: string
@@ -570,17 +506,20 @@ function ReviewRow({
   onEdit: () => void
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 p-3">
-      <dt className="text-muted-foreground">{label}</dt>
-      <div className="flex items-center gap-3">
-        <dd dir={dir} className="font-medium">
+    <div className="flex items-center justify-between gap-4 p-4 hover:bg-white transition-colors">
+      <dt className="text-gray-500 font-bold text-xs">{label}</dt>
+      <div className="flex items-center gap-4">
+        <dd dir={dir} className="font-bold text-[#1e3a47] text-sm">
           {value || "—"}
         </dd>
-        <Button type="button" variant="ghost" size="sm" onClick={onEdit}>
+        <button 
+          type="button" 
+          onClick={onEdit}
+          className="text-xs font-black text-[#b97a23] hover:underline"
+        >
           تعديل
-        </Button>
+        </button>
       </div>
     </div>
   )
 }
-

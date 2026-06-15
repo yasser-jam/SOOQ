@@ -21,12 +21,12 @@ export default function CategorizationTab({ isSubmitting }: Props) {
   const form = useFormContext()
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">الفئات</CardTitle>
+    <div className="grid grid-cols-1 gap-6">
+      <Card className="border-2">
+        <CardHeader className="border-b bg-gradient-to-r from-purple-50 to-pink-50">
+          <CardTitle className="text-xl font-semibold">الفئات</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="flex flex-col gap-4">
             <CategorySelect
               name="defaultCategoryId"
@@ -48,11 +48,11 @@ export default function CategorizationTab({ isSubmitting }: Props) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">الوسوم</CardTitle>
+      <Card className="border-2">
+        <CardHeader className="border-b bg-gradient-to-r from-green-50 to-emerald-50">
+          <CardTitle className="text-xl font-semibold">الوسوم</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <CreatableTagSelect
             name="tags"
             control={form.control}

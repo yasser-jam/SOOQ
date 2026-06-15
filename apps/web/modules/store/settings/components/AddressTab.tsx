@@ -43,10 +43,10 @@ export default function AddressTab({
   }
 
   return (
-    <Card>
+    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
       <CardHeader>
-        <CardTitle>عنوان المتجر</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-lg font-bold text-[#1e3a47]">عنوان المتجر</CardTitle>
+        <CardDescription className="text-sm text-gray-600 font-medium">
           عنوان النشاط التجاري الذي يظهر في صفحة الاتصال والفواتير. يمكنك
           أيضاً تحديد موقع المتجر على الخريطة لإظهاره للزبائن.
         </CardDescription>

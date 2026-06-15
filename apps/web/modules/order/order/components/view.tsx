@@ -44,102 +44,52 @@ type StatusCard = {
   Icon: typeof Package
   borderClassName: string
   iconClassName: string
+  bgClassName: string
 }
 
 const STATUS_CARDS: StatusCard[] = [
-  {
-    id: "TOTAL",
-    title: "إجمالي الطلبات",
-    Icon: Package,
-    borderClassName: "border-s-4 border-s-secondary",
-    iconClassName: "text-secondary/15",
-  },
   {
     id: "PENDING",
     status: "PENDING",
     title: "قيد الانتظار",
     Icon: Clock,
-    borderClassName: "border-s-4 border-s-amber-500",
-    iconClassName: "text-amber-500/15",
-  },
-  {
-    id: "CONFIRMED",
-    status: "CONFIRMED",
-    title: "مؤكد",
-    Icon: CheckCircle2,
-    borderClassName: "border-s-4 border-s-blue-500",
-    iconClassName: "text-blue-500/15",
-  },
-  {
-    id: "PROCESSING",
-    status: "PROCESSING",
-    title: "قيد المعالجة",
-    Icon: Cog,
-    borderClassName: "border-s-4 border-s-indigo-500",
-    iconClassName: "text-indigo-500/15",
-  },
-  {
-    id: "SHIPPED",
-    status: "SHIPPED",
-    title: "تم الشحن",
-    Icon: Truck,
-    borderClassName: "border-s-4 border-s-primary",
-    iconClassName: "text-primary/15",
+    borderClassName: "border border-gray-200",
+    iconClassName: "text-amber-500",
+    bgClassName: "bg-amber-50",
   },
   {
     id: "DELIVERED",
     status: "DELIVERED",
     title: "تم التسليم",
     Icon: PackageCheck,
-    borderClassName: "border-s-4 border-s-emerald-500",
-    iconClassName: "text-emerald-500/15",
-  },
-  {
-    id: "COMPLETED",
-    status: "COMPLETED",
-    title: "مكتمل",
-    Icon: BadgeCheck,
-    borderClassName: "border-s-4 border-s-emerald-600",
-    iconClassName: "text-emerald-600/15",
+    borderClassName: "border border-gray-200",
+    iconClassName: "text-emerald-500",
+    bgClassName: "bg-emerald-50",
   },
   {
     id: "CANCELLED",
     status: "CANCELLED",
     title: "ملغي",
     Icon: XCircle,
-    borderClassName: "border-s-4 border-s-destructive",
-    iconClassName: "text-destructive/15",
+    borderClassName: "border border-gray-200",
+    iconClassName: "text-red-500",
+    bgClassName: "bg-red-50",
   },
   {
-    id: "RETURNED",
-    status: "RETURNED",
-    title: "مرتجع",
-    Icon: RotateCcw,
-    borderClassName: "border-s-4 border-s-orange-500",
-    iconClassName: "text-orange-500/15",
-  },
-  {
-    id: "REFUNDED",
-    status: "REFUNDED",
-    title: "تم الاسترداد",
-    Icon: Wallet,
-    borderClassName: "border-s-4 border-s-rose-500",
-    iconClassName: "text-rose-500/15",
-  },
-  {
-    id: "FAILED",
-    status: "FAILED",
-    title: "فشل",
-    Icon: AlertCircle,
-    borderClassName: "border-s-4 border-s-red-700",
-    iconClassName: "text-red-700/15",
+    id: "TOTAL",
+    title: "إجمالي الطلبات",
+    Icon: Package,
+    borderClassName: "border border-gray-200",
+    iconClassName: "text-secondary",
+    bgClassName: "bg-gray-50",
   },
   {
     id: "REVENUE",
     title: "إجمالي الإيرادات",
     Icon: TrendingUp,
-    borderClassName: "border-s-4 border-s-emerald-500",
-    iconClassName: "text-emerald-500/15",
+    borderClassName: "border border-gray-200",
+    iconClassName: "text-emerald-600",
+    bgClassName: "bg-emerald-50",
   },
 ]
 
@@ -206,10 +156,11 @@ export default function OrdersPageView() {
     : "جدول الطلبات"
 
   return (
-    <div className="container my-6 flex flex-col gap-6">
+    <div className="container my-6 flex flex-col gap-8">
       <div className="page-title">قائمة الطلبات</div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
+      {/* القسم العلوي (KPIs) */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-5">
         {STATUS_CARDS.map((card) => {
           const Icon = card.Icon
           const isActive = card.status && card.status === status
@@ -222,39 +173,63 @@ export default function OrdersPageView() {
               onClick={() => handleCardClick(card)}
               disabled={!isClickable}
               className={cn(
-                "relative overflow-hidden rounded-xl border bg-white p-5 text-start transition",
+                "relative overflow-hidden rounded-xl border p-6 text-start transition shadow-sm",
                 card.borderClassName,
+                card.bgClassName,
                 isClickable && "cursor-pointer hover:shadow-md",
                 !isClickable && "cursor-default",
-                isActive && "ring-2 ring-primary"
+                isActive && "ring-2 ring-offset-2",
+                isActive && "ring-[#BA7B1B]"
               )}
             >
-              <Icon
-                aria-hidden
-                className={cn(
-                  "pointer-events-none absolute -end-2 -bottom-2 size-20 p-2",
-                  card.iconClassName
-                )}
-              />
+              <div className="relative z-10 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <Icon
+                    aria-hidden
+                    className={cn("size-6", card.iconClassName)}
+                  />
+                  {card.id === "PENDING" && (
+                    <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-1 rounded-full">
+                      +5%
+                    </span>
+                  )}
+                  {card.id === "DELIVERED" && (
+                    <span className="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
+                      +12%
+                    </span>
+                  )}
+                  {card.id === "CANCELLED" && (
+                    <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded-full">
+                      -2%
+                    </span>
+                  )}
+                  {card.id === "REVENUE" && (
+                    <span className="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
+                      +8%
+                    </span>
+                  )}
+                </div>
 
-              <div className="relative z-10 flex flex-col gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {card.title}
-                </span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium" style={{ color: "#122640" }}>
+                    {card.title}
+                  </span>
 
-                <span className="text-2xl font-semibold text-foreground">
-                  {getCardValue(card.id)}
-                </span>
+                  <span className="text-3xl font-bold" style={{ color: "#122640" }}>
+                    {getCardValue(card.id)}
+                  </span>
+                </div>
               </div>
             </button>
           )
         })}
       </div>
 
-      <div className="flex flex-col gap-4">
+      {/* القسم السفلي (Management) */}
+      <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-foreground">
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold" style={{ color: "#122640" }}>
               {tableTitle}
             </h2>
 
@@ -264,7 +239,7 @@ export default function OrdersPageView() {
                 size="sm"
                 variant="ghost"
                 onClick={clearStatusFilter}
-                className="h-7 gap-1 text-xs text-muted-foreground"
+                className="h-8 gap-1 text-xs text-muted-foreground"
               >
                 <X className="size-3" />
                 إزالة الفلتر
@@ -272,24 +247,34 @@ export default function OrdersPageView() {
             ) : null}
           </div>
 
-          <FilterMenu>
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="orders-table-filter-number">
-                  رقم الطلب
-                </FieldLabel>
-                <FieldContent>
-                  <Input
-                    id="orders-table-filter-number"
-                    type="search"
-                    placeholder="ابحث برقم الطلب"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </FieldContent>
-              </Field>
-            </FieldGroup>
-          </FilterMenu>
+          <div className="flex items-center gap-3">
+            <FilterMenu>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="orders-table-filter-number">
+                    رقم الطلب
+                  </FieldLabel>
+                  <FieldContent>
+                    <Input
+                      id="orders-table-filter-number"
+                      type="search"
+                      placeholder="ابحث برقم الطلب"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="rounded-lg"
+                    />
+                  </FieldContent>
+                </Field>
+              </FieldGroup>
+            </FilterMenu>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-lg"
+            >
+              تصدير الطلبات
+            </Button>
+          </div>
         </div>
 
         <OrdersListTable status={status} searchQuery={searchQuery} />
