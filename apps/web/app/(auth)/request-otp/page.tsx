@@ -97,7 +97,6 @@ export default function RequestOtpPage() {
         </div>
       </div>
 
-      {/* 2. الجزء الأيمن: الصورة */}
       <div className="hidden lg:block w-1/2 relative min-h-[500px] overflow-hidden">
         <img
           src="/images/Group 1000006180.png"

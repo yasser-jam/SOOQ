@@ -19,6 +19,7 @@ import type { ApiError } from "@/lib/api"
 import { cleanVerifyOtpPayload } from "@/modules/auth/auth/init"
 import { getVerifyOtpMutationOptions } from "@/modules/auth/auth/actions"
 import { verifyOtpSchema } from "@/modules/auth/auth/schema"
+import Image from "next/image";
 
 function VerifyOtpForm() {
   const router = useRouter()
@@ -43,7 +44,6 @@ function VerifyOtpForm() {
     ...getVerifyOtpMutationOptions({
       queryClient,
       onSuccess: () => {
-        // دائماً التوجه لصفحة إنشاء المتجر
         router.push("/onboarding/create-store")
       },
     }),
@@ -61,7 +61,7 @@ function VerifyOtpForm() {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    // منطق التجاوز: إذا كان الرمز 123456، نعتبره نجاحاً مباشراً
+    // Todo: remove this after binding
     if (otp === "123456") {
       toast.success("تم التجاوز بنجاح إلى مرحلة إعداد المتجر")
       // استخدام نفس الـ mutation لضمان تحديث session
@@ -88,7 +88,6 @@ function VerifyOtpForm() {
 
   return (
     <div className="min-h-screen w-full flex flex-row">
-      {/* 1. الجزء الأيسر: النموذج */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-sm space-y-8">
           <div className="flex flex-col items-center text-center">
@@ -130,15 +129,15 @@ function VerifyOtpForm() {
         </div>
       </div>
 
-      {/* 2. الجزء الأيمن: الصورة */}
       <div className="hidden lg:block w-1/2 relative min-h-[500px] overflow-hidden">
-        <img
+        <Image
           src="/images/Group 1000006180.png"
           alt="Form Illustration"
+          width={500}
+          height={500}
           className="absolute inset-0 w-full h-full object-contain p-10 animate-in fade-in slide-in-from-right-12 duration-1000 ease-out"
-          onError={(e) => {
-            console.error("Image failed to load:", e)
-          }}
+          priority
+          sizes="(max-width: 768px) 100vw, 50vw"
         />
       </div>
     </div>
