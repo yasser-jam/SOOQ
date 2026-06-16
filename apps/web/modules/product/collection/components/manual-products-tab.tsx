@@ -117,9 +117,7 @@ export default function ManualProductsTab({ collectionId }: Props) {
     () =>
       catalogProducts.filter(
         (p) =>
-          p.id &&
-          p.status === "ACTIVE" &&
-          !alreadyInCollectionIds.has(p.id)
+          p.id && p.status === "ACTIVE" && !alreadyInCollectionIds.has(p.id)
       ),
     [catalogProducts, alreadyInCollectionIds]
   )
@@ -184,7 +182,7 @@ export default function ManualProductsTab({ collectionId }: Props) {
         <div className="flex-1">
           <label
             htmlFor="add-product-id"
-            className="block text-sm font-medium mb-1"
+            className="mb-1 block text-sm font-medium"
           >
             إضافة منتج
           </label>
@@ -224,7 +222,11 @@ export default function ManualProductsTab({ collectionId }: Props) {
           onClick={() => addProduct()}
           disabled={!productIdToAdd.trim() || isAdding}
         >
-          {isAdding ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+          {isAdding ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Plus className="size-4" />
+          )}
           إضافة
         </Button>
       </div>
@@ -255,8 +257,8 @@ export default function ManualProductsTab({ collectionId }: Props) {
                   className="size-10 rounded object-cover"
                 />
               ) : null}
-              <div className="flex-1 flex flex-col gap-0.5">
-                <span className="font-medium text-sm">
+              <div className="flex flex-1 flex-col gap-0.5">
+                <span className="text-sm font-medium">
                   {p.titleAr ?? p.titleEn ?? p.productId}
                 </span>
                 {p.displayPrice ? (

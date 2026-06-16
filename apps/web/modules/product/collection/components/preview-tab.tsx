@@ -27,35 +27,35 @@ export default function PreviewTab({ collectionId }: Props) {
       </p>
 
       {isPending ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-40 w-full" />
           ))}
         </div>
       ) : !data || data.length === 0 ? (
         <div className="rounded-lg border border-dashed p-10 text-center">
-          <Eye className="size-10 text-muted-foreground mx-auto" />
+          <Eye className="mx-auto size-10 text-muted-foreground" />
           <p className="mt-2 text-sm text-muted-foreground">
             لا منتجات تطابق القواعد الحالية بعد. عدّل القواعد لتجربة معاينة
             مختلفة.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
           {data.map((p) => (
             <Card key={p.productId}>
-              <CardContent className="p-3 flex flex-col gap-2">
+              <CardContent className="flex flex-col gap-2 p-3">
                 {p.primaryImageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={p.primaryImageUrl}
                     alt=""
-                    className="w-full aspect-square rounded object-cover"
+                    className="aspect-square w-full rounded object-cover"
                   />
                 ) : (
-                  <div className="w-full aspect-square rounded bg-muted" />
+                  <div className="aspect-square w-full rounded bg-muted" />
                 )}
-                <p className="text-sm font-medium truncate">
+                <p className="truncate text-sm font-medium">
                   {p.titleAr ?? p.titleEn ?? p.productId}
                 </p>
                 {p.displayPrice ? (
