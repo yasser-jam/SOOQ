@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Info, ShoppingCart, Star } from "lucide-react"
 import { useState } from "react"
 
+import { Toaster } from "@/components/toaster"
+
 export default function AuthLayout({
   children,
 }: {
@@ -19,6 +21,8 @@ export default function AuthLayout({
 
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster />
+
       <header>
         <div className="container flex items-center justify-between py-4 text-sm text-primary">
           <h1 className="text-3xl font-bold text-primary">SOOQ</h1>

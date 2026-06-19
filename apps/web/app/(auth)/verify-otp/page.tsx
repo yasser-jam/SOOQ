@@ -152,6 +152,16 @@ function VerifyOtpForm() {
               تأكيد
               <ArrowLeftIcon className="mr-2" />
             </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="w-full"
+              onClick={() => router.push("/request-otp")}
+            >
+              تغيير الرقم
+            </Button>
           </form>
         </div>
       </div>
