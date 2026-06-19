@@ -1,5 +1,6 @@
 "use client"
 
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -8,36 +9,46 @@ import {
   InputOTPSlot,
 } from "@workspace/ui/components/input-otp"
 import { Label } from "@workspace/ui/components/label"
-import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react"
+import { ArrowLeftIcon, PhoneIcon, ShieldCheckIcon } from "lucide-react"
+import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useRef, useState } from "react"
-import type { FormEvent } from "react"
+import { Controller, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 
 import { ErteqaLogo } from "@/components/erteqa-logo"
 import type { ApiError } from "@/lib/api"
-import { cleanVerifyOtpPayload } from "@/modules/auth/auth/init"
 import { getVerifyOtpMutationOptions } from "@/modules/auth/auth/actions"
+import { cleanVerifyOtpPayload } from "@/modules/auth/auth/init"
 import { verifyOtpSchema } from "@/modules/auth/auth/schema"
-import Image from "next/image";
+import type { VerifyOtpInput } from "@/modules/auth/auth/types"
 
 function VerifyOtpForm() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const searchParams = useSearchParams()
   const phoneNumber = searchParams.get("phoneNumber")?.trim() ?? ""
-  
-  const [otp, setOtp] = useState("")
-  const [totp, setTotp] = useState("")
+
   const [mfaRequired, setMfaRequired] = useState(false)
-  
   const otpContainerRef = useRef<HTMLDivElement | null>(null)
-  const totpContainerRef = useRef<HTMLDivElement | null>(null)
+
+  const form = useForm<Omit<VerifyOtpInput, "phone">>({
+    resolver: zodResolver(verifyOtpSchema.omit({ phone: true })),
+    defaultValues: {
+      otpCode: "",
+      totpCode: "",
+      backupCode: "",
+    },
+  })
 
   useEffect(() => {
     if (!phoneNumber) {
       router.replace("/request-otp")
+      return
     }
+
+    const firstOtpInput = otpContainerRef.current?.querySelector("input")
+    firstOtpInput?.focus()
   }, [phoneNumber, router])
 
   const { isPending, mutate } = useMutation({
@@ -45,82 +56,98 @@ function VerifyOtpForm() {
       queryClient,
       onSuccess: () => {
         router.push("/onboarding/create-store")
+        toast.success("تم التجاوز بنجاح إلى مرحلة إعداد المتجر")
       },
     }),
     onError: (error: ApiError) => {
       if (error.action === "request-mfa") {
         setMfaRequired(true)
-        return
-      }
-      if (error.action === "show-field-error" && error.fieldKey === "otpCode") {
-        setOtp("")
       }
     },
   })
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const handleSubmit = (data: Omit<VerifyOtpInput, "phone">) => {
+    const totpCode = data.totpCode?.trim()
+    if (mfaRequired && totpCode?.length !== 6) return
 
-    // Todo: remove this after binding
-    if (otp === "123456") {
-      toast.success("تم التجاوز بنجاح إلى مرحلة إعداد المتجر")
-      // استخدام نفس الـ mutation لضمان تحديث session
-      mutate(cleanVerifyOtpPayload({
+    mutate(
+      cleanVerifyOtpPayload({
+        ...data,
         phone: phoneNumber,
-        otpCode: otp,
-        totpCode: mfaRequired ? totp : undefined,
-      }))
-      return
-    }
-
-    if (!phoneNumber || otp.length !== 6) return
-    if (mfaRequired && totp.length !== 6) return
-
-    const parsed = verifyOtpSchema.parse({
-      phone: phoneNumber,
-      otpCode: otp,
-      totpCode: mfaRequired ? totp : undefined,
-    })
-    mutate(cleanVerifyOtpPayload(parsed))
+      })
+    )
   }
+
+  const otpCode = useWatch({ control: form.control, name: "otpCode" })
 
   if (!phoneNumber) return null
 
   return (
-    <div className="min-h-screen w-full flex flex-row">
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-        <div className="w-full max-w-sm space-y-8">
+    <div className="flex min-h-screen w-full flex-row">
+      <div className="flex w-full items-center justify-center p-8 lg:w-1/2">
+        <div className="w-full max-w-sm space-y-4">
           <div className="flex flex-col items-center text-center">
-            <ErteqaLogo size="xl" className="mb-6" priority />
-            <h1 className="text-2xl font-bold mb-2">تأكيد الرمز</h1>
-            <p className="text-muted-foreground text-sm">أدخل الرمز المكوّن من 6 أرقام</p>
+            <ErteqaLogo size="xl" className="mb-4" priority />
+
+            <h1 className="mb-2 text-2xl font-bold">تأكيد الرمز</h1>
+
+            <p className="text-sm text-muted-foreground">
+              أدخل الرمز المكوّن من 6 أرقام
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <p className="text-muted-foreground text-center text-sm" dir="ltr">{phoneNumber}</p>
-                <Label htmlFor="otp" className="text-sm font-medium flex justify-center items-center gap-2">
-                  <ShieldCheckIcon className="size-4" /> رمز التحقق
-                </Label>
-                <div ref={otpContainerRef} className="mt-2 flex justify-center py-1" dir="ltr">
-                  <InputOTP maxLength={6} id="otp" value={otp} onChange={setOtp} required>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
+            <p className="mt-6 flex items-center justify-center gap-2 text-primary" dir="ltr">
+              <PhoneIcon className="size-4" />
+              {phoneNumber}
+            </p>
+
+            <Label
+              htmlFor="otp"
+              className="flex items-center justify-center gap-2 text-sm font-medium"
+            >
+              <ShieldCheckIcon className="size-4" /> رمز التحقق
+            </Label>
+
+            <div
+              ref={otpContainerRef}
+              className="flex justify-center py-1"
+              dir="ltr"
+            >
+              <Controller
+                name="otpCode"
+                control={form.control}
+                render={({ field }) => (
+                  <InputOTP
+                    maxLength={6}
+                    id="otp"
+                    value={field.value}
+                    onChange={field.onChange}
+                    required
+                  >
                     <InputOTPGroup>
                       {[0, 1, 2, 3, 4, 5].map((i) => (
-                        <InputOTPSlot key={i} index={i} className="h-12 w-10 text-base bg-[#FCFDFD]" />
+                        <InputOTPSlot
+                          key={i}
+                          index={i}
+                          className="h-12 w-10 bg-[#FCFDFD] text-base"
+                        />
                       ))}
                     </InputOTPGroup>
                   </InputOTP>
-                </div>
-              </div>
+                )}
+              />
             </div>
 
             <Button
               type="submit"
               size="lg"
               loading={isPending}
-              disabled={otp.length !== 6}
-              className="w-full bg-[#B47D1C] hover:bg-[#966717] text-white"
+              disabled={otpCode?.length !== 6}
+              className="w-full bg-[#B47D1C] text-white hover:bg-[#966717]"
             >
               تأكيد
               <ArrowLeftIcon className="mr-2" />
@@ -129,13 +156,13 @@ function VerifyOtpForm() {
         </div>
       </div>
 
-      <div className="hidden lg:block w-1/2 relative min-h-[500px] overflow-hidden">
+      <div className="relative hidden min-h-[500px] w-1/2 overflow-hidden lg:block">
         <Image
           src="/images/Group 1000006180.png"
           alt="Form Illustration"
           width={500}
           height={500}
-          className="absolute inset-0 w-full h-full object-contain p-10 animate-in fade-in slide-in-from-right-12 duration-1000 ease-out"
+          className="absolute inset-0 h-full w-full animate-in object-contain p-10 duration-1000 ease-out fade-in slide-in-from-right-12"
           priority
           sizes="(max-width: 768px) 100vw, 50vw"
         />
@@ -146,7 +173,13 @@ function VerifyOtpForm() {
 
 export default function VerifyOtpPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">جاري التحميل…</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          جاري التحميل…
+        </div>
+      }
+    >
       <VerifyOtpForm />
     </Suspense>
   )

@@ -54,28 +54,31 @@ export default function RequestOtpPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      <div className="flex items-center justify-center p-8">
-        <div className="max-w-sm space-y-8">
+    <div className="flex min-h-screen w-full">
+      <div className="flex w-full items-center justify-center p-8 lg:w-1/2">
+        <div className="w-full max-w-sm space-y-8">
           <div className="flex flex-col items-center text-center">
             <ErteqaLogo size="xl" className="mb-6" priority />
-            <h1 className="mb-2 text-2xl font-bold">تسجيل الدخول</h1>{" "}
+          
+            <h1 className="mb-2 text-2xl font-bold">تسجيل الدخول</h1>
+          
             <p className="text-sm text-muted-foreground">
-              ادخل رقم هاتفك لنرسل إليك رمز التحقق عبر الواتساب{" "}
-            </p>{" "}
-          </div>{" "}
+              ادخل رقم هاتفك لنرسل إليك رمز التحقق عبر الواتساب
+            </p>
+          </div>
+
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-6"
           >
-            {" "}
-            <PhoneField<LoginForm>
+            
+            <PhoneField
               name="phone"
               control={form.control}
               placeholder="+963"
               label="رقم الهاتف"
               disabled={isPending}
-            />{" "}
+            />
             <Button
               type="submit"
               size="lg"
@@ -83,25 +86,26 @@ export default function RequestOtpPage() {
               disabled={isPending || cooldown.isCooling}
               className="w-full bg-[#B47D1C] text-white hover:bg-[#966717]"
             >
-              {" "}
+              
               {cooldown.isCooling
                 ? `حاول بعد ${cooldown.remaining} ثانية`
-                : "إرسال الرمز"}{" "}
+                : "إرسال الرمز"}
             </Button>
             <div className="flex w-full items-center gap-3 py-1 text-xs text-muted-foreground">
               <span className="h-px flex-1 bg-border" />
-              أو <span className="h-px flex-1 bg-border" />{" "}
+              أو <span className="h-px flex-1 bg-border" />
             </div>
-            <GoogleSignInButton role="OWNER" />{" "}
+            <GoogleSignInButton role="OWNER" />
           </form>
         </div>
       </div>
-      <div className="relative hidden min-h-[500px] overflow-hidden">
+      <div className="relative hidden min-h-[500px] w-1/2 overflow-hidden lg:block">
+        
         <Image
           src="/images/Group 1000006180.png"
           alt="Form Illustration"
-          width={500}
-          height={500}
+          width={400}
+          height={400}
           className="h-full w-full animate-in object-contain p-10 duration-1000 ease-out fade-in slide-in-from-right-12"
         />
       </div>
