@@ -29,6 +29,23 @@ export function getTimezonePickerOptions(): TimezoneOption[] {
   return [...PREFERRED_TIMEZONES, ...rest]
 }
 
+export type GroupedTimezonePickerOptions = {
+  all: TimezoneOption[]
+  preferred: TimezoneOption[]
+  other: TimezoneOption[]
+}
+
+/** Picker list split into the curated preferred group and the rest. */
+export function getGroupedTimezonePickerOptions(): GroupedTimezonePickerOptions {
+  const all = getTimezonePickerOptions()
+  const preferredCount = PREFERRED_TIMEZONES.length
+  return {
+    all,
+    preferred: all.slice(0, preferredCount),
+    other: all.slice(preferredCount),
+  }
+}
+
 export function getTimezoneLabel(value: string): string {
   return (
     PREFERRED_TIMEZONES.find((timezone) => timezone.value === value)?.label ??

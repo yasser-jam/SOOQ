@@ -18,6 +18,7 @@ import {
   SettingsCardHeader,
   SettingsCardTitle,
 } from "./SettingsCard"
+import TimezoneField from "./TimezoneField"
 
 const MapPinPicker = dynamic(
   () => import("@/components/system/map-pin-picker"),
@@ -100,6 +101,8 @@ export default function AddressTab() {
             <FieldError errors={[form.formState.errors.street]} />
           </UiField>
         </div>
+
+        <TimezoneField />
 
         <UiField data-invalid={Boolean(form.formState.errors.latitude)}>
           <FieldLabel>الموقع على الخريطة</FieldLabel>

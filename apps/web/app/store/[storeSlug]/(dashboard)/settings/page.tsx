@@ -28,7 +28,6 @@ import CurrencyDisplayTab from "@/modules/store/settings/components/CurrencyDisp
 import DangerZoneTab from "@/modules/store/settings/components/DangerZoneTab"
 import GeneralTab from "@/modules/store/settings/components/GeneralTab"
 import IdentityTab from "@/modules/store/settings/components/IdentityTab"
-import LocaleTab from "@/modules/store/settings/components/LocaleTab"
 import SocialLinksTab from "@/modules/store/settings/components/SocialLinksTab"
 import {
   buildAllSettingsDefaults,
@@ -127,7 +126,7 @@ function StoreSettingsForm({
             className="w-full justify-start overflow-x-auto"
           >
             <TabsTrigger value="general">عام</TabsTrigger>
-            <TabsTrigger value="currency">العملة والتوقيت</TabsTrigger>
+            <TabsTrigger value="currency">العملة</TabsTrigger>
             <TabsTrigger value="location">الموقع</TabsTrigger>
             <TabsTrigger value="hours">ساعات العمل</TabsTrigger>
             <TabsTrigger value="danger">منطقة الخطر</TabsTrigger>
@@ -141,9 +140,8 @@ function StoreSettingsForm({
             <SocialLinksTab />
           </TabsContent>
 
-          <TabsContent value="currency" className="grid gap-4 lg:grid-cols-2">
+          <TabsContent value="currency">
             <CurrencyDisplayTab />
-            <LocaleTab />
           </TabsContent>
 
           <TabsContent value="location">
