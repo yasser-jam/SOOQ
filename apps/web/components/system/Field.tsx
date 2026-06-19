@@ -18,7 +18,9 @@ type FormFieldProps<T extends FieldValues> = {
   label: ReactNode
   //   pass it here instead of inputProps in order to avoid duplication and make it easy to set
   placeholder?: string
-  inputProps?: Omit<ComponentProps<typeof Input>, "id" | "name" | "placeholder">
+  inputProps?: Omit<ComponentProps<typeof Input>, "id" | "name" | "placeholder"> & {
+    placeholder?: string
+  }
 }
 
 export default function Field<T extends FieldValues>({

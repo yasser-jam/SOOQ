@@ -1,3 +1,4 @@
+import type { QueryClient } from "@tanstack/react-query"
 import { queryOptions } from "@tanstack/react-query"
 
 import api from "@/lib/api"
@@ -104,3 +105,49 @@ export const deleteAttributeDefinition = (id: string): Promise<void> =>
   api<void>(`/admin/product-attributes/${id}`, {
     method: "DELETE",
   })
+
+export const getCreateAttributeDefinitionMutationOptions = ({
+  queryClient,
+  onSuccess,
+}: {
+  queryClient: QueryClient
+  onSuccess?: () => void
+}) => ({
+  mutationFn: createAttributeDefinition,
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: attributeQueryKeys.all })
+    onSuccess?.()
+  },
+})
+
+export const getUpdateAttributeDefinitionMutationOptions = ({
+  queryClient,
+  onSuccess,
+}: {
+  queryClient: QueryClient
+  onSuccess?: () => void
+}) => ({
+  mutationFn: updateAttributeDefinition,
+  onSuccess: (_: void, variables: UpdateAttributeInput) => {
+    queryClient.invalidateQueries({ queryKey: attributeQueryKeys.all })
+    queryClient.invalidateQueries({
+      queryKey: attributeQueryKeys.detail(variables.id),
+    })
+    onSuccess?.()
+  },
+})
+
+export const getDeleteAttributeDefinitionMutationOptions = ({
+  queryClient,
+  onSuccess,
+}: {
+  queryClient: QueryClient
+  onSuccess?: (id: string) => void
+}) => ({
+  mutationFn: deleteAttributeDefinition,
+  onSuccess: (_: void, id: string) => {
+    queryClient.invalidateQueries({ queryKey: attributeQueryKeys.all })
+    queryClient.removeQueries({ queryKey: attributeQueryKeys.detail(id) })
+    onSuccess?.(id)
+  },
+})

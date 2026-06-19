@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { Boxes } from "lucide-react"
+import { toast } from "sonner"
 
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
@@ -14,9 +15,8 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
 import {
-  attributeQueryKeys,
-  deleteAttributeDefinition,
-  listAttributeDefinitions,
+  getDeleteAttributeDefinitionMutationOptions,
+  listAttributeDefinitionsQueryOptions,
 } from "../actions"
 import type { ProductAttributeDefinition } from "../types"
 
@@ -37,17 +37,17 @@ export default function AttributeTable({ categoryId }: Props) {
   const storePath = useStorePath()
   const queryClient = useQueryClient()
 
-  const { data: attributes, isPending } = useQuery({
-    queryKey: attributeQueryKeys.list(categoryId ?? null),
-    queryFn: () => listAttributeDefinitions(categoryId ?? null),
-  })
+  const { data: attributes, isPending, isFetching } = useQuery(
+    listAttributeDefinitionsQueryOptions(categoryId ?? null)
+  )
 
-  const { mutate: removeAttribute } = useMutation({
-    mutationFn: deleteAttributeDefinition,
-    onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: attributeQueryKeys.all })
-      queryClient.removeQueries({ queryKey: attributeQueryKeys.detail(id) })
-    },
+  const deleteMutation = useMutation({
+    ...getDeleteAttributeDefinitionMutationOptions({
+      queryClient,
+      onSuccess: () => {
+        toast.success("تم حذف السمة بنجاح")
+      },
+    }),
   })
 
   const columns: ColumnDef<ProductAttributeDefinition>[] = [
@@ -122,7 +122,7 @@ export default function AttributeTable({ categoryId }: Props) {
               router.push(storePath(`/products/attributes/${id}`))
             }}
             onDelete={() => {
-              removeAttribute(id)
+              deleteMutation.mutate(id)
             }}
           />
         )
@@ -143,7 +143,7 @@ export default function AttributeTable({ categoryId }: Props) {
     <div className="w-full overflow-hidden rounded-lg border">
       <DataTable
         columns={columns}
-        isLoading={isPending}
+        isLoading={isPending || isFetching || deleteMutation.isPending}
         data={attributes ?? []}
         pagination={{ pageIndex, pageSize, pageCount }}
         onPageChange={setPageIndex}
