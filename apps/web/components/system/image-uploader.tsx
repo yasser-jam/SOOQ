@@ -46,6 +46,21 @@ type ImageUploaderProps = {
   maxFiles?: number
   /** Max bytes per file (default 5MB per spec). */
   maxSize?: number
+  /** MIME accept string passed to the file input. Default `image/*`. */
+  accept?: string
+  /** When true, keeps the dropzone enabled with one existing image so the user can replace it. */
+  replaceMode?: boolean
+  disabled?: boolean
+  dropzoneTitle?: string
+  /** Replaces the default format / remaining-count line under the dropzone title. */
+  formatHint?: string
+  /** `null` hides the sub-hint; omit for the product primary-image hint. */
+  subHint?: string | null
+  triggerLabel?: string
+  existingLabel?: string
+  showPrimaryBadge?: boolean
+  /** When false, omits the "remaining N/M" segment from the default format hint. */
+  showRemainingCount?: boolean
 }
 
 const DEFAULT_MAX_FILES = 10
@@ -56,6 +71,16 @@ export default function ImageUploader({
   onChange,
   maxFiles = DEFAULT_MAX_FILES,
   maxSize = DEFAULT_MAX_SIZE,
+  accept = "image/*",
+  replaceMode = false,
+  disabled = false,
+  dropzoneTitle = "رفع الصور",
+  formatHint,
+  subHint,
+  triggerLabel = "اختر الصور",
+  existingLabel = "الصور الحالية",
+  showPrimaryBadge = true,
+  showRemainingCount = true,
 }: ImageUploaderProps) {
   const [keptIds, setKeptIds] = React.useState<string[]>(() =>
     existing.map((e) => e.id)
@@ -120,22 +145,30 @@ export default function ImageUploader({
     .filter((e): e is ExistingImage => Boolean(e))
 
   const totalCount = keptExisting.length + newFiles.length
-  const remainingSlots = Math.max(0, maxFiles - totalCount)
+  const remainingSlots =
+    replaceMode && maxFiles === 1
+      ? newFiles.length > 0
+        ? 0
+        : 1
+      : Math.max(0, maxFiles - totalCount)
   const primaryHint =
     keptExisting.length > 0 ? keptExisting[0]!.id : null
+  const defaultFormatHint = showRemainingCount
+    ? `PNG, JPG, WebP — حتى ${Math.round(maxSize / 1024 / 1024)}MB • المتبقّي ${remainingSlots}/${maxFiles}`
+    : `PNG, JPG, WebP — حتى ${Math.round(maxSize / 1024 / 1024)}MB`
 
   return (
     <div className="flex flex-col gap-4">
       <FileUpload
-        accept="image/*"
+        accept={accept}
         maxFiles={remainingSlots}
         maxSize={maxSize}
         className="w-full"
         value={newFiles}
         onValueChange={handleNewFilesChange}
         onFileReject={onFileReject}
-        multiple
-        disabled={remainingSlots === 0}
+        multiple={maxFiles > 1}
+        disabled={disabled || remainingSlots === 0}
       >
         <FileUploadDropzone className="border-primary/20 bg-primary/5 hover:bg-primary/10 data-dragging:bg-primary/10">
           <div className="flex flex-col items-center gap-2 text-center">
@@ -143,19 +176,24 @@ export default function ImageUploader({
               <ImageIcon className="size-8 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-medium">رفع الصور</p>
+              <p className="text-sm font-medium">{dropzoneTitle}</p>
               <p className="text-xs text-muted-foreground">
-                PNG, JPG, WebP — حتى {Math.round(maxSize / 1024 / 1024)}MB •
-                المتبقّي {remainingSlots}/{maxFiles}
+                {formatHint ?? defaultFormatHint}
               </p>
-              <p className="text-[10px] text-muted-foreground mt-1">
-                الصورة الأولى تظهر كصورة رئيسية للمنتج
-              </p>
+              {subHint !== null ? (
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  {subHint ?? "الصورة الأولى تظهر كصورة رئيسية للمنتج"}
+                </p>
+              ) : null}
             </div>
           </div>
           <FileUploadTrigger asChild>
-            <Button size="sm" className="mt-3" disabled={remainingSlots === 0}>
-              اختر الصور
+            <Button
+              size="sm"
+              className="mt-3"
+              disabled={disabled || remainingSlots === 0}
+            >
+              {triggerLabel}
             </Button>
           </FileUploadTrigger>
         </FileUploadDropzone>
@@ -180,7 +218,7 @@ export default function ImageUploader({
       {keptExisting.length > 0 ? (
         <div className="flex flex-col gap-2">
           <p className="text-xs font-medium text-muted-foreground">
-            الصور الحالية ({keptExisting.length})
+            {existingLabel} ({keptExisting.length})
           </p>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
             {keptExisting.map((img) => (
@@ -194,7 +232,7 @@ export default function ImageUploader({
                   alt=""
                   className="object-cover w-full h-full"
                 />
-                {primaryHint === img.id ? (
+                {showPrimaryBadge && primaryHint === img.id ? (
                   <span className="absolute top-1 right-1 inline-flex items-center gap-1 rounded-sm bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0.5">
                     <Star className="size-3" />
                     رئيسية

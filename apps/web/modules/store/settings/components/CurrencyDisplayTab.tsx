@@ -1,13 +1,6 @@
 "use client"
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import {
   Field as UiField,
   FieldError,
   FieldLabel,
@@ -23,8 +16,14 @@ import type {
   AllSettingsInput,
   CurrencySymbolPosition,
   NumeralSystem,
-  StoreSettingsResponseDto,
 } from "../types"
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardDescription,
+  SettingsCardHeader,
+  SettingsCardTitle,
+} from "./SettingsCard"
 
 const ARABIC_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"]
 
@@ -54,11 +53,7 @@ function formatPreview({
     : `${localizedNumber} ${symbol}`
 }
 
-export default function CurrencyDisplayTab({
-  settings: _settings,
-}: {
-  settings: StoreSettingsResponseDto
-}) {
+export default function CurrencyDisplayTab() {
   const form = useFormContext<AllSettingsInput>()
 
   const position = form.watch("currencySymbolPosition")
@@ -71,18 +66,18 @@ export default function CurrencyDisplayTab({
   })
 
   return (
-    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
-      <CardHeader>
-        <CardTitle className="text-lg font-bold text-[#1e3a47]">عرض العملة</CardTitle>
-        <CardDescription className="text-sm text-gray-600 font-medium">
+    <SettingsCard>
+      <SettingsCardHeader>
+        <SettingsCardTitle>عرض العملة</SettingsCardTitle>
+        <SettingsCardDescription>
           كيفية عرض الأسعار في المتجر والفواتير.
-        </CardDescription>
-      </CardHeader>
+        </SettingsCardDescription>
+      </SettingsCardHeader>
 
-      <CardContent className="grid gap-6">
+      <SettingsCardContent className="grid gap-6">
         <div className="rounded-lg border bg-muted/30 p-4">
-          <p className="text-xs text-muted-foreground mb-1">معاينة</p>
-          <p className="text-2xl font-semibold" dir="auto">
+          <p className="mb-1 text-xs text-muted-foreground">معاينة</p>
+          <p className="text-xl font-semibold" dir="auto">
             {preview}
           </p>
         </div>
@@ -100,11 +95,11 @@ export default function CurrencyDisplayTab({
                 onValueChange={field.onChange}
                 className="flex gap-6"
               >
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex cursor-pointer items-center gap-2">
                   <RadioGroupItem value="BEFORE" />
                   <span>قبل المبلغ (ل.س ١٥٠)</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex cursor-pointer items-center gap-2">
                   <RadioGroupItem value="AFTER" />
                   <span>بعد المبلغ (١٥٠ ل.س)</span>
                 </label>
@@ -127,11 +122,11 @@ export default function CurrencyDisplayTab({
                 onValueChange={field.onChange}
                 className="flex gap-6"
               >
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex cursor-pointer items-center gap-2">
                   <RadioGroupItem value="ARABIC" />
                   <span>عربية (١٢٣)</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex cursor-pointer items-center gap-2">
                   <RadioGroupItem value="LATIN" />
                   <span>لاتينية (123)</span>
                 </label>
@@ -171,7 +166,7 @@ export default function CurrencyDisplayTab({
           />
           <FieldError errors={[form.formState.errors.currencyDecimalPlaces]} />
         </UiField>
-      </CardContent>
-    </Card>
+      </SettingsCardContent>
+    </SettingsCard>
   )
 }

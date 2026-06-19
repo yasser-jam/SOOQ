@@ -2,13 +2,6 @@
 
 import { Button } from "@workspace/ui/components/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import {
   Field as UiField,
   FieldError,
   FieldLabel,
@@ -25,13 +18,16 @@ import { Plus, Trash2 } from "lucide-react"
 import { Controller, useFieldArray, useFormContext } from "react-hook-form"
 
 import { SOCIAL_PLATFORMS } from "../init"
-import type { AllSettingsInput, StoreSettingsResponseDto } from "../types"
+import type { AllSettingsInput } from "../types"
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardDescription,
+  SettingsCardHeader,
+  SettingsCardTitle,
+} from "./SettingsCard"
 
-export default function SocialLinksTab({
-  settings: _settings,
-}: {
-  settings: StoreSettingsResponseDto
-}) {
+export default function SocialLinksTab() {
   const form = useFormContext<AllSettingsInput>()
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -49,15 +45,15 @@ export default function SocialLinksTab({
   }
 
   return (
-    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
-      <CardHeader>
-        <CardTitle className="text-lg font-bold text-[#1e3a47]">روابط التواصل الاجتماعي</CardTitle>
-        <CardDescription className="text-sm text-gray-600 font-medium">
+    <SettingsCard>
+      <SettingsCardHeader>
+        <SettingsCardTitle>روابط التواصل الاجتماعي</SettingsCardTitle>
+        <SettingsCardDescription>
           تظهر في تذييل صفحة المتجر وصفحة الاتصال.
-        </CardDescription>
-      </CardHeader>
+        </SettingsCardDescription>
+      </SettingsCardHeader>
 
-      <CardContent className="flex flex-col gap-4">
+      <SettingsCardContent className="flex flex-col gap-4">
         {fields.length === 0 && (
           <div className="rounded-md border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
             لا توجد روابط بعد. اضغط على «إضافة رابط» للبدء.
@@ -179,7 +175,7 @@ export default function SocialLinksTab({
             إضافة رابط
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </SettingsCardContent>
+    </SettingsCard>
   )
 }

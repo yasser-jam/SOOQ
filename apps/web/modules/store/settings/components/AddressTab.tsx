@@ -1,13 +1,6 @@
 "use client"
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import {
   Field as UiField,
   FieldError,
   FieldLabel,
@@ -17,9 +10,15 @@ import { Button } from "@workspace/ui/components/button"
 import dynamic from "next/dynamic"
 import { Controller, useFormContext } from "react-hook-form"
 
-import type { AllSettingsInput, StoreSettingsResponseDto } from "../types"
+import type { AllSettingsInput } from "../types"
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardDescription,
+  SettingsCardHeader,
+  SettingsCardTitle,
+} from "./SettingsCard"
 
-// Leaflet binds to `window`, so the picker is loaded client-only.
 const MapPinPicker = dynamic(
   () => import("@/components/system/map-pin-picker"),
   { ssr: false }
@@ -27,11 +26,7 @@ const MapPinPicker = dynamic(
 
 const COORDINATE_DISPLAY_PRECISION = 6
 
-export default function AddressTab({
-  settings: _settings,
-}: {
-  settings: StoreSettingsResponseDto
-}) {
+export default function AddressTab() {
   const form = useFormContext<AllSettingsInput>()
 
   const latitude = form.watch("latitude")
@@ -43,16 +38,16 @@ export default function AddressTab({
   }
 
   return (
-    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
-      <CardHeader>
-        <CardTitle className="text-lg font-bold text-[#1e3a47]">عنوان المتجر</CardTitle>
-        <CardDescription className="text-sm text-gray-600 font-medium">
+    <SettingsCard>
+      <SettingsCardHeader>
+        <SettingsCardTitle>عنوان المتجر</SettingsCardTitle>
+        <SettingsCardDescription>
           عنوان النشاط التجاري الذي يظهر في صفحة الاتصال والفواتير. يمكنك
           أيضاً تحديد موقع المتجر على الخريطة لإظهاره للزبائن.
-        </CardDescription>
-      </CardHeader>
+        </SettingsCardDescription>
+      </SettingsCardHeader>
 
-      <CardContent className="flex flex-col gap-6">
+      <SettingsCardContent className="flex flex-col gap-6">
         <div className="grid gap-4 md:grid-cols-3">
           <UiField data-invalid={Boolean(form.formState.errors.governorate)}>
             <FieldLabel htmlFor="governorate">المحافظة</FieldLabel>
@@ -153,7 +148,7 @@ export default function AddressTab({
           </div>
           <FieldError errors={[form.formState.errors.latitude]} />
         </UiField>
-      </CardContent>
-    </Card>
+      </SettingsCardContent>
+    </SettingsCard>
   )
 }

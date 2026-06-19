@@ -1,13 +1,6 @@
 "use client"
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import {
   Field as UiField,
   FieldError,
 } from "@workspace/ui/components/field"
@@ -16,26 +9,29 @@ import { Switch } from "@workspace/ui/components/switch"
 import { Controller, useFormContext } from "react-hook-form"
 
 import { DAY_LABELS_AR } from "../init"
-import type { AllSettingsInput, StoreSettingsResponseDto } from "../types"
+import type { AllSettingsInput } from "../types"
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardDescription,
+  SettingsCardHeader,
+  SettingsCardTitle,
+} from "./SettingsCard"
 
-export default function BusinessHoursTab({
-  settings: _settings,
-}: {
-  settings: StoreSettingsResponseDto
-}) {
+export default function BusinessHoursTab() {
   const form = useFormContext<AllSettingsInput>()
   const hours = form.watch("businessHours")
 
   return (
-    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
-      <CardHeader>
-        <CardTitle className="text-lg font-bold text-[#1e3a47]">ساعات العمل</CardTitle>
-        <CardDescription className="text-sm text-gray-600 font-medium">
+    <SettingsCard>
+      <SettingsCardHeader>
+        <SettingsCardTitle>ساعات العمل</SettingsCardTitle>
+        <SettingsCardDescription>
           حدّد أيام عمل المتجر وساعاته. تظهر للعملاء على واجهة المتجر.
-        </CardDescription>
-      </CardHeader>
+        </SettingsCardDescription>
+      </SettingsCardHeader>
 
-      <CardContent className="flex flex-col gap-3">
+      <SettingsCardContent className="flex flex-col gap-3">
         {hours.map((hour, index) => {
           const isOpen = hour.open
           return (
@@ -111,7 +107,7 @@ export default function BusinessHoursTab({
             </div>
           )
         })}
-      </CardContent>
-    </Card>
+      </SettingsCardContent>
+    </SettingsCard>
   )
 }

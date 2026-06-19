@@ -5,14 +5,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Alert, AlertDescription } from "@workspace/ui/components/alert"
 import { Button } from "@workspace/ui/components/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -39,6 +31,14 @@ import {
 } from "../actions"
 import { storeDeletionRequestSchema } from "../schema"
 import type { StoreSettingsResponseDto } from "../types"
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardDescription,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsCardTitle,
+} from "./SettingsCard"
 
 type FormInput = z.input<typeof storeDeletionRequestSchema>
 type FormOutput = z.output<typeof storeDeletionRequestSchema>
@@ -101,23 +101,23 @@ export default function DangerZoneTab({
 
   if (settings.deletionRequested) {
     return (
-      <Card className="border-destructive/40">
-        <CardHeader>
+      <SettingsCard className="border-destructive/40">
+        <SettingsCardHeader>
           <div className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="size-5" />
-            <CardTitle>طلب حذف معلّق</CardTitle>
+            <SettingsCardTitle>طلب حذف معلّق</SettingsCardTitle>
           </div>
-          <CardDescription>
+          <SettingsCardDescription>
             سيُحذف المتجر نهائياً عند انتهاء مهلة السماح.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
+          </SettingsCardDescription>
+        </SettingsCardHeader>
+        <SettingsCardContent className="space-y-3">
           <Alert variant="destructive">
             <AlertDescription>
               متبقي <strong>{remaining}</strong> يوم على الحذف النهائي.
             </AlertDescription>
           </Alert>
-          <div className="text-sm text-muted-foreground space-y-1">
+          <div className="space-y-1 text-sm text-muted-foreground">
             {settings.deletionRequestedAt && (
               <p>
                 تاريخ الطلب:{" "}
@@ -135,8 +135,8 @@ export default function DangerZoneTab({
               </p>
             )}
           </div>
-        </CardContent>
-        <CardFooter className="justify-end">
+        </SettingsCardContent>
+        <SettingsCardFooter className="justify-end">
           <Button
             type="button"
             variant="outline"
@@ -145,25 +145,25 @@ export default function DangerZoneTab({
           >
             إلغاء طلب الحذف
           </Button>
-        </CardFooter>
-      </Card>
+        </SettingsCardFooter>
+      </SettingsCard>
     )
   }
 
   return (
     <>
-      <Card className="border-destructive/40">
-        <CardHeader>
+      <SettingsCard className="border-destructive/40">
+        <SettingsCardHeader>
           <div className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="size-5" />
-            <CardTitle>حذف المتجر نهائياً</CardTitle>
+            <SettingsCardTitle>حذف المتجر نهائياً</SettingsCardTitle>
           </div>
-          <CardDescription>
+          <SettingsCardDescription>
             ستُمحى جميع بيانات المتجر بعد انتهاء مهلة السماح. هذا الإجراء لا
             يمكن التراجع عنه.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-[2fr_1fr]">
+          </SettingsCardDescription>
+        </SettingsCardHeader>
+        <SettingsCardContent className="grid gap-4 md:grid-cols-[2fr_1fr]">
           <UiField data-invalid={Boolean(form.formState.errors.reason)}>
             <FieldLabel htmlFor="reason">سبب الحذف (اختياري)</FieldLabel>
             <Controller
@@ -206,8 +206,8 @@ export default function DangerZoneTab({
             />
             <FieldError errors={[form.formState.errors.graceDays]} />
           </UiField>
-        </CardContent>
-        <CardFooter className="justify-end">
+        </SettingsCardContent>
+        <SettingsCardFooter className="justify-end">
           <Button
             type="button"
             variant="destructive"
@@ -219,8 +219,8 @@ export default function DangerZoneTab({
           >
             طلب الحذف
           </Button>
-        </CardFooter>
-      </Card>
+        </SettingsCardFooter>
+      </SettingsCard>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>

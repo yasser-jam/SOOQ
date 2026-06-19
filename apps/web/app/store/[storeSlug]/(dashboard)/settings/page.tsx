@@ -13,7 +13,6 @@ import {
 } from "@workspace/ui/components/tabs"
 import { FormProvider, useForm } from "react-hook-form"
 import { toast } from "sonner"
-import * as React from "react"
 
 import type { ApiError } from "@/lib/api"
 import RequireRole from "@/modules/auth/auth/components/RequireRole"
@@ -41,7 +40,11 @@ import type {
   StoreSettingsResponseDto,
 } from "@/modules/store/settings/types"
 
-function StoreSettingsForm({ settings }: { settings: StoreSettingsResponseDto }) {
+function StoreSettingsForm({
+  settings,
+}: {
+  settings: StoreSettingsResponseDto
+}) {
   const queryClient = useQueryClient()
   const { user } = useCurrentUser()
 
@@ -56,8 +59,6 @@ function StoreSettingsForm({ settings }: { settings: StoreSettingsResponseDto })
       queryClient,
       onSuccess: (updated) => {
         toast.success("تم حفظ الإعدادات")
-        // Re-seed the form from the freshest server state so the
-        // "dirty" tracker resets and the diff next time is correct.
         form.reset(buildAllSettingsDefaults(updated, user?.phone))
       },
     }),
@@ -84,93 +85,79 @@ function StoreSettingsForm({ settings }: { settings: StoreSettingsResponseDto })
     form.reset(buildAllSettingsDefaults(settings, user?.phone))
   }
 
-  const [showAdvanced, setShowAdvanced] = React.useState(false)
-
   return (
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-6 pb-24"
+        className="flex flex-col gap-4"
         noValidate
       >
-        {/* Bento Grid Layout - تجميع الإعدادات المترابطة في بطاقات */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* بطاقة هوية المتجر - الاسم، الرابط، العملة */}
-          <div className="md:col-span-2 lg:col-span-2">
-            <IdentityTab settings={settings} />
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              إعدادات المتجر
+            </h1>
+            <p className="text-base font-medium text-muted-foreground">
+              الملف العام والعنوان والمنطقة الزمنية وغير ذلك. متاحة لمالكي
+              المتجر والمدراء فقط.
+            </p>
           </div>
-
-          {/* بطاقة الشعار */}
-          <div>
-            <BrandingTab settings={settings} />
+          <div className="flex shrink-0 items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleDiscard}
+              disabled={isPending || !form.formState.isDirty}
+            >
+              تراجع عن التغييرات
+            </Button>
+            <Button
+              type="submit"
+              loading={isPending}
+              disabled={isPending || !form.formState.isDirty}
+            >
+              حفظ كل الإعدادات
+            </Button>
           </div>
+        </header>
 
-          {/* بطاقة الملف العام */}
-          <div className="md:col-span-2 lg:col-span-2">
-            <GeneralTab settings={settings} />
-          </div>
-
-          {/* بطاقة العمليات - عرض العملة والمنطقة الزمنية */}
-          <div className="flex flex-col gap-6">
-            <CurrencyDisplayTab settings={settings} />
-            <LocaleTab settings={settings} />
-          </div>
-
-          {/* بطاقة العنوان */}
-          <div className="md:col-span-2 lg:col-span-3">
-            <AddressTab settings={settings} />
-          </div>
-
-          {/* بطاقة ساعات العمل */}
-          <div className="md:col-span-2 lg:col-span-2">
-            <BusinessHoursTab settings={settings} />
-          </div>
-
-          {/* بطاقة روابط التواصل */}
-          <div>
-            <SocialLinksTab settings={settings} />
-          </div>
-        </div>
-
-        {/* Progressive Disclosure - الإعدادات المتقدمة */}
-        <div className="border-t pt-6">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            {showAdvanced ? "إخفاء الإعدادات المتقدمة" : "إظهار الإعدادات المتقدمة"}
-          </Button>
-
-          {showAdvanced && (
-            <div className="mt-6">
-              {/* منطقة الخطر - منفصلة عن الحفظ المشترك */}
-              <DangerZoneTab settings={settings} />
-            </div>
-          )}
-        </div>
-
-        {/* Sticky save bar — شريط إجراءات عائم بتأثير زجاجي */}
-        <div className="sticky bottom-0 z-10 border-t border-gray-200/50 bg-white/80 backdrop-blur-md px-6 py-4 shadow-lg -mx-6 flex items-center justify-end gap-3">
-          <Button
-            type="button"
+        <Tabs defaultValue="general" className="flex flex-col gap-0">
+          <TabsList
             variant="outline"
-            onClick={handleDiscard}
-            disabled={isPending || !form.formState.isDirty}
-            className="rounded-xl"
+            className="w-full justify-start overflow-x-auto"
           >
-            تراجع عن التغييرات
-          </Button>
-          <Button
-            type="submit"
-            loading={isPending}
-            disabled={isPending || !form.formState.isDirty}
-            className="rounded-xl bg-[#1e3a47] hover:bg-[#152933]"
-          >
-            حفظ كل الإعدادات
-          </Button>
-        </div>
+            <TabsTrigger value="general">عام</TabsTrigger>
+            <TabsTrigger value="currency">العملة والتوقيت</TabsTrigger>
+            <TabsTrigger value="location">الموقع</TabsTrigger>
+            <TabsTrigger value="hours">ساعات العمل</TabsTrigger>
+            <TabsTrigger value="danger">منطقة الخطر</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="general" className="grid gap-4 lg:grid-cols-2">
+            <IdentityTab settings={settings} />
+            <BrandingTab />
+
+            <GeneralTab />
+            <SocialLinksTab />
+          </TabsContent>
+
+          <TabsContent value="currency" className="grid gap-4 lg:grid-cols-2">
+            <CurrencyDisplayTab />
+            <LocaleTab />
+          </TabsContent>
+
+          <TabsContent value="location">
+            <AddressTab />
+          </TabsContent>
+
+          <TabsContent value="hours">
+            <BusinessHoursTab />
+          </TabsContent>
+
+          <TabsContent value="danger">
+            <DangerZoneTab settings={settings} />
+          </TabsContent>
+        </Tabs>
       </form>
     </FormProvider>
   )
@@ -203,14 +190,7 @@ function StoreSettingsContent() {
 
 export default function StoreSettingsPage() {
   return (
-    <div className="container flex flex-col gap-6 py-8 bg-[#F8F9FA] min-h-screen">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold text-[#1e3a47] tracking-tight">إعدادات المتجر</h1>
-        <p className="text-base text-gray-600 font-medium">
-          الملف العام والعنوان والمنطقة الزمنية وغير ذلك. متاحة لمالكي المتجر والمدراء فقط.
-        </p>
-      </header>
-
+    <div className="container flex min-h-screen flex-col gap-4 py-8">
       <RequireRole roles={["OWNER", "MANAGER"]}>
         <StoreSettingsContent />
       </RequireRole>

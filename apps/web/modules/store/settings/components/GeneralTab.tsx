@@ -1,13 +1,6 @@
 "use client"
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import {
   Field as UiField,
   FieldError,
   FieldLabel,
@@ -18,25 +11,28 @@ import { Controller, useFormContext } from "react-hook-form"
 
 import PhoneField from "@/components/system/PhoneField"
 
-import type { AllSettingsInput, StoreSettingsResponseDto } from "../types"
+import type { AllSettingsInput } from "../types"
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardDescription,
+  SettingsCardHeader,
+  SettingsCardTitle,
+} from "./SettingsCard"
 
-export default function GeneralTab({
-  settings: _settings,
-}: {
-  settings: StoreSettingsResponseDto
-}) {
+export default function GeneralTab() {
   const form = useFormContext<AllSettingsInput>()
 
   return (
-    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
-      <CardHeader>
-        <CardTitle className="text-lg font-bold text-[#1e3a47]">الملف العام</CardTitle>
-        <CardDescription className="text-sm text-gray-600 font-medium">
+    <SettingsCard>
+      <SettingsCardHeader>
+        <SettingsCardTitle>الملف العام</SettingsCardTitle>
+        <SettingsCardDescription>
           اسم المتجر والوصف وبيانات التواصل.
-        </CardDescription>
-      </CardHeader>
+        </SettingsCardDescription>
+      </SettingsCardHeader>
 
-      <CardContent className="grid gap-4 md:grid-cols-2">
+      <SettingsCardContent className="grid gap-4 md:grid-cols-2">
         <UiField data-invalid={Boolean(form.formState.errors.profileNameAr)}>
           <FieldLabel htmlFor="profileNameAr">اسم المتجر (عربي)</FieldLabel>
           <Controller
@@ -115,7 +111,7 @@ export default function GeneralTab({
           control={form.control}
           label="رقم الهاتف"
         />
-      </CardContent>
-    </Card>
+      </SettingsCardContent>
+    </SettingsCard>
   )
 }

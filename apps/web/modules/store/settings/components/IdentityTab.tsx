@@ -1,14 +1,8 @@
 "use client"
 
+import { useEffect, useState } from 'react'
 import { useQuery } from "@tanstack/react-query"
 import { Alert, AlertDescription } from "@workspace/ui/components/alert"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
 import {
   Field as UiField,
   FieldError,
@@ -24,11 +18,18 @@ import {
   type CurrencyCode,
 } from "@/components/onboarding/currency-button-group"
 
-import { checkStoreSlug } from "../actions"
+import { checkStoreSlugQueryOptions } from "../actions"
+import { slugRegex } from "../schema"
 import type { AllSettingsInput, StoreSettingsResponseDto } from "../types"
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardDescription,
+  SettingsCardHeader,
+  SettingsCardTitle,
+} from "./SettingsCard"
 
 const SLUG_DEBOUNCE_MS = 400
-const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 export default function IdentityTab({
   settings,
@@ -42,9 +43,8 @@ export default function IdentityTab({
 
   const initialSlug = settings.slug ?? ""
 
-  // ── Slug live availability ─────────────────────────────────────────────
-  const [debouncedSlug, setDebouncedSlug] = React.useState(initialSlug)
-  React.useEffect(() => {
+  const [debouncedSlug, setDebouncedSlug] = useState(initialSlug)
+  useEffect(() => {
     const trimmed = (slug ?? "").trim()
     const handle = window.setTimeout(() => {
       setDebouncedSlug(trimmed)
@@ -53,13 +53,11 @@ export default function IdentityTab({
   }, [slug])
 
   const slugUnchanged = debouncedSlug === initialSlug
-  const slugLocallyValid = SLUG_REGEX.test(debouncedSlug)
+  const slugLocallyValid = slugRegex.test(debouncedSlug)
 
   const slugAvailabilityQuery = useQuery({
-    queryKey: ["store-slug-availability", debouncedSlug],
-    queryFn: () => checkStoreSlug(debouncedSlug),
+    ...checkStoreSlugQueryOptions(debouncedSlug),
     enabled: slugLocallyValid && !slugUnchanged,
-    staleTime: 15_000,
   })
 
   const slugTrimmed = (slug ?? "").trim()
@@ -68,16 +66,16 @@ export default function IdentityTab({
     slugChanged && slugLocallyValid && debouncedSlug === slugTrimmed
 
   return (
-    <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
-      <CardHeader>
-        <CardTitle className="text-lg font-bold text-[#1e3a47]">هوية المتجر</CardTitle>
-        <CardDescription className="text-sm text-gray-600 font-medium">
+    <SettingsCard>
+      <SettingsCardHeader>
+        <SettingsCardTitle>هوية المتجر</SettingsCardTitle>
+        <SettingsCardDescription>
           الاسم العام، الرابط (Slug) الذي يظهر في عنوان المتجر، والعملة
           الأساسية. تغيير الرابط يؤثر على روابط متجرك القائمة.
-        </CardDescription>
-      </CardHeader>
+        </SettingsCardDescription>
+      </SettingsCardHeader>
 
-      <CardContent className="flex flex-col gap-6">
+      <SettingsCardContent className="flex flex-col gap-6">
         {settings.isConfigured === false && (
           <Alert>
             <AlertCircle className="size-4" />
@@ -168,7 +166,7 @@ export default function IdentityTab({
             errors={[form.formState.errors.primaryCurrencyCode]}
           />
         </UiField>
-      </CardContent>
-    </Card>
+      </SettingsCardContent>
+    </SettingsCard>
   )
 }

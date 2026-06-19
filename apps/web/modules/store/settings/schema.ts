@@ -118,25 +118,104 @@ const longitudeSchema = coordinateSchema.refine(
   { message: "خط الطول يجب أن يكون بين -180 و 180" }
 )
 
-export const addressSettingsSchema = z
-  .object({
-    governorate: optionalString(),
-    city: optionalString(),
-    street: optionalString(),
-    latitude: latitudeSchema,
-    longitude: longitudeSchema,
-  })
-  .superRefine((data, ctx) => {
-    const latitudeSet = data.latitude != null
-    const longitudeSet = data.longitude != null
-    if (latitudeSet !== longitudeSet) {
+export const addressFieldsSchema = z.object({
+  governorate: optionalString(),
+  city: optionalString(),
+  street: optionalString(),
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+})
+
+type AddressFields = z.infer<typeof addressFieldsSchema>
+type BusinessHoursFields = { businessHours: z.infer<typeof businessHourSchema>[] }
+type AllSettingsIdentityFields = {
+  slug?: string
+  primaryCurrencyCode?: string
+  latitude?: number | null
+  longitude?: number | null
+}
+
+function refinePairedCoordinates(
+  data: Pick<AddressFields, "latitude" | "longitude">,
+  ctx: z.RefinementCtx
+) {
+  const latitudeSet = data.latitude != null
+  const longitudeSet = data.longitude != null
+  if (latitudeSet !== longitudeSet) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["latitude"],
+      message: "اختر موقعاً على الخريطة لتعيين الإحداثيات الكاملة",
+    })
+  }
+}
+
+function refineCoordinateRanges(
+  data: Pick<AddressFields, "latitude" | "longitude">,
+  ctx: z.RefinementCtx
+) {
+  if (data.latitude != null && (data.latitude < -90 || data.latitude > 90)) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["latitude"],
+      message: "خط العرض يجب أن يكون بين -90 و 90",
+    })
+  }
+  if (
+    data.longitude != null &&
+    (data.longitude < -180 || data.longitude > 180)
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["longitude"],
+      message: "خط الطول يجب أن يكون بين -180 و 180",
+    })
+  }
+}
+
+function refineUniqueBusinessDays(
+  data: BusinessHoursFields,
+  ctx: z.RefinementCtx
+) {
+  const days = new Set<string>()
+  data.businessHours.forEach((entry, idx) => {
+    if (days.has(entry.day)) {
       ctx.addIssue({
         code: "custom",
-        path: ["latitude"],
-        message: "اختر موقعاً على الخريطة لتعيين الإحداثيات الكاملة",
+        path: ["businessHours", idx, "day"],
+        message: "اليوم مكرر",
       })
     }
+    days.add(entry.day)
   })
+}
+
+function refineOptionalIdentityFields(
+  data: AllSettingsIdentityFields,
+  ctx: z.RefinementCtx
+) {
+  if (data.slug && !slugRegex.test(data.slug)) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["slug"],
+      message: "أحرف لاتينية صغيرة وأرقام مفصولة بشرطة فقط",
+    })
+  }
+  if (
+    data.primaryCurrencyCode &&
+    !currencyCodeRegex.test(data.primaryCurrencyCode)
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["primaryCurrencyCode"],
+      message: "رمز عملة من 3 أحرف لاتينية كبيرة",
+    })
+  }
+}
+
+export const addressSettingsSchema = addressFieldsSchema.superRefine(
+  refinePairedCoordinates
+)
 
 export const brandingSettingsSchema = z.object({
   logoUrl: urlSchema.optional(),
@@ -145,7 +224,7 @@ export const brandingSettingsSchema = z.object({
 
 export const currencySettingsSchema = z.object({
   currencySymbolPosition: currencySymbolPositionSchema,
-  currencyDecimalPlaces: z.coerce
+  currencyDecimalPlaces: z
     .number()
     .int("قيمة صحيحة فقط")
     .min(0, "أقل قيمة 0")
@@ -165,19 +244,7 @@ export const businessHoursSettingsSchema = z
   .object({
     businessHours: z.array(businessHourSchema),
   })
-  .superRefine((data, ctx) => {
-    const days = new Set<string>()
-    data.businessHours.forEach((entry, idx) => {
-      if (days.has(entry.day)) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["businessHours", idx, "day"],
-          message: "اليوم مكرر",
-        })
-      }
-      days.add(entry.day)
-    })
-  })
+  .superRefine(refineUniqueBusinessDays)
 
 // Identity tab — merchant edits the three fields that the onboarding
 // wizard captured. Sending all three together flips
@@ -237,105 +304,25 @@ export const storeDeletionRequestSchema = z.object({
     .optional(),
 })
 
-// Unified schema for the page-level "save all" flow. Mirrors the
-// field-level rules of every per-tab schema, plus the cross-field
-// refines (lat/lng paired, business hours day uniqueness). The per-tab
-// sub-schemas above are kept for the onboarding wizard (`identitySchema`)
-// and for any future module that needs a narrow validator.
-export const allSettingsSchema = z
-  .object({
-    // Identity
-    storeName: optionalString(),
-    slug: z.string().trim().optional(),
-    primaryCurrencyCode: z.string().trim().optional(),
+const allSettingsIdentitySchema = z.object({
+  storeName: optionalString(),
+  slug: z.string().trim().optional(),
+  primaryCurrencyCode: z.string().trim().optional(),
+})
 
-    // General
-    profileNameAr: optionalString(),
-    profileNameEn: optionalString(),
-    profileDescription: optionalString(),
-    contactEmail: contactEmailSchema.optional(),
-    contactPhone: contactPhoneSchema.optional(),
-
-    // Address
-    governorate: optionalString(),
-    city: optionalString(),
-    street: optionalString(),
-    latitude: z.number().nullable().optional(),
-    longitude: z.number().nullable().optional(),
-
-    // Branding
-    logoUrl: urlSchema.optional(),
-    faviconUrl: urlSchema.optional(),
-
-    // Currency display
-    currencySymbolPosition: currencySymbolPositionSchema,
-    currencyDecimalPlaces: z
-      .number()
-      .int("قيمة صحيحة فقط")
-      .min(0, "أقل قيمة 0")
-      .max(4, "أعلى قيمة 4"),
-    numeralSystem: numeralSystemSchema,
-
-    // Locale
-    timezone: z.string().trim().min(1, "المنطقة الزمنية مطلوبة"),
-
-    // Field arrays
-    socialLinks: z.array(socialLinkSchema),
-    businessHours: z.array(businessHourSchema),
-  })
+// Unified schema for the page-level "save all" flow. Composes the
+// per-tab field shapes and reuses the shared cross-field refiners.
+export const allSettingsSchema = allSettingsIdentitySchema
+  .merge(generalSettingsSchema)
+  .merge(addressFieldsSchema)
+  .merge(brandingSettingsSchema)
+  .merge(currencySettingsSchema)
+  .merge(localeSettingsSchema)
+  .merge(socialLinksSettingsSchema)
+  .merge(businessHoursSettingsSchema)
   .superRefine((data, ctx) => {
-    if (data.slug && !slugRegex.test(data.slug)) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["slug"],
-        message: "أحرف لاتينية صغيرة وأرقام مفصولة بشرطة فقط",
-      })
-    }
-    if (
-      data.primaryCurrencyCode &&
-      !/^[A-Z]{3}$/.test(data.primaryCurrencyCode)
-    ) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["primaryCurrencyCode"],
-        message: "رمز عملة من 3 أحرف لاتينية كبيرة",
-      })
-    }
-    const latitudeSet = data.latitude != null
-    const longitudeSet = data.longitude != null
-    if (latitudeSet !== longitudeSet) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["latitude"],
-        message: "اختر موقعاً على الخريطة لتعيين الإحداثيات الكاملة",
-      })
-    }
-    if (data.latitude != null && (data.latitude < -90 || data.latitude > 90)) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["latitude"],
-        message: "خط العرض يجب أن يكون بين -90 و 90",
-      })
-    }
-    if (
-      data.longitude != null &&
-      (data.longitude < -180 || data.longitude > 180)
-    ) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["longitude"],
-        message: "خط الطول يجب أن يكون بين -180 و 180",
-      })
-    }
-    const days = new Set<string>()
-    data.businessHours.forEach((entry, idx) => {
-      if (days.has(entry.day)) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["businessHours", idx, "day"],
-          message: "اليوم مكرر",
-        })
-      }
-      days.add(entry.day)
-    })
+    refineOptionalIdentityFields(data, ctx)
+    refinePairedCoordinates(data, ctx)
+    refineCoordinateRanges(data, ctx)
+    refineUniqueBusinessDays(data, ctx)
   })
