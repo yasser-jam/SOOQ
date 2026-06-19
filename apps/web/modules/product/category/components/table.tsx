@@ -12,6 +12,7 @@ import {
   Layers3,
   PlusIcon,
 } from "lucide-react"
+import { toast } from "sonner"
 
 import TableActions from "@/components/system/table-actions"
 import DataTable from "@/components/system/table"
@@ -21,9 +22,8 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 
 import {
-  deleteProductCategory,
-  listProductCategories,
-  productCategoryKeys,
+  getDeleteProductCategoryMutationOptions,
+  listProductCategoriesQueryOptions,
 } from "../actions"
 import type { ProductCategory } from "../types"
 import { Button } from "@workspace/ui/components/button"
@@ -36,18 +36,18 @@ export default function ProductCategoryTable() {
   const [pageIndex, setPageIndex] = useState(0)
 
   // ===== Data Fetching =====
-  const { data: categories, isPending } = useQuery({
-    queryKey: productCategoryKeys.all,
-    queryFn: listProductCategories,
-  })
+  const { data: categories, isPending, isFetching } = useQuery(
+    listProductCategoriesQueryOptions()
+  )
 
   // ===== Mutations =====
-  const { mutate: deleteCategory } = useMutation({
-    mutationFn: deleteProductCategory,
-    onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
-      queryClient.removeQueries({ queryKey: productCategoryKeys.detail(id) })
-    },
+  const deleteMutation = useMutation({
+    ...getDeleteProductCategoryMutationOptions({
+      queryClient,
+      onSuccess: () => {
+        toast.success("تم حذف الفئة بنجاح")
+      },
+    }),
   })
 
   // ===== Computed Values =====
@@ -127,7 +127,7 @@ export default function ProductCategoryTable() {
             }}
             onDelete={() => {
               if (!categoryId) return
-              deleteCategory(categoryId)
+              deleteMutation.mutate(categoryId)
             }}
           >
             <Button
@@ -154,7 +154,7 @@ export default function ProductCategoryTable() {
         data={pagedCategories}
         pagination={{ pageIndex, pageSize, pageCount }}
         onPageChange={setPageIndex}
-        isLoading={isPending}
+        isLoading={isPending || isFetching || deleteMutation.isPending}
         subrowsKey="children"
       />
     </div>

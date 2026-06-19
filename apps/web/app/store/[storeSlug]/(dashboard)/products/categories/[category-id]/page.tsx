@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Check } from "lucide-react"
+import { toast } from "sonner"
 
 import Field from "@/components/system/Field"
 import PageDialog from "@/components/system/page-dialog"
@@ -16,10 +17,9 @@ import {
   initCategoryPayload,
 } from "@/modules/product/category/init"
 import {
-  createProductCategory,
-  getProductCategory,
-  updateProductCategory,
-  productCategoryKeys,
+  getProductCategoryQueryOptions,
+  getCreateProductCategoryMutationOptions,
+  getUpdateProductCategoryMutationOptions,
 } from "@/modules/product/category/actions"
 import { productCategorySchema } from "@/modules/product/category/schema"
 import { ProductCategory } from "@/modules/product/category/types"
@@ -33,7 +33,6 @@ import {
 } from "@workspace/ui/components/field"
 import CategorySelect from "@/modules/product/category/components/select"
 import CategoryTemplateSelect from "@/modules/product/category/components/template-select"
-import { attributeQueryKeys } from "@/modules/product/attribute/actions"
 import TextareaField from "@/components/system/textarea"
 import {
   Tabs,
@@ -67,8 +66,7 @@ export default function EditCategoryPage() {
   const nameAr = form.watch("nameAr")
 
   const { data: category, isLoading } = useQuery({
-    queryKey: productCategoryKeys.detail(categoryId),
-    queryFn: () => getProductCategory(categoryId),
+    ...getProductCategoryQueryOptions(categoryId),
     enabled: isEdit,
   })
 
@@ -103,23 +101,23 @@ export default function EditCategoryPage() {
   }, [form, isEdit, nameAr, nameEn])
 
   const { isPending: isUpdating, mutate: updateCategory } = useMutation({
-    mutationFn: updateProductCategory,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
-      router.push(storePath("/products/categories"))
-    },
+    ...getUpdateProductCategoryMutationOptions({
+      queryClient,
+      onSuccess: () => {
+        toast.success("تم تحديث الفئة بنجاح")
+        router.push(storePath("/products/categories"))
+      },
+    }),
   })
 
   const { isPending: isCreating, mutate: createCategory } = useMutation({
-    mutationFn: createProductCategory,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
-      // Phase 5 (PRD): a templated create seeds attribute defs server-side.
-      // Defensively invalidate the attribute cache so any open editor that
-      // already fetched a tenant-wide list reflects the seeded entries.
-      queryClient.invalidateQueries({ queryKey: attributeQueryKeys.all })
-      router.push(storePath("/products/categories"))
-    },
+    ...getCreateProductCategoryMutationOptions({
+      queryClient,
+      onSuccess: () => {
+        toast.success("تم إنشاء الفئة بنجاح")
+        router.push(storePath("/products/categories"))
+      },
+    }),
   })
 
   const handleSubmit = useCallback(

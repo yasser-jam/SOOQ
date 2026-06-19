@@ -1,6 +1,14 @@
-import { api } from "@/lib/api"
+import type { QueryClient } from "@tanstack/react-query"
+import { queryOptions } from "@tanstack/react-query"
 
-import type { CreateProductCategoryInput, ProductCategory, UpdateProductCategoryInput } from "./types"
+import { api } from "@/lib/api"
+import { attributeQueryKeys } from "@/modules/product/attribute/actions"
+
+import type {
+	CreateProductCategoryInput,
+	ProductCategory,
+	UpdateProductCategoryInput,
+} from "./types"
 import { ApiResponse } from "@/lib/types"
 
 export const productCategoryKeys = {
@@ -48,6 +56,19 @@ export const listProductCategories = async (): Promise<ProductCategory[]> => {
 	return response.data?.map(normalizeProductCategory) ?? []
 }
 
+export const listProductCategoriesQueryOptions = () =>
+	queryOptions({
+		queryKey: productCategoryKeys.all,
+		queryFn: listProductCategories,
+	})
+
+export const getProductCategoryQueryOptions = (id: string) =>
+	queryOptions({
+		queryKey: productCategoryKeys.detail(id),
+		queryFn: () => getProductCategory(id),
+		enabled: Boolean(id),
+	})
+
 export const getProductCategory = async (id: string): Promise<ProductCategory> => {
 	const response = await api<ApiResponse<ProductCategoryApiModel>>(
 		`/admin/categories/${id}`
@@ -75,6 +96,54 @@ export const deleteProductCategory = (id: string): Promise<void> =>
 	api<void>(`/admin/categories/${id}`, {
 		method: "DELETE",
 	})
+
+export const getCreateProductCategoryMutationOptions = ({
+	queryClient,
+	onSuccess,
+}: {
+	queryClient: QueryClient
+	onSuccess?: () => void
+}) => ({
+	mutationFn: createProductCategory,
+	onSuccess: () => {
+		queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
+		// Phase 5 (PRD): templated create seeds attribute defs server-side.
+		queryClient.invalidateQueries({ queryKey: attributeQueryKeys.all })
+		onSuccess?.()
+	},
+})
+
+export const getUpdateProductCategoryMutationOptions = ({
+	queryClient,
+	onSuccess,
+}: {
+	queryClient: QueryClient
+	onSuccess?: () => void
+}) => ({
+	mutationFn: updateProductCategory,
+	onSuccess: (_: void, variables: UpdateProductCategoryInput) => {
+		queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
+		queryClient.invalidateQueries({
+			queryKey: productCategoryKeys.detail(variables.id),
+		})
+		onSuccess?.()
+	},
+})
+
+export const getDeleteProductCategoryMutationOptions = ({
+	queryClient,
+	onSuccess,
+}: {
+	queryClient: QueryClient
+	onSuccess?: (id: string) => void
+}) => ({
+	mutationFn: deleteProductCategory,
+	onSuccess: (_: void, id: string) => {
+		queryClient.invalidateQueries({ queryKey: productCategoryKeys.all })
+		queryClient.removeQueries({ queryKey: productCategoryKeys.detail(id) })
+		onSuccess?.(id)
+	},
+})
 
 /**
  * GET /api/v1/admin/categories/{categoryId}/children
