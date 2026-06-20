@@ -77,7 +77,7 @@ apiInstance.interceptors.response.use(
     const status = error.response?.status
 
     if (
-      status === 401 &&
+      (status === 401 || status == 403) &&
       original &&
       !original._retry &&
       !isInternalAuthRequest(original.url)
