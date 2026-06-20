@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, type FormEvent } from "react"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Minus, Plus } from "lucide-react"
@@ -76,6 +76,12 @@ export default function VariantOptionDialog({
     onOpenChange(false)
   })
 
+  const handleFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    void handleSave(event)
+  }
+
   const handleDialogChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       form.reset(defaultValues)
@@ -97,7 +103,7 @@ export default function VariantOptionDialog({
         <form
           id="variant-option-form"
           className="flex flex-col gap-5"
-          onSubmit={handleSave}
+          onSubmit={handleFormSubmit}
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field
@@ -193,7 +199,11 @@ export default function VariantOptionDialog({
           >
             إلغاء
           </Button>
-          <Button type="submit" form="variant-option-form" disabled={disabled}>
+          <Button
+            type="button"
+            onClick={() => void handleSave()}
+            disabled={disabled}
+          >
             حفظ
           </Button>
         </DialogFooter>
