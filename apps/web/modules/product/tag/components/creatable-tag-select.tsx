@@ -71,11 +71,11 @@ function TagCreateForm({
   return (
     <div
       ref={formRef}
-      className="mt-2 flex flex-col gap-2 rounded-md border border-dashed border-primary/40 bg-primary/5 p-2 sm:flex-row sm:items-start"
+      className="flex flex-col gap-2 rounded-md border border-dashed border-primary/40 p-2 sm:flex-row sm:items-start"
     >
       <div className="flex-1">
         <Input
-          autoFocus
+          className="h-9 text-sm"
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={(event) => {
@@ -95,7 +95,13 @@ function TagCreateForm({
           <p className="mt-1 text-xs text-destructive">موجودة بالفعل</p>
         )}
       </div>
-      <Button type="button" onClick={onSave} disabled={!canSave}>
+      <Button
+        type="button"
+        size="sm"
+        className="h-9 shrink-0"
+        onClick={onSave}
+        disabled={!canSave}
+      >
         حفظ
       </Button>
     </div>
@@ -153,7 +159,6 @@ function TagCreatableSelectView({
       apiSlugs={apiSlugs}
       emptyMessage="لا توجد وسوم"
       createOpenLabel="إضافة وسم جديد"
-      createCloseLabel="إغلاق إضافة وسم"
       tokenOfRef={tokenOfRef}
       refFromId={(id) => ({ id })}
       refFromNewLabel={(name) => ({ name })}

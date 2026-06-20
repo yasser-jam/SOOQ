@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ChevronDown, ChevronUp } from "lucide-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { FormProvider, useForm, type Path } from "react-hook-form"
@@ -10,6 +9,12 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 import { Button } from "@workspace/ui/components/button"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
 
 import type { ApiError } from "@/lib/api"
 
@@ -38,9 +43,6 @@ import ProductSidebarNavigation from "@/modules/product/product/components/produ
 type ProductFormInput = z.input<typeof productSchema>
 type ProductSubmitValues = z.output<typeof productSchema>
 
-// Map a backend `fieldErrors[].field` (often dotted or snake_case) to the form
-// path used by react-hook-form. Falls back to the raw key. Surfaced via
-// `form.setError` so the field highlights inline.
 const PRODUCT_FIELD_ALIASES: Record<string, Path<ProductFormInput>> = {
   slug: "slug",
   title_ar: "titleAr",
@@ -48,6 +50,15 @@ const PRODUCT_FIELD_ALIASES: Record<string, Path<ProductFormInput>> = {
   title_en: "titleEn",
   titleEn: "titleEn",
 }
+
+const SECTION_IDS = [
+  "basic-info",
+  "media",
+  "pricing-inventory",
+  "variants",
+  "categorization-attributes",
+  "seo",
+] as const
 
 export default function ProductDetailsPage() {
   const router = useRouter()
@@ -57,8 +68,7 @@ export default function ProductDetailsPage() {
   const isEdit = productId !== "create"
   const productsListPath = `/store/${storeSlug}/products`
 
-  const [activeSection, setActiveSection] = useState("basic-info")
-  const [isSeoExpanded, setIsSeoExpanded] = useState(false)
+  const [activeSection, setActiveSection] = useState<string>("basic-info")
 
   const queryClient = useQueryClient()
 
@@ -84,18 +94,39 @@ export default function ProductDetailsPage() {
     form.reset(initProduct(product))
   }, [form, isEdit, product])
 
-  // NFR-UX-006: auto-save form values to localStorage every 30s + restore prompt on mount
   const draft = useProductDraft({
     productId: isEdit ? productId : "new",
     form,
     enabled: !isLoading,
   })
 
-  // After product save we must refresh:
-  //  - the detail query (so basics/SEO/options/variants reflect server-side
-  //    changes, e.g. variants regenerated via the upsert)
-  //  - the inventory status (variant changes ripple to per-product status)
-  //  - the global product list (title / status / image flips show there too)
+  // Scroll-spy: track the topmost section visible in the upper half of the viewport
+  useEffect(() => {
+    const visible = new Set<string>()
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            visible.add(entry.target.id)
+          } else {
+            visible.delete(entry.target.id)
+          }
+        })
+        const first = SECTION_IDS.find((id) => visible.has(id))
+        if (first) setActiveSection(first)
+      },
+      { rootMargin: "0px 0px -50% 0px", threshold: 0 }
+    )
+
+    SECTION_IDS.forEach((id) => {
+      const el = document.getElementById(id)
+      if (el) observer.observe(el)
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
   const invalidateProductCaches = useCallback(() => {
     if (productId) {
       queryClient.invalidateQueries({ queryKey: productKeys.detail(productId) })
@@ -106,10 +137,6 @@ export default function ProductDetailsPage() {
     queryClient.invalidateQueries({ queryKey: productKeys.all })
   }, [queryClient, productId])
 
-  // Surface backend validation errors (e.g. duplicate slug → ERR_1003) on
-  // the actual field instead of letting them disappear silently. The axios
-  // interceptor already suppresses the toast for `show-field-error`, so we
-  // emit a brief toast here too.
   const handleMutationError = useCallback(
     (error: ApiError) => {
       if (error.action === "show-field-error" && error.fieldKey) {
@@ -167,8 +194,6 @@ export default function ProductDetailsPage() {
 
   const handleImageChange = useCallback(
     ({ keptExistingIds, newFiles }: ImageUploaderState) => {
-      // Server-known IDs the user wants to keep, in display order.
-      // Server PREPENDS uploaded file UUIDs to this list.
       form.setValue("mediaAssetIds", keptExistingIds, {
         shouldDirty: true,
         shouldValidate: false,
@@ -190,9 +215,9 @@ export default function ProductDetailsPage() {
   }, [isEdit, product])
 
   return (
-    <div className="container my-6 flex flex-col gap-6" dir="rtl">
+    <div className="container my-6 flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <div className="page-title" style={{ color: "#122640" }}>
+        <div className="page-title">
           {isEdit ? "تفاصيل المنتج" : "إضافة منتج"}
         </div>
 
@@ -204,18 +229,13 @@ export default function ProductDetailsPage() {
           >
             إلغاء
           </Button>
-          <Button
-            type="submit"
-            form="product-form"
-            disabled={isSubmitting}
-            style={{ backgroundColor: "#BA7B1B" }}
-          >
+          <Button type="submit" form="product-form" disabled={isSubmitting}>
             حفظ
           </Button>
         </div>
       </div>
 
-      <div className="flex gap-6">
+      <div className="relative flex gap-6">
         <ProductSidebarNavigation
           activeSection={activeSection}
           onSectionChange={setActiveSection}
@@ -230,7 +250,7 @@ export default function ProductDetailsPage() {
               className="space-y-6"
             >
               <section id="basic-info" className="scroll-mt-6">
-                <BasicInfoSection isSubmitting={isSubmitting} />
+                <BasicInfoSection isSubmitting={isSubmitting} isEdit={isEdit} />
               </section>
 
               <section id="media" className="scroll-mt-6">
@@ -242,21 +262,25 @@ export default function ProductDetailsPage() {
               </section>
 
               <section id="pricing-inventory" className="scroll-mt-6 space-y-6">
-                <div className="border-2 rounded-lg p-6 bg-white" style={{ borderColor: "#E5E7EB" }}>
-                  <h3 className="text-xl font-bold mb-4" style={{ color: "#122640" }}>
-                    التسعير
-                  </h3>
-                  <PricingSection isSubmitting={isSubmitting} />
-                </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>التسعير</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <PricingSection isSubmitting={isSubmitting} />
+                  </CardContent>
+                </Card>
 
-                {isEdit && (
-                  <div className="border-2 rounded-lg p-6 bg-white" style={{ borderColor: "#E5E7EB" }}>
-                    <h3 className="text-xl font-bold mb-4" style={{ color: "#122640" }}>
-                      المخزون
-                    </h3>
-                    <InventoryTab productId={productId} isEdit={isEdit} />
-                  </div>
-                )}
+                {/* {isEdit && (
+                  <Card>
+                    <CardHeader className="border-b">
+                      <CardTitle>المخزون</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <InventoryTab productId={productId} isEdit={isEdit} />
+                    </CardContent>
+                  </Card>
+                )} */}
               </section>
 
               <section id="variants" className="scroll-mt-6">
@@ -267,46 +291,22 @@ export default function ProductDetailsPage() {
               </section>
 
               <section id="categorization-attributes" className="scroll-mt-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="border-2 rounded-lg p-6 bg-white" style={{ borderColor: "#E5E7EB" }}>
-                    <h3 className="text-xl font-bold mb-4" style={{ color: "#122640" }}>
-                      التصنيف
-                    </h3>
-                    <CategorizationSection isSubmitting={isSubmitting} />
-                  </div>
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>التصنيف</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CategorizationSection isSubmitting={isSubmitting} />
+                    </CardContent>
+                  </Card>
 
-                  <div className="border-2 rounded-lg p-6 bg-white" style={{ borderColor: "#E5E7EB" }}>
-                    <h3 className="text-lg font-bold mb-4" style={{ color: "#122640" }}>
-                      الخصائص المتقدمة
-                    </h3>
-                    <AttributesTab isSubmitting={isSubmitting} />
-                  </div>
+                  <AttributesTab isSubmitting={isSubmitting} />
                 </div>
               </section>
 
               <section id="seo" className="scroll-mt-6">
-                <div className="border-2 rounded-lg bg-white" style={{ borderColor: "#E5E7EB" }}>
-                  <button
-                    type="button"
-                    onClick={() => setIsSeoExpanded(!isSeoExpanded)}
-                    className="w-full flex items-center justify-between p-6 text-right border-b"
-                    style={{ borderColor: "#E5E7EB" }}
-                  >
-                    <h3 className="text-xl font-bold" style={{ color: "#122640" }}>
-                      إعدادات SEO
-                    </h3>
-                    {isSeoExpanded ? (
-                      <ChevronUp style={{ color: "#122640" }} />
-                    ) : (
-                      <ChevronDown style={{ color: "#122640" }} />
-                    )}
-                  </button>
-                  {isSeoExpanded && (
-                    <div className="p-6">
-                      <SeoTab isSubmitting={isSubmitting} />
-                    </div>
-                  )}
-                </div>
+                <SeoTab isSubmitting={isSubmitting} />
               </section>
             </form>
           </FormProvider>

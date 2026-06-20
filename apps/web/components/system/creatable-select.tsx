@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 
-import { Loader2, Minus, Plus } from "lucide-react"
+import { Loader2, Plus } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -24,6 +24,11 @@ import {
   FieldError,
   FieldLabel,
 } from "@workspace/ui/components/field"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@workspace/ui/components/popover"
 
 /** Prefix for combobox tokens that represent unsaved inline entities. */
 export const NEW_TOKEN_PREFIX = "__new__:"
@@ -117,7 +122,6 @@ export type CreatableMultiSelectProps<TRef> = {
   apiSlugs: string[]
   emptyMessage: string
   createOpenLabel: string
-  createCloseLabel: string
   tokenOfRef: (ref: TRef) => string
   refFromId: (id: string) => TRef
   refFromNewLabel: (label: string) => TRef
@@ -129,46 +133,11 @@ export type CreatableMultiSelectProps<TRef> = {
   renderListItem?: (item: CreatableSelectOption) => React.ReactNode
 }
 
-function useDismissCreatePanel({
-  creating,
-  formRef,
-  toggleRef,
-  onDismiss,
-}: {
-  creating: boolean
-  formRef: React.RefObject<HTMLDivElement | null>
-  toggleRef: React.RefObject<HTMLButtonElement | null>
-  onDismiss: () => void
-}) {
-  useEffect(() => {
-    if (!creating) return
-
-    const onPointerDown = (event: MouseEvent) => {
-      const target = event.target as Node | null
-      if (!target) return
-      if (formRef.current?.contains(target)) return
-      if (toggleRef.current?.contains(target)) return
-      onDismiss()
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onDismiss()
-    }
-
-    document.addEventListener("mousedown", onPointerDown)
-    document.addEventListener("keydown", onKeyDown)
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown)
-      document.removeEventListener("keydown", onKeyDown)
-    }
-  }, [creating, formRef, toggleRef, onDismiss])
-}
-
 /**
  * Multi-select combobox for inline `{ id }` / `{ name… }` refs.
  *
  * - Existing entities are picked from the dropdown.
- * - New entities are drafted via the adjacent `+` panel (not typed into the combobox).
+ * - New entities are drafted via a Popover panel triggered by the `+` button.
  * - Unsaved selections render as dashed chips.
  */
 export function CreatableMultiSelect<TRef>({
@@ -186,7 +155,6 @@ export function CreatableMultiSelect<TRef>({
   apiSlugs,
   emptyMessage,
   createOpenLabel,
-  createCloseLabel,
   tokenOfRef,
   refFromId,
   refFromNewLabel,
@@ -198,11 +166,10 @@ export function CreatableMultiSelect<TRef>({
   renderListItem,
 }: CreatableMultiSelectProps<TRef>) {
   const anchor = useComboboxAnchor()
-  const [creating, setCreating] = useState(false)
+  const [open, setOpen] = useState(false)
   const [draftSlug, setDraftSlug] = useState("")
   const [createFormKey, setCreateFormKey] = useState(0)
   const formRef = useRef<HTMLDivElement | null>(null)
-  const toggleRef = useRef<HTMLButtonElement | null>(null)
   const buildRefRef = useRef<(() => TRef | null) | null>(null)
 
   const registerBuildRef = useCallback((buildRef: () => TRef | null) => {
@@ -231,17 +198,14 @@ export function CreatableMultiSelect<TRef>({
   const canSave = !!draftSlug && !isDuplicate && !disabled
 
   const closeCreatePanel = useCallback(() => {
-    setCreating(false)
     setDraftSlug("")
     setCreateFormKey((key) => key + 1)
   }, [])
 
-  useDismissCreatePanel({
-    creating,
-    formRef,
-    toggleRef,
-    onDismiss: closeCreatePanel,
-  })
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) closeCreatePanel()
+    setOpen(nextOpen)
+  }
 
   const handleComboboxChange = (nextTokens: string[]) => {
     onChange(
@@ -261,17 +225,8 @@ export function CreatableMultiSelect<TRef>({
     const nextRef = buildRefRef.current?.()
     if (!nextRef) return
     onChange([...refs, nextRef])
+    setOpen(false)
     closeCreatePanel()
-  }
-
-  const toggleCreating = () => {
-    if (creating) {
-      closeCreatePanel()
-      return
-    }
-    setCreating(true)
-    setDraftSlug("")
-    setCreateFormKey((key) => key + 1)
   }
 
   const defaultRenderListItem = (item: CreatableSelectOption) => item.label
@@ -289,7 +244,10 @@ export function CreatableMultiSelect<TRef>({
             onValueChange={handleComboboxChange}
             disabled={disabled || isPending}
           >
-            <ComboboxChips ref={anchor} className="relative w-full">
+            <ComboboxChips
+              ref={anchor}
+              className="relative h-9 min-h-9 w-full text-sm"
+            >
               <ComboboxValue placeholder={placeholder}>
                 <React.Fragment>
                   {refs.map((ref) => {
@@ -307,7 +265,7 @@ export function CreatableMultiSelect<TRef>({
                 </React.Fragment>
               </ComboboxValue>
               {isPending && (
-                <Loader2 className="absolute end-2 top-3 size-4 animate-spin text-muted-foreground" />
+                <Loader2 className="absolute end-2 top-2 size-3.5 animate-spin text-muted-foreground" />
               )}
             </ComboboxChips>
             <ComboboxContent anchor={anchor}>
@@ -324,33 +282,38 @@ export function CreatableMultiSelect<TRef>({
             </ComboboxContent>
           </Combobox>
         </div>
-        <Button
-          ref={toggleRef}
-          type="button"
-          variant="outline"
-          size="icon"
-          className="h-12 w-12 shrink-0"
-          onClick={toggleCreating}
-          disabled={disabled}
-          aria-pressed={creating}
-          aria-label={creating ? createCloseLabel : createOpenLabel}
-        >
-          {creating ? <Minus /> : <Plus />}
-        </Button>
-      </div>
 
-      {creating && (
-        <CreateForm
-          key={createFormKey}
-          formRef={formRef}
-          disabled={disabled}
-          isDuplicate={isDuplicate}
-          canSave={canSave}
-          onSave={commit}
-          onDraftSlugChange={setDraftSlug}
-          registerBuildRef={registerBuildRef}
-        />
-      )}
+        <Popover open={open} onOpenChange={handleOpenChange}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-9 shrink-0"
+              disabled={disabled}
+              aria-label={createOpenLabel}
+            >
+              <Plus />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="end"
+            sideOffset={8}
+            className="w-80 border-0 bg-transparent p-0 shadow-none ring-0"
+          >
+            <CreateForm
+              key={createFormKey}
+              formRef={formRef}
+              disabled={disabled}
+              isDuplicate={isDuplicate}
+              canSave={canSave}
+              onSave={commit}
+              onDraftSlugChange={setDraftSlug}
+              registerBuildRef={registerBuildRef}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
 
       {description ? <FieldDescription>{description}</FieldDescription> : null}
       <FieldError errors={[error]} />

@@ -1,12 +1,10 @@
 "use client"
 
-import { useState } from "react"
 import { Check, AlertCircle, Circle } from "lucide-react"
 
 type Section = {
   id: string
   label: string
-  icon?: string
 }
 
 const SECTIONS: Section[] = [
@@ -31,65 +29,52 @@ export default function ProductSidebarNavigation({
   onSectionChange,
   sectionValidation = {},
 }: Props) {
-  const [isSeoExpanded, setIsSeoExpanded] = useState(false)
-
-  const handleSectionClick = (sectionId: string) => {
-    if (sectionId === "seo") {
-      setIsSeoExpanded(!isSeoExpanded)
-    }
+  const handleClick = (sectionId: string) => {
     onSectionChange(sectionId)
-  }
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" })
-    }
+    const el = document.getElementById(sectionId)
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   const getStatusIcon = (sectionId: string) => {
-    const status = sectionValidation[sectionId] || "empty"
+    const status = sectionValidation[sectionId] ?? "empty"
     switch (status) {
       case "valid":
         return <Check className="size-4 text-green-500" />
       case "error":
         return <AlertCircle className="size-4 text-red-500" />
       default:
-        return <Circle className="size-4 text-gray-300" />
+        return <Circle className="size-4 text-muted-foreground/40" />
     }
   }
 
   return (
-    <aside className="sticky top-0 h-screen w-64 shrink-0 overflow-y-auto">
-      <nav className="rounded-lg border-2 bg-white p-4 shadow-sm h-full" style={{ borderColor: "#E5E7EB" }}>
-        <h3 className="mb-4 text-lg font-semibold" style={{ color: "#122640" }}>
+    // Todo: use Card comoponent here
+    <aside className="sticky top-6 w-64 shrink-0">
+      <nav className="rounded-xl bg-card/75 p-4">
+        <h3 className="mb-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
           أقسام المنتج
         </h3>
-        <ul className="space-y-5">
-          {SECTIONS.map((section) => (
-            <li key={section.id}>
-              <button
-                type="button"
-                onClick={() => {
-                  handleSectionClick(section.id)
-                  scrollToSection(section.id)
-                }}
-                className={`w-full rounded-lg px-4 py-3 text-right transition-all flex items-center justify-between gap-3 ${
-                  activeSection === section.id
-                    ? "font-medium"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-                style={
-                  activeSection === section.id
-                    ? { color: "#BA7B1B", borderRight: "3px solid #BA7B1B" }
-                    : undefined
-                }
-              >
-                <span>{section.label}</span>
-                {getStatusIcon(section.id)}
-              </button>
-            </li>
-          ))}
+        <ul className="space-y-1">
+          {SECTIONS.map((section) => {
+            const isActive = activeSection === section.id
+            return (
+              <li key={section.id}>
+                <button
+                  type="button"
+                  onClick={() => handleClick(section.id)}
+                  className={[
+                    "w-full rounded-lg hover:bg-primary/10 cursor-pointer transition-all duration-200 px-3 py-2.5 text-right text-sm transition-all flex items-center justify-between gap-3",
+                    isActive
+                      ? "bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  ].join(" ")}
+                >
+                  <span>{section.label}</span>
+                  {getStatusIcon(section.id)}
+                </button>
+              </li>
+            )
+          })}
         </ul>
       </nav>
     </aside>

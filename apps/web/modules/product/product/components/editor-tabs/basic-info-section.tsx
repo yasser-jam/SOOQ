@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { Controller, useFormContext } from "react-hook-form"
+import { useEffect, useRef, useState } from "react"
+import { Controller, useFormContext, useWatch } from "react-hook-form"
+import { Pencil, RotateCcw } from "lucide-react"
 
 import {
   Card,
@@ -14,143 +15,117 @@ import {
   FieldError,
   FieldLabel,
 } from "@workspace/ui/components/field"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/system/tabs"
+import { Input } from "@workspace/ui/components/input"
+import { Button } from "@workspace/ui/components/button"
 
 import Field from "@/components/system/Field"
 import Textarea from "@/components/system/textarea"
-import StatusSelect from "@/modules/product/product/components/status-select"
+import SysSwitch from "@/components/system/switch"
 
 type Props = {
   isSubmitting: boolean
+  isEdit?: boolean
 }
 
-export default function BasicInfoSection({ isSubmitting }: Props) {
+function toSlug(title: string): string {
+  return title
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\u0600-\u06FF-]/g, "")
+    .slice(0, 100)
+}
+
+export default function BasicInfoSection({ isSubmitting, isEdit }: Props) {
   const form = useFormContext()
-  const [languageTab, setLanguageTab] = useState("ar")
+  const prevTitleAr = useRef("")
+
+  const titleAr =
+    (useWatch({ control: form.control, name: "titleAr" }) as string) ?? ""
+
+  useEffect(() => {
+    if (titleAr === prevTitleAr.current) return
+    prevTitleAr.current = titleAr
+    form.setValue("slug", toSlug(titleAr), { shouldDirty: false })
+  }, [titleAr, form])
 
   return (
-    <Card className="border-2 bg-white" style={{ borderColor: "#E5E7EB" }}>
-      <CardHeader className="border-b" style={{ borderColor: "#E5E7EB" }}>
-        <CardTitle className="text-xl font-bold" style={{ color: "#122640" }}>
-          المعلومات الأساسية
-        </CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle>المعلومات الأساسية</CardTitle>
       </CardHeader>
-      <CardContent className="p-6">
-        <Tabs value={languageTab} onValueChange={setLanguageTab} className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-            <TabsTrigger
-              value="ar"
-              className="data-[state=active]:text-white"
-              style={
-                languageTab === "ar"
-                  ? { backgroundColor: "#BA7B1B" }
-                  : undefined
-              }
-            >
-              العربية
-            </TabsTrigger>
-            <TabsTrigger
-              value="en"
-              className="data-[state=active]:text-white"
-              style={
-                languageTab === "en"
-                  ? { backgroundColor: "#BA7B1B" }
-                  : undefined
-              }
-            >
-              الإنجليزية
-            </TabsTrigger>
-          </TabsList>
+      <CardContent className="grid grid-cols-2 gap-4">
+        <Field
+          name="titleAr"
+          control={form.control}
+          label="العنوان بالعربية"
+          placeholder="مثال: هاتف ذكي 128GB"
+          inputProps={{ disabled: isSubmitting }}
+        />
 
-          <TabsContent value="ar" className="space-y-4">
-            <Field
-              name="titleAr"
-              control={form.control}
-              label="العنوان"
-              placeholder="مثال: هاتف ذكي 128GB"
-              inputProps={{ disabled: isSubmitting }}
-            />
+        <Field
+          name="titleEn"
+          control={form.control}
+          label="العنوان بالإنجليزية"
+          placeholder="Example: Smartphone 128GB"
+          inputProps={{ disabled: isSubmitting }}
+        />
 
-            <Textarea
-              name="descriptionAr"
-              control={form.control}
-              label="وصف المنتج"
-              placeholder="مثال: شاشة 6.5 إنش، بطارية 5000mAh، ضمان سنة"
-              textareaProps={{ disabled: isSubmitting, rows: 4 }}
-            />
+        <Textarea
+          name="descriptionAr"
+          control={form.control}
+          label="وصف عربي"
+          placeholder="مثال: شاشة 6.5 إنش، بطارية 5000mAh، ضمان سنة"
+          textareaProps={{ disabled: isSubmitting, rows: 3 }}
+        />
 
-            <UiField data-invalid={Boolean(form.formState.errors.status)}>
-              <FieldLabel htmlFor="status">حالة المنتج</FieldLabel>
-              <Controller
-                name="status"
-                control={form.control}
-                render={({ field }) => (
-                  <StatusSelect
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={isSubmitting}
-                  />
-                )}
+        <Textarea
+          name="descriptionEn"
+          control={form.control}
+          label="وصف إنجليزي"
+          placeholder="Example: 6.5-inch display, 5000mAh battery, 1-year warranty"
+          textareaProps={{ disabled: isSubmitting, rows: 3 }}
+        />
+
+        {/* Slug with auto-gen */}
+        <UiField className="col-span-2" data-invalid={Boolean(form.formState.errors.slug)}>
+          <Field
+            name="slug"
+            control={form.control}
+            label="الرابط"
+            placeholder="your-product-slug"
+            inputProps={{
+              disabled: isSubmitting,
+            }}
+          />
+          <FieldError errors={[form.formState.errors.slug]} />
+        </UiField>
+
+        {/* Status */}
+        <Controller
+          name="status"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <UiField className="col-span-2" data-invalid={fieldState.invalid}>
+              <SysSwitch
+                label="حالة المنتج"
+                description={
+                  field.value === "ARCHIVED"
+                    ? "المنتج مؤرشف"
+                    : field.value === "ACTIVE"
+                      ? "المنتج منشور ومرئي للعملاء"
+                      : "المنتج مسودة وغير مرئي للعملاء"
+                }
+                value={field.value === "ACTIVE"}
+                onChange={(checked) =>
+                  field.onChange(checked ? "ACTIVE" : "DRAFT")
+                }
+                disabled={isSubmitting || field.value === "ARCHIVED"}
               />
-              <FieldError errors={[form.formState.errors.status]} />
+              <FieldError errors={[fieldState.error]} />
             </UiField>
-
-            <Field
-              name="slug"
-              control={form.control}
-              label="الرابط"
-              placeholder="مثال: smartphone-128gb"
-              inputProps={{ disabled: isSubmitting }}
-            />
-          </TabsContent>
-
-          <TabsContent value="en" className="space-y-4">
-            <Field
-              name="titleEn"
-              control={form.control}
-              label="العنوان"
-              placeholder="Example: Smartphone 128GB"
-              inputProps={{ disabled: isSubmitting }}
-            />
-
-            <Textarea
-              name="descriptionEn"
-              control={form.control}
-              label="وصف المنتج"
-              placeholder="Example: 6.5-inch display, 5000mAh battery, 1-year warranty"
-              textareaProps={{ disabled: isSubmitting, rows: 4 }}
-            />
-
-            <UiField data-invalid={Boolean(form.formState.errors.status)}>
-              <FieldLabel htmlFor="status">حالة المنتج</FieldLabel>
-              <Controller
-                name="status"
-                control={form.control}
-                render={({ field }) => (
-                  <StatusSelect
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={isSubmitting}
-                  />
-                )}
-              />
-              <FieldError errors={[form.formState.errors.status]} />
-            </UiField>
-
-            <Field
-              name="slug"
-              control={form.control}
-              label="الرابط"
-              placeholder="مثال: smartphone-128gb"
-              inputProps={{ disabled: isSubmitting }}
-            />
-          </TabsContent>
-        </Tabs>
+          )}
+        />
       </CardContent>
     </Card>
   )

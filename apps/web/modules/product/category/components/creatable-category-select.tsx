@@ -108,11 +108,11 @@ function CategoryCreateForm({
   return (
     <div
       ref={formRef}
-      className="mt-2 flex flex-col gap-2 rounded-md border border-dashed border-primary/40 bg-primary/5 p-2 sm:flex-row sm:items-start"
+      className="flex flex-col gap-2 rounded-md border border-dashed border-primary/40 p-2 sm:flex-row sm:items-start"
     >
       <div className="flex-1">
         <Input
-          autoFocus
+          className="h-9 text-sm"
           value={draftAr}
           onChange={(event) => setDraftAr(event.target.value)}
           onKeyDown={(event) => {
@@ -131,6 +131,7 @@ function CategoryCreateForm({
       </div>
       <div className="flex-1">
         <Input
+          className="h-9 text-sm"
           value={draftEn}
           onChange={(event) => setDraftEn(event.target.value)}
           onKeyDown={(event) => {
@@ -143,7 +144,13 @@ function CategoryCreateForm({
           disabled={disabled}
         />
       </div>
-      <Button type="button" onClick={onSave} disabled={!canSave}>
+      <Button
+        type="button"
+        size="sm"
+        className="h-9 shrink-0"
+        onClick={onSave}
+        disabled={!canSave}
+      >
         حفظ
       </Button>
     </div>
@@ -209,7 +216,6 @@ function CategoryCreatableSelectView({
       apiSlugs={apiSlugs}
       emptyMessage="لا توجد فئات"
       createOpenLabel="إضافة فئة جديدة"
-      createCloseLabel="إغلاق إضافة فئة"
       tokenOfRef={tokenOfRef}
       refFromId={(id) => ({ id })}
       refFromNewLabel={(nameAr) => ({ nameAr })}

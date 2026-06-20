@@ -26,15 +26,15 @@ export default function SeoTab({ isSubmitting }: Props) {
   const slug = useWatch({ control: form.control, name: "slug" }) ?? ""
 
   return (
-    <Card className="border-2">
-      <CardHeader className="border-b bg-gradient-to-r from-violet-50 to-purple-50">
-        <CardTitle className="text-xl font-semibold">إعدادات SEO</CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle>إعدادات SEO</CardTitle>
         <CardDescription>
           هذه الحقول تظهر في نتائج محرّكات البحث وعلى وسائل التواصل عند مشاركة
           صفحة المنتج.
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent>
         <div className="flex flex-col gap-4">
           <Field
             name="seoTitle"

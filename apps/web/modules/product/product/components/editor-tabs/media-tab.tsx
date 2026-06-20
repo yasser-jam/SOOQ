@@ -25,11 +25,11 @@ export default function MediaTab({ isSubmitting, existing, onChange }: Props) {
   useFormContext()
 
   return (
-    <Card className="border-2">
-      <CardHeader className="border-b bg-gradient-to-r from-cyan-50 to-teal-50">
-        <CardTitle className="text-xl font-semibold">صور المنتج</CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle>صور المنتج</CardTitle>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent>
         <fieldset disabled={isSubmitting} className="contents">
           <ImageUploader existing={existing ?? []} onChange={onChange} />
         </fieldset>

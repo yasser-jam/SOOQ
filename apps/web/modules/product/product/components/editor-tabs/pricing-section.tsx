@@ -3,18 +3,13 @@
 import { Controller, useFormContext } from "react-hook-form"
 
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import {
   Field as UiField,
   FieldError,
   FieldLabel,
 } from "@workspace/ui/components/field"
 
 import Field from "@/components/system/Field"
+import SysSwitch from "@/components/system/switch"
 import CurrencySelect from "@/modules/product/product/components/currency-select"
 
 type Props = {
@@ -48,9 +43,7 @@ export default function PricingSection({ isSubmitting }: Props) {
         }}
       />
 
-      <UiField
-        data-invalid={Boolean(form.formState.errors.currencyCode)}
-      >
+      <UiField data-invalid={Boolean(form.formState.errors.currencyCode)}>
         <FieldLabel htmlFor="currencyCode">العملة</FieldLabel>
         <Controller
           name="currencyCode"
@@ -66,30 +59,22 @@ export default function PricingSection({ isSubmitting }: Props) {
         <FieldError errors={[form.formState.errors.currencyCode]} />
       </UiField>
 
-      <UiField
-        data-invalid={Boolean(form.formState.errors.allowOversell)}
-        className="rounded-lg border p-4 bg-gray-50"
-      >
-        <FieldLabel
-          htmlFor="allowOversell"
-          className="flex w-full items-center gap-3 cursor-pointer"
-        >
-          <input
-            id="allowOversell"
-            type="checkbox"
-            {...form.register("allowOversell")}
-            disabled={isSubmitting}
-            className="size-4"
-          />
-          <div className="flex flex-col gap-1">
-            <span className="font-medium">السماح بالبيع عند نفاد المخزون</span>
-            <span className="text-sm text-gray-500">
-              عند تفعيل هذا الخيار، يمكن للعملاء طلب المنتج حتى لو نفد المخزون
-            </span>
-          </div>
-        </FieldLabel>
-        <FieldError errors={[form.formState.errors.allowOversell]} />
-      </UiField>
+      <Controller
+        name="allowOversell"
+        control={form.control}
+        render={({ field, fieldState }) => (
+          <UiField data-invalid={fieldState.invalid}>
+            <SysSwitch
+              label="السماح بالبيع عند نفاد المخزون"
+              description="يمكن للعملاء طلب المنتج حتى لو نفد المخزون"
+              value={field.value}
+              onChange={field.onChange}
+              disabled={isSubmitting}
+            />
+            <FieldError errors={[fieldState.error]} />
+          </UiField>
+        )}
+      />
     </div>
   )
 }
