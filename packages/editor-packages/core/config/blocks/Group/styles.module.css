@@ -1,0 +1,9 @@
+/*
+  Group styles — the flex container is applied inline via the slot's
+  `style` prop, so this sheet only handles the withLayout wrapper.
+*/
+.Group {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}

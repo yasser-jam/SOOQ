@@ -1,0 +1,112 @@
+.Button {
+  appearance: none;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--puck-color-white);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.05ch;
+  font-family: var(--puck-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  box-sizing: border-box;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 130ms ease, color 130ms ease,
+    border-color 130ms ease, box-shadow 130ms ease, transform 100ms ease;
+  cursor: pointer;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.Button--medium {
+  min-height: 34px;
+  padding-bottom: 7px;
+  padding-inline-start: 19px;
+  padding-inline-end: 19px;
+  padding-top: 7px;
+}
+
+.Button--large {
+  padding-bottom: 11px;
+  padding-inline-start: 19px;
+  padding-inline-end: 19px;
+  padding-top: 11px;
+}
+
+.Button-icon {
+  margin-top: 2px;
+}
+
+.Button--primary {
+  background: var(--puck-color-azure-04);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.14);
+}
+
+.Button:focus-visible {
+  outline: 2px solid var(--puck-color-azure-05);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .Button--primary:hover {
+    background-color: var(--puck-color-azure-03);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.26);
+  }
+}
+
+.Button--primary:active {
+  background-color: var(--puck-color-azure-02);
+  transform: translateY(0) scale(0.99);
+}
+
+.Button--secondary {
+  border: 1px solid currentColor;
+  color: currentColor;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .Button--secondary:hover {
+    background-color: var(--puck-color-azure-12);
+    border-color: var(--puck-color-azure-08);
+    color: var(--puck-color-black);
+    transform: translateY(-1px);
+  }
+}
+
+.Button--secondary:active {
+  background-color: var(--puck-color-azure-11);
+  color: var(--puck-color-black);
+  transform: translateY(0) scale(0.99);
+}
+
+.Button--flush {
+  border-radius: 0;
+}
+
+.Button--disabled,
+.Button--disabled:hover {
+  background-color: var(--puck-color-grey-07);
+  color: var(--puck-color-grey-03);
+  cursor: not-allowed;
+}
+
+.Button--fullWidth {
+  justify-content: center;
+  width: 100%;
+}
+
+.Button-spinner {
+  padding-inline-start: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .Button {
+    transition: none;
+  }
+}

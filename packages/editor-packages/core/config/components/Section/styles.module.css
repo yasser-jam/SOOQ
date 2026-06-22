@@ -1,0 +1,32 @@
+.Section:not(.Section .Section) {
+  padding-inline-start: 16px;
+  padding-inline-end: 16px;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .Section:not(.Section .Section) {
+    padding-inline-start: 24px;
+    padding-inline-end: 24px;
+  }
+}
+
+.Section-inner {
+  border-radius: var(--theme-radius-lg, 18px);
+  box-sizing: border-box;
+  margin-inline-start: auto;
+  margin-inline-end: auto;
+  min-width: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.Section-hidden {
+  filter: grayscale(0.16);
+  transition: filter 170ms ease;
+}
+
+.Section .Section .Section-inner {
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+}

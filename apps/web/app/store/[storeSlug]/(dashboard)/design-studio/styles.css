@@ -1,0 +1,753 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@500;600;700;800&display=swap");
+
+/* Fullscreen editor shell — Puck's grid expects a definite height chain */
+[data-design-studio-editor] .Puck,
+[data-design-studio-editor] [class*="_PuckLayout"] {
+  height: 100%;
+  min-height: 0;
+}
+
+body {
+  font-family: var(--theme-body-font, "DM Sans", "Segoe UI", sans-serif);
+  margin: 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ══ Puck editor — visual tuning ══════════════════════════════════════════
+   These overrides sit on top of `packages/core/styles.css`. Puck reads its
+   UI colours, typography and spacing from CSS custom properties, so we can
+   reshape the look of every field, button, panel and sidebar without
+   forking the editor. The goal: a calmer, more modern surface that feels
+   closer to Shopify/Framer than the default bright Puck theme.
+   ══════════════════════════════════════════════════════════════════════ */
+:root {
+  /* A more pleasant blue for selection outlines, active tabs and accents. */
+  --puck-color-azure-01: #051436;
+  --puck-color-azure-02: #0b2363;
+  --puck-color-azure-03: #1e3a8a;
+  --puck-color-azure-04: #2563eb;
+  --puck-color-azure-05: #3b82f6;
+  --puck-color-azure-06: #60a5fa;
+  --puck-color-azure-07: #93c5fd;
+  --puck-color-azure-08: #bfdbfe;
+  --puck-color-azure-09: #dbeafe;
+  --puck-color-azure-10: #e0ebff;
+  --puck-color-azure-11: #eff6ff;
+  --puck-color-azure-12: #f5f9ff;
+
+  /* Neutral grey scale — slightly cooler than the default for better contrast. */
+  --puck-color-grey-01: #0f172a;
+  --puck-color-grey-02: #1e293b;
+  --puck-color-grey-03: #334155;
+  --puck-color-grey-04: #475569;
+  --puck-color-grey-05: #64748b;
+  --puck-color-grey-06: #94a3b8;
+  --puck-color-grey-07: #cbd5e1;
+  --puck-color-grey-08: #e2e8f0;
+  --puck-color-grey-09: #e8edf4;
+  --puck-color-grey-10: #eef2f7;
+  --puck-color-grey-11: #f4f7fb;
+  --puck-color-grey-12: #f8fafc;
+
+  --editor-bg-top: #f8fbff;
+  --editor-bg-bottom: #eef4ff;
+  --editor-surface: #ffffff;
+  --editor-surface-soft: rgba(255, 255, 255, 0.82);
+  --editor-shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.06);
+  --editor-shadow-md: 0 18px 44px rgba(15, 23, 42, 0.11);
+
+  --site-shadow-soft: 0 10px 30px rgba(16, 33, 58, 0.09);
+  --site-shadow-lift: 0 20px 48px rgba(16, 33, 58, 0.15);
+  --site-outline-focus: 0 0 0 3px var(--theme-color-focusRing, rgba(11, 120, 197, 0.22));
+  --site-surface-glass: color-mix(in srgb, var(--theme-color-surface-elevated, #ffffff) 72%, white);
+}
+
+/* Softer body background behind the editor canvas. */
+html,
+body {
+  /* background: radial-gradient(
+      120% 70% at 0% 0%,
+      rgba(96, 165, 250, 0.14),
+      transparent
+    ),
+    radial-gradient(110% 90% at 100% 0%, rgba(37, 99, 235, 0.1), transparent),
+    linear-gradient(180deg, var(--editor-bg-top), var(--editor-bg-bottom));
+  background-attachment: fixed; */
+}
+
+[class*="_PuckLayout"] {
+  animation: EditorShell-enter 220ms ease-out;
+}
+
+@keyframes EditorShell-enter {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[class*="_PuckHeader"] {
+  /* background: linear-gradient(
+    180deg,
+    var(--editor-surface-soft),
+    rgba(255, 255, 255, 0.7)
+  ) !important;
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.24) !important;
+  box-shadow: var(--editor-shadow-sm); */
+}
+
+[class*="_PuckHeader"] button {
+  /* border-radius: 10px !important; */
+}
+
+[class*="_PuckLayout"] [class*="_SidePanel"],
+[class*="_PuckLayout"] [class*="_Sidebar"] {
+  /* background: #ffffff !important;
+  box-shadow: none; */
+}
+
+[class*="_PuckLayout-inner"] {
+  --puck-user-left-side-bar-width: 280px;
+}
+
+[class*="_PuckLayout"] [class*="_Sidebar"] {
+  gap: 12px;
+}
+
+[class*="_PuckLayout"] [class*="_Preview"] {
+  background: radial-gradient(
+      120% 90% at 50% -10%,
+      rgba(191, 219, 254, 0.38),
+      rgba(219, 234, 254, 0)
+    ),
+    linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+}
+
+/* ── Form controls ───────────────────────────────────────────────────── */
+/* Puck uses modular class names like `_Input-input_*` — we can't target
+   those safely by hash. Instead, we tune the visible appearance by hooking
+   into the fields it wraps with: every input/select/textarea inside the
+   side panel. The selectors below are intentionally tolerant. */
+
+[class*="_SidebarSection"] input[type="text"],
+[class*="_SidebarSection"] input[type="number"],
+[class*="_SidebarSection"] input[type="url"],
+[class*="_SidebarSection"] input[type="email"],
+[class*="_SidebarSection"] textarea,
+[class*="_SidebarSection"] select {
+  border-radius: 8px !important;
+  border-color: var(--puck-color-grey-09) !important;
+  background: #fff !important;
+  color: var(--puck-color-grey-02) !important;
+  padding: 10px 12px !important;
+  font-size: 13px !important;
+  transition: border-color 120ms ease, box-shadow 120ms ease !important;
+}
+
+[class*="_SidebarSection"] input[type="text"]:hover,
+[class*="_SidebarSection"] input[type="number"]:hover,
+[class*="_SidebarSection"] textarea:hover,
+[class*="_SidebarSection"] select:hover {
+  border-color: var(--puck-color-grey-07) !important;
+}
+
+[class*="_SidebarSection"] input[type="text"]:focus,
+[class*="_SidebarSection"] input[type="number"]:focus,
+[class*="_SidebarSection"] input[type="url"]:focus,
+[class*="_SidebarSection"] input[type="email"]:focus,
+[class*="_SidebarSection"] textarea:focus,
+[class*="_SidebarSection"] select:focus {
+  border-color: var(--puck-color-azure-05) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+  outline: none !important;
+}
+
+/* Field labels — a touch more hierarchy. */
+[class*="_Input-label"] {
+  color: var(--puck-color-grey-03) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* ── Side panel chrome ────────────────────────────────────────────────── */
+/* Gentle border radius on sidebar section headers so the whole panel
+   feels less like a spreadsheet and more like a modern design tool. */
+[class*="_SidebarSection-title"] {
+  border-radius: 6px !important;
+}
+
+/* ── Blocks sidebar — flat accordion triggers & spacing ─────────────── */
+[class*="_ComponentList"] {
+  padding: 0 6px 8px;
+}
+
+[class*="_ComponentList-title"] {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  color: var(--puck-color-grey-04) !important;
+  margin-bottom: 8px !important;
+  padding: 4px 2px !important;
+}
+
+[class*="_ComponentList-title"]:hover,
+[class*="_ComponentList-title"]:active {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--puck-color-grey-02) !important;
+}
+
+[class*="_ComponentList-titleIcon"] {
+  color: var(--puck-color-grey-05) !important;
+}
+
+/* Buttons inside the property panel — softer & slightly bolder. */
+[class*="_SidebarSection"] button[class*="Button"] {
+  border-radius: 8px !important;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease,
+    transform 80ms ease !important;
+}
+
+[class*="_SidebarSection"] button[class*="Button"]:hover {
+  transform: translateY(-1px);
+}
+
+/* ── Scrollbars inside the editor chrome ─────────────────────────────── */
+[class*="_SidePanel"] ::-webkit-scrollbar,
+[class*="_Sidebar"] ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+[class*="_SidePanel"] ::-webkit-scrollbar-thumb,
+[class*="_Sidebar"] ::-webkit-scrollbar-thumb {
+  background: var(--puck-color-grey-08);
+  border-radius: 10px;
+  border: 2px solid var(--puck-color-grey-11);
+  background-clip: padding-box;
+}
+
+[class*="_SidePanel"] ::-webkit-scrollbar-thumb:hover,
+[class*="_Sidebar"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--puck-color-grey-07);
+}
+
+/* ── Array fields — nicer spacing around dragged items ─────────────────
+   Puck renders array items as stacked cards. The defaults are cramped;
+   a hair more breathing room goes a long way. */
+[class*="_ArrayField"] [class*="Item"] {
+  border-radius: 10px !important;
+}
+
+[class*="_ArrayField-addButton"] {
+  border-radius: 10px !important;
+}
+
+/* ── Block items (drawer) — clean cards without gradients ───────────── */
+[class*="_Drawer"] {
+  gap: 8px;
+}
+
+[class*="_DrawerItem-draggable"] {
+  background: #ffffff !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  padding: 8px 10px !important;
+}
+
+[class*="_DrawerItem-draggable"]:hover {
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+[class*="_DrawerItem-preview"] {
+  background: #ffffff !important;
+}
+
+/* ── Selected component outline in the canvas ────────────────────────── */
+/* Match our refined azure palette so selection looks calmer. */
+[class*="_DraggableComponent--isSelected"]
+  [class*="_DraggableComponent-overlay"] {
+  box-shadow: 0 0 0 2px var(--puck-color-azure-04) inset !important;
+}
+
+.EditorHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.EditorHeaderContext {
+  align-items: center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), #f8fbff);
+  border: 1px solid #dbe4f4;
+  border-radius: 999px;
+  color: #334155;
+  display: inline-flex;
+  font-size: 11px;
+  gap: 8px;
+  height: 34px;
+  letter-spacing: 0.02em;
+  max-width: 260px;
+  padding: 0 11px;
+}
+
+.EditorHeaderContextLabel {
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.EditorHeaderContextPath {
+  color: #1e293b;
+  font-size: 11px;
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.EditorHintPill {
+  align-items: center;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 999px;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.26);
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 8px;
+  padding: 10px 14px;
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  z-index: 40;
+}
+
+.EditorHintPill:hover {
+  box-shadow: 0 20px 46px rgba(15, 23, 42, 0.33);
+  transform: translateY(-1px);
+}
+
+.EditorHintPill:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.EditorHintPill-key {
+  align-items: center;
+  background: rgba(148, 163, 184, 0.18);
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 5px;
+  display: inline-flex;
+  font-size: 11px;
+  min-width: 16px;
+  justify-content: center;
+  padding: 1px 5px;
+}
+
+.EditorShortcutOverlay {
+  align-items: center;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 50;
+}
+
+.EditorShortcutOverlayBackdrop {
+  background: rgba(15, 23, 42, 0.5);
+  border: 0;
+  inset: 0;
+  position: absolute;
+}
+
+.EditorShortcutDialog {
+  background: #ffffff;
+  border: 1px solid #dbe4f4;
+  border-radius: 16px;
+  box-shadow: 0 24px 66px rgba(15, 23, 42, 0.3);
+  max-height: calc(100vh - 40px);
+  max-width: 760px;
+  overflow-y: auto;
+  padding: 18px;
+  position: relative;
+  width: min(760px, calc(100vw - 28px));
+}
+
+.EditorShortcutDialogHeader {
+  align-items: start;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+.EditorShortcutEyebrow {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.EditorShortcutTitle {
+  color: #0f172a;
+  font-size: 22px;
+  line-height: 1.2;
+  margin: 6px 0 0;
+}
+
+.EditorShortcutClose {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #dbe4f4;
+  border-radius: 9px;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+.EditorShortcutClose:hover {
+  background: #f1f5f9;
+}
+
+.EditorShortcutClose:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+.EditorShortcutSections {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+}
+
+.EditorShortcutSection {
+  background: linear-gradient(180deg, #f8fbff, #ffffff 38%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.EditorShortcutSection h3 {
+  align-items: center;
+  color: #1e293b;
+  display: flex;
+  font-size: 14px;
+  gap: 8px;
+  margin: 0;
+}
+
+.EditorShortcutSection ul {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.EditorShortcutSection li {
+  align-items: center;
+  color: #334155;
+  display: flex;
+  font-size: 12px;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.EditorShortcutSection kbd {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-bottom-color: #94a3b8;
+  border-radius: 5px;
+  color: #0f172a;
+  display: inline-flex;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  min-height: 20px;
+  min-width: 20px;
+  justify-content: center;
+  padding: 0 6px;
+}
+
+.EditorShortcutKeys {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: flex-end;
+}
+
+.EditorShortcutFooter {
+  color: #475569;
+  font-size: 12px;
+  margin: 14px 0 0;
+}
+
+.EditorShortcutActions {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+
+.EditorShortcutGhostButton {
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  color: #475569;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 10px;
+}
+
+.EditorShortcutGhostButton:hover {
+  background: #f1f5f9;
+}
+
+.EditorShortcutPrimaryButton {
+  background: #0f172a;
+  border: 1px solid #0f172a;
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 12px;
+}
+
+.EditorShortcutPrimaryButton:hover {
+  background: #020617;
+  border-color: #020617;
+}
+
+/* ══ Demo storefront design language ═════════════════════════════════════
+   Applied to the rendered page root (`theme-root`) so all blocks/components
+   inherit one coherent visual system. */
+.theme-root {
+  background:
+    radial-gradient(
+      120% 80% at 0% -10%,
+      color-mix(in srgb, var(--theme-color-primary, #0b78c5) 15%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      100% 70% at 100% 0%,
+      color-mix(in srgb, var(--theme-color-neutral, #6b7d93) 14%, transparent),
+      transparent 66%
+    ),
+    linear-gradient(
+      180deg,
+      var(--theme-color-background, #f8fafc) 0%,
+      color-mix(in srgb, var(--theme-color-surface, #f6f8fc) 84%, white) 100%
+    );
+  color: var(--theme-color-text, #14243f);
+  min-height: 100vh;
+}
+
+.theme-root > div {
+  position: relative;
+}
+
+.theme-root > div::before {
+  background-image: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--theme-color-neutral, #6b7d93) 7%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--theme-color-neutral, #6b7d93) 6%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 44px 44px;
+  content: "";
+  inset: 0;
+  opacity: 0.45;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.theme-root > div > * {
+  position: relative;
+  z-index: 1;
+}
+
+.theme-root :where(h1, h2, h3, h4, h5, h6) {
+  color: var(--theme-color-text, #14243f);
+  font-family: var(--theme-font-1, "Space Grotesk", sans-serif);
+  letter-spacing: -0.025em;
+  line-height: 1.14;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.theme-root :where(p, li, dd, dt, figcaption, label, input, textarea, select, button) {
+  font-family: var(--theme-body-font, "DM Sans", "Segoe UI", sans-serif);
+}
+
+.theme-root :where(p, li) {
+  color: var(--theme-color-text-muted, #516079);
+  line-height: var(--theme-line-height-normal, 1.58);
+}
+
+.theme-root :where(a) {
+  color: var(--theme-color-primary, #0b78c5);
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--theme-color-primary, #0b78c5) 35%,
+    transparent
+  );
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+  transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+.theme-root :where(a:hover) {
+  color: var(--theme-color-primaryHover, #0a65a7);
+  text-decoration-color: currentColor;
+}
+
+.theme-root :where(button, a, input, textarea, select) {
+  transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease,
+    background-color 180ms ease, color 180ms ease;
+}
+
+.theme-root :where(button:hover, a[class*="-btn"]:hover, a[class*="-cta"]:hover) {
+  transform: translateY(-1px);
+}
+
+.theme-root :where(button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible) {
+  box-shadow: var(--site-outline-focus);
+  outline: none;
+}
+
+.theme-root :where(input[type="text"], input[type="email"], input[type="number"], input[type="search"], textarea, select) {
+  background: var(--theme-color-background, #ffffff);
+  border: 1px solid var(--theme-color-border, #d4dbe5);
+  border-radius: var(--theme-radius-md, 12px);
+  color: var(--theme-color-text, #14243f);
+}
+
+.theme-root :where(section) {
+  isolation: isolate;
+  position: relative;
+}
+
+.theme-root :where(section + section) {
+  border-top: 1px solid
+    color-mix(in srgb, var(--theme-color-border, #d4dbe5) 62%, transparent);
+}
+
+.theme-root :where(.Hero, .Stats-items, .Testimonials-card, .Accordion-item, .ProductCard-inner, .Wishlist-card, .OrderHistory-row, .CheckoutForm-panel, .ContactForm-form, .CartSection-itemCard, .CategoryListMenu-card, .SideDrawer-panel, .Sidebar--card) {
+  box-shadow: var(--site-shadow-soft);
+}
+
+.theme-root :where(.ProductCard-inner, .Testimonials-card, .Wishlist-card, .OrderHistory-row, .CheckoutForm-panel, .ContactForm-form, .CartSection-itemCard, .CategoryListMenu-card) {
+  border-radius: var(--theme-radius-lg, 18px);
+  border-color: var(--theme-color-border, #d4dbe5);
+}
+
+.theme-root :where(.NavMenu-item, .drawerToggle, .ContactForm-submit, .CheckoutForm-btn, .CartSection-checkout, .Wishlist-cta, .CategoryListMenu-trigger, .SideDrawer-trigger) {
+  border-radius: var(--theme-radius-md, 12px);
+}
+
+.theme-root :where(.Hero, .Stats-items, .Testimonials-card, .ProductCard-inner, .CheckoutForm-panel, .ContactForm-form, .Wishlist-card, .OrderHistory-row, .CartSection-itemCard, .CategoryListMenu-popover, .SideDrawer-panel) {
+  animation: SiteComponent-enter 440ms ease both;
+}
+
+@keyframes SiteComponent-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 980px) {
+  .EditorHeaderContext {
+    display: none;
+  }
+
+  .theme-root > div::before {
+    opacity: 0.28;
+  }
+}
+
+@media (max-width: 760px) {
+  .EditorShortcutOverlay {
+    padding: 10px;
+  }
+
+  .EditorShortcutSections {
+    grid-template-columns: 1fr;
+  }
+
+  .EditorShortcutActions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .EditorShortcutGhostButton,
+  .EditorShortcutPrimaryButton {
+    width: 100%;
+  }
+
+  .EditorHintPill {
+    right: 10px;
+    left: 10px;
+    justify-content: center;
+  }
+
+  .theme-root :where(h1) {
+    font-size: clamp(1.9rem, 8vw, 2.4rem);
+  }
+
+  .theme-root :where(section + section) {
+    border-top-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="_PuckLayout"],
+  [class*="_SidebarSection"] button[class*="Button"],
+  [class*="_SidebarSection"] input,
+  [class*="_SidebarSection"] textarea,
+  [class*="_SidebarSection"] select,
+  .theme-root *,
+  .EditorHintPill,
+  .EditorShortcutGhostButton,
+  .EditorShortcutPrimaryButton {
+    animation: none !important;
+    transition: none !important;
+  }
+}

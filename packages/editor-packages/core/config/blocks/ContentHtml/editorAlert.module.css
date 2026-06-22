@@ -1,0 +1,44 @@
+.alert {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--puck-color-amber-07, #d97706);
+  background: color-mix(in srgb, var(--puck-color-amber-09, #fbbf24) 18%, white);
+  color: var(--puck-color-grey-02, #1f2937);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.alertTitle {
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.alertBody {
+  margin: 0;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--puck-color-grey-07, #d1d5db);
+  background: var(--puck-color-white, #fff);
+  color: inherit;
+  box-sizing: border-box;
+}
+
+.textarea:focus {
+  outline: 2px solid var(--puck-color-azure-05, #3b82f6);
+  outline-offset: 0;
+}
+
+.textarea:disabled,
+.textarea[readonly] {
+  opacity: 0.7;
+}

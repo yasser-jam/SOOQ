@@ -3,6 +3,14 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@/core": ["../../packages/editor-packages/core/index.ts"],
+      "@/core/*": ["../../packages/editor-packages/core/*"],
+      "@/plugin-heading-analyzer": [
+        "../../packages/editor-packages/plugin-heading-analyzer/index.ts"
+      ],
+      "@/plugin-heading-analyzer/*": [
+        "../../packages/editor-packages/plugin-heading-analyzer/*"
+      ],
       "@/*": ["./*"],
       "@workspace/ui/*": ["../../packages/ui/src/*"]
     },

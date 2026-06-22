@@ -31,6 +31,9 @@
     "react-phone-number-input": "^3.4.16",
     "sass": "^1.99.0",
     "sonner": "^2.0.7",
+    "@puckeditor/core": "workspace:*",
+    "@puckeditor/plugin-heading-analyzer": "workspace:*",
+    "@puckeditor/plugin-emotion-cache": "workspace:*",
     "zod": "^4.0.0"
   },
   "devDependencies": {

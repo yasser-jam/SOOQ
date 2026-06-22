@@ -1,0 +1,92 @@
+/* ── Container ─────────────────────────────────────────────── */
+.ProductImage {
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  flex-shrink: 0; /* don't shrink when used next to ProductInfo */
+}
+
+/* ── Aspect ratios ─────────────────────────────────────────── */
+.ProductImage--square    { aspect-ratio: 1 / 1; }
+.ProductImage--landscape { aspect-ratio: 4 / 3; }
+.ProductImage--portrait  { aspect-ratio: 3 / 4; }
+
+/* ── Border radius ─────────────────────────────────────────── */
+.ProductImage--radius-none { border-radius: 0; }
+.ProductImage--radius-sm   { border-radius: 6px; }
+.ProductImage--radius-md   { border-radius: 12px; }
+.ProductImage--radius-lg   { border-radius: 20px; }
+
+/* ── Image ─────────────────────────────────────────────────── */
+.ProductImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ProductImage-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 120px;
+  background: var(--puck-color-grey-10, #f0f0f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--puck-color-grey-06, #aaa);
+  font-size: 13px;
+}
+
+/* ── Badges ────────────────────────────────────────────────── */
+.ProductImage-badges {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  pointer-events: none;
+}
+
+.ProductImage-badge {
+  padding: var(--theme-badge-padding-y, 4px) var(--theme-badge-padding-x, 8px);
+  border-radius: var(--theme-badge-radius, 4px);
+  font-size: var(--theme-badge-font-size, 11px);
+  font-weight: var(--theme-badge-font-weight, 600);
+  letter-spacing: 0.03em;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.ProductImage-badge--discount {
+  background: var(--theme-badge-discount-bg, #ef4444);
+  color: var(--theme-badge-discount-fg, #fff);
+  border: var(--theme-badge-discount-border, none);
+}
+
+.ProductImage-badge--inStock {
+  background: var(--theme-badge-stock-bg, #22c55e);
+  color: var(--theme-badge-stock-fg, #fff);
+  border: var(--theme-badge-stock-border, none);
+}
+
+.ProductImage-badge--outOfStock {
+  background: var(--theme-badge-out-bg, var(--puck-color-grey-07, #888));
+  color: var(--theme-badge-out-fg, #fff);
+  border: var(--theme-badge-out-border, none);
+}
+
+/* ── Empty state ───────────────────────────────────────────── */
+.ProductImage-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--puck-color-grey-11, #f8f8f8);
+  border: 2px dashed var(--puck-color-grey-09, #ddd);
+  border-radius: 8px;
+  color: var(--puck-color-grey-06, #aaa);
+  font-size: 13px;
+  text-align: center;
+  min-height: 80px;
+}

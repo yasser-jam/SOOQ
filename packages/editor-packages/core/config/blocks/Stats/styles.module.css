@@ -1,0 +1,80 @@
+.Stats-items {
+  background:
+    radial-gradient(
+      95% 90% at 0% 0%,
+      color-mix(in srgb, var(--theme-color-primary, #0b78c5) 28%, white),
+      transparent 70%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--theme-color-dark, #10213a) 96%, black) 0%,
+      var(--theme-color-dark, #10213a) 48%,
+      color-mix(in srgb, var(--theme-color-primary, #0b78c5) 42%, var(--theme-color-dark, #10213a))
+        100%
+    );
+  border: 1px solid color-mix(in srgb, var(--theme-color-primary, #0b78c5) 34%, transparent);
+  border-radius: var(--theme-radius-xl, 24px);
+  box-shadow: var(--site-shadow-lift, 0 20px 48px rgba(16, 33, 58, 0.2));
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 42px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1040px;
+  padding: clamp(34px, 6vw, 90px) clamp(16px, 4vw, 44px);
+}
+
+@media (min-width: 768px) {
+  .Stats-items {
+    padding: clamp(40px, 5vw, 84px) clamp(24px, 4vw, 48px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .Stats-items {
+    grid-template-columns: 1fr 1fr;
+    padding: clamp(58px, 7vw, 112px) clamp(28px, 4vw, 56px);
+    max-width: 100%;
+  }
+}
+
+.Stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  gap: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.Stats-icon {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-color-primary, #0b78c5) 20%, white);
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 68px;
+  height: 68px;
+}
+
+.Stats-label {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(1.02rem, 1.8vw, 1.35rem);
+  font-family: var(--theme-font-1, "Space Grotesk", sans-serif);
+  text-align: center;
+  font-weight: 620;
+  letter-spacing: -0.015em;
+  opacity: 1;
+}
+
+.Stats-value {
+  color: #ffffff;
+  font-family: var(--theme-font-1, "Space Grotesk", sans-serif);
+  font-size: clamp(2.5rem, 7vw, 4.85rem);
+  font-weight: 760;
+  letter-spacing: -0.03em;
+  line-height: 0.96;
+}

@@ -1,0 +1,113 @@
+.Accordion {
+  --Accordion-bg: #ffffff;
+  --Accordion-text: #0f172a;
+  --Accordion-accent: #2563eb;
+
+  color: var(--Accordion-text);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.Accordion-heading {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--Accordion-text);
+}
+
+.Accordion-description {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(15, 23, 42, 0.78);
+}
+
+.Accordion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.Accordion-item {
+  background: var(--Accordion-bg);
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  transition: border-color 140ms ease, box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.Accordion-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.09);
+}
+
+.Accordion-item[open] {
+  border-color: var(--Accordion-accent);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.14);
+}
+
+.Accordion-summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 14px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.94rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.Accordion-summary::-webkit-details-marker {
+  display: none;
+}
+
+.Accordion-chevron {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 130ms ease;
+  opacity: 0.78;
+}
+
+.Accordion-item[open] .Accordion-chevron {
+  transform: rotate(225deg);
+}
+
+.Accordion-body {
+  padding: 0 14px 14px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: rgba(15, 23, 42, 0.88);
+}
+
+.Accordion-bodyText {
+  margin: 10px 0 0;
+  white-space: pre-wrap;
+}
+
+.Accordion--minimal .Accordion-item {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  box-shadow: none;
+}
+
+.Accordion--minimal .Accordion-item:hover {
+  box-shadow: none;
+  transform: none;
+}
+
+.Accordion--outline .Accordion-item {
+  border-width: 2px;
+  box-shadow: none;
+}

@@ -1,0 +1,191 @@
+/* CheckoutForm-* for getClassNameFactory("CheckoutForm", styles) */
+
+.CheckoutForm {
+  width: 100%;
+  max-width: 560px;
+  min-width: 0;
+  color: var(--puck-color-grey-01, #111827);
+  font-family: system-ui, sans-serif;
+}
+
+.CheckoutForm-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.CheckoutForm-subtitle {
+  margin: 0 0 1.25rem;
+  font-size: 0.875rem;
+  color: var(--puck-color-grey-03, #64748b);
+}
+
+.CheckoutForm-steps {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.CheckoutForm-stepTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  background: var(--puck-color-grey-09, #f8fafc);
+  color: var(--puck-color-grey-03, #64748b);
+  cursor: default;
+}
+
+.CheckoutForm-stepTab--active {
+  border-color: var(--puck-color-grey-04, #3b82f6);
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.CheckoutForm-stepTab--done {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.CheckoutForm-panel {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.CheckoutForm-field {
+  margin-bottom: 0.85rem;
+}
+
+.CheckoutForm-field:last-child {
+  margin-bottom: 0;
+}
+
+.CheckoutForm-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--puck-color-grey-03, #475569);
+  margin-bottom: 0.25rem;
+}
+
+.CheckoutForm-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  border-radius: 6px;
+}
+
+.CheckoutForm-input:disabled {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.CheckoutForm-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.CheckoutForm-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.1rem;
+}
+
+.CheckoutForm-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  background: #fff;
+  cursor: pointer;
+}
+
+.CheckoutForm-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.CheckoutForm-btnPrimary {
+  background: var(--puck-color-grey-01, #111827);
+  color: #fff;
+  border-color: transparent;
+}
+
+.CheckoutForm-paymentCard {
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px dashed var(--puck-color-grey-08, #e2e8f0);
+  background: var(--puck-color-grey-09, #f8fafc);
+  font-size: 0.875rem;
+}
+
+.CheckoutForm-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.875rem;
+  padding: 0.35rem 0;
+}
+
+.CheckoutForm-line--muted {
+  color: var(--puck-color-grey-03, #64748b);
+}
+
+.CheckoutForm-line--total {
+  font-weight: 700;
+  font-size: 1rem;
+  padding-top: 0.65rem;
+  margin-top: 0.35rem;
+  border-top: 1px solid var(--puck-color-grey-08, #e2e8f0);
+}
+
+.CheckoutForm-itemRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.CheckoutForm-itemRow:last-of-type {
+  border-bottom: none;
+}
+
+.CheckoutForm-badge {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #166534;
+}
+
+.CheckoutForm-sessionHint {
+  margin: 0 0 1rem;
+  font-size: 0.75rem;
+  color: var(--puck-color-grey-03, #64748b);
+}
+
+.CheckoutForm-sessionHint code {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: #f1f5f9;
+}

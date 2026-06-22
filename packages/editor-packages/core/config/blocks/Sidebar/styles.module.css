@@ -1,0 +1,126 @@
+.Sidebar {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.Sidebar--bordered {
+  border: 1px solid var(--theme-color-border, #e5e7eb);
+  border-radius: var(--theme-radius-md, 8px);
+  background: var(--theme-color-surface-elevated, #ffffff);
+}
+
+.Sidebar--card {
+  border: 1px solid var(--theme-color-border, #e5e7eb);
+  border-radius: var(--theme-radius-lg, 18px);
+  box-shadow: var(--site-shadow-soft, 0 10px 30px rgba(16, 33, 58, 0.1));
+  background: var(--theme-color-surface-elevated, #ffffff);
+}
+
+.Sidebar--divider {
+  border-inline-end: 1px solid var(--theme-color-border, #e5e7eb);
+}
+
+/* Docked mode — the sidebar is pinned to the left (or right) edge of the
+   page like a Shopify-admin rail. The `position: fixed` itself is applied
+   inline from the render (because top/side offsets are dynamic), but we
+   still use these classes for decoration and to tweak borders so the rail
+   reads as a rail and not a floating card. */
+.Sidebar--dockLeft,
+.Sidebar--dockRight {
+  border-radius: 0;
+  box-shadow: 0 0 0 1px var(--theme-color-border, #e5e7eb);
+  /* Inside an iframe preview the fixed position is relative to the iframe's
+     viewport, which is exactly what we want. */
+}
+
+.Sidebar--dockLeft {
+  border-inline-end: 1px solid var(--theme-color-border, #e5e7eb);
+  border-inline-start: none;
+}
+
+.Sidebar--dockRight {
+  border-inline-start: 1px solid var(--theme-color-border, #e5e7eb);
+  border-inline-end: none;
+}
+
+.Sidebar-header {
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--theme-color-border, #e5e7eb);
+}
+
+.Sidebar-title {
+  font-family: var(--theme-font-1, "Space Grotesk", sans-serif);
+  font-size: 0.92rem;
+  font-weight: 640;
+  letter-spacing: -0.015em;
+  margin: 0;
+  color: var(--theme-color-text, inherit);
+}
+
+/* The body wraps Puck's DropZone. We explicitly give it a visible drop area
+   (min-height: 72px) so the merchant can actually target it with the mouse
+   when the Sidebar is empty — previously `flex: 1; min-height: 0` collapsed
+   it into an invisible line because the aside has no height constraint from
+   its grid parent. Gap is applied to the inner DropZone via CSS below. */
+.Sidebar-body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Puck renders a nested DropZone inside `.Sidebar-body`. The DropZone is the
+   actual drop target, so give *it* a pleasing empty-state and keep children
+   flowing vertically with spacing. */
+.Sidebar-body > :global([data-puck-dropzone]) {
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Empty-state hint — only visible when the DropZone truly has no children.
+   We hide it as soon as any [data-puck-component] is rendered inside. */
+.Sidebar-emptyHint {
+  display: none;
+  font-size: 0.78rem;
+  color: var(--theme-color-muted, #6b7280);
+  text-align: center;
+  padding: 8px 4px 4px;
+  pointer-events: none;
+  font-style: italic;
+}
+
+.Sidebar-body:not(:has(:global([data-puck-component]))) .Sidebar-emptyHint {
+  display: block;
+}
+
+/* Mobile collapsed mode: show as a horizontally scrollable strip.
+   Applies when container width < 640px. */
+@media (max-width: 640px) {
+  .Sidebar[data-collapse-on-mobile="true"] {
+    /* Reset to horizontal strip */
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .Sidebar[data-collapse-on-mobile="true"] .Sidebar-body {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 8px;
+  }
+
+  .Sidebar[data-collapse-on-mobile="true"] .Sidebar-header {
+    display: none;
+  }
+
+  .Sidebar[data-collapse-on-mobile="hidden"] {
+    display: none;
+  }
+}

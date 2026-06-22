@@ -1,0 +1,199 @@
+/* ProductSearchMenu-* for getClassNameFactory("ProductSearchMenu", styles) */
+
+.ProductSearchMenu {
+  position: relative;
+  display: inline-block;
+  min-width: 0;
+  font-family: system-ui, sans-serif;
+}
+
+.ProductSearchMenu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--puck-color-grey-01, #111827);
+  background: #fff;
+  border: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.ProductSearchMenu-trigger:hover {
+  border-color: var(--puck-color-grey-06, #cbd5e1);
+  background: var(--puck-color-grey-09, #f8fafc);
+}
+
+.ProductSearchMenu-trigger:focus-visible {
+  outline: 2px solid var(--puck-color-grey-04, #3b82f6);
+  outline-offset: 2px;
+}
+
+.ProductSearchMenu-triggerIcon {
+  display: flex;
+  color: var(--puck-color-grey-03, #64748b);
+}
+
+.ProductSearchMenu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
+  background: rgba(15, 23, 42, 0.25);
+  border: none;
+  padding: 0;
+  cursor: default;
+}
+
+.ProductSearchMenu-popover {
+  position: absolute;
+  z-index: 1050;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  width: min(100vw - 2rem, 420px);
+  max-height: min(70vh, 520px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  border-radius: 12px;
+  box-shadow:
+    0 10px 40px rgba(15, 23, 42, 0.12),
+    0 2px 8px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.ProductSearchMenu-header {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  flex-shrink: 0;
+}
+
+.ProductSearchMenu-heading {
+  margin: 0 0 0.65rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--puck-color-grey-01, #111827);
+}
+
+.ProductSearchMenu-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  border-radius: 8px;
+}
+
+.ProductSearchMenu-input:focus {
+  outline: none;
+  border-color: var(--puck-color-grey-04, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.ProductSearchMenu-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+  min-height: 0;
+}
+
+.ProductSearchMenu-empty {
+  padding: 1.25rem 1rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--puck-color-grey-03, #64748b);
+}
+
+.ProductSearchMenu-card {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+  padding: 0.5rem;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ProductSearchMenu-card:hover {
+  background: var(--puck-color-grey-09, #f8fafc);
+  border-color: var(--puck-color-grey-08, #e2e8f0);
+}
+
+.ProductSearchMenu-card:focus-visible {
+  outline: 2px solid var(--puck-color-grey-04, #3b82f6);
+  outline-offset: 0;
+}
+
+.ProductSearchMenu-thumb {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--puck-color-grey-09, #f1f5f9);
+}
+
+.ProductSearchMenu-cardBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.ProductSearchMenu-cardTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--puck-color-grey-01, #111827);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ProductSearchMenu-cardMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ProductSearchMenu-price {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--puck-color-grey-01, #111827);
+}
+
+.ProductSearchMenu-price--strike {
+  font-weight: 500;
+  text-decoration: line-through;
+  color: var(--puck-color-grey-03, #94a3b8);
+  font-size: 0.75rem;
+}
+
+.ProductSearchMenu-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.ProductSearchMenu-footer {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  font-size: 0.7rem;
+  color: var(--puck-color-grey-03, #64748b);
+  flex-shrink: 0;
+}

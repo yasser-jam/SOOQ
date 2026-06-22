@@ -1,0 +1,109 @@
+.ThemesPanel {
+  padding: 12px 0;
+}
+
+.ThemesPanel-header {
+  padding: 0 16px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--puck-color-grey-05, #6b7280);
+}
+
+.ThemesPanel-intro {
+  margin: -4px 16px 12px;
+  color: var(--puck-color-grey-05, #6b7280);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ThemesPanel-gallery {
+  padding: 0 8px 12px;
+}
+
+.ThemesPanel-galleryLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--puck-color-grey-02, #111827);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.12s;
+}
+
+.ThemesPanel-galleryLink:hover {
+  background: var(--puck-color-grey-11, #f3f4f6);
+}
+
+.ThemesPanel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+.ThemesPanel-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  color: var(--puck-color-grey-02, #111827);
+  transition: background 0.12s;
+}
+
+.ThemesPanel-item:hover {
+  background: var(--puck-color-grey-11, #f3f4f6);
+}
+
+.ThemesPanel-item--active {
+  background: var(--puck-color-violet-11, #f5f3ff);
+}
+
+.ThemesPanel-swatch {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.34);
+}
+
+.ThemesPanel-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.ThemesPanel-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ThemesPanel-desc {
+  font-size: 11px;
+  color: var(--puck-color-grey-05, #6b7280);
+  margin-top: 2px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ThemesPanel-hint {
+  margin-top: 14px;
+  padding: 0 16px;
+  font-size: 11px;
+  color: var(--puck-color-grey-06, #9ca3af);
+  line-height: 1.5;
+}

@@ -1,0 +1,291 @@
+.Drawer {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--puck-font-family);
+  gap: 10px;
+}
+
+.DrawerItem {
+  position: relative;
+  z-index: 0;
+}
+
+.DrawerItem:not(.DrawerItem--disabled):is(:hover, :focus-within) {
+  z-index: 20;
+}
+
+.Drawer-draggable {
+  position: relative;
+}
+
+.Drawer-draggableBg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.DrawerItem-draggable {
+  background: linear-gradient(180deg, var(--puck-color-white), #fbfdff);
+  cursor: grab;
+  padding: 12px;
+  display: flex;
+  border: 1px var(--puck-color-grey-09) solid;
+  border-radius: 10px;
+  font-size: var(--puck-font-size-xxs);
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+  transition: background-color 140ms ease, color 140ms ease,
+    border-color 140ms ease, box-shadow 140ms ease, transform 120ms ease;
+}
+
+.DrawerItem--disabled .DrawerItem-draggable {
+  background: var(--puck-color-grey-11);
+  color: var(--puck-color-grey-05);
+  cursor: not-allowed; /** Move this out of inline styles */
+}
+
+.DrawerItem:focus-visible {
+  outline: 0;
+}
+
+.Drawer:not(.Drawer--isDraggingFrom)
+  .DrawerItem:focus-visible
+  .DrawerItem-draggable {
+  border-radius: 10px;
+  outline: 2px solid var(--puck-color-azure-05);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .Drawer:not(.Drawer--isDraggingFrom)
+    .DrawerItem:not(.DrawerItem--disabled)
+    .DrawerItem-draggable:hover {
+    background-color: var(--puck-color-azure-12);
+    border-color: var(--puck-color-azure-09);
+    box-shadow: 0 7px 20px rgba(15, 23, 42, 0.08);
+    color: var(--puck-color-azure-04);
+    transform: translateY(-1px);
+  }
+}
+
+.Drawer:not(.Drawer--isDraggingFrom)
+  .DrawerItem:not(.DrawerItem--disabled)
+  .DrawerItem-draggable:active {
+  transform: translateY(0) scale(0.995);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.DrawerItem-name {
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.DrawerItem-preview {
+  --drawer-preview-height: 152px;
+  --drawer-preview-scale: 0.68;
+
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(248, 250, 252, 0.96) 52%,
+    rgba(239, 246, 255, 0.92) 100%
+  );
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.75) inset,
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 8px 18px -6px rgba(15, 23, 42, 0.1),
+    0 18px 36px -12px rgba(15, 23, 42, 0.14);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px) scale(0.96);
+  transform-origin: top center;
+  transition:
+    opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 180ms ease;
+  z-index: 30;
+}
+
+.DrawerItem-previewImage {
+  width: 100%;
+  height: var(--drawer-preview-height);
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  display: block;
+  background: var(--puck-color-white);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.65) inset,
+    0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.DrawerItem-previewSurface {
+  width: 100%;
+  height: var(--drawer-preview-height);
+  border-radius: 10px;
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  overflow: hidden;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.65) inset,
+    0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.DrawerItem-previewStage {
+  --preview-scale: var(--drawer-preview-scale);
+  width: calc(100% / var(--preview-scale));
+  min-height: calc(var(--drawer-preview-height) / var(--preview-scale));
+  transform: scale(var(--preview-scale));
+  transform-origin: top left;
+  pointer-events: none;
+  color: #0f172a;
+  overflow: hidden;
+}
+
+.DrawerItem-previewStage > * {
+  width: 100%;
+}
+
+.DrawerItem-slotStub {
+  min-height: 64px;
+  background: repeating-linear-gradient(
+    135deg,
+    #eff6ff,
+    #eff6ff 12px,
+    #f8fbff 12px,
+    #f8fbff 24px
+  );
+  border: 1px dashed #bfdbfe;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  align-content: center;
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+.DrawerItem-slotChip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid #93c5fd;
+  background: rgba(255, 255, 255, 0.95);
+  color: #1e3a8a;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.DrawerItem-slotEmpty {
+  color: #1e3a8a;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.DrawerItem-previewCaption {
+  color: var(--puck-color-grey-04);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.DrawerItem-previewCaption span:first-child {
+  min-width: 0;
+}
+
+.DrawerItem-previewCaption strong,
+.DrawerItem-previewCaption small {
+  display: block;
+}
+
+.DrawerItem-previewCaption strong {
+  color: var(--puck-color-grey-02);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.DrawerItem-previewCaption small {
+  color: var(--puck-color-grey-05);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.45;
+  margin-top: 3px;
+}
+
+.DrawerItem-previewSubCaption {
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--puck-color-azure-04);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .Drawer:not(.Drawer--isDraggingFrom)
+    .DrawerItem:not(.DrawerItem--disabled):hover
+    > .DrawerItem-preview,
+  .Drawer:not(.Drawer--isDraggingFrom)
+    .DrawerItem:not(.DrawerItem--disabled):focus-within
+    > .DrawerItem-preview {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.85) inset,
+      0 2px 4px rgba(15, 23, 42, 0.05),
+      0 12px 24px -8px rgba(15, 23, 42, 0.12),
+      0 24px 48px -16px rgba(37, 99, 235, 0.16);
+  }
+}
+
+@media (pointer: coarse) {
+  .DrawerItem-preview {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .DrawerItem-draggable,
+  .DrawerItem-preview {
+    transition: none;
+  }
+}

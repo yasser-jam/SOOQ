@@ -1,0 +1,111 @@
+.OrderHistory {
+  width: 100%;
+  font-family: var(--theme-body-font, inherit);
+  color: var(--theme-color-text, #111827);
+}
+
+.OrderHistory-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--theme-color-text-muted, #6b7280);
+  border: 1px dashed var(--theme-color-border, #e5e7eb);
+  border-radius: 8px;
+}
+
+.OrderHistory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.OrderHistory-item {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  background: var(--theme-color-background, #ffffff);
+  border: 1px solid var(--theme-color-border, #e5e7eb);
+  border-radius: 10px;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.OrderHistory-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.OrderHistory-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--theme-color-muted, #f3f4f6);
+}
+
+.OrderHistory-thumbPlaceholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  background: var(--theme-color-muted, #f3f4f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--theme-color-text-muted, #9ca3af);
+}
+
+.OrderHistory-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.OrderHistory-orderNumber {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.OrderHistory-date {
+  font-size: 13px;
+  color: var(--theme-color-text-muted, #6b7280);
+}
+
+.OrderHistory-itemCount {
+  font-size: 12px;
+  color: var(--theme-color-text-muted, #6b7280);
+}
+
+.OrderHistory-trailing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.OrderHistory-total {
+  font-weight: 600;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.OrderHistory-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.OrderHistory-status--pending     { background: #fef3c7; color: #92400e; }
+.OrderHistory-status--confirmed   { background: #dbeafe; color: #1e40af; }
+.OrderHistory-status--shipped     { background: #e0e7ff; color: #3730a3; }
+.OrderHistory-status--delivered   { background: #d1fae5; color: #065f46; }
+.OrderHistory-status--cancelled   { background: #fee2e2; color: #991b1b; }
+.OrderHistory-status--returned    { background: #f3f4f6; color: #4b5563; }
+
+/* RTL: swap the trailing alignment so price/badge sit on the visual right (= logical end) */
+[dir="rtl"] .OrderHistory-trailing {
+  align-items: flex-end;
+}

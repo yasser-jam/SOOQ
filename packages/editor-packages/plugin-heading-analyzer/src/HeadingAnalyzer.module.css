@@ -1,0 +1,58 @@
+.HeadingAnalyzer {
+  display: block;
+  padding: 16px;
+}
+
+.HeadingAnalyzer-cssWarning {
+  display: none !important;
+}
+
+.HeadingAnalyzerItem {
+  display: inline;
+}
+
+.HeadingAnalyzerItem--missing {
+  color: var(--puck-color-red-04);
+}
+
+.HeadingAnalyzer-intro {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--puck-color-azure-09);
+  border-radius: 10px;
+  background: var(--puck-color-azure-12);
+  color: var(--puck-color-grey-04);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.HeadingAnalyzer-intro strong {
+  color: var(--puck-color-grey-02);
+  font-size: 13px;
+}
+
+.HeadingAnalyzer-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.HeadingAnalyzer-summary span {
+  border: 1px solid var(--puck-color-grey-09);
+  border-radius: 999px;
+  color: var(--puck-color-grey-04);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+}
+
+.HeadingAnalyzer-empty {
+  border: 1px dashed var(--puck-color-grey-08);
+  border-radius: 10px;
+  color: var(--puck-color-grey-05);
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 12px;
+}

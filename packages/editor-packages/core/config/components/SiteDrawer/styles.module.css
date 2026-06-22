@@ -1,0 +1,302 @@
+/* The wrapper doesn't render any visible content itself — its only job is
+   to hold a ref we can use to discover the owning document and then portal
+   everything else to `document.body`. We use `display: contents` in the
+   inline style so it has no box at all. The rules here apply to the portal
+   subtree. */
+
+.root {
+  /* nothing — rendered via React portal */
+}
+
+.hideMobile {
+}
+.hideDesktop {
+}
+
+@media (max-width: 640px) {
+  .hideMobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .hideDesktop {
+    display: none !important;
+  }
+}
+
+/* ── Floating trigger ───────────────────────────────────────────────── */
+.floatingTrigger {
+  position: fixed;
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.floatingTrigger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.2);
+}
+
+.floatingLeft {
+  left: 16px;
+  bottom: 16px;
+}
+
+.floatingRight {
+  right: 16px;
+  bottom: 16px;
+}
+
+.floatingLabel {
+  line-height: 1;
+}
+
+/* ── Edge hover sensor ─────────────────────────────────────────────── */
+.edgeSensor {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  z-index: 59;
+  background: transparent;
+}
+
+.edgeLeft {
+  left: 0;
+}
+
+.edgeRight {
+  right: 0;
+}
+
+/* ── Overlay ────────────────────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition-property: opacity;
+  transition-timing-function: ease-out;
+  z-index: 50;
+}
+
+.overlayOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Panel ──────────────────────────────────────────────────────────── */
+.panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
+  z-index: 60;
+  transition-property: transform, opacity;
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform, opacity;
+  overflow: hidden;
+}
+
+.sideLeft {
+  left: 0;
+  border-inline-end: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.sideRight {
+  right: 0;
+  border-inline-start: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* ── Animations ─────────────────────────────────────────────────────── */
+.animSlide.sideLeft {
+  transform: translateX(-100%);
+  opacity: 1;
+}
+
+.animSlide.sideRight {
+  transform: translateX(100%);
+  opacity: 1;
+}
+
+.animSlide.panelOpen {
+  transform: translateX(0);
+}
+
+.animFade {
+  transform: translateX(0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.animFade.panelOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.animScale {
+  transform: scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.animScale.sideLeft {
+  transform-origin: left center;
+}
+
+.animScale.sideRight {
+  transform-origin: right center;
+}
+
+.animScale.panelOpen {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.animNone {
+  opacity: 0;
+  pointer-events: none;
+  transition-duration: 0ms !important;
+}
+
+.animNone.panelOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.panelOpen {
+  pointer-events: auto;
+}
+
+.disabledPanel {
+  position: fixed;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 0;
+  border: 1px dashed rgba(37, 99, 235, 0.45);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  z-index: 58;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.disabledTitle {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.disabledHint {
+  font-size: 11px;
+  opacity: 0.78;
+}
+
+/* ── Editor preview badge ──────────────────────────────────────────── */
+.editorBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: #1e3a8a;
+  background: linear-gradient(
+    90deg,
+    rgba(59, 130, 246, 0.12),
+    rgba(59, 130, 246, 0.04)
+  );
+  border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+  user-select: none;
+}
+
+.editorDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  animation: sooqDrawerPulse 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes sooqDrawerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Panel content ──────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: inherit;
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.navItem {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.navItem:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--sooq-drawer-accent, inherit);
+}

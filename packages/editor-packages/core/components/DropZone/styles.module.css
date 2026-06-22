@@ -1,0 +1,132 @@
+.DropZone {
+  --resize-animation-ms: 150ms;
+
+  position: relative;
+  height: 100%;
+  min-height: var(--min-empty-height);
+  outline-offset: -2px;
+  border-radius: 10px;
+  transition: background 160ms ease-out, outline-color 160ms ease-out,
+    box-shadow 160ms ease-out;
+  width: 100%;
+}
+
+.DropZone--hasChildren {
+  min-height: 0;
+}
+
+.DropZone:empty {
+  min-height: var(--min-empty-height);
+}
+
+/* We use global data-puck-dragging to avoid re-rendering DropZone */
+[data-puck-entry]:not([data-puck-dragging]) .DropZone {
+  transition: min-height var(--resize-animation-ms) ease-in;
+}
+
+.DropZone--isAreaSelected,
+.DropZone--hoveringOverArea:not(.DropZone--isRootZone) {
+  background: color-mix(in srgb, var(--puck-color-azure-09) 30%, transparent);
+  outline: 2px dashed var(--puck-color-azure-08);
+  border-radius: 10px;
+}
+
+.DropZone:empty {
+  background: color-mix(in srgb, var(--puck-color-azure-09) 30%, transparent);
+  outline: 2px dashed var(--puck-color-azure-08);
+  border-radius: 10px;
+}
+
+.DropZone:empty:not(.DropZone--isRootZone)::before {
+  content: "Drag a block here";
+  position: absolute;
+  inset: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: var(--puck-color-azure-03);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--puck-color-white) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--puck-color-azure-08) 50%, white);
+  pointer-events: none;
+}
+
+.DropZone--isDestination {
+  outline: 2px dashed var(--puck-color-azure-04) !important;
+  box-shadow: 0 0 0 4px
+    color-mix(in srgb, var(--puck-color-azure-09) 35%, transparent);
+}
+
+.DropZone--isDestination:not(.DropZone--isRootZone) {
+  background: color-mix(
+    in srgb,
+    var(--puck-color-azure-09) 30%,
+    transparent
+  ) !important;
+}
+
+.DropZone--isDestination:empty:not(.DropZone--isRootZone)::before {
+  content: "Release to place this block";
+  color: var(--puck-color-azure-02);
+  background: color-mix(in srgb, var(--puck-color-azure-09) 55%, white);
+}
+
+.DropZone-item {
+  position: relative;
+}
+
+.DropZone-hitbox {
+  position: absolute;
+  bottom: -16px;
+  height: 32px;
+  width: 100%;
+  z-index: 1;
+}
+
+[data-puck-dragging] .DropZone--isEnabled {
+  outline: 2px dashed var(--puck-color-azure-06);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--puck-color-azure-09) 16%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--puck-color-azure-08) 40%, transparent);
+}
+
+@media (pointer: coarse) {
+  .DropZone-hitbox {
+    bottom: -20px;
+    height: 40px;
+  }
+}
+
+.DropZone > *:not([data-puck-component]) {
+  opacity: 0;
+}
+
+/* Hide overlays if DropZone is animating, which happens during a resize */
+body:has(.DropZone--isAnimating:empty) [data-puck-overlay] {
+  opacity: 0 !important;
+}
+
+/* Real-size drop preview: while a new element is hovering above the canvas
+   we render the actual component at its true dimensions (defaultProps) so the
+   merchant sees exactly what will land. The ghost is tinted and outlined so
+   it's clearly distinguishable from already-placed elements.
+
+   Turbopack's CSS-module parser requires a "pure" (local-scoped) selector at
+   the top level, so we anchor the rule to the DropZone's local `.DropZone`
+   class and target the preview descendant via `:global(...)`. This keeps the
+   CSS module valid while still matching the dynamically-injected attribute. */
+.DropZone :global([data-puck-insert-preview="true"]) {
+  opacity: 0.72;
+  outline: 2px dashed var(--puck-color-azure-04);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--puck-color-azure-09) 25%, transparent);
+  pointer-events: none;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14);
+  transition: opacity 140ms ease-out, transform 140ms ease-out;
+}

@@ -1,0 +1,30 @@
+.BlocksPlugin {
+  /* padding: 12px; */
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  /* background: radial-gradient(
+      110% 70% at 50% 0%,
+      rgba(219, 234, 254, 0.45),
+      transparent
+    ),
+    linear-gradient(180deg, #ffffff, #f8fafc); */
+  animation: BlocksPlugin-fadeIn 200ms ease-out;
+}
+
+@keyframes BlocksPlugin-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .BlocksPlugin {
+    animation: none;
+  }
+}

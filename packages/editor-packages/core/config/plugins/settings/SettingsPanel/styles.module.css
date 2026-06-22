@@ -1,0 +1,229 @@
+/* ── Panel root ─────────────────────────────────────────────────────────────── */
+.SettingsPanel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.SettingsPanel-header {
+  padding: 0 16px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--puck-color-grey-05, #6b7280);
+}
+
+.SettingsPanel-intro {
+  margin: -4px 16px 12px;
+  color: var(--puck-color-grey-05, #6b7280);
+  font-size: 12px;
+  line-height: 1.45;
+}
+/* ── Tab bar ────────────────────────────────────────────────────────────────── */
+.SettingsPanel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--puck-color-grey-10, #e5e7eb);
+  flex-shrink: 0;
+  padding: 0 8px;
+}
+
+.SettingsPanel-tab {
+  position: relative;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--puck-color-grey-05, #6b7280);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+  white-space: nowrap;
+}
+
+.SettingsPanel-tab:hover {
+  color: var(--puck-color-grey-02, #111827);
+}
+
+.SettingsPanel-tab--active {
+  color: var(--puck-color-azure-04, #3b82f6);
+  font-weight: 600;
+}
+
+.SettingsPanel-tab--active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--puck-color-azure-04, #3b82f6);
+  border-radius: 2px 2px 0 0;
+}
+
+/* ── Tab content ────────────────────────────────────────────────────────────── */
+.SettingsPanel-tabContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+/* ── Section ────────────────────────────────────────────────────────────────── */
+.SettingsPanel-section {
+  padding: 0 16px 20px;
+}
+
+.SettingsPanel-section + .SettingsPanel-section {
+  border-top: 1px solid var(--puck-color-grey-10, #e5e7eb);
+  padding-top: 16px;
+}
+
+.SettingsPanel-sectionTitle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--puck-color-grey-05, #6b7280);
+  margin-bottom: 12px;
+}
+
+.SettingsPanel-sectionHint {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--puck-color-grey-05, #6b7280);
+  margin: -4px 0 14px;
+}
+
+/* ── Individual field wrapper ───────────────────────────────────────────────── */
+.SettingsPanel-field {
+  margin-bottom: 12px;
+}
+
+.SettingsPanel-field:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Font preview ───────────────────────────────────────────────────────────── */
+.SettingsPanel-fontPreview {
+  margin-top: 5px;
+  padding: 6px 10px;
+  background: var(--puck-color-grey-12, #f9fafb);
+  border: 1px solid var(--puck-color-grey-10, #e9ebee);
+  border-radius: 5px;
+  font-size: 13px;
+  color: var(--puck-color-grey-03, #374151);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: font-family 0.2s;
+}
+
+/* ── Color badge ──────────────────────────────────────────────────────────────── */
+.SettingsPanel-colorBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--puck-color-grey-12, #f9fafb);
+  border: 1px solid var(--puck-color-grey-10, #e9ebee);
+  border-radius: 6px;
+}
+
+.SettingsPanel-colorBadgeSwatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.SettingsPanel-colorBadgeSwatch input[type="color"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.SettingsPanel-colorBadgeLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--puck-color-grey-03, #374151);
+  text-transform: capitalize;
+  flex: 1;
+}
+
+.SettingsPanel-resetColor {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 2px;
+  color: var(--puck-color-grey-07, #9ca3af);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: color 0.15s;
+  font-size: 13px;
+}
+
+.SettingsPanel-resetColor:hover {
+  color: var(--puck-color-grey-04, #4b5563);
+}
+
+.SettingsPanel-fontPreviewCard {
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: var(--puck-color-grey-12, #f9fafb);
+  border: 1px solid var(--puck-color-grey-10, #e9ebee);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.SettingsPanel-fontLocaleRow {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: font-family 0.2s;
+}
+
+.SettingsPanel-localeBadge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--puck-color-grey-10, #e5e7eb);
+  color: var(--puck-color-grey-05, #6b7280);
+  flex-shrink: 0;
+}
+
+.SettingsPanel-localeBadge[data-supported="true"] {
+  background: var(--puck-color-azure-07, #dbeafe);
+  color: var(--puck-color-azure-03, #2563eb);
+}
+
+.SettingsPanel-radiusPreviewSection {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--puck-color-grey-10, #e9ebee);
+  border-radius: 6px;
+  background: var(--puck-color-grey-12, #f9fafb);
+}
+
+.SettingsPanel-radiusPreview {
+  margin-top: 8px;
+  width: 100%;
+  height: 48px;
+  background: #3b82f6;
+  transition: border-radius 0.2s ease;
+}

@@ -1,0 +1,15 @@
+.Blank {
+  width: 100%;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--theme-color-border) 70%, transparent);
+  background: color-mix(in srgb, var(--theme-color-surface-2) 72%, white);
+  color: color-mix(in srgb, var(--theme-color-text) 62%, var(--theme-color-neutral));
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}

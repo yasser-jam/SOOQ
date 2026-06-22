@@ -1,0 +1,32 @@
+/* Class names MUST follow .RootClass-name — getClassName("grid") → styles["ProductsGrid-grid"] */
+.ProductsGrid {
+  width: 100%;
+  min-width: 0;
+}
+
+.ProductsGrid-grid {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  align-items: start;
+  gap: 18px;
+}
+
+.ProductsGrid-cell {
+  min-width: 0;
+}
+
+.ProductsGrid-empty {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--theme-color-surface, #f6f8fc) 78%, white),
+      var(--theme-color-background, #ffffff)
+    );
+  border: 1px dashed var(--theme-color-border, #d6dde8);
+  border-radius: var(--theme-radius-lg, 18px);
+  color: var(--theme-color-text-muted, #5f6d84);
+  font-size: 0.9rem;
+  font-style: italic;
+  padding: 1.15rem 1.3rem;
+}

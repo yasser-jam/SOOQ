@@ -1,0 +1,268 @@
+/* CategoryListMenu-* for getClassNameFactory("CategoryListMenu", styles) */
+
+.CategoryListMenu {
+  position: relative;
+  display: inline-block;
+  min-width: 0;
+  font-family: system-ui, sans-serif;
+}
+
+.CategoryListMenu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--puck-color-grey-01, #111827);
+  background: #fff;
+  border: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.CategoryListMenu-trigger:hover {
+  border-color: var(--puck-color-grey-06, #cbd5e1);
+  background: var(--puck-color-grey-09, #f8fafc);
+}
+
+.CategoryListMenu-trigger:focus-visible {
+  outline: 2px solid var(--puck-color-grey-04, #3b82f6);
+  outline-offset: 2px;
+}
+
+.CategoryListMenu-triggerIcon {
+  display: flex;
+  color: var(--puck-color-grey-03, #64748b);
+}
+
+.CategoryListMenu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
+  background: rgba(15, 23, 42, 0.25);
+  border: none;
+  padding: 0;
+  cursor: default;
+}
+
+.CategoryListMenu-popover {
+  /* top/left/width set inline from trigger rect */
+  position: fixed;
+  z-index: 1050;
+  max-height: min(70vh, 520px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  border-radius: 12px;
+  box-shadow:
+    0 10px 40px rgba(15, 23, 42, 0.12),
+    0 2px 8px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.CategoryListMenu-header {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  flex-shrink: 0;
+}
+
+.CategoryListMenu-headerRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.CategoryListMenu-backBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: var(--puck-color-grey-09, #f1f5f9);
+  color: var(--puck-color-grey-01, #334155);
+  cursor: pointer;
+}
+
+.CategoryListMenu-backBtn:hover {
+  background: #e2e8f0;
+}
+
+.CategoryListMenu-backBtn:focus-visible {
+  outline: 2px solid var(--puck-color-grey-04, #3b82f6);
+  outline-offset: 2px;
+}
+
+.CategoryListMenu-heading {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--puck-color-grey-01, #111827);
+  line-height: 1.3;
+}
+
+.CategoryListMenu-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+  min-height: 0;
+}
+
+.CategoryListMenu-empty {
+  padding: 1.25rem 1rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--puck-color-grey-03, #64748b);
+}
+
+.CategoryListMenu-catRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.35rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--puck-color-grey-01, #111827);
+  background: #fff;
+  border: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.CategoryListMenu-catRow:last-child {
+  margin-bottom: 0;
+}
+
+.CategoryListMenu-catRow:hover {
+  background: var(--puck-color-grey-09, #f8fafc);
+  border-color: var(--puck-color-grey-06, #cbd5e1);
+}
+
+.CategoryListMenu-catRow:focus-visible {
+  outline: 2px solid var(--puck-color-grey-04, #3b82f6);
+  outline-offset: 0;
+}
+
+.CategoryListMenu-catName {
+  flex: 1;
+  min-width: 0;
+}
+
+.CategoryListMenu-catChevron {
+  flex-shrink: 0;
+  color: var(--puck-color-grey-03, #94a3b8);
+}
+
+.CategoryListMenu-count {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.CategoryListMenu-card {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+  padding: 0.5rem;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.CategoryListMenu-card:hover {
+  background: var(--puck-color-grey-09, #f8fafc);
+  border-color: var(--puck-color-grey-08, #e2e8f0);
+}
+
+.CategoryListMenu-card:focus-visible {
+  outline: 2px solid var(--puck-color-grey-04, #3b82f6);
+  outline-offset: 0;
+}
+
+.CategoryListMenu-thumb {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--puck-color-grey-09, #f1f5f9);
+}
+
+.CategoryListMenu-cardBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.CategoryListMenu-cardTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--puck-color-grey-01, #111827);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.CategoryListMenu-cardMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.CategoryListMenu-price {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--puck-color-grey-01, #111827);
+}
+
+.CategoryListMenu-price--strike {
+  font-weight: 500;
+  text-decoration: line-through;
+  color: var(--puck-color-grey-03, #94a3b8);
+  font-size: 0.75rem;
+}
+
+.CategoryListMenu-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.CategoryListMenu-footer {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  font-size: 0.7rem;
+  color: var(--puck-color-grey-03, #64748b);
+  flex-shrink: 0;
+}

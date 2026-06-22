@@ -1,0 +1,169 @@
+.ComponentList {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.ComponentList--isExpanded + .ComponentList {
+  margin-top: 10px;
+}
+
+.ComponentList-title {
+  align-items: center;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(248, 250, 252, 0.8)
+  );
+  border: 1px solid transparent;
+  color: var(--puck-color-grey-04);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: var(--puck-font-size-xxxs);
+  font-weight: 700;
+  list-style: none;
+  margin-bottom: 6px;
+  padding: 8px 10px;
+  text-transform: uppercase;
+  transition: background-color 140ms ease, color 140ms ease,
+    border-color 140ms ease, box-shadow 140ms ease;
+  gap: 4px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.ComponentList-title:focus-visible {
+  outline: 2px solid var(--puck-color-azure-05);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ComponentList-title:hover {
+    background-color: var(--puck-color-azure-12);
+    border-color: var(--puck-color-azure-09);
+    box-shadow: 0 0 0 1px var(--puck-color-azure-11) inset;
+    color: var(--puck-color-azure-04);
+  }
+}
+
+.ComponentList-title:active {
+  background-color: var(--puck-color-azure-10);
+}
+
+.ComponentList-titleIcon {
+  margin-inline-start: auto;
+  display: inline-flex;
+  transition: transform 140ms ease;
+}
+
+.ComponentList--isExpanded .ComponentList-titleIcon {
+  transform: rotate(0deg);
+}
+
+.ComponentList:not(.ComponentList--isExpanded) .ComponentList-titleIcon {
+  transform: rotate(-90deg);
+}
+
+.ComponentList-search {
+  margin: 0 8px 8px;
+  border: 1px solid var(--puck-color-grey-09);
+  border-radius: 8px;
+  background: var(--puck-color-white);
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-inline-end: 4px;
+}
+
+.ComponentList-search:focus-within {
+  border-color: var(--puck-color-azure-06);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.ComponentList-search input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0 10px;
+  color: var(--puck-color-grey-02);
+  font-size: 12px;
+  font-family: var(--puck-font-family);
+  outline: none;
+}
+
+.ComponentList-search input::placeholder {
+  color: var(--puck-color-grey-05);
+}
+
+.ComponentList-clearSearch {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--puck-color-grey-05);
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
+}
+
+.ComponentList-clearSearch:hover {
+  background: var(--puck-color-azure-12);
+  color: var(--puck-color-azure-04);
+}
+
+.ComponentList-clearSearch:focus-visible {
+  outline: 2px solid var(--puck-color-azure-05);
+  outline-offset: 1px;
+}
+
+.ComponentList-meta {
+  color: var(--puck-color-grey-05);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin: 0 10px 8px;
+  text-transform: uppercase;
+}
+
+.ComponentList-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+  transition: grid-template-rows 170ms ease, opacity 120ms ease;
+}
+
+.ComponentList-content > * {
+  min-height: 0;
+}
+
+.ComponentList--isExpanded > .ComponentList-content {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ComponentList-empty {
+  margin: 8px;
+  padding: 10px;
+  border: 1px dashed var(--puck-color-grey-08);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--puck-color-grey-04);
+  text-align: center;
+  background: linear-gradient(180deg, var(--puck-color-white), #f8fbff);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ComponentList-title,
+  .ComponentList-titleIcon,
+  .ComponentList-content {
+    transition: none;
+  }
+}

@@ -1,0 +1,64 @@
+.BilingualText {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.BilingualText-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.BilingualText-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--puck-color-grey-04, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.BilingualText-langTag {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--puck-color-grey-11, #f3f4f6);
+  color: var(--puck-color-grey-04, #6b7280);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.BilingualText-input,
+.BilingualText-textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--puck-color-grey-09, #d1d5db);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--puck-color-white, #ffffff);
+  color: inherit;
+  box-sizing: border-box;
+}
+
+.BilingualText-input:focus,
+.BilingualText-textarea:focus {
+  outline: none;
+  border-color: var(--puck-color-azure-05, #2563eb);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.BilingualText-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.BilingualText-input--ar,
+.BilingualText-textarea--ar {
+  direction: rtl;
+  text-align: right;
+}

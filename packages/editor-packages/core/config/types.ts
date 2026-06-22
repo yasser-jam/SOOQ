@@ -1,0 +1,106 @@
+import { Config, Data } from "@/core";
+import { ButtonProps } from "./blocks/Button";
+import { CardProps } from "./blocks/Card";
+import { GridProps } from "./blocks/Grid";
+import { HeroProps } from "./blocks/Hero";
+import { HeadingProps } from "./blocks/Heading";
+import { FlexProps } from "./blocks/Flex";
+import { LogosProps } from "./blocks/Logos";
+import { StatsProps } from "./blocks/Stats";
+import { TemplateProps } from "./blocks/Template";
+import { TextProps } from "./blocks/Text";
+import { SpaceProps } from "./blocks/Space";
+import { ProductCardProps } from "./blocks/ProductCard";
+import { ProductsGridProps } from "./blocks/ProductsGrid";
+import { CartSectionProps } from "./blocks/CartSection";
+import { CheckoutFormProps } from "./blocks/CheckoutForm";
+import { ProductSearchMenuProps } from "./blocks/ProductSearchMenu";
+import { CategoryListMenuProps } from "./blocks/CategoryListMenu";
+import { ProductImageProps } from "./blocks/ProductImage";
+import { ProductInfoProps } from "./blocks/ProductInfo";
+import { SectionProps } from "./blocks/Section";
+import { GroupProps } from "./blocks/Group";
+
+import { RootProps } from "./root";
+import { RichTextProps } from "./blocks/RichText";
+import { ContentHeadingProps } from "./blocks/ContentHeading";
+import { ContentParagraphProps } from "./blocks/ContentParagraph";
+import { AccordionProps } from "./blocks/Accordion";
+import { ContentImageProps } from "./blocks/ContentImage";
+import { ContentButtonProps } from "./blocks/ContentButton";
+import { ContentDividerProps } from "./blocks/ContentDivider";
+import { ImageGalleryProps } from "./blocks/ImageGallery";
+import { VideoEmbedProps } from "./blocks/VideoEmbed";
+import { ContentIconProps } from "./blocks/ContentIcon";
+import { ContentHtmlProps } from "./blocks/ContentHtml";
+import { OrderHistoryProps } from "./blocks/OrderHistory";
+import { WishlistProps } from "./blocks/Wishlist";
+import { TestimonialsProps } from "./blocks/Testimonials";
+import { ContactFormProps } from "./blocks/ContactForm";
+import { SidebarProps } from "./blocks/Sidebar";
+import { NavMenuProps } from "./blocks/NavMenu";
+import { SideDrawerProps } from "./blocks/SideDrawer";
+import { SiteHeaderProps } from "./blocks/SiteHeader";
+import { SiteDrawerShellProps } from "./blocks/SiteDrawerShell";
+import { SiteFooterProps } from "./blocks/SiteFooter";
+
+export type { RootProps } from "./root";
+
+export type Components = {
+  SiteHeader: SiteHeaderProps;
+  SiteDrawerShell: SiteDrawerShellProps;
+  SiteFooter: SiteFooterProps;
+  Section: SectionProps;
+  Group: GroupProps;
+  Button: ButtonProps;
+  Card: CardProps;
+  Grid: GridProps;
+  Hero: HeroProps;
+  Heading: HeadingProps;
+  Flex: FlexProps;
+  Logos: LogosProps;
+  Stats: StatsProps;
+  Template: TemplateProps;
+  Text: TextProps;
+  Space: SpaceProps;
+  RichText: RichTextProps;
+  ProductCard: ProductCardProps;
+  ProductsGrid: ProductsGridProps;
+  CartSection: CartSectionProps;
+  CheckoutForm: CheckoutFormProps;
+  ProductSearchMenu: ProductSearchMenuProps;
+  CategoryListMenu: CategoryListMenuProps;
+  ProductImage: ProductImageProps;
+  ProductInfo: ProductInfoProps;
+  ContentHeading: ContentHeadingProps;
+  ContentParagraph: ContentParagraphProps;
+  Accordion: AccordionProps;
+  ContentImage: ContentImageProps;
+  ContentButton: ContentButtonProps;
+  ContentDivider: ContentDividerProps;
+  ImageGallery: ImageGalleryProps;
+  VideoEmbed: VideoEmbedProps;
+  ContentIcon: ContentIconProps;
+  ContentHtml: ContentHtmlProps;
+  OrderHistory: OrderHistoryProps;
+  Wishlist: WishlistProps;
+  Testimonials: TestimonialsProps;
+  ContactForm: ContactFormProps;
+  Sidebar: SidebarProps;
+  NavMenu: NavMenuProps;
+  SideDrawer: SideDrawerProps;
+};
+
+export type UserConfig = Config<{
+  components: Components;
+  root: RootProps;
+  categories: ["layout", "blocks", "storeBlocks", "shell", "legacy"];
+  fields: {
+    userField: {
+      type: "userField";
+      option: boolean;
+    };
+  };
+}>;
+
+export type UserData = Data<Components, RootProps>;

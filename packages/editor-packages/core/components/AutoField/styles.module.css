@@ -1,0 +1,44 @@
+.InputWrapper + .InputWrapper {
+  margin-top: 12px;
+}
+
+.Input-label {
+  align-items: center;
+  color: var(--puck-color-grey-04);
+  display: flex;
+  padding-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.Input-labelIcon {
+  color: var(--puck-color-grey-07);
+  display: flex;
+  margin-inline-end: 4px;
+  padding-inline-start: 4px;
+}
+
+.Input-disabledIcon {
+  color: var(--puck-color-grey-05);
+  margin-inline-start: auto;
+}
+
+.Input-help {
+  color: var(--puck-color-grey-05);
+  font-size: 11px;
+  line-height: 1.45;
+  margin: -6px 0 10px;
+}
+
+.Input-example {
+  background: var(--puck-color-grey-12);
+  border: 1px solid var(--puck-color-grey-10);
+  border-radius: 6px;
+  color: var(--puck-color-grey-04);
+  font-size: 11px;
+  line-height: 1.4;
+  margin: -4px 0 10px;
+  padding: 6px 8px;
+}
+
+

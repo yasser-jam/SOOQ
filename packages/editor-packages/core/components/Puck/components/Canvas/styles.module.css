@@ -1,0 +1,98 @@
+.PuckCanvas {
+  background: var(--puck-color-grey-11);
+  display: flex;
+  grid-area: editor;
+  flex-direction: column;
+  padding: 8px;
+  position: relative;
+  overflow: auto;
+}
+
+@media (min-width: 1198px) {
+  .PuckCanvas {
+    padding: 8px 10px;
+    padding-top: 6px;
+  }
+
+  .PuckCanvas:not(.PuckCanvas:has(.PuckCanvas-controls)) {
+    padding-top: 10px;
+  }
+}
+
+.PuckCanvas--fullScreen {
+  padding: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 1198px) {
+  .PuckCanvas--fullScreen {
+    padding: 0;
+  }
+}
+
+.PuckCanvas-inner {
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  min-width: 288px;
+  position: relative;
+  width: 100%;
+}
+
+.PuckCanvas-root {
+  background: white;
+  outline: 1px solid var(--puck-color-grey-09);
+  box-sizing: border-box;
+  min-width: 0;
+  position: absolute;
+  pointer-events: none;
+  transform-origin: top;
+  top: 0;
+  opacity: 0;
+}
+
+@media (min-width: 1198px) {
+  .PuckCanvas-root {
+    min-width: unset;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .PuckCanvas-root {
+    transition: none !important;
+  }
+}
+
+.PuckCanvas--ready .PuckCanvas-root {
+  pointer-events: unset;
+  opacity: 1;
+}
+
+.PuckCanvas-loader {
+  align-items: center;
+  color: var(--puck-color-grey-06);
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  transition: opacity 250ms ease-out;
+  opacity: 0;
+}
+
+.PuckCanvas--showLoader .PuckCanvas-loader {
+  opacity: 1;
+}
+
+.PuckCanvas--showLoader.PuckCanvas--ready .PuckCanvas-loader {
+  opacity: 0;
+  height: 0;
+  transition: none;
+}
+
+.PuckCanvas-controls {
+  padding-bottom: 4px;
+}
+
+.PuckCanvas--fullScreen .PuckCanvas-controls {
+  padding-bottom: 0;
+  z-index: 1;
+}

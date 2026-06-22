@@ -1,0 +1,38 @@
+/* Hidden on small viewports — matches the editor notice */
+@media (max-width: 639px) {
+  .root {
+    display: none;
+  }
+}
+
+.root {
+  width: 100%;
+  min-width: 0;
+  font-family: inherit;
+  color: inherit;
+  line-height: 1.6;
+}
+
+.root :where(h1, h2, h3, h4, h5, h6) {
+  margin: 0.75em 0 0.35em;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.root :where(p) {
+  margin: 0.5em 0;
+}
+
+.root :where(ul, ol) {
+  margin: 0.5em 0;
+  padding-left: 1.25em;
+}
+
+.root :where(a) {
+  color: var(--theme-color-primary, #2563eb);
+}
+
+.root :where(img) {
+  max-width: 100%;
+  height: auto;
+}
