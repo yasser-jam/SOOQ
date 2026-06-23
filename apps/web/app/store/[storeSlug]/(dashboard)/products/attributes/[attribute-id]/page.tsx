@@ -35,10 +35,7 @@ import {
 } from "@/modules/product/attribute/actions"
 import { initAttribute } from "@/modules/product/attribute/init"
 import { attributeDefinitionSchema } from "@/modules/product/attribute/schema"
-import {
-  ATTRIBUTE_DATA_TYPES,
-  ProductAttributeDefinition,
-} from "@/modules/product/attribute/types"
+import { ATTRIBUTE_DATA_TYPES } from "@/modules/product/attribute/types"
 import CategorySelect from "@/modules/product/category/components/select"
 
 const dataTypeLabels: Record<string, string> = {
@@ -50,6 +47,7 @@ const dataTypeLabels: Record<string, string> = {
 }
 
 type FormInput = z.input<typeof attributeDefinitionSchema>
+type FormOutput = z.output<typeof attributeDefinitionSchema>
 
 export default function EditAttributeDefinitionPage() {
   const router = useRouter()
@@ -59,7 +57,7 @@ export default function EditAttributeDefinitionPage() {
   const attributeId = params?.["attribute-id"]?.toString() ?? ""
   const isEdit = attributeId !== "create"
 
-  const form = useForm<FormInput>({
+  const form = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(attributeDefinitionSchema),
     defaultValues: initAttribute() as FormInput,
   })
@@ -107,7 +105,7 @@ export default function EditAttributeDefinitionPage() {
   })
 
   const handleSubmit = useCallback(
-    (values: ProductAttributeDefinition) => {
+    (values: FormOutput) => {
       // Strip options from non-SELECT types — backend ignores but cleaner payload
       const payload = {
         ...values,
