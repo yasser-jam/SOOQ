@@ -1,40 +1,47 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { AutoField, FieldLabel, Puck, Render } from "@/core";
-import config from "@/core/config";
-import { useDemoData } from "@/lib/use-demo-data";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
-import { CircleHelp, FileJson, Keyboard, MousePointer2, Type, X } from "lucide-react";
-import { settingsPlugin } from "@/core/config/plugins/settings";
-import { HtmlBlockPaletteSync } from "@/core/config/plugins/html-block-palette";
-import headingAnalyzer from "@/plugin-heading-analyzer";
-import { pagesPlugin } from "@/core/config/plugins/pages";
-import { themesPlugin } from "@/core/config/plugins/themes";
-import { shopifyOutlinePlugin } from "@/core/config/plugins/shopify-editor";
-import { canvasInteractionsPlugin } from "@/core/config/plugins/canvas-interactions";
-import { JsonViewerPanel } from "@/core/config/plugins/json-viewer/JsonViewerPanel";
-import { normalizeEditorData } from "@/core/config/lib/normalize-editor-data";
-import { ThemeInjector } from "@/core/config/plugins/settings/ThemeInjector";
-import type { UserData } from "@/core/config/types";
-import { useAppStore } from "@/core/store";
-import { Button } from "@workspace/ui/components/button";
-import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell";
+import Link from "next/link"
+import { AutoField, FieldLabel, Puck, Render } from "@/core"
+import config from "@/core/config"
+import { useDemoData } from "@/lib/use-demo-data"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { usePathname } from "next/navigation"
+import {
+  CircleHelp,
+  FileJson,
+  Keyboard,
+  MousePointer2,
+  Type,
+  X,
+} from "lucide-react"
+import { settingsPlugin } from "@/core/config/plugins/settings"
+import { HtmlBlockPaletteSync } from "@/core/config/plugins/html-block-palette"
+import headingAnalyzer from "@/plugin-heading-analyzer"
+import { pagesPlugin } from "@/core/config/plugins/pages"
+import { themesPlugin } from "@/core/config/plugins/themes"
+import { shopifyOutlinePlugin } from "@/core/config/plugins/shopify-editor"
+import { canvasInteractionsPlugin } from "@/core/config/plugins/canvas-interactions"
+import { JsonViewerPanel } from "@/core/config/plugins/json-viewer/JsonViewerPanel"
+import { normalizeEditorData } from "@/core/config/lib/normalize-editor-data"
+import { ThemeInjector } from "@/core/config/plugins/settings/ThemeInjector"
+import type { UserData } from "@/core/config/types"
+import { useAppStore } from "@/core/store"
+import { Button } from "@workspace/ui/components/button"
+import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell"
 
-const hiddenPluginNames = new Set(["themes", "heading-analyzer", "outline"]);
+const hiddenPluginNames = new Set(["themes", "heading-analyzer", "outline"])
 
-const EDITOR_HINT_DISMISSED_KEY = "puck-demo-editor-hint-dismissed-v1";
+const EDITOR_HINT_DISMISSED_KEY = "puck-demo-editor-hint-dismissed-v1"
 
 const isTypingTarget = (target: EventTarget | null) => {
-  if (!(target instanceof HTMLElement)) return false;
-  if (target.isContentEditable) return true;
-  const tagName = target.tagName;
-  return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
-};
+  if (!(target instanceof HTMLElement)) return false
+  if (target.isContentEditable) return true
+  const tagName = target.tagName
+  return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT"
+}
 
 function JsonViewerFloatingButton() {
-  const setUi = useAppStore((s) => s.setUi);
+  const setUi = useAppStore((s) => s.setUi)
   return (
     <button
       type="button"
@@ -48,96 +55,96 @@ function JsonViewerFloatingButton() {
       <FileJson size={16} />
       عرض JSON
     </button>
-  );
+  )
 }
 
 export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
   const metadata = {
     example: "Hello, world",
-  };
+  }
 
   const { data, resolvedData, key } = useDemoData({
     path,
     isEdit,
     metadata,
-  });
+  })
 
-  const pathname = usePathname();
+  const pathname = usePathname()
   const designStudioHref = useMemo(() => {
-    const match = pathname?.match(/^\/store\/([^/]+)/);
-    return match ? `/store/${match[1]}/design-studio` : "/";
-  }, [pathname]);
+    const match = pathname?.match(/^\/store\/([^/]+)/)
+    return match ? `/store/${match[1]}/design-studio` : "/"
+  }, [pathname])
 
   const exportFileName = useMemo(() => {
-    if (!path || path === "/") return "template-home";
-    return `template${path.replace(/\//g, "-")}`.replace(/-+/g, "-");
-  }, [path]);
+    if (!path || path === "/") return "template-home"
+    return `template${path.replace(/\//g, "-")}`.replace(/-+/g, "-")
+  }, [path])
 
-  const [isClient, setIsClient] = useState(false);
-  const [isShortcutDialogOpen, setShortcutDialogOpen] = useState(false);
-  const [showHintPill, setShowHintPill] = useState(false);
-  const exportDataRef = useRef<UserData | null>(null);
+  const [isClient, setIsClient] = useState(false)
+  const [isShortcutDialogOpen, setShortcutDialogOpen] = useState(false)
+  const [showHintPill, setShowHintPill] = useState(false)
+  const exportDataRef = useRef<UserData | null>(null)
 
   const modKeyLabel = useMemo(() => {
-    if (typeof navigator === "undefined") return "Ctrl";
-    return /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd" : "Ctrl";
-  }, []);
+    if (typeof navigator === "undefined") return "Ctrl"
+    return /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd" : "Ctrl"
+  }, [])
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
-    if (!isClient || !isEdit) return;
+    if (!isClient || !isEdit) return
 
     const isDismissed =
-      window.localStorage.getItem(EDITOR_HINT_DISMISSED_KEY) === "1";
+      window.localStorage.getItem(EDITOR_HINT_DISMISSED_KEY) === "1"
 
-    setShowHintPill(!isDismissed);
+    setShowHintPill(!isDismissed)
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setShortcutDialogOpen(false);
-        return;
+        setShortcutDialogOpen(false)
+        return
       }
 
-      if (isTypingTarget(event.target)) return;
+      if (isTypingTarget(event.target)) return
 
       const isQuestionShortcut =
-        event.key === "?" || (event.key === "/" && event.shiftKey);
+        event.key === "?" || (event.key === "/" && event.shiftKey)
 
-      if (!isQuestionShortcut) return;
+      if (!isQuestionShortcut) return
 
-      event.preventDefault();
-      setShortcutDialogOpen((previous) => !previous);
-    };
+      event.preventDefault()
+      setShortcutDialogOpen((previous) => !previous)
+    }
 
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isClient, isEdit]);
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [isClient, isEdit])
 
   const dismissHintPill = useCallback(() => {
-    setShowHintPill(false);
+    setShowHintPill(false)
 
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(EDITOR_HINT_DISMISSED_KEY, "1");
+      window.localStorage.setItem(EDITOR_HINT_DISMISSED_KEY, "1")
     }
-  }, []);
+  }, [])
   const handleExportJson = () => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") return
     const normalized = normalizeEditorData(
       (exportDataRef.current ?? data) as UserData
-    );
+    )
     const blob = new Blob([JSON.stringify(normalized, null, 2)], {
       type: "application/json",
-    });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${exportFileName}.json`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-  };
+    })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `${exportFileName}.json`
+    link.click()
+    window.URL.revokeObjectURL(url)
+  }
 
   const plugins = useMemo(
     () =>
@@ -155,10 +162,10 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
         canvasInteractionsPlugin,
       ].filter(
         (plugin) =>
-          typeof plugin.name === "string" && !hiddenPluginNames.has(plugin.name),
+          typeof plugin.name === "string" && !hiddenPluginNames.has(plugin.name)
       ),
     []
-  );
+  )
 
   const overrides = useMemo(
     () => ({
@@ -175,7 +182,7 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
               aria-label="Open Puck editor shortcuts and tips"
             >
               <CircleHelp size={16} />
-            مساعدة سريعة
+              مساعدة سريعة
               <span className="EditorHintPill-key">?</span>
             </button>
           ) : null}
@@ -292,8 +299,8 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
                 </div>
 
                 <p className="EditorShortcutFooter">
-                  Tip: Right-click any block on the canvas to open the
-                  quick action menu.
+                  Tip: Right-click any block on the canvas to open the quick
+                  action menu.
                 </p>
 
                 <div className="EditorShortcutActions">
@@ -301,8 +308,8 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
                     type="button"
                     className="EditorShortcutGhostButton"
                     onClick={() => {
-                      dismissHintPill();
-                      setShortcutDialogOpen(false);
+                      dismissHintPill()
+                      setShortcutDialogOpen(false)
                     }}
                   >
                     Hide floating tip
@@ -328,7 +335,7 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
       fieldTypes: {
         // Example of user field provided via overrides
         userField: (props) => {
-          const { readOnly, field, name, value, onChange } = props;
+          const { readOnly, field, name, value, onChange } = props
 
           return (
             <FieldLabel
@@ -342,7 +349,7 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
                 value={value}
               />
             </FieldLabel>
-          );
+          )
         },
       },
       headerActions: ({ children }) => (
@@ -361,11 +368,13 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
       modKeyLabel,
       showHintPill,
     ]
-  );
+  )
 
-  const params = isClient ? new URL(window.location.href).searchParams : new URLSearchParams();
+  const params = isClient
+    ? new URL(window.location.href).searchParams
+    : new URLSearchParams()
 
-  if (!isClient) return null;
+  if (!isClient) return null
 
   if (isEdit) {
     return (
@@ -376,11 +385,11 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
           height="100%"
           ui={{ rightSideBarVisible: false, leftSideBarVisible: true }}
           onChange={(nextData) => {
-            exportDataRef.current = nextData;
+            exportDataRef.current = nextData
           }}
           onPublish={async (data) => {
-            const normalized = normalizeEditorData(data);
-            localStorage.setItem(key, JSON.stringify(normalized));
+            const normalized = normalizeEditorData(data)
+            localStorage.setItem(key, JSON.stringify(normalized))
           }}
           plugins={plugins}
           // Keep the built-in Blocks palette so merchants can still drag
@@ -404,11 +413,11 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
           metadata={metadata}
         />
       </EditorFullscreenShell>
-    );
+    )
   }
 
   if (data.content) {
-    return <Render config={config} data={resolvedData} metadata={metadata} />;
+    return <Render config={config} data={resolvedData} metadata={metadata} />
   }
 
   return (
@@ -426,7 +435,7 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
         <p>Page does not exist in session storage</p>
       </div>
     </div>
-  );
+  )
 }
 
-export default Client;
+export default Client

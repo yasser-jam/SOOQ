@@ -12,11 +12,11 @@ export function EditorFullscreenShell({ children }: EditorFullscreenShellProps) 
 
 	useEffect(() => {
 		setMounted(true);
-		const previousOverflow = document.body.style.overflow;
-		document.body.style.overflow = "hidden";
+		// const previousOverflow = document.body.style.overflow;
+		// document.body.style.overflow = "hidden";
 
 		return () => {
-			document.body.style.overflow = previousOverflow;
+			// document.body.style.overflow = previousOverflow;
 		};
 	}, []);
 

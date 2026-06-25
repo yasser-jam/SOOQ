@@ -18,6 +18,20 @@ const iconOptions = Object.keys(dynamicIconImports).map((iconName) => ({
   value: iconName,
 }));
 
+const FALLBACK_ICON = "circle";
+
+const toIconKey = (icon: string) =>
+  icon.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+
+const resolveIconComponent = (icon: string | undefined) => {
+  if (!icon) return iconComponents[FALLBACK_ICON];
+  return (
+    iconComponents[icon] ??
+    iconComponents[toIconKey(icon)] ??
+    iconComponents[FALLBACK_ICON]
+  );
+};
+
 export type ContentIconProps = WithLayout<{
   icon: string;
   size: number;
@@ -43,7 +57,7 @@ const ContentIconInner: ComponentConfig<ContentIconProps> = {
     colorFixed: { type: "text", label: "اللون (hex)" },
   },
   defaultProps: {
-    icon: "Star",
+    icon: "star",
     size: 24,
     colorMode: "theme",
     colorTheme: "primary",
@@ -52,7 +66,8 @@ const ContentIconInner: ComponentConfig<ContentIconProps> = {
   render: ({ icon, size, colorMode, colorTheme, colorFixed }) => {
     const color =
       colorMode === "theme" ? `var(${colorVar(colorTheme)})` : colorFixed;
-    const IconComponent = iconComponents[icon] ?? iconComponents["Circle"];
+    const IconComponent = resolveIconComponent(icon);
+    if (!IconComponent) return null;
     return (
       <span
         style={{

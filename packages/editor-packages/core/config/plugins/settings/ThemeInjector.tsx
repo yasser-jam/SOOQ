@@ -139,10 +139,29 @@ ${buttonVariantVarLines}
         --theme-bp-mobile-max: ${bpMobile}px;
         --theme-bp-tablet-max: ${bpTablet}px;
       }
+      /*
+       * Preview-iframe scroll fix.
+       * Tailwind v4 preflight (copied into the iframe via CopyHostStyles) can set
+       * html/body { height: 100% } which pins the scroll container to the iframe
+       * viewport height and makes content below the fold unreachable.
+       * Override those constraints so the native iframe viewport scroll works.
+       */
+      html {
+        height: auto !important;
+        min-height: 100% !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        scroll-behavior: smooth;
+      }
       body {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow-x: hidden !important;
+        overflow-y: visible !important;
         font-family: var(--theme-body-font);
         color: var(--theme-color-text);
         background: var(--theme-color-background);
+        margin: 0;
       }
     `;
 

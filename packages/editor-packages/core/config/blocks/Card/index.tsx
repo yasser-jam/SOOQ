@@ -52,11 +52,16 @@ const CardInner: ComponentConfig<CardProps> = {
   defaultProps: {
     title: "Title",
     description: "Description",
-    icon: "Feather",
+    icon: "feather",
     mode: "flat",
   },
   render: ({ title, icon, description, mode }) => {
-    const IconComponent = icon && iconComponents[icon];
+    const iconKey = icon
+      ? iconComponents[icon]
+        ? icon
+        : icon.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase()
+      : undefined;
+    const IconComponent = iconKey ? iconComponents[iconKey] : undefined;
     return (
       <div className={getClassName({ [mode]: mode })}>
         <div className={getClassName("inner")}>

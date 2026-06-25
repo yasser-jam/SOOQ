@@ -7,6 +7,15 @@
   min-height: 0;
 }
 
+/*
+ * Fullscreen canvas — the iframe scrolls internally via ThemeInjector's
+ * `html { height: auto; overflow-y: auto }` override. The canvas outer shell
+ * just needs to not clip the absolutely-positioned canvas root.
+ */
+[data-design-studio-editor] [class*="PuckCanvas--fullScreen"] {
+  overflow: hidden;
+}
+
 body {
   font-family: var(--theme-body-font, "DM Sans", "Segoe UI", sans-serif);
   margin: 0;

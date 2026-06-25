@@ -45,7 +45,7 @@ import {
   type BadgeShape,
   type BadgeStyle,
 } from "./theme";
-import { SHELL_LEFT_ZONE, SHELL_RIGHT_ZONE } from "./shell-zones";
+// import { SHELL_LEFT_ZONE, SHELL_RIGHT_ZONE } from "./shell-zones";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -277,28 +277,28 @@ export const Root: RootConfig<{
     });
 
     const rootClass = getThemeRootClassNames(bStyle, shape);
-    const shellRailStyle: CSSProperties = isEditing
-      ? {
-          width: "56px",
-          minWidth: "56px",
-          flexShrink: 0,
-        }
-      : {
-          width: 0,
-          minWidth: 0,
-          flexShrink: 0,
-          overflow: "hidden",
-        };
+    // const shellRailStyle: CSSProperties = isEditing
+    //   ? {
+    //       width: "56px",
+    //       minWidth: "56px",
+    //       flexShrink: 0,
+    //     }
+    //   : {
+    //       width: 0,
+    //       minWidth: 0,
+    //       flexShrink: 0,
+    //       overflow: "hidden",
+    //     };
 
-    const shellDropStyle: CSSProperties = isEditing
-      ? {
-          minHeight: "100%",
-          background: "rgba(37, 99, 235, 0.06)",
-          borderInline: "1px dashed rgba(37, 99, 235, 0.35)",
-        }
-      : {
-          minHeight: 0,
-        };
+    // const shellDropStyle: CSSProperties = isEditing
+    //   ? {
+    //       minHeight: "100%",
+    //       background: "rgba(37, 99, 235, 0.06)",
+    //       borderInline: "1px dashed rgba(37, 99, 235, 0.35)",
+    //     }
+    //   : {
+    //       minHeight: 0,
+    //     };
 
     return (
       <>
@@ -325,6 +325,7 @@ export const Root: RootConfig<{
           lang={language}
         >
           <div style={{ display: "flex", flexGrow: 1, minHeight: 0 }}>
+            {/* Left shell zone — disabled for now
             <div style={shellRailStyle}>
               <DropZone
                 zone={SHELL_LEFT_ZONE}
@@ -333,6 +334,7 @@ export const Root: RootConfig<{
                 style={shellDropStyle}
               />
             </div>
+            */}
 
             <DropZone
               zone="default-zone"
@@ -340,6 +342,7 @@ export const Root: RootConfig<{
               style={{ flexGrow: 1 }}
             />
 
+            {/* Right shell zone — disabled for now
             <div style={shellRailStyle}>
               <DropZone
                 zone={SHELL_RIGHT_ZONE}
@@ -348,6 +351,7 @@ export const Root: RootConfig<{
                 style={shellDropStyle}
               />
             </div>
+            */}
           </div>
         </div>
       </>
