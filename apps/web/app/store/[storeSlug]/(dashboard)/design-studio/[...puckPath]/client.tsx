@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { AutoField, FieldLabel, Puck, Render } from "@/core"
+import { AutoField, createUsePuck, FieldLabel, Puck, Render } from "@/core"
 import config from "@/core/config"
 import { useDemoData } from "@/lib/use-demo-data"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -21,11 +21,9 @@ import { pagesPlugin } from "@/core/config/plugins/pages"
 import { themesPlugin } from "@/core/config/plugins/themes"
 import { shopifyOutlinePlugin } from "@/core/config/plugins/shopify-editor"
 import { canvasInteractionsPlugin } from "@/core/config/plugins/canvas-interactions"
-import { JsonViewerPanel } from "@/core/config/plugins/json-viewer/JsonViewerPanel"
 import { normalizeEditorData } from "@/core/config/lib/normalize-editor-data"
 import { ThemeInjector } from "@/core/config/plugins/settings/ThemeInjector"
 import type { UserData } from "@/core/config/types"
-import { useAppStore } from "@/core/store"
 import { Button } from "@workspace/ui/components/button"
 import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell"
 
@@ -40,21 +38,77 @@ const isTypingTarget = (target: EventTarget | null) => {
   return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT"
 }
 
-function JsonViewerFloatingButton() {
-  const setUi = useAppStore((s) => s.setUi)
+function JsonViewerFloatingButton({ onOpen }: { onOpen: () => void }) {
   return (
     <button
       type="button"
       className="EditorHintPill"
-      onClick={() =>
-        setUi({ plugin: { current: "json-viewer" }, leftSideBarVisible: true })
-      }
+      onClick={onOpen}
       aria-label="Open JSON viewer"
       style={{ bottom: "60px" }}
     >
       <FileJson size={16} />
       عرض JSON
     </button>
+  )
+}
+
+function JsonViewerDialog({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  const usePuck = createUsePuck()
+  const data = usePuck((s) => s.appState.data)
+
+  const jsonString = useMemo(() => {
+    if (!data) return ""
+    return JSON.stringify(normalizeEditorData(data as UserData), null, 2)
+  }, [data])
+
+  if (!open) return null
+
+  return (
+    <div
+      className="EditorShortcutOverlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Page JSON data"
+      data-puck-no-shortcuts="true"
+    >
+      <button
+        type="button"
+        className="EditorShortcutOverlayBackdrop"
+        onClick={onClose}
+        aria-label="Close JSON viewer"
+      />
+
+      <div className="EditorShortcutDialog EditorJsonDialog" data-puck-no-shortcuts="true">
+        <div className="EditorShortcutDialogHeader">
+          <div>
+            <p className="EditorShortcutEyebrow">Page data</p>
+            <h2 className="EditorShortcutTitle">JSON</h2>
+          </div>
+
+          <button
+            type="button"
+            className="EditorShortcutClose"
+            onClick={onClose}
+            aria-label="Close JSON viewer"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="EditorJsonDialog-preWrap" dir="ltr">
+          <pre className="EditorJsonDialog-pre">
+            <code>{jsonString}</code>
+          </pre>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -82,6 +136,7 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
 
   const [isClient, setIsClient] = useState(false)
   const [isShortcutDialogOpen, setShortcutDialogOpen] = useState(false)
+  const [isJsonDialogOpen, setJsonDialogOpen] = useState(false)
   const [showHintPill, setShowHintPill] = useState(false)
   const exportDataRef = useRef<UserData | null>(null)
 
@@ -105,6 +160,7 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setShortcutDialogOpen(false)
+        setJsonDialogOpen(false)
         return
       }
 
@@ -187,7 +243,12 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
             </button>
           ) : null}
 
-          <JsonViewerFloatingButton />
+          <JsonViewerFloatingButton onOpen={() => setJsonDialogOpen(true)} />
+
+          <JsonViewerDialog
+            open={isJsonDialogOpen}
+            onClose={() => setJsonDialogOpen(false)}
+          />
 
           {isShortcutDialogOpen ? (
             <div
@@ -364,6 +425,7 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
     [
       designStudioHref,
       dismissHintPill,
+      isJsonDialogOpen,
       isShortcutDialogOpen,
       modKeyLabel,
       showHintPill,

@@ -397,6 +397,31 @@ body {
   width: min(760px, calc(100vw - 28px));
 }
 
+.EditorJsonDialog {
+  max-width: 900px;
+  width: min(900px, calc(100vw - 28px));
+}
+
+.EditorJsonDialog-preWrap {
+  background: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-top: 14px;
+  max-height: calc(100vh - 200px);
+  overflow: auto;
+}
+
+.EditorJsonDialog-pre {
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+  padding: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .EditorShortcutDialogHeader {
   align-items: start;
   display: flex;
