@@ -8,7 +8,19 @@ export type AttributeGroup = {
   values: string[];
 };
 
-export function useProductVariants(variants: Variant[]) {
+const EMPTY_VARIANTS: Variant[] = [];
+
+function attributesEqual(
+  a: Record<string, string>,
+  b: Record<string, string>
+): boolean {
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+  return bKeys.every((key) => a[key] === b[key]);
+}
+
+export function useProductVariants(variants: Variant[] = EMPTY_VARIANTS) {
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
 
   const activeVariants = useMemo(
@@ -35,7 +47,9 @@ export function useProductVariants(variants: Variant[]) {
 
   useEffect(() => {
     if (attributeGroups.length === 0) {
-      setSelectedAttributes({});
+      setSelectedAttributes((current) =>
+        Object.keys(current).length === 0 ? current : {}
+      );
       return;
     }
 
@@ -46,7 +60,7 @@ export function useProductVariants(variants: Variant[]) {
         next[group.name] =
           existing && group.values.includes(existing) ? existing : group.values[0] ?? "";
       }
-      return next;
+      return attributesEqual(current, next) ? current : next;
     });
   }, [attributeGroups]);
 

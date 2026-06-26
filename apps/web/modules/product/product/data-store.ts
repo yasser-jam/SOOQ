@@ -1,10 +1,6 @@
 import type { ExternalField } from "@/core/types/Fields"
-
-import {
-	MOCK_CATALOG_PRODUCTS,
-	getMockCatalogProduct,
-	type MockCatalogProduct,
-} from "./mock-catalog"
+import api from "@/lib/api"
+import type { ApiResponse, PagedApiResponse } from "@/lib/types"
 
 export type ProductPickerRef = {
 	id: string
@@ -12,7 +8,14 @@ export type ProductPickerRef = {
 	titleEn?: string
 }
 
-export type ProductCardVariant = MockCatalogProduct["variants"][number]
+export type ProductCardVariant = {
+	attributes: Record<string, string>
+	price: number
+	compareAtPrice: number
+	stockQty: number | null
+	lowStockThreshold?: number | null
+	isActive?: boolean
+}
 
 export type ProductCardData = {
 	id: string
@@ -39,36 +42,15 @@ export const productPickerKeys = {
 	list: (query: string) => [...productPickerKeys.all, "list", query] as const,
 }
 
-export function toProductCardData(product: MockCatalogProduct): ProductCardData {
-	return {
-		id: product.id,
-		titleAr: product.titleAr,
-		titleEn: product.titleEn,
-		descriptionAr: product.descriptionAr,
-		descriptionEn: product.descriptionEn,
-		slug: product.slug,
-		basePrice: product.basePrice,
-		compareAtPrice: product.compareAtPrice,
-		currencyCode: product.currencyCode,
-		status: product.status,
-		allowOversell: product.allowOversell,
-		categories: product.categories.map((category) => ({
-			id: category.id,
-			name: category.name,
-		})),
-		tags: product.tags,
-		mediaUrls: product.mediaUrls,
-		options: [],
-		variants: product.variants,
-	}
-}
-
-export async function getProductForCard(
-	id: string,
-): Promise<ProductCardData | null> {
-	const product = getMockCatalogProduct(id)
-	if (!product) return null
-	return toProductCardData(product)
+type AdminProductListItem = {
+	productId: string
+	titleAr: string
+	titleEn: string
+	slug?: string
+	displayPrice?: string
+	basePrice?: number
+	currencyCode?: string
+	status?: string
 }
 
 type ProductListRow = {
@@ -78,23 +60,203 @@ type ProductListRow = {
 	description: string
 }
 
-function filterCatalog(query: string): ProductListRow[] {
-	const normalized = query.trim().toLowerCase()
+const PRODUCT_LIST_PAGE_SIZE = 100
 
-	return MOCK_CATALOG_PRODUCTS.filter((product) => {
-		if (!normalized) return true
-		return (
+let cachedProductList: ProductListRow[] | null = null
+
+async function fetchProductListRows(): Promise<ProductListRow[]> {
+	if (cachedProductList) return cachedProductList
+
+	const response = await api<PagedApiResponse<AdminProductListItem>>(
+		"/admin/products",
+		{
+			params: { page: 0, size: PRODUCT_LIST_PAGE_SIZE },
+		},
+	)
+
+	cachedProductList = (response.data ?? []).map((item) => ({
+		id: item.productId,
+		titleAr: item.titleAr ?? "",
+		titleEn: item.titleEn ?? "",
+		description:
+			item.displayPrice ??
+			(item.basePrice != null && item.currencyCode
+				? `${item.basePrice} ${item.currencyCode}`
+				: item.slug ?? ""),
+	}))
+
+	return cachedProductList
+}
+
+function filterProductList(rows: ProductListRow[], query: string): ProductListRow[] {
+	const normalized = query.trim().toLowerCase()
+	if (!normalized) return rows
+
+	return rows.filter(
+		(product) =>
 			product.titleAr.toLowerCase().includes(normalized) ||
 			product.titleEn.toLowerCase().includes(normalized) ||
-			product.descriptionAr.toLowerCase().includes(normalized) ||
-			product.descriptionEn.toLowerCase().includes(normalized)
+			product.description.toLowerCase().includes(normalized) ||
+			product.id.toLowerCase().includes(normalized),
+	)
+}
+
+function mapVariantsFromDetail(data: Record<string, unknown>): ProductCardVariant[] {
+	const matrixOptions: Array<Record<string, unknown>> =
+		(Array.isArray((data.variantMatrix as { options?: unknown[] })?.options) &&
+			(data.variantMatrix as { options: Array<Record<string, unknown>> }).options) ||
+		(Array.isArray(data.options) && (data.options as Array<Record<string, unknown>>)) ||
+		[]
+
+	const dedupSeen = new Set<string>()
+	const normalizedOptions = matrixOptions.filter((option) => {
+		const key = String(
+			option.optionNameEn ?? option.titleEn ?? option.optionNameAr ?? option.titleAr ?? "",
 		)
-	}).map((product) => ({
-		id: product.id,
-		titleAr: product.titleAr,
-		titleEn: product.titleEn,
-		description: product.descriptionAr || product.descriptionEn,
+			.trim()
+			.toLowerCase()
+		if (!key || dedupSeen.has(key)) return false
+		dedupSeen.add(key)
+		return true
+	})
+
+	const optionMetaByValueId = new Map<
+		string,
+		{ axisKey: string; valueLabel: (raw: Record<string, unknown>) => string }
+	>()
+
+	for (const option of normalizedOptions) {
+		const axisKey = String(option.optionNameAr ?? option.optionNameEn ?? "").trim()
+		if (!axisKey) continue
+
+		const values = (option.values ?? option.optionValues ?? []) as Array<
+			Record<string, unknown>
+		>
+
+		for (const value of values) {
+			const valueId = String(value.optionValueId ?? value.id ?? "")
+			if (!valueId) continue
+
+			const valueAr = String(value.valueAr ?? value.titleAr ?? "")
+			const valueEn = String(value.valueEn ?? value.titleEn ?? "")
+			optionMetaByValueId.set(valueId, {
+				axisKey,
+				valueLabel: () => (valueAr || valueEn).trim(),
+			})
+		}
+	}
+
+	const rawVariants: Array<Record<string, unknown>> = Array.isArray(
+		(data.variantMatrix as { variants?: unknown[] })?.variants,
+	)
+		? ((data.variantMatrix as { variants: Array<Record<string, unknown>> }).variants ??
+			[])
+		: Array.isArray(data.variants)
+			? (data.variants as Array<Record<string, unknown>>)
+			: []
+
+	return rawVariants.map((variant) => {
+		const attributes: Record<string, string> = {}
+
+		for (const optionValue of (variant.optionValues ?? []) as Array<
+			Record<string, unknown>
+		>) {
+			const valueId = String(optionValue.optionValueId ?? optionValue.id ?? "")
+			const meta = valueId ? optionMetaByValueId.get(valueId) : undefined
+
+			if (meta) {
+				attributes[meta.axisKey] = meta.valueLabel(optionValue)
+				continue
+			}
+
+			const axis = String(optionValue.optionNameAr ?? optionValue.optionNameEn ?? "").trim()
+			const label = String(optionValue.valueAr ?? optionValue.valueEn ?? "").trim()
+			if (axis && label) attributes[axis] = label
+		}
+
+		return {
+			attributes,
+			price: Number(variant.price ?? 0),
+			compareAtPrice: Number(variant.compareAtPrice ?? 0),
+			stockQty:
+				variant.stockQty == null ? null : Number(variant.stockQty),
+			lowStockThreshold:
+				variant.lowStockThreshold == null
+					? null
+					: Number(variant.lowStockThreshold),
+			isActive: variant.isActive !== false,
+		}
+	})
+}
+
+function mapAdminDetailToProductCardData(
+	payload: Record<string, unknown>,
+): ProductCardData | null {
+	const product = (payload.product ?? {}) as Record<string, unknown>
+	const pricing = (payload.pricing ?? {}) as Record<string, unknown>
+	const id = String(product.productId ?? product.id ?? "")
+
+	if (!id) return null
+
+	const media = (product.media ?? []) as Array<Record<string, unknown>>
+	const mediaUrls = media
+		.map((item) => String(item.url ?? item.thumbnailUrl ?? ""))
+		.filter(Boolean)
+
+	if (mediaUrls.length === 0) {
+		const primaryImage = product.primaryImageUrl ?? product.primaryThumbnailUrl
+		if (primaryImage) mediaUrls.push(String(primaryImage))
+	}
+
+	const categories = ((payload.categories ?? []) as Array<Record<string, unknown>>).map(
+		(category) => ({
+			id: String(category.categoryId ?? category.id ?? ""),
+			name: String(
+				category.nameAr ?? category.nameEn ?? category.name ?? category.categoryId ?? "",
+			),
+		}),
+	)
+
+	const tags = ((payload.tags ?? []) as Array<Record<string, unknown>>).map((tag) => ({
+		id: String(tag.productTagId ?? tag.id ?? ""),
+		name: String(tag.tagName ?? tag.name ?? tag.productTagId ?? ""),
 	}))
+
+	const variants = mapVariantsFromDetail(payload)
+	const basePrice = Number(pricing.basePrice ?? product.basePrice ?? 0)
+	const compareAtPrice = Number(
+		pricing.compareAtPrice ?? product.compareAtPrice ?? 0,
+	)
+
+	return {
+		id,
+		titleAr: String(product.titleAr ?? ""),
+		titleEn: String(product.titleEn ?? ""),
+		descriptionAr: String(product.descriptionAr ?? ""),
+		descriptionEn: String(product.descriptionEn ?? ""),
+		slug: String(product.slug ?? id),
+		basePrice,
+		compareAtPrice,
+		currencyCode: String(pricing.currencyCode ?? product.currencyCode ?? "SYP"),
+		status: String(product.status ?? "DRAFT"),
+		allowOversell: Boolean(product.allowOversell),
+		categories,
+		tags,
+		mediaUrls,
+		options: payload.options ?? [],
+		variants,
+	}
+}
+
+export async function getProductForCard(id: string): Promise<ProductCardData | null> {
+	const response = await api<
+		ApiResponse<Record<string, unknown>>
+	>(
+		`/admin/products/${id}?include=PRICING&include=IMAGES&include=INVENTORY`,
+	)
+
+	if (!response.data) return null
+	return mapAdminDetailToProductCardData(response.data)
 }
 
 export const productExternalField: ExternalField<ProductPickerRef | null> = {
@@ -102,8 +264,8 @@ export const productExternalField: ExternalField<ProductPickerRef | null> = {
 	placeholder: "ابحث عن منتج…",
 	showSearch: true,
 	fetchList: async ({ query }) => {
-		await new Promise((resolve) => setTimeout(resolve, 200))
-		return filterCatalog(query)
+		const rows = await fetchProductListRows()
+		return filterProductList(rows, query)
 	},
 	mapRow: (item: ProductListRow) => ({
 		title: item.titleAr || item.titleEn,

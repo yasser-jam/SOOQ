@@ -183,7 +183,7 @@ export function ProductCardView({
     attributeGroups,
     selectAttribute,
     isCombinationAvailable,
-  } = useProductVariants(resolvedProduct?.variants ?? []);
+  } = useProductVariants(resolvedProduct?.variants);
 
   if (!product?.id) {
     return (

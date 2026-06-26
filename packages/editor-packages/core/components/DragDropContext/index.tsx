@@ -148,7 +148,15 @@ const DragDropContextClient = ({
       if (params.zone && !zoneDepthIndex[params.zone]) {
         zoneChanged = true;
       } else if (!params.zone && stateHasZone) {
-        zoneChanged = true;
+        // When a nested zone is enabled inside a component, containsActiveZone
+        // causes the deepest zone id to be null while the area stays the same.
+        // Treating that as a zone change would clear zoneDepthIndex and loop.
+        const areaUnchanged =
+          !!params.area && !!areaDepthIndex[params.area];
+
+        if (!areaUnchanged) {
+          zoneChanged = true;
+        }
       }
 
       if (params.area && !areaDepthIndex[params.area]) {
@@ -168,10 +176,14 @@ const DragDropContextClient = ({
 
       if (!zoneChanged && !areaChanged) return;
 
-      zoneStore.setState({
-        zoneDepthIndex: params.zone ? { [params.zone]: true } : {},
+      zoneStore.setState((state) => ({
+        zoneDepthIndex: params.zone
+          ? { [params.zone]: true }
+          : areaChanged
+            ? {}
+            : state.zoneDepthIndex,
         areaDepthIndex: params.area ? { [params.area]: true } : {},
-      });
+      }));
 
       // Disable fallback collisions temporarily after zone change,
       // as these can cause unexpected collisions
@@ -184,7 +196,7 @@ const DragDropContextClient = ({
 
       debouncedParamsRef.current = null;
     },
-    [zoneStore]
+    [getChanged, tempDisableFallback, zoneStore]
   );
 
   const setDeepestDb = useDebouncedCallback(
@@ -228,6 +240,8 @@ const DragDropContextClient = ({
 
             if (params.zone) {
               nextZoneDepthIndex = { [params.zone]: true };
+            } else if (!areaChanged) {
+              nextZoneDepthIndex = state.zoneDepthIndex;
             }
 
             if (params.area) {
