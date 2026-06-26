@@ -361,13 +361,12 @@ export const updateProduct = async ({
 export const createProduct = async (
   data: CreateProductInput
 ): Promise<void> => {
-  if (devAuthEnabled) {
-    const products = readDevProducts()
-    const product = makeDevProduct(data)
-    writeDevProducts([product, ...products])
-    return
-  }
-
+  // if (devAuthEnabled) {
+  //   const products = readDevProducts()
+  //   const product = makeDevProduct(data)
+  //   writeDevProducts([product, ...products])
+  //   return
+  // }
   await api("/admin/products", {
     method: "POST",
     body: buildProductFormData(data),
