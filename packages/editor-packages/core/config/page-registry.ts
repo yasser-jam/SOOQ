@@ -1,0 +1,131 @@
+// ─── Page registry ────────────────────────────────────────────────────────────
+// Static catalog of built-in pages. Runtime pages live in SiteData.pages.
+
+export type PageDefinition = {
+  /** URL path, e.g. "/" or "/cart" */
+  path: string;
+  /** Human-readable name shown in the pages panel */
+  label: string;
+  /** Short description shown below the label */
+  description: string;
+  /** Lucide icon name (used by the plugin UI) */
+  iconName: "Home" | "ShoppingCart" | "Package" | "Palette" | "FileText";
+  /** true when the path contains a dynamic segment (e.g. :product-slug). */
+  dynamic?: boolean;
+  /** Concrete path used for editing when dynamic = true */
+  examplePath?: string;
+  /** Whether this page was created by the merchant at runtime. */
+  isCustom?: boolean;
+};
+
+export const PAGES_UPDATED_EVENT = "puck-demo-pages-updated";
+
+export const isValidIconName = (
+  iconName: unknown
+): iconName is PageDefinition["iconName"] => {
+  return (
+    iconName === "Home" ||
+    iconName === "ShoppingCart" ||
+    iconName === "Package" ||
+    iconName === "Palette" ||
+    iconName === "FileText"
+  );
+};
+
+export const dedupeByPath = (pages: PageDefinition[]) => {
+  const seen = new Set<string>();
+
+  return pages.filter((page) => {
+    if (seen.has(page.path)) return false;
+    seen.add(page.path);
+    return true;
+  });
+};
+
+export function normalizePagePath(rawPath: string): string | null {
+  let value = rawPath.trim();
+
+  if (!value) return null;
+
+  try {
+    const asUrl = new URL(value);
+    value = asUrl.pathname;
+  } catch {
+    // Not a full URL; keep raw input.
+  }
+
+  value = value
+    .replace(/\\/g, "/")
+    .replace(/\/+/g, "/")
+    .replace(/\?.*$/, "")
+    .replace(/#.*$/, "");
+
+  if (!value.startsWith("/")) {
+    value = `/${value}`;
+  }
+
+  if (value.length > 1 && value.endsWith("/")) {
+    value = value.slice(0, -1);
+  }
+
+  if (value === "/edit" || value.endsWith("/edit") || value.includes(":")) {
+    return null;
+  }
+
+  return value || null;
+};
+
+export const PAGES: PageDefinition[] = [
+  {
+    path: "/",
+    label: "Home",
+    description: "Main landing page",
+    iconName: "Home",
+  },
+  {
+    path: "/themes",
+    label: "Theme gallery",
+    description: "Browse and edit theme presets",
+    iconName: "Palette",
+  },
+  {
+    path: "/products/:product-slug",
+    label: "Product Details",
+    description: "Individual product page",
+    iconName: "Package",
+    dynamic: true,
+    examplePath: "/products/example-product",
+  },
+  {
+    path: "/cart",
+    label: "Cart",
+    description: "Shopping cart & checkout",
+    iconName: "ShoppingCart",
+  },
+  {
+    path: "/pricing",
+    label: "Pricing",
+    description: "Pricing plans",
+    iconName: "FileText",
+  },
+  {
+    path: "/about",
+    label: "About Us",
+    description: "About the store",
+    iconName: "FileText",
+  },
+];
+
+/** Returns the path used for the editor URL (substitutes dynamic segments) */
+export function getEditPath(page: Pick<PageDefinition, "path" | "examplePath">) {
+  return page.examplePath ?? page.path;
+}
+
+/** Derives the current page (if any) from a browser pathname like "/cart/edit" */
+export function matchCurrentPage(
+  pathname: string,
+  pages: PageDefinition[] = PAGES
+): PageDefinition | undefined {
+  const current = pathname.replace(/\/edit$/, "") || "/";
+  return pages.find((p) => getEditPath(p) === current);
+}

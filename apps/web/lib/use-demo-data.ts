@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 
 import { resolveAllData, type Metadata } from "@/core";
-import config, { componentKey } from "@/core/config";
-import { initialData } from "@/core/config/initial-data";
+import config from "@/core/config";
+import {
+	applyPuckSave,
+	composePuckData,
+	getSiteStorageKey,
+	readSiteData,
+	writeSiteData,
+} from "@/core/config/lib/site-data";
 import type { UserData } from "@/core/config/types";
 import type { RootProps } from "@/core/config/root";
 import type { Components } from "@/core/config/types";
 
 const isBrowser = typeof window !== "undefined";
-
-const getInitialData = (path: string): Partial<UserData> =>
-	initialData[path] ?? {};
 
 export const useDemoData = ({
 	path,
@@ -21,20 +24,11 @@ export const useDemoData = ({
 	isEdit: boolean;
 	metadata?: Metadata;
 }) => {
-	const key = `puck-demo:${componentKey}:${path}`;
+	const siteKey = getSiteStorageKey();
 
 	const [data] = useState<Partial<UserData>>(() => {
-		if (isBrowser) {
-			const dataStr = localStorage.getItem(key);
-
-			if (dataStr) {
-				return JSON.parse(dataStr) as Partial<UserData>;
-			}
-
-			return getInitialData(path);
-		}
-
-		return getInitialData(path);
+		const site = readSiteData();
+		return composePuckData(site, path);
 	});
 
 	const [resolvedData, setResolvedData] = useState<Partial<UserData>>(data);
@@ -49,12 +43,25 @@ export const useDemoData = ({
 
 	useEffect(() => {
 		if (!isEdit) {
-			const title =
-				data?.root?.props?.title ??
-				(data?.root as { title?: string } | undefined)?.title;
-			document.title = title || "";
+			const site = readSiteData();
+			const page = site.pages.find(
+				(entry) =>
+					entry.link === path ||
+					entry.slug === path ||
+					entry.path === path ||
+					entry.examplePath === path,
+			);
+			document.title = page?.title ?? page?.name ?? "";
 		}
-	}, [data, isEdit]);
+	}, [path, isEdit]);
 
-	return { data, resolvedData, key };
+	const savePageData = (puckData: UserData) => {
+		if (!isBrowser) return;
+
+		const site = readSiteData();
+		const nextSite = applyPuckSave(site, path, puckData);
+		writeSiteData(nextSite);
+	};
+
+	return { data, resolvedData, key: siteKey, savePageData, readSiteData };
 };

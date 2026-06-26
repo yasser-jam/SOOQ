@@ -21,7 +21,12 @@ import { pagesPlugin } from "@/core/config/plugins/pages"
 import { themesPlugin } from "@/core/config/plugins/themes"
 import { shopifyOutlinePlugin } from "@/core/config/plugins/shopify-editor"
 import { canvasInteractionsPlugin } from "@/core/config/plugins/canvas-interactions"
-import { normalizeEditorData } from "@/core/config/lib/normalize-editor-data"
+import {
+  applyPuckSave,
+  normalizeSiteData,
+  readSiteData,
+  type SiteData,
+} from "@/core/config/lib/site-data"
 import { ThemeInjector } from "@/core/config/plugins/settings/ThemeInjector"
 import type { UserData } from "@/core/config/types"
 import { Button } from "@workspace/ui/components/button"
@@ -56,17 +61,20 @@ function JsonViewerFloatingButton({ onOpen }: { onOpen: () => void }) {
 function JsonViewerDialog({
   open,
   onClose,
+  getSiteSnapshot,
 }: {
   open: boolean
   onClose: () => void
+  getSiteSnapshot: () => SiteData
 }) {
   const usePuck = createUsePuck()
-  const data = usePuck((s) => s.appState.data)
+  const puckData = usePuck((s) => s.appState.data)
 
   const jsonString = useMemo(() => {
-    if (!data) return ""
-    return JSON.stringify(normalizeEditorData(data as UserData), null, 2)
-  }, [data])
+    if (!open) return ""
+
+    return JSON.stringify(normalizeSiteData(getSiteSnapshot()), null, 2)
+  }, [open, getSiteSnapshot, puckData])
 
   if (!open) return null
 
@@ -75,7 +83,7 @@ function JsonViewerDialog({
       className="EditorShortcutOverlay"
       role="dialog"
       aria-modal="true"
-      aria-label="Page JSON data"
+      aria-label="Site JSON data"
       data-puck-no-shortcuts="true"
     >
       <button
@@ -88,7 +96,7 @@ function JsonViewerDialog({
       <div className="EditorShortcutDialog EditorJsonDialog" data-puck-no-shortcuts="true">
         <div className="EditorShortcutDialogHeader">
           <div>
-            <p className="EditorShortcutEyebrow">Page data</p>
+            <p className="EditorShortcutEyebrow">Site data</p>
             <h2 className="EditorShortcutTitle">JSON</h2>
           </div>
 
@@ -117,7 +125,7 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
     example: "Hello, world",
   }
 
-  const { data, resolvedData, key } = useDemoData({
+  const { data, resolvedData, savePageData } = useDemoData({
     path,
     isEdit,
     metadata,
@@ -129,16 +137,25 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
     return match ? `/store/${match[1]}/design-studio` : "/"
   }, [pathname])
 
-  const exportFileName = useMemo(() => {
-    if (!path || path === "/") return "template-home"
-    return `template${path.replace(/\//g, "-")}`.replace(/-+/g, "-")
-  }, [path])
+  const exportFileName = "site"
 
   const [isClient, setIsClient] = useState(false)
   const [isShortcutDialogOpen, setShortcutDialogOpen] = useState(false)
   const [isJsonDialogOpen, setJsonDialogOpen] = useState(false)
   const [showHintPill, setShowHintPill] = useState(false)
   const exportDataRef = useRef<UserData | null>(null)
+  const siteDataRef = useRef<SiteData | null>(null)
+
+  const getSiteSnapshot = useCallback(() => {
+    const base = siteDataRef.current ?? readSiteData()
+    const puckData = exportDataRef.current
+
+    if (puckData) {
+      return applyPuckSave(base, path, puckData)
+    }
+
+    return base
+  }, [path])
 
   const modKeyLabel = useMemo(() => {
     if (typeof navigator === "undefined") return "Ctrl"
@@ -148,6 +165,11 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
   useEffect(() => {
     setIsClient(true)
   }, [])
+
+  useEffect(() => {
+    siteDataRef.current = readSiteData()
+    exportDataRef.current = null
+  }, [path])
 
   useEffect(() => {
     if (!isClient || !isEdit) return
@@ -188,12 +210,12 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
   }, [])
   const handleExportJson = () => {
     if (typeof window === "undefined") return
-    const normalized = normalizeEditorData(
-      (exportDataRef.current ?? data) as UserData
+    const blob = new Blob(
+      [JSON.stringify(normalizeSiteData(getSiteSnapshot()), null, 2)],
+      {
+        type: "application/json",
+      }
     )
-    const blob = new Blob([JSON.stringify(normalized, null, 2)], {
-      type: "application/json",
-    })
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
@@ -248,6 +270,7 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
           <JsonViewerDialog
             open={isJsonDialogOpen}
             onClose={() => setJsonDialogOpen(false)}
+            getSiteSnapshot={getSiteSnapshot}
           />
 
           {isShortcutDialogOpen ? (
@@ -425,6 +448,7 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
     [
       designStudioHref,
       dismissHintPill,
+      getSiteSnapshot,
       isJsonDialogOpen,
       isShortcutDialogOpen,
       modKeyLabel,
@@ -450,8 +474,8 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
             exportDataRef.current = nextData
           }}
           onPublish={async (data) => {
-            const normalized = normalizeEditorData(data)
-            localStorage.setItem(key, JSON.stringify(normalized))
+            savePageData(data as UserData)
+            siteDataRef.current = readSiteData()
           }}
           plugins={plugins}
           // Keep the built-in Blocks palette so merchants can still drag
@@ -494,7 +518,7 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
     >
       <div>
         <h1>404</h1>
-        <p>Page does not exist in session storage</p>
+        <p>Page does not exist in site data</p>
       </div>
     </div>
   )

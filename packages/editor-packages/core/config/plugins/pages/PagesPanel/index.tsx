@@ -16,10 +16,12 @@ import {
   getEditPath,
   matchCurrentPage,
   normalizePagePath,
-  readCustomPages,
-  writeCustomPages,
 } from "../../../pages"
-import { componentKey } from "../../../index"
+import {
+  addSitePage,
+  readSiteData,
+  writeSiteData,
+} from "../../../lib/site-data"
 import { normalizeEditorData } from "../../../lib/normalize-editor-data"
 import type { UserData } from "../../../types"
 import {
@@ -44,9 +46,7 @@ const ICON_MAP = {
 
 const DEFAULT_ARABIC_PAGE_LABEL = "صفحة جديدة"
 
-const createStorageKey = (path: string) => `puck-demo:${componentKey}:${path}`
-
-const createStarterPageData = (title: string): UserData => {
+const createStarterPageContent = (title: string): UserData["content"] => {
   const nonce = Date.now().toString(36)
   const starterContent = createSectionStarterContent().map((item, index) => ({
     ...item,
@@ -56,34 +56,26 @@ const createStarterPageData = (title: string): UserData => {
     },
   }))
 
-  return {
-    root: {
+  return [
+    {
+      type: "Section",
       props: {
-        title,
+        id: `Section-${nonce}`,
+        name: DEFAULT_SECTION_NAME,
+        anchorId: "",
+        visible: true,
+        paddingTop: "80px",
+        paddingBottom: "80px",
+        paddingHorizontal: "24px",
+        backgroundColor: "#ffffff",
+        theme: "dark",
+        maxWidth: "1280px",
+        columns: 1,
+        gridGap: "24px",
+        content: starterContent as any,
       },
     },
-    zones: {},
-    content: [
-      {
-        type: "Section",
-        props: {
-          id: `Section-${nonce}`,
-          name: DEFAULT_SECTION_NAME,
-          anchorId: "",
-          visible: true,
-          paddingTop: "80px",
-          paddingBottom: "80px",
-          paddingHorizontal: "24px",
-          backgroundColor: "#ffffff",
-          theme: "dark",
-          maxWidth: "1280px",
-          columns: 1,
-          gridGap: "24px",
-          content: starterContent as any,
-        },
-      },
-    ],
-  }
+  ] as UserData["content"]
 }
 
 // ─── Page item ────────────────────────────────────────────────────────────────
@@ -180,25 +172,29 @@ export function PagesPanel() {
 
     const normalizedLabel = labelDraft.trim() || DEFAULT_ARABIC_PAGE_LABEL
 
-    const nextPage: PageDefinition = {
-      path: normalizedPath,
-      label: normalizedLabel,
-      description: "صفحة مخصصة",
-      iconName: "FileText",
-      dynamic: false,
-      isCustom: true,
-    }
+    const site = readSiteData()
+    const starterContent = normalizeEditorData({
+      root: { props: { title: normalizedLabel } },
+      content: createStarterPageContent(normalizedLabel),
+      zones: {},
+    }).content
 
-    const nextCustomPages = [...readCustomPages(), nextPage]
-    writeCustomPages(nextCustomPages)
+    const nextSite = addSitePage(
+      site,
+      {
+        path: normalizedPath,
+        name: normalizedLabel,
+        link: normalizedPath,
+        title: normalizedLabel,
+        description: "صفحة مخصصة",
+        iconName: "FileText",
+        isCustom: true,
+      },
+      starterContent
+    )
 
-    const storageKey = createStorageKey(normalizedPath)
-    if (!window.localStorage.getItem(storageKey)) {
-      const starterData = normalizeEditorData(
-        createStarterPageData(normalizedLabel)
-      )
-      window.localStorage.setItem(storageKey, JSON.stringify(starterData))
-    }
+    writeSiteData(nextSite)
+    refreshPages()
 
     setFormError(null)
     setLabelDraft("")
