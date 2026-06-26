@@ -7,7 +7,6 @@ import { getClassNameFactory } from "@/core/lib";
 import {
   getProductForCard,
   productPickerKeys,
-  type ProductCardData,
 } from "@/modules/product/product/data-store";
 import { resolveColor } from "../../content/color-fields";
 import { resolveRadius } from "../../content/typography-fields";
@@ -15,9 +14,39 @@ import { buttonSizeVars, ButtonSizeStep } from "../../theme";
 import { ImageCarousel } from "./ImageCarousel";
 import { useProductVariants } from "./useProductVariants";
 import type { ProductCardDisplayProps } from "./types";
+import type { ProductCardData, ProductResourceMetadata } from "./types";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("ProductCard", styles);
+
+type StockStatus = "in_stock" | "low_stock" | "out_of_stock" | "unknown";
+
+export const PRODUCT_CARD_ACTION_KEYS = {
+  addToCart: "add-product",
+  addToFavourite: "add-product-to-favourite",
+} as const;
+
+export type ProductCardActionEventDetail = {
+  product: ProductCardData;
+  selectedVariant: ProductCardData["variants"][number] | null;
+  selectedAttributes: Record<string, string>;
+  pricing: {
+    price: number;
+    compareAt: number | null;
+    discountPercent: number;
+    hasDiscount: boolean;
+  };
+  stockStatus: StockStatus;
+  language: ProductCardDisplayProps["language"];
+  metadata?: ProductResourceMetadata | null;
+};
+
+function dispatchProductCardEvent(
+  eventName: "add-product" | "add-product-to-favourite",
+  detail: ProductCardActionEventDetail
+) {
+  window.dispatchEvent(new CustomEvent(eventName, { detail, bubbles: true }));
+}
 
 const SHOW_HIDE_OPTIONS = [
   { label: "إظهار", value: true },
@@ -84,8 +113,6 @@ function resolveActionButtonStyle(
     fontSize: size.fontSize,
   };
 }
-
-type StockStatus = "in_stock" | "low_stock" | "out_of_stock" | "unknown";
 
 function resolveStockStatus(
   product: ProductCardData,
@@ -165,6 +192,7 @@ export function ProductCardView({
   language,
   isEditing = false,
   productData,
+  metadata,
 }: ProductCardViewProps) {
   const productId = product?.id;
 
@@ -234,10 +262,32 @@ export function ProductCardView({
     actionTextColor
   );
 
-  const onActionClick = (event: MouseEvent, label: string) => {
+  const buildActionEventDetail = (): ProductCardActionEventDetail => ({
+    product: resolvedProduct,
+    selectedVariant,
+    selectedAttributes,
+    pricing,
+    stockStatus,
+    language,
+    metadata: metadata ?? null,
+  });
+
+  const onAddToCartClick = (event: MouseEvent) => {
     event.preventDefault();
     if (isEditing) return;
-    window.alert(label);
+    dispatchProductCardEvent("add-product", buildActionEventDetail());
+  };
+
+  const onAddToFavouriteClick = (event: MouseEvent) => {
+    event.preventDefault();
+    if (isEditing) return;
+    dispatchProductCardEvent("add-product-to-favourite", buildActionEventDetail());
+  };
+
+  const onViewDetailsClick = (event: MouseEvent) => {
+    event.preventDefault();
+    if (isEditing) return;
+    window.alert("عرض التفاصيل");
   };
 
   const actionButtons =
@@ -246,9 +296,10 @@ export function ProductCardView({
         {showAddToCart ? (
           <button
             type="button"
+            data-action-key={PRODUCT_CARD_ACTION_KEYS.addToCart}
             className={getClassName("actionBtn")}
             style={actionStyle}
-            onClick={(event) => onActionClick(event, "إضافة إلى السلة")}
+            onClick={onAddToCartClick}
           >
             إضافة إلى السلة
           </button>
@@ -258,7 +309,7 @@ export function ProductCardView({
             type="button"
             className={getClassName("actionBtn")}
             style={actionStyle}
-            onClick={(event) => onActionClick(event, "عرض التفاصيل")}
+            onClick={onViewDetailsClick}
           >
             عرض التفاصيل
           </button>
@@ -397,9 +448,10 @@ export function ProductCardView({
           {showFavoriteButton ? (
             <button
               type="button"
+              data-action-key={PRODUCT_CARD_ACTION_KEYS.addToFavourite}
               className={getClassName("favoriteBtn")}
               aria-label="إضافة إلى المفضلة"
-              onClick={(event) => onActionClick(event, "إضافة إلى المفضلة")}
+              onClick={onAddToFavouriteClick}
             >
               <Heart size={18} />
             </button>
