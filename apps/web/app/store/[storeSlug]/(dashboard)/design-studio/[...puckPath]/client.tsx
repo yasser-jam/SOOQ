@@ -12,9 +12,10 @@ import {
 import config from "@/core/config"
 import { useDemoData } from "@/lib/use-demo-data"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   CircleHelp,
+  Eye,
   FileJson,
   Keyboard,
   MousePointer2,
@@ -30,14 +31,22 @@ import { shopifyOutlinePlugin } from "@/core/config/plugins/shopify-editor"
 import { canvasInteractionsPlugin } from "@/core/config/plugins/canvas-interactions"
 import {
   applyPuckSave,
+  findSitePage,
   normalizeSiteData,
   readSiteData,
   type SiteData,
 } from "@/core/config/lib/site-data"
 import { ThemeInjector } from "@/core/config/plugins/settings/ThemeInjector"
 import type { UserData } from "@/core/config/types"
+import type { FullThemeProps } from "@/core/config/theme"
 import { Button } from "@workspace/ui/components/button"
 import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell"
+import { PreviewPageShell } from "../_components/preview-page-shell"
+import { PreviewThemeProvider } from "../_components/preview-theme-provider"
+import {
+  buildStudioEditHref,
+  buildStudioPreviewHref,
+} from "@/lib/design-studio-paths"
 
 const hiddenPluginNames = new Set(["themes", "heading-analyzer", "outline"])
 
@@ -127,7 +136,15 @@ function JsonViewerDialog({
   )
 }
 
-export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
+export function Client({
+  path,
+  isEdit,
+  isPreview = false,
+}: {
+  path: string
+  isEdit: boolean
+  isPreview?: boolean
+}) {
   const metadata = {
     example: "Hello, world",
   }
@@ -138,11 +155,28 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
     metadata,
   })
 
+  const previewPageTitle = useMemo(() => {
+    const site = readSiteData()
+    const page = findSitePage(site, path)
+    return page?.title ?? page?.name ?? path
+  }, [path])
+
   const pathname = usePathname()
+  const router = useRouter()
   const designStudioHref = useMemo(() => {
     const match = pathname?.match(/^\/store\/([^/]+)/)
     return match ? `/store/${match[1]}/design-studio` : "/"
   }, [pathname])
+
+  const previewHref = useMemo(
+    () => buildStudioPreviewHref(designStudioHref, path),
+    [designStudioHref, path]
+  )
+
+  const editHref = useMemo(
+    () => buildStudioEditHref(designStudioHref, path),
+    [designStudioHref, path]
+  )
 
   const exportFileName = "site"
 
@@ -215,6 +249,15 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
       window.localStorage.setItem(EDITOR_HINT_DISMISSED_KEY, "1")
     }
   }, [])
+
+  const handleOpenPreview = useCallback(() => {
+    const puckData = exportDataRef.current ?? data
+    if (puckData) {
+      savePageData(puckData as UserData)
+      siteDataRef.current = readSiteData()
+    }
+    router.push(previewHref)
+  }, [data, previewHref, router, savePageData])
   const handleExportJson = () => {
     if (typeof window === "undefined") return
     const blob = new Blob(
@@ -448,6 +491,10 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
           <Button variant="outline" size="sm" asChild>
             <Link href={designStudioHref}>إغلاق المحرر</Link>
           </Button>
+          <Button variant="outline" size="sm" onClick={handleOpenPreview}>
+            <Eye size={16} />
+            معاينة
+          </Button>
           {children}
         </div>
       ),
@@ -456,12 +503,19 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
       designStudioHref,
       dismissHintPill,
       getSiteSnapshot,
+      handleOpenPreview,
       isJsonDialogOpen,
       isShortcutDialogOpen,
       modKeyLabel,
       showHintPill,
     ]
   )
+
+  const previewRootProps = useMemo(() => {
+    const root = resolvedData?.root
+    if (!root) return undefined
+    return ("props" in root ? root.props : root) as Partial<FullThemeProps>
+  }, [resolvedData])
 
   const params = isClient
     ? new URL(window.location.href).searchParams
@@ -506,6 +560,27 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
           metadata={metadata}
         />
       </EditorFullscreenShell>
+    )
+  }
+
+  if (isPreview) {
+    if (!data?.content) {
+      return (
+        <PreviewPageShell pageTitle={previewPageTitle} editHref={editHref}>
+          <div className="PreviewPageShell-empty">
+            <h1>404</h1>
+            <p>Page does not exist in site data</p>
+          </div>
+        </PreviewPageShell>
+      )
+    }
+
+    return (
+      <PreviewPageShell pageTitle={previewPageTitle} editHref={editHref}>
+        <PreviewThemeProvider rootProps={previewRootProps}>
+          <Render config={config} data={resolvedData} metadata={metadata} />
+        </PreviewThemeProvider>
+      </PreviewPageShell>
     )
   }
 

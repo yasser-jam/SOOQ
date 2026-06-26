@@ -1,7 +1,7 @@
 import Client from "../../[...puckPath]/client";
 
 type PageProps = {
-  params: { templateName: string };
+  params: Promise<{ templateName: string }>;
 };
 
 const normalizeTemplatePath = (templateName: string) => {
@@ -14,9 +14,9 @@ const normalizeTemplatePath = (templateName: string) => {
   return `/${normalized}`;
 };
 
-export default async function TemplateEditorPage(props: PageProps) {
+export default async function TemplatePreviewPage(props: PageProps) {
   const params = await props.params;
   const path = normalizeTemplatePath(params.templateName);
 
-  return <Client isEdit path={path} isPreview={false} />;
+  return <Client isEdit={false} isPreview path={path} />;
 }

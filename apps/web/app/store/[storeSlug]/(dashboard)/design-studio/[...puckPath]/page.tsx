@@ -8,11 +8,17 @@ export async function generateMetadata({
   params: Promise<{ framework: string; uuid: string; puckPath: string[] }>;
 }): Promise<Metadata> {
   const { puckPath } = await params;
-  const { isEdit, path } = resolvePuckPath(puckPath);
+  const { isEdit, isPreview, path } = resolvePuckPath(puckPath);
 
   if (isEdit) {
     return {
       title: "Editing: " + path,
+    };
+  }
+
+  if (isPreview) {
+    return {
+      title: "Preview: " + path,
     };
   }
 

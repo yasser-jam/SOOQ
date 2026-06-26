@@ -785,3 +785,57 @@ body {
     transition: none !important;
   }
 }
+
+/* ── Live preview (design-studio/:page/preview) ─────────────────────────── */
+[data-design-studio-preview].PreviewPageShell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--theme-color-background, #f8fafc);
+}
+
+.PreviewPageShell-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--puck-color-grey-08, #e2e8f0);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+}
+
+.PreviewPageShell-headerStart {
+  justify-self: start;
+}
+
+.PreviewPageShell-headerCenter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--puck-color-grey-02, #1e293b);
+}
+
+.PreviewPageShell-headerEnd {
+  justify-self: end;
+}
+
+.PreviewPageShell-main {
+  flex: 1;
+  min-height: 0;
+}
+
+.PreviewPageShell-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+  color: var(--puck-color-grey-04, #475569);
+}
