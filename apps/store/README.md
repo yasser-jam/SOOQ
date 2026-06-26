@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SOOQ Storefront (`apps/store`)
 
-## Getting Started
+Customer-facing storefront renderer. Reads the same Puck `SiteData` JSON from `localStorage` as the merchant design studio and renders the home page with `<Render />`.
 
-First, run the development server:
+Fixed theme id (v1): **`test`** — see [`lib/store-config.ts`](lib/store-config.ts).
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# From monorepo root
+pnpm install
+cp apps/store/.env.example apps/store/.env.local   # set NEXT_PUBLIC_API_URL
+
+pnpm --filter store dev    # http://localhost:3001
+pnpm --filter web dev      # http://localhost:3000 (design studio)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Data flow
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. `readSiteData()` — `localStorage` key `puck-demo:{componentKey}:site`
+2. `composePuckData(site, "/")` — home page content + global `root` / `zones`
+3. `resolveAllData()` — resolves block `resolveData` hooks
+4. `PreviewThemeProvider` — injects theme CSS from `root.props`
+5. `<Render config={config} data={resolvedData} />`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+API-backed blocks (ProductCard, ProductsGrid) use `NEXT_PUBLIC_API_URL` via shared modules in `apps/web/modules`.
 
-## Learn More
+## localStorage caveat
 
-To learn more about Next.js, take a look at the following resources:
+`localStorage` is **per origin** (host + port).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Setup | Shared with web editor? |
+|-------|------------------------|
+| web `:3000`, store `:3001` | **No** — store uses seeded `initialData` until you publish via API |
+| Same host (reverse proxy) | Yes |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+For local dev, edit in design studio on web, then either:
 
-## Deploy on Vercel
+- Use **معاينة** in the editor (same origin as saved data), or
+- Run store on the same origin as web, or
+- Accept the default seeded home page on `:3001`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Command | Description |
+|---------|-------------|
+| `pnpm --filter store dev` | Dev server on port 3001 |
+| `pnpm --filter store build` | Production build |
+| `pnpm --filter store typecheck` | TypeScript check |
+
+## ProductCard events
+
+In render mode (`isEditing=false`), buttons dispatch window events:
+
+- `add-product` — add to cart
+- `add-product-to-favourite` — wishlist
+
+Listen with `window.addEventListener("add-product", …)`.
