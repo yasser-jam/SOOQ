@@ -1,5 +1,5 @@
 import type { ExternalField } from "@/core/types/Fields"
-import api from "@/lib/api"
+import api, { toFullApiUrl } from "@/lib/api"
 import type { ApiResponse, PagedApiResponse } from "@/lib/types"
 
 export type CollectionPickerRef = {
@@ -54,8 +54,18 @@ export const collectionPickerKeys = {
 		[...collectionPickerKeys.all, "products", apiUrl] as const,
 }
 
-export function getCollectionProductsApiUrl(collectionId: string): string {
+export function getCollectionsListApiUrl(): string {
+	return toFullApiUrl(
+		`/admin/collections?page=0&size=${COLLECTION_LIST_PAGE_SIZE}`,
+	)
+}
+
+export function getCollectionProductsApiPath(collectionId: string): string {
 	return `/admin/collections/${collectionId}/products?page=0&size=${COLLECTION_PRODUCTS_PAGE_SIZE}`
+}
+
+export function getCollectionProductsApiUrl(collectionId: string): string {
+	return toFullApiUrl(getCollectionProductsApiPath(collectionId))
 }
 
 export function buildProductsGridResourceMetadata(

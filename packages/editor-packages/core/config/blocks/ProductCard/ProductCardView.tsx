@@ -5,7 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
 import { getClassNameFactory } from "@/core/lib";
 import {
-  getProductForCard,
+  fetchProductForCardFromUrl,
+  getProductCardApiUrl,
   productPickerKeys,
 } from "@/modules/product/product/data-store";
 import { resolveColor } from "../../content/color-fields";
@@ -195,11 +196,13 @@ export function ProductCardView({
   metadata,
 }: ProductCardViewProps) {
   const productId = product?.id;
+  const productApiUrl =
+    metadata?.apiUrl ?? (productId ? getProductCardApiUrl(productId) : null);
 
   const { data: fetchedProduct, isLoading, isError } = useQuery({
-    queryKey: productPickerKeys.detail(productId ?? ""),
-    queryFn: () => getProductForCard(productId!),
-    enabled: Boolean(productId) && !productData,
+    queryKey: productPickerKeys.detail(productId ?? "", productApiUrl ?? ""),
+    queryFn: () => fetchProductForCardFromUrl(productApiUrl!),
+    enabled: Boolean(productApiUrl) && !productData,
     staleTime: 60_000,
   });
 

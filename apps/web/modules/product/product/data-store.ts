@@ -1,5 +1,5 @@
 import type { ExternalField } from "@/core/types/Fields"
-import api from "@/lib/api"
+import api, { toFullApiUrl } from "@/lib/api"
 import type { ApiResponse, PagedApiResponse } from "@/lib/types"
 
 export type ProductPickerRef = {
@@ -21,11 +21,15 @@ export const PRODUCT_CARD_API_INCLUDES = [
 	"INVENTORY",
 ] as const
 
-export function getProductCardApiUrl(id: string): string {
+export function getProductCardApiPath(id: string): string {
 	const includes = PRODUCT_CARD_API_INCLUDES.map(
 		(include) => `include=${include}`,
 	).join("&")
 	return `/admin/products/${id}?${includes}`
+}
+
+export function getProductCardApiUrl(id: string): string {
+	return toFullApiUrl(getProductCardApiPath(id))
 }
 
 export function buildProductResourceMetadata(id: string): ProductResourceMetadata {
@@ -67,7 +71,8 @@ export type ProductCardData = {
 
 export const productPickerKeys = {
 	all: ["product", "picker"] as const,
-	detail: (id: string) => [...productPickerKeys.all, id] as const,
+	detail: (id: string, apiUrl = "") =>
+		[...productPickerKeys.all, id, apiUrl] as const,
 	list: (query: string) => [...productPickerKeys.all, "list", query] as const,
 }
 
@@ -277,13 +282,17 @@ function mapAdminDetailToProductCardData(
 	}
 }
 
-export async function getProductForCard(id: string): Promise<ProductCardData | null> {
-	const response = await api<
-		ApiResponse<Record<string, unknown>>
-	>(getProductCardApiUrl(id))
+export async function fetchProductForCardFromUrl(
+	apiUrl: string,
+): Promise<ProductCardData | null> {
+	const response = await api<ApiResponse<Record<string, unknown>>>(apiUrl)
 
 	if (!response.data) return null
 	return mapAdminDetailToProductCardData(response.data)
+}
+
+export async function getProductForCard(id: string): Promise<ProductCardData | null> {
+	return fetchProductForCardFromUrl(getProductCardApiUrl(id))
 }
 
 export const productExternalField: ExternalField<ProductPickerRef | null> = {

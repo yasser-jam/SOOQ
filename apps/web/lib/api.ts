@@ -103,6 +103,20 @@ export type ApiOptions = Omit<AxiosRequestConfig, "url" | "data"> & {
   body?: AxiosRequestConfig["data"]
 }
 
+/** Base URL from env, without trailing slash. */
+export function getApiBaseUrl(): string {
+  return (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "")
+}
+
+/** Prefix relative API paths with `NEXT_PUBLIC_API_URL`; leave absolute URLs unchanged. */
+export function toFullApiUrl(path: string): string {
+  if (/^https?:\/\//i.test(path)) return path
+  const base = getApiBaseUrl()
+  if (!base) return path
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`
+  return `${base}${normalizedPath}`
+}
+
 export const api = async <T = unknown>(
   url: string,
   options: ApiOptions = {}
