@@ -1,6 +1,6 @@
-import type { ProductCardData, ProductPickerRef } from "@/modules/product/product/data-store";
+import type { ProductCardData, ProductPickerRef, ProductResourceMetadata } from "@/modules/product/product/data-store";
 
-export type { ProductCardData, ProductPickerRef };
+export type { ProductCardData, ProductPickerRef, ProductResourceMetadata };
 
 export type Variant = ProductCardData["variants"][number];
 
@@ -8,6 +8,8 @@ export type ProductCardLayout = "vertical" | "horizontal" | "compact" | "feature
 
 export type ProductCardDisplayProps = {
   product: ProductPickerRef | null;
+  /** Auto-populated when a product is selected (see ProductCard resolveData). */
+  metadata?: ProductResourceMetadata | null;
   variant: ProductCardLayout;
   radius: string;
   showTags: boolean;

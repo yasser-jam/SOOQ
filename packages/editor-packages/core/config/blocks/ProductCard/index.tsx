@@ -1,7 +1,7 @@
 import React from "react";
 import { ComponentConfig, Fields } from "@/core/types";
 import { WithLayout, withLayout } from "../../components/Layout";
-import { productExternalField } from "@/modules/product/product/data-store";
+import { productExternalField, buildProductResourceMetadata } from "@/modules/product/product/data-store";
 import { colorField } from "../../content/color-fields";
 import { RADIUS_OPTIONS } from "../../content/typography-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
@@ -178,7 +178,33 @@ const ProductCardInner: ComponentConfig<ProductCardProps> = {
 
   defaultProps: {
     product: null,
+    metadata: null,
     ...DEFAULT_PRODUCT_CARD_PROPS,
+  },
+
+  resolveData: ({ props }) => {
+    const productId = props.product?.id;
+
+    if (!productId) {
+      if (props.metadata != null) {
+        return { props: { metadata: null } };
+      }
+      return {};
+    }
+
+    const metadata = buildProductResourceMetadata(productId);
+    const current = props.metadata;
+
+    if (
+      current?.id === metadata.id &&
+      current?.type === metadata.type &&
+      current?.method === metadata.method &&
+      current?.apiUrl === metadata.apiUrl
+    ) {
+      return {};
+    }
+
+    return { props: { metadata } };
   },
 
   render: ProductCardRender,

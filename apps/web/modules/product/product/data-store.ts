@@ -8,6 +8,35 @@ export type ProductPickerRef = {
 	titleEn?: string
 }
 
+export type ProductResourceMetadata = {
+	type: "product"
+	method: "get"
+	apiUrl: string
+	id: string
+}
+
+export const PRODUCT_CARD_API_INCLUDES = [
+	"PRICING",
+	"IMAGES",
+	"INVENTORY",
+] as const
+
+export function getProductCardApiUrl(id: string): string {
+	const includes = PRODUCT_CARD_API_INCLUDES.map(
+		(include) => `include=${include}`,
+	).join("&")
+	return `/admin/products/${id}?${includes}`
+}
+
+export function buildProductResourceMetadata(id: string): ProductResourceMetadata {
+	return {
+		type: "product",
+		method: "get",
+		apiUrl: getProductCardApiUrl(id),
+		id,
+	}
+}
+
 export type ProductCardVariant = {
 	attributes: Record<string, string>
 	price: number
@@ -251,9 +280,7 @@ function mapAdminDetailToProductCardData(
 export async function getProductForCard(id: string): Promise<ProductCardData | null> {
 	const response = await api<
 		ApiResponse<Record<string, unknown>>
-	>(
-		`/admin/products/${id}?include=PRICING&include=IMAGES&include=INVENTORY`,
-	)
+	>(getProductCardApiUrl(id))
 
 	if (!response.data) return null
 	return mapAdminDetailToProductCardData(response.data)
