@@ -113,7 +113,7 @@ const section = (
 const productGridBlock = () => ({
   type: "ProductsGrid",
   props: {
-    collection: "Featured",
+    collection: null,
     columns: "3",
     maxRows: "2",
     gap: "md",

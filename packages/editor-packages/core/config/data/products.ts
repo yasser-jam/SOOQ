@@ -45,11 +45,6 @@ export const productOptions = products.map((p) => ({
 	value: p.id,
 }))
 
-/** Unique collection names across the demo catalog (for collection pickers). */
-export const allCollections: string[] = [
-	...new Set(products.flatMap((p) => p.collections)),
-].sort()
-
 // ─── Shared helpers ─────────────────────────────────────────────────────────
 
 export function formatPrice(price: number): string {
@@ -65,3 +60,8 @@ export function discountedPrice(price: number, discount: number): number {
 }
 
 export { productExternalField } from "@/modules/product/product/data-store"
+export {
+	collectionExternalField,
+	type CollectionPickerRef,
+	type ProductsGridResourceMetadata,
+} from "@/modules/product/collection/data-store"
