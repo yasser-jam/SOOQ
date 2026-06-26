@@ -1,7 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { AutoField, createUsePuck, FieldLabel, Puck, Render } from "@/core"
+import {
+  AutoField,
+  createUsePuck,
+  FieldLabel,
+  Puck,
+  Render,
+  type Overrides,
+} from "@/core"
 import config from "@/core/config"
 import { useDemoData } from "@/lib/use-demo-data"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -246,7 +253,7 @@ export function Client({ path, isEdit }: { path: string; isEdit: boolean }) {
   )
 
   const overrides = useMemo(
-    () => ({
+    (): Partial<Overrides> => ({
       puck: ({ children }) => (
         <>
           <HtmlBlockPaletteSync />
