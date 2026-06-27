@@ -35,12 +35,14 @@ const NavItem = ({
   href,
   editMode,
   variant,
+  navStyle = "pill",
 }: {
   label: string;
   link?: LinkValue;
   href: string;
   editMode: boolean;
   variant: ShellVariant;
+  navStyle?: "underline" | "pill";
 }) => {
   const navPath =
     typeof window !== "undefined"
@@ -54,52 +56,24 @@ const NavItem = ({
   const isActive = !!resolvedHref && navPath === target;
   const targetAttr = resolveLinkTarget(link);
   const relAttr = resolveLinkRel(link);
+  const underline = navStyle === "underline";
+  const linkClass = classnames(
+    variant === "commerce" ? styles.navLinkCommerce : styles.navLink,
+    underline && styles.navLinkUnderline,
+    isActive &&
+      (variant === "commerce"
+        ? styles.navLinkCommerceActive
+        : underline
+          ? styles.navLinkUnderlineActive
+          : styles.navLinkActive)
+  );
 
   if (!resolvedHref) {
-    if (variant === "commerce") {
-      return <span className={styles.navLinkCommerce}>{label}</span>;
-    }
-
-    return <span className={styles.navLink}>{label}</span>;
+    return <span className={linkClass}>{label}</span>;
   }
 
   if (editMode) {
-    if (variant === "commerce") {
-      return (
-        <span
-          className={classnames(
-            styles.navLinkCommerce,
-            isActive && styles.navLinkCommerceActive
-          )}
-        >
-          {label}
-        </span>
-      );
-    }
-
-    return (
-      <span
-        className={classnames(styles.navLink, isActive && styles.navLinkActive)}
-      >
-        {label}
-      </span>
-    );
-  }
-
-  if (variant === "commerce") {
-    return (
-      <a
-        href={resolvedHref}
-        target={targetAttr}
-        rel={relAttr}
-        className={classnames(
-          styles.navLinkCommerce,
-          isActive && styles.navLinkCommerceActive
-        )}
-      >
-        {label}
-      </a>
-    );
+    return <span className={linkClass}>{label}</span>;
   }
 
   return (
@@ -107,7 +81,7 @@ const NavItem = ({
       href={resolvedHref}
       target={targetAttr}
       rel={relAttr}
-      className={classnames(styles.navLink, isActive && styles.navLinkActive)}
+      className={linkClass}
     >
       {label}
     </a>
@@ -163,6 +137,9 @@ export type HeaderProps = {
   /** CSS colour string (any valid CSS colour). Empty falls back to the theme. */
   backgroundColor?: string;
   textColor?: string;
+  layoutMode?: "centered" | "split";
+  menuAlign?: "start" | "end";
+  navStyle?: "underline" | "pill";
   /**
    * When true, renders a hamburger/menu button on the start-edge of the
    * header. Clicking it toggles the site-wide drawer via its
@@ -190,6 +167,9 @@ const Header = ({
   brandHref = "/",
   backgroundColor,
   textColor,
+  layoutMode = "split",
+  menuAlign = "end",
+  navStyle = "pill",
   showDrawerButton = false,
   drawerButtonIcon = "menu",
   drawerName = "site-drawer",
@@ -199,9 +179,10 @@ const Header = ({
   const resolvedLinks =
     Array.isArray(links) && links.length > 0 ? links : DEFAULT_HEADER_LINKS;
 
-  // Inline-colour overrides. We only emit the style entry when a colour is
-  // provided so that the themed defaults (CSS variables on :root) still take
-  // effect when the merchant leaves the field empty.
+  const isTransparent =
+    typeof backgroundColor === "string" &&
+    backgroundColor.trim().toLowerCase() === "transparent";
+
   const rootStyle: CSSProperties = {};
   if (backgroundColor) rootStyle.background = backgroundColor;
   if (textColor) rootStyle.color = textColor;
@@ -220,30 +201,74 @@ const Header = ({
       </button>
     ) : null;
 
+  const brandNode = editMode ? (
+    <span className={styles.logo}>{siteTitle}</span>
+  ) : (
+    <a href={brandHref || "/"} className={styles.logo}>
+      {siteTitle}
+    </a>
+  );
+
+  const navNode = (
+    <nav
+      className={classnames(
+        styles.items,
+        layoutMode === "centered" && styles.itemsCentered,
+        layoutMode === "split" &&
+          menuAlign === "start" &&
+          styles.itemsAlignStart
+      )}
+    >
+      {resolvedLinks.map((l, i) => (
+        <NavItem
+          key={`${resolveHrefLegacy(l.link, l.href) ?? "none"}-${i}`}
+          label={pickLabel(l, language)}
+          link={l.link}
+          href={l.href ?? ""}
+          editMode={editMode}
+          variant="default"
+          navStyle={navStyle}
+        />
+      ))}
+    </nav>
+  );
+
   if (variant === "default") {
     return (
-      <div className={styles.root} style={rootStyle}>
-        <header className={styles.inner}>
-          {drawerButton}
-          {editMode ? (
-            <span className={styles.logo}>{siteTitle}</span>
-          ) : (
-            <a href={brandHref || "/"} className={styles.logo}>
-              {siteTitle}
-            </a>
+      <div
+        className={classnames(
+          styles.root,
+          isTransparent && styles.rootTransparent,
+          layoutMode === "centered" && styles.rootFixed
+        )}
+        style={rootStyle}
+      >
+        <header
+          className={classnames(
+            styles.inner,
+            layoutMode === "centered" && styles.innerCentered,
+            layoutMode === "split" &&
+              menuAlign === "start" &&
+              styles.innerNavStart
           )}
-          <nav className={styles.items}>
-            {resolvedLinks.map((l, i) => (
-              <NavItem
-                key={`${resolveHrefLegacy(l.link, l.href) ?? "none"}-${i}`}
-                label={pickLabel(l, language)}
-                link={l.link}
-                href={l.href ?? ""}
-                editMode={editMode}
-                variant="default"
-              />
-            ))}
-          </nav>
+        >
+          {drawerButton}
+          {layoutMode === "centered" ? (
+            <>
+              <div className={styles.brandSlot}>{brandNode}</div>
+              {navNode}
+            </>
+          ) : menuAlign === "start" ? (
+            <>
+              {navNode}
+              <div className={styles.brandSlotEnd}>{brandNode}</div>
+            </>
+          ) : (
+            <>
+              {brandNode}
+              {navNode}
+            </>
+          )}
         </header>
       </div>
     );
@@ -269,6 +294,7 @@ const Header = ({
               href={l.href ?? ""}
               editMode={editMode}
               variant="commerce"
+              navStyle={navStyle}
             />
           ))}
         </nav>

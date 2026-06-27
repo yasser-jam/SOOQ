@@ -12,6 +12,16 @@
   z-index: 25;
 }
 
+.rootTransparent {
+  backdrop-filter: none;
+  background: transparent;
+  border-bottom: 1px solid color-mix(in srgb, var(--theme-color-border, #d6dde8) 65%, transparent);
+}
+
+.rootFixed {
+  position: sticky;
+}
+
 .inner {
   align-items: center;
   display: flex;
@@ -20,6 +30,26 @@
   margin-inline-end: auto;
   max-width: 1320px;
   padding: 16px clamp(16px, 2.6vw, 30px);
+}
+
+.innerCentered {
+  justify-content: center;
+  position: relative;
+}
+
+.innerNavStart {
+  justify-content: flex-start;
+}
+
+.brandSlot {
+  inset-inline-start: clamp(16px, 2.6vw, 30px);
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.brandSlotEnd {
+  margin-inline-start: auto;
 }
 
 .logo {
@@ -41,6 +71,16 @@
   margin-inline-start: auto;
 }
 
+.itemsCentered {
+  justify-content: center;
+  margin-inline: auto;
+}
+
+.itemsAlignStart {
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+}
+
 .navLink {
   border-radius: var(--theme-radius-md, 12px);
   color: var(--theme-color-text-muted, #56657d);
@@ -59,6 +99,19 @@
 
 .navLinkActive {
   background: var(--theme-color-primaryMuted, rgba(11, 120, 197, 0.14));
+  color: var(--theme-color-primary, #0b78c5);
+}
+
+.navLinkUnderline {
+  background: transparent;
+  border-radius: 0;
+  padding-inline: 4px;
+}
+
+.navLinkUnderline:hover,
+.navLinkUnderlineActive {
+  background: transparent;
+  border-bottom: 2px solid currentColor;
   color: var(--theme-color-primary, #0b78c5);
 }
 

@@ -19,6 +19,12 @@ export type SiteHeaderProps = {
   links: HeaderLink[];
   backgroundColor: string;
   textColor: string;
+  /** `centered` puts nav in the middle; `split` keeps brand and nav on opposite sides */
+  layoutMode?: "centered" | "split";
+  /** For split layout — which edge the nav sits on (brand goes to the other side) */
+  menuAlign?: "start" | "end";
+  /** Nav hover/active styling */
+  navStyle?: "underline" | "pill";
   showDrawerButton: boolean;
   drawerButtonIcon: HeaderDrawerIcon;
   drawerName: string;
@@ -84,6 +90,30 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
       label: "لون النص",
       description: "Empty = use theme default.",
     }),
+    layoutMode: {
+      type: "radio",
+      label: "تخطيط الرأس",
+      options: [
+        { label: "Split", value: "split" },
+        { label: "Centered", value: "centered" },
+      ],
+    },
+    menuAlign: {
+      type: "radio",
+      label: "محاذاة القائمة",
+      options: [
+        { label: "Start", value: "start" },
+        { label: "End", value: "end" },
+      ],
+    },
+    navStyle: {
+      type: "radio",
+      label: "نمط عناصر القائمة",
+      options: [
+        { label: "Pill", value: "pill" },
+        { label: "Underline", value: "underline" },
+      ],
+    },
     showDrawerButton: {
       type: "radio",
       label: "إظهار زر القائمة",
@@ -118,6 +148,9 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
     links: DEFAULT_HEADER_LINKS,
     backgroundColor: "",
     textColor: "",
+    layoutMode: "split",
+    menuAlign: "end",
+    navStyle: "pill",
     showDrawerButton: false,
     drawerButtonIcon: "menu",
     drawerName: "site-drawer",
@@ -131,6 +164,9 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
     links,
     backgroundColor,
     textColor,
+    layoutMode,
+    menuAlign,
+    navStyle,
     showDrawerButton,
     drawerButtonIcon,
     drawerName,
@@ -147,6 +183,9 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
         brandHref={brandHref}
         backgroundColor={backgroundColor || undefined}
         textColor={textColor || undefined}
+        layoutMode={layoutMode}
+        menuAlign={menuAlign}
+        navStyle={navStyle}
         showDrawerButton={showDrawerButton}
         drawerButtonIcon={drawerButtonIcon}
         drawerName={drawerName || "site-drawer"}
