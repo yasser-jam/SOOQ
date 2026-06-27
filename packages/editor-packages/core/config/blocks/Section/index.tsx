@@ -2,6 +2,7 @@ import React from "react";
 import { ComponentConfig, Slot } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";
 import { spacingOptions } from "../../options";
+import { resolveColor } from "../../content/color-fields";
 import { WithLayout, withLayout } from "../../components/Layout";
 import {
   DEFAULT_SECTION_NAME,
@@ -74,8 +75,14 @@ export type SectionProps = WithLayout<{
   maxWidth: string;
   /** CSS grid column count for the content slot */
   columns?: number | string;
+  /** Column count on viewports at or below 768px (default: 1) */
+  columnsMobile?: number | string;
   /** Gap between grid cells */
   gridGap?: string;
+  /** Background image URL (cover, centered) */
+  backgroundImage?: string;
+  /** Color overlay on top of background image (supports rgba for transparency) */
+  backgroundOverlayColor?: string;
   content: Slot;
 }>;
 
@@ -147,6 +154,25 @@ const SectionInner: ComponentConfig<SectionProps> = {
       label: "لون الخلفية",
       options: backgroundOptions,
     },
+    backgroundImage: {
+      type: "text",
+      label: "صورة الخلفية (رابط)",
+      placeholder: "https://example.com/image.jpg",
+      metadata: {
+        helpText:
+          "Optional background image URL. Shown as cover behind section content.",
+      },
+    },
+    backgroundOverlayColor: {
+      type: "text",
+      label: "لون التغطية فوق الصورة",
+      placeholder: "rgba(0, 0, 0, 0.45)",
+      metadata: {
+        helpText:
+          "Semi-transparent color over the background image. Use rgba for transparency.",
+        example: "rgba(0, 0, 0, 0.45)",
+      },
+    },
     theme: {
       type: "radio",
       label: "لون النص",
@@ -168,6 +194,14 @@ const SectionInner: ComponentConfig<SectionProps> = {
       label: "أعمدة الشبكة",
       metadata: {
         helpText: "Split section content into simple columns.",
+      },
+      options: columnOptions,
+    },
+    columnsMobile: {
+      type: "select",
+      label: "أعمدة الشبكة (جوال)",
+      metadata: {
+        helpText: "Column count on screens 768px wide or smaller.",
       },
       options: columnOptions,
     },
@@ -195,11 +229,15 @@ const SectionInner: ComponentConfig<SectionProps> = {
     theme: "dark",
     maxWidth: "1280px",
     columns: 1,
+    columnsMobile: 1,
     gridGap: "24px",
+    backgroundImage: "",
+    backgroundOverlayColor: "",
     content: createSectionStarterContent(),
   },
 
   render: ({
+    id,
     name: _name,
     anchorId,
     visible,
@@ -207,15 +245,26 @@ const SectionInner: ComponentConfig<SectionProps> = {
     paddingBottom,
     paddingHorizontal,
     backgroundColor,
+    backgroundImage,
+    backgroundOverlayColor,
     theme,
     maxWidth,
     columns,
+    columnsMobile,
     gridGap,
     content: Content,
     puck,
   }) => {
     const cols = Math.max(1, Math.min(6, Number(columns ?? 1) || 1));
+    const colsMobile = Math.max(
+      1,
+      Math.min(6, Number(columnsMobile ?? 1) || 1)
+    );
     const gap = gridGap ?? "24px";
+    const bgImage = (backgroundImage ?? "").trim();
+    const overlayColor = (backgroundOverlayColor ?? "").trim();
+    const gridClassName = getClassName("grid");
+    const sectionScopeId = id ? `section-${id.replace(/[^a-zA-Z0-9_-]/g, "-")}` : undefined;
 
     // Backward-compat: sections saved before the `visible` prop existed
     // (i.e. `visible === undefined`) default to visible.
@@ -234,17 +283,43 @@ const SectionInner: ComponentConfig<SectionProps> = {
 
     return (
       <section
-        id={cleanAnchor || undefined}
+        id={cleanAnchor || sectionScopeId}
+        data-section-id={sectionScopeId}
         className={getClassName({ hidden: isHidden })}
         style={{
           paddingTop,
           paddingBottom,
-          backgroundColor,
+          backgroundColor: bgImage ? undefined : backgroundColor,
+          backgroundImage: bgImage ? `url(${bgImage})` : undefined,
+          backgroundSize: bgImage ? "cover" : undefined,
+          backgroundPosition: bgImage ? "center" : undefined,
+          backgroundRepeat: bgImage ? "no-repeat" : undefined,
           color: theme === "light" ? "#ffffff" : "inherit",
           opacity: isHidden ? 0.35 : undefined,
           position: "relative",
         }}
       >
+        {bgImage && overlayColor && (
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundColor: resolveColor(overlayColor),
+              pointerEvents: "none",
+              zIndex: 0,
+            }}
+          />
+        )}
+        {sectionScopeId && colsMobile !== cols && (
+          <style>{`
+            @media (max-width: 768px) {
+              [data-section-id="${sectionScopeId}"] .${gridClassName} {
+                grid-template-columns: repeat(${colsMobile}, minmax(0, 1fr)) !important;
+              }
+            }
+          `}</style>
+        )}
         {isHidden && puck.isEditing && (
           <div
             aria-hidden
@@ -274,9 +349,12 @@ const SectionInner: ComponentConfig<SectionProps> = {
             paddingLeft: paddingHorizontal,
             paddingRight: paddingHorizontal,
             width: "100%",
+            position: "relative",
+            zIndex: 1,
           }}
         >
           <Content
+            className={gridClassName}
             style={{
               display: "grid",
               gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
