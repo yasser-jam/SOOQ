@@ -89,13 +89,27 @@ export function resolveSitePageEditPath(page: SitePage) {
   return page.examplePath ?? page.link ?? page.slug ?? page.path;
 }
 
+const matchDynamicPathPattern = (pattern: string, pathname: string): boolean => {
+  if (!pattern.includes(":")) return false;
+
+  const patternSegments = pattern.split("/").filter(Boolean);
+  const pathSegments = pathname.split("/").filter(Boolean);
+
+  if (patternSegments.length !== pathSegments.length) return false;
+
+  return patternSegments.every(
+    (segment, index) =>
+      segment.startsWith(":") || segment === pathSegments[index]
+  );
+};
+
 export function findSitePage(
   site: SiteData,
   editPath: string
 ): SitePage | undefined {
   const normalized = editPath === "" ? "/" : editPath;
 
-  return site.pages.find((page) => {
+  const exact = site.pages.find((page) => {
     const candidates = [
       resolveSitePageEditPath(page),
       page.link,
@@ -105,6 +119,12 @@ export function findSitePage(
 
     return candidates.some((candidate) => candidate === normalized);
   });
+
+  if (exact) return exact;
+
+  return site.pages.find((page) =>
+    matchDynamicPathPattern(page.path, normalized)
+  );
 }
 
 const stripShellFromContent = (

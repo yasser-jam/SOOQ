@@ -6,10 +6,14 @@ import config from "@/core/config"
 import type { FullThemeProps } from "@/core/config/theme"
 
 import { PreviewThemeProvider } from "./preview-theme-provider"
-import { STORE_FIXED_THEME_ID, STORE_HOME_PATH } from "../lib/store-config"
+import { StoreNotFound } from "./store-not-found"
+import { STORE_FIXED_THEME_ID } from "../lib/store-config"
+import { useStorePathname } from "../lib/use-store-pathname"
 import { useStorefrontData } from "../lib/use-storefront-data"
 
 export function StorefrontRenderer() {
+	const path = useStorePathname()
+
 	const metadata = useMemo(
 		() => ({
 			themeId: STORE_FIXED_THEME_ID,
@@ -17,8 +21,8 @@ export function StorefrontRenderer() {
 		[],
 	)
 
-	const { resolvedData, isLoading } = useStorefrontData({
-		path: STORE_HOME_PATH,
+	const { resolvedData, isLoading, pageFound } = useStorefrontData({
+		path,
 		metadata,
 	})
 
@@ -36,16 +40,8 @@ export function StorefrontRenderer() {
 		)
 	}
 
-	if (!resolvedData?.content?.length) {
-		return (
-			<div className="StorefrontState">
-				<h1>لا توجد صفحة</h1>
-				<p>
-					لم يتم العثور على محتوى للصفحة الرئيسية. عدّل التصميم في استوديو
-					التصميم ثم افتح المتجر من نفس النطاق (origin) لمشاركة localStorage.
-				</p>
-			</div>
-		)
+	if (!pageFound) {
+		return <StoreNotFound />
 	}
 
 	return (

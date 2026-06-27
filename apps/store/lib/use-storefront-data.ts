@@ -1,14 +1,16 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { resolveAllData, type Metadata } from "@/core"
 import config from "@/core/config"
 import { PAGES_UPDATED_EVENT } from "@/core/config/page-registry"
 import {
 	composePuckData,
+	findSitePage,
 	getSiteStorageKey,
 	readSiteData,
+	type SitePage,
 } from "@/core/config/lib/site-data"
 import type { UserData } from "@/core/config/types"
 import type { RootProps } from "@/core/config/root"
@@ -24,21 +26,25 @@ export function useStorefrontData({
 	metadata?: Metadata
 } = {}) {
 	const siteKey = getSiteStorageKey()
-
-	const [data, setData] = useState<Partial<UserData>>(() => {
-		const site = readSiteData()
-		return composePuckData(site, path)
-	})
+	const [siteRevision, setSiteRevision] = useState(0)
 
 	useEffect(() => {
-		const refresh = () => {
-			const site = readSiteData()
-			setData(composePuckData(site, path))
-		}
+		const refresh = () => setSiteRevision((revision) => revision + 1)
 
 		window.addEventListener(PAGES_UPDATED_EVENT, refresh)
 		return () => window.removeEventListener(PAGES_UPDATED_EVENT, refresh)
-	}, [path])
+	}, [])
+
+	const site = useMemo(() => readSiteData(), [siteRevision])
+	const matchedPage = useMemo<SitePage | undefined>(
+		() => findSitePage(site, path),
+		[site, path],
+	)
+
+	const data = useMemo<Partial<UserData>>(
+		() => composePuckData(site, path),
+		[site, path],
+	)
 
 	const [resolvedData, setResolvedData] = useState<Partial<UserData>>(data)
 	const [isResolving, setIsResolving] = useState(true)
@@ -62,21 +68,15 @@ export function useStorefrontData({
 	}, [data, metadata])
 
 	useEffect(() => {
-		const site = readSiteData()
-		const page = site.pages.find(
-			(entry) =>
-				entry.link === path ||
-				entry.slug === path ||
-				entry.path === path ||
-				entry.examplePath === path,
-		)
-		document.title = page?.title ?? page?.name ?? ""
-	}, [path])
+		document.title = matchedPage?.title ?? matchedPage?.name ?? ""
+	}, [matchedPage])
 
 	return {
 		data,
 		resolvedData,
 		isLoading: isResolving,
+		pageFound: Boolean(matchedPage),
+		matchedPage,
 		siteKey,
 		readSiteData,
 	}

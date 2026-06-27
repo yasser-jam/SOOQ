@@ -18,10 +18,13 @@ pnpm --filter web dev      # http://localhost:3000 (design studio)
 ## Data flow
 
 1. `readSiteData()` — `localStorage` key `puck-demo:{componentKey}:site`
-2. `composePuckData(site, "/")` — home page content + global `root` / `zones`
-3. `resolveAllData()` — resolves block `resolveData` hooks
-4. `PreviewThemeProvider` — injects theme CSS from `root.props`
-5. `<Render config={config} data={resolvedData} />`
+2. Resolve the current URL against `SiteData.pages` (static paths + dynamic patterns like `/products/:product-slug`)
+3. `composePuckData(site, path)` — matched page content + global `root` / `zones`
+4. `resolveAllData()` — resolves block `resolveData` hooks
+5. `PreviewThemeProvider` — injects theme CSS from `root.props`
+6. `<Render config={config} data={resolvedData} />`
+
+Unknown paths show a **404** page.
 
 API-backed blocks (ProductCard, ProductsGrid) use `NEXT_PUBLIC_API_URL` via shared modules in `apps/web/modules`.
 
