@@ -55,8 +55,7 @@ function VerifyOtpForm() {
     ...getVerifyOtpMutationOptions({
       queryClient,
       onSuccess: () => {
-        router.push("/onboarding/create-store")
-        toast.success("تم التجاوز بنجاح إلى مرحلة إعداد المتجر")
+        router.push("/")
       },
     }),
     onError: (error: ApiError) => {
