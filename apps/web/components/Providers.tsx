@@ -1,6 +1,6 @@
 "use client"
 import { DirectionProvider } from "@radix-ui/react-direction"
-import { AppSidebar } from "@workspace/ui/components/app-sidebar"
+import { AppSidebar } from "./app-sidebar"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { usePathname } from "next/navigation"
 import { ThemeProvider } from "next-themes"
