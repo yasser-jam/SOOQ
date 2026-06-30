@@ -199,10 +199,6 @@ const normalizeGetProduct = (data: any): Product => {
 }
 
 export const listProducts = async (): Promise<ApiResponse<Product[]>> => {
-  if (devAuthEnabled) {
-    return { success: true, data: readDevProducts() }
-  }
-
   let products = await api<ApiResponse<Product[]>>("/admin/products")
 
   products.data = products.data?.map((el) => normalizeProduct(el)) || []
