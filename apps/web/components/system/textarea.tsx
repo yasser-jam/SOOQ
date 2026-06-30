@@ -20,7 +20,7 @@ type FormFieldProps<T extends FieldValues> = {
   placeholder?: string
   textareaProps?: Omit<
     ComponentProps<typeof UiTextarea>,
-    "id" | "name" | "placeholder"
+    "id" | "name"
   >
 }
 

@@ -106,10 +106,6 @@ export const checkStoreSlug = async (
   slug: string
 ): Promise<SlugAvailability> => {
   const trimmed = slug.trim()
-  if (devAuthEnabled) {
-    const currentSlug = readDevStoreSettings()?.slug
-    return { available: !currentSlug || currentSlug === trimmed, slug: trimmed }
-  }
 
   const response = await api<unknown>(
     `${SETTINGS_PATH}/check-slug?slug=${encodeURIComponent(trimmed)}`
