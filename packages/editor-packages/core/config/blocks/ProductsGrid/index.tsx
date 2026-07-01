@@ -7,9 +7,6 @@ import {
   type CollectionPickerRef,
   type ProductsGridResourceMetadata,
 } from "@/modules/product/collection/data-store";
-import {
-  type ProductCardProps,
-} from "../ProductCard";
 import { ProductsGridClient } from "./ProductsGridClient";
 
 const columnOptions = [1, 2, 3, 4, 5, 6].map((n) => ({
@@ -35,8 +32,6 @@ export type ProductsGridProps = WithLayout<{
   maxRows: string;
   /** Space between grid cells. */
   gap: "sm" | "md" | "lg" | "xl";
-  /** Product card layout inside each cell (matches Product Card block). */
-  cardVariant: ProductCardProps["variant"];
 }>;
 
 const ProductsGridInner: ComponentConfig<ProductsGridProps> = {
@@ -69,16 +64,6 @@ const ProductsGridInner: ComponentConfig<ProductsGridProps> = {
         { label: "Extra large (32px)", value: "xl" },
       ],
     },
-    cardVariant: {
-      type: "radio",
-      label: "تخطيط بطاقة المنتج",
-      options: [
-        { label: "Vertical", value: "vertical" },
-        { label: "Horizontal", value: "horizontal" },
-        { label: "Compact", value: "compact" },
-        { label: "Featured", value: "featured" },
-      ],
-    },
   },
 
   defaultProps: {
@@ -87,7 +72,6 @@ const ProductsGridInner: ComponentConfig<ProductsGridProps> = {
     columns: "3",
     maxRows: "0",
     gap: "md",
-    cardVariant: "vertical",
   },
 
   resolveData: ({ props }) => {

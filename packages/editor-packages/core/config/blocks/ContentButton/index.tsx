@@ -1,3 +1,4 @@
+"use client";
 import React, { CSSProperties, MouseEvent } from "react";
 import { ComponentConfig, Fields } from "@/core/types";
 import { WithLayout, withLayout, hideLayoutBorder } from "../../components/Layout";
@@ -18,10 +19,18 @@ import {
   type LinkValue,
 } from "../../fields/LinkField";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
+import type { ValueContext } from "../../binding";
+import {
+  buildProductActionDetail,
+  dispatchProductCardEvent,
+  useBoundData,
+  useBoundValue,
+} from "../../binding";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
 export type ContentButtonProps = WithLayout<{
   label: string;
+  labelValueContext?: ValueContext | null;
   align: "left" | "center" | "right";
   destinationType: "link" | "action";
   buttonAction: ButtonAction;
@@ -226,6 +235,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
   render: (props) => {
     const {
       label,
+      labelValueContext,
       align,
       destinationType,
       buttonAction,
@@ -240,6 +250,8 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       puck,
     } = props;
 
+    const { data: boundData, language, metadata } = useBoundData();
+    const resolvedLabel = useBoundValue(label, labelValueContext);
     const resolvedAlign = align ?? "center";
     const destType =
       destinationType ??
@@ -315,6 +327,23 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
     const onFunctionalClick = (e: MouseEvent) => {
       e.preventDefault();
       if (puck.isEditing) return;
+
+      if (action === "addToCart" && boundData) {
+        const detail = buildProductActionDetail(boundData, language, metadata);
+        if (detail) {
+          dispatchProductCardEvent("add-product", detail);
+          return;
+        }
+      }
+
+      if (action === "addToWishlist" && boundData) {
+        const detail = buildProductActionDetail(boundData, language, metadata);
+        if (detail) {
+          dispatchProductCardEvent("add-product-to-favourite", detail);
+          return;
+        }
+      }
+
       window.alert(`إجراء الزر: ${buttonActionLabel(action)}`);
     };
 
@@ -322,13 +351,14 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       return (
         <div style={placementStyle}>
           <button type="button" onClick={onFunctionalClick} style={sharedStyle}>
-            {label}
+            {resolvedLabel}
           </button>
         </div>
       );
     }
 
-    const resolvedHref = resolveLinkHref(link) ?? "#";
+    const resolvedHref =
+      resolveLinkHref(link, { boundData, locale: language }) ?? "#";
     const target = resolveLinkTarget(link);
     const rel = resolveLinkRel(link);
 
@@ -341,7 +371,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
           onClick={puck.isEditing ? (e) => e.preventDefault() : undefined}
           style={sharedStyle}
         >
-          {label}
+          {resolvedLabel}
         </a>
       </div>
     );

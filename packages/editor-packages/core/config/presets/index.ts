@@ -2,6 +2,7 @@ import { FOOTER_PRESETS } from "./footer";
 import { GENERAL_PRESETS } from "./general";
 import { HEADER_PRESETS } from "./header";
 import { HERO_PRESETS } from "./hero";
+import { PRODUCTS_GRID_PRESETS } from "./products-grid";
 import type { SectionPreset, SectionPresetCategory } from "./types";
 
 export type { SectionPreset, SectionPresetCategory } from "./types";
@@ -27,6 +28,7 @@ export const SECTION_PRESETS: SectionPreset[] = [
   ...HERO_PRESETS,
   ...HEADER_PRESETS,
   ...FOOTER_PRESETS,
+  ...PRODUCTS_GRID_PRESETS,
 ];
 
 export function getPresetsByCategory(
@@ -35,4 +37,5 @@ export function getPresetsByCategory(
   return SECTION_PRESETS.filter((preset) => preset.category === category);
 }
 
-export { GENERAL_PRESETS, HERO_PRESETS, HEADER_PRESETS, FOOTER_PRESETS };
+export { GENERAL_PRESETS, HERO_PRESETS, HEADER_PRESETS, FOOTER_PRESETS, PRODUCTS_GRID_PRESETS };
+export { createProductCardGroup } from "./products-grid";

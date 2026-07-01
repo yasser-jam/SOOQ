@@ -282,13 +282,22 @@ function mapAdminDetailToProductCardData(
 	}
 }
 
+/** Raw API payload used by editor valueContext path resolution. */
+export type ProductDetailPayload = Record<string, unknown>
+
+export async function fetchProductDetailPayloadFromUrl(
+	apiUrl: string,
+): Promise<ProductDetailPayload | null> {
+	const response = await api<ApiResponse<ProductDetailPayload>>(apiUrl)
+	return response.data ?? null
+}
+
 export async function fetchProductForCardFromUrl(
 	apiUrl: string,
 ): Promise<ProductCardData | null> {
-	const response = await api<ApiResponse<Record<string, unknown>>>(apiUrl)
-
-	if (!response.data) return null
-	return mapAdminDetailToProductCardData(response.data)
+	const payload = await fetchProductDetailPayloadFromUrl(apiUrl)
+	if (!payload) return null
+	return mapAdminDetailToProductCardData(payload)
 }
 
 export async function getProductForCard(id: string): Promise<ProductCardData | null> {

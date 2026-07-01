@@ -422,6 +422,31 @@ body {
   word-break: break-word;
 }
 
+.EditorJsonDialog-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.EditorJsonDialog-copyBtn {
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #0f172a;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 6px;
+  padding: 8px 12px;
+}
+
+.EditorJsonDialog-copyBtn:hover {
+  background: #e2e8f0;
+}
+
 .EditorShortcutDialogHeader {
   align-items: start;
   display: flex;

@@ -1,14 +1,19 @@
+"use client";
 /* eslint-disable @next/next/no-img-element */
 import React from "react";
 import { ComponentConfig, Fields } from "@/core/types";
 import { WithLayout, withLayout, hideLayoutPosition } from "../../components/Layout";
 import { RADIUS_OPTIONS, resolveRadius } from "../../content/typography-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
+import type { ValueContext } from "../../binding";
+import { useBoundValue } from "../../binding";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
 export type ContentImageProps = WithLayout<{
   src: string;
+  valueContext?: ValueContext | null;
   alt: string;
+  altValueContext?: ValueContext | null;
   align: "left" | "center" | "right";
   objectFit: "contain" | "cover" | "fill" | "none" | "scale-down";
   radius: string;
@@ -144,7 +149,9 @@ const ContentImageInner: ComponentConfig<ContentImageProps> = {
     };
   },
   render: (props) => {
-    const { src, alt, align, objectFit, radius, maxWidth } = props;
+    const { src, valueContext, alt, altValueContext, align, objectFit, radius, maxWidth } = props;
+    const resolvedSrc = useBoundValue(src, valueContext);
+    const resolvedAlt = useBoundValue(alt, altValueContext);
     const legacy = props as ContentImageProps & {
       radiusMode?: "theme" | "fixed";
       radiusTheme?: string;
@@ -169,8 +176,8 @@ const ContentImageInner: ComponentConfig<ContentImageProps> = {
     return (
       <div style={placementStyle}>
         <img
-          src={src}
-          alt={alt}
+          src={resolvedSrc}
+          alt={resolvedAlt}
           style={{
             display: "block",
             width: "100%",

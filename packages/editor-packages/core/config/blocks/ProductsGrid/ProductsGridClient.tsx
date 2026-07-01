@@ -9,11 +9,7 @@ import {
   type CollectionPickerRef,
   type ProductsGridResourceMetadata,
 } from "@/modules/product/collection/data-store";
-import {
-  DEFAULT_PRODUCT_CARD_PROPS,
-  ProductCardRender,
-  type ProductCardProps,
-} from "../ProductCard";
+import { ProductCardGroupCell } from "./ProductCardGroupCell";
 import styles from "./styles.module.css";
 import { getClassNameFactory } from "@/core/lib";
 
@@ -32,7 +28,6 @@ export type ProductsGridClientProps = {
   columns: string;
   maxRows: string;
   gap: keyof typeof GAP_MAP;
-  cardVariant: ProductCardProps["variant"];
   puck?: { isEditing?: boolean };
 };
 
@@ -42,7 +37,6 @@ export function ProductsGridClient({
   columns,
   maxRows,
   gap,
-  cardVariant,
   puck,
 }: ProductsGridClientProps) {
   const apiUrl =
@@ -115,16 +109,7 @@ export function ProductsGridClient({
       <div className={getClassName("grid")} style={gridStyle}>
         {list.map((product) => (
           <div key={product.id} className={getClassName("cell")}>
-            <ProductCardRender
-              {...DEFAULT_PRODUCT_CARD_PROPS}
-              variant={cardVariant}
-              puck={puck}
-              product={{
-                id: product.id,
-                titleAr: product.titleAr,
-                titleEn: product.titleEn,
-              }}
-            />
+            <ProductCardGroupCell product={product} puck={puck} />
           </div>
         ))}
       </div>

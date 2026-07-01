@@ -1,6 +1,5 @@
-import React from "react";
 import { ComponentConfig, Slot } from "@/core/types";
-import { getClassNameFactory } from "@/core/lib";
+import React from "react";
 import { spacingOptions } from "../../options";
 import { resolveColor, colorField } from "../../content/color-fields";
 import {
@@ -9,9 +8,13 @@ import {
 } from "../../content/typography-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import { WithLayout, withLayout } from "../../components/Layout";
-import styles from "./styles.module.css";
-
-const getClassName = getClassNameFactory("Group", styles);
+import {
+  productExternalField,
+  buildProductResourceMetadata,
+  type ProductPickerRef,
+  type ProductResourceMetadata,
+} from "@/modules/product/product/data-store";
+import { GroupClient } from "./GroupClient";
 
 const BOX_SHADOW_PRESETS: Record<string, string> = {
   none: "none",
@@ -51,6 +54,11 @@ export type GroupProps = WithLayout<{
   borderRadius?: string;
   /** Shadow preset: none | sm | md | lg */
   boxShadow?: string;
+  /** Bound product for child valueContext resolution */
+  product?: ProductPickerRef | null;
+  /** Auto-populated when product is selected */
+  metadata?: ProductResourceMetadata | null;
+  language?: "ar" | "en";
   /** Accepts all blocks, including nested Groups. Section is excluded
    *  because sections are page-level containers only. */
   content: Slot;
@@ -72,6 +80,15 @@ const GroupInternal: ComponentConfig<GroupProps> = {
   label: "مجموعة",
 
   fields: {
+    product: productExternalField,
+    language: {
+      type: "radio",
+      label: "لغة بيانات المنتج",
+      options: [
+        { label: "العربية", value: "ar" },
+        { label: "English", value: "en" },
+      ],
+    },
     direction: {
       type: "radio",
       label: "الاتجاه",
@@ -165,6 +182,9 @@ const GroupInternal: ComponentConfig<GroupProps> = {
   },
 
   defaultProps: {
+    product: null,
+    metadata: null,
+    language: "ar",
     direction: "row",
     gap: 16,
     alignItems: "stretch",
@@ -179,6 +199,31 @@ const GroupInternal: ComponentConfig<GroupProps> = {
     content: createGroupStarterContent(),
   },
 
+  resolveData: ({ props }) => {
+    const productId = props.product?.id;
+
+    if (!productId) {
+      if (props.metadata != null) {
+        return { props: { metadata: null } };
+      }
+      return {};
+    }
+
+    const metadata = buildProductResourceMetadata(productId);
+    const current = props.metadata;
+
+    if (
+      current?.id === metadata.id &&
+      current?.type === metadata.type &&
+      current?.method === metadata.method &&
+      current?.apiUrl === metadata.apiUrl
+    ) {
+      return {};
+    }
+
+    return { props: { metadata } };
+  },
+
   render: ({
     direction,
     gap,
@@ -191,7 +236,11 @@ const GroupInternal: ComponentConfig<GroupProps> = {
     padding,
     borderRadius,
     boxShadow,
+    product,
+    metadata,
+    language,
     content: Content,
+    puck,
   }) => {
     const bg = (backgroundColor ?? "").trim();
     const bgImage = (backgroundImage ?? "").trim();
@@ -200,28 +249,42 @@ const GroupInternal: ComponentConfig<GroupProps> = {
     const radius = resolveRadius(borderRadius ?? "theme-none");
     const shadow = resolveBoxShadow(boxShadow);
 
+    const surfaceStyle = {
+      position: "relative" as const,
+      width: "100%",
+      minWidth: 0,
+      boxSizing: "border-box" as const,
+      overflow: "hidden" as const,
+      ...(bg && !bgImage ? { backgroundColor: resolveColor(bg) } : {}),
+      ...(bgImage
+        ? {
+            backgroundImage: `url(${bgImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }
+        : {}),
+      ...(radius && radius !== "0" ? { borderRadius: radius } : {}),
+      ...(shadow ? { boxShadow: shadow } : {}),
+    };
+
+    const contentStyle = {
+      display: "flex",
+      flexDirection: direction,
+      gap,
+      alignItems,
+      justifyContent,
+      flexWrap: wrap,
+      width: "100%",
+      minWidth: 0,
+      boxSizing: "border-box" as const,
+      position: "relative" as const,
+      zIndex: 1,
+      ...(pad ? { padding: pad } : {}),
+    };
+
     return (
-      <div
-        className={getClassName()}
-        style={{
-          position: "relative",
-          width: "100%",
-          minWidth: 0,
-          boxSizing: "border-box",
-          overflow: "hidden",
-          ...(bg && !bgImage ? { backgroundColor: resolveColor(bg) } : {}),
-          ...(bgImage
-            ? {
-                backgroundImage: `url(${bgImage})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-              }
-            : {}),
-          ...(radius && radius !== "0" ? { borderRadius: radius } : {}),
-          ...(shadow ? { boxShadow: shadow } : {}),
-        }}
-      >
+      <div style={{ position: "relative", width: "100%" }}>
         {bgImage && overlayColor ? (
           <div
             aria-hidden
@@ -231,24 +294,28 @@ const GroupInternal: ComponentConfig<GroupProps> = {
               backgroundColor: resolveColor(overlayColor),
               pointerEvents: "none",
               zIndex: 0,
+              borderRadius: radius && radius !== "0" ? radius : undefined,
             }}
           />
         ) : null}
-        <Content
-          style={{
-            display: "flex",
-            flexDirection: direction,
-            gap,
-            alignItems,
-            justifyContent,
-            flexWrap: wrap,
-            width: "100%",
-            minWidth: 0,
-            boxSizing: "border-box",
-            position: "relative",
-            zIndex: 1,
-            ...(pad ? { padding: pad } : {}),
-          }}
+        <GroupClient
+          direction={direction}
+          gap={gap}
+          alignItems={alignItems}
+          justifyContent={justifyContent}
+          wrap={wrap}
+          backgroundColor={backgroundColor}
+          backgroundImage={backgroundImage}
+          backgroundOverlayColor={backgroundOverlayColor}
+          padding={padding}
+          borderRadius={borderRadius}
+          boxShadow={boxShadow}
+          content={Content}
+          surfaceStyle={surfaceStyle}
+          contentStyle={contentStyle}
+          product={product}
+          metadata={metadata}
+          language={language ?? "ar"}
         />
       </div>
     );

@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { ComponentConfig, Fields, DefaultComponentProps } from "@/core/types";
 import { WithLayout, withLayout, hideLayoutPosition } from "../../components/Layout";
@@ -15,10 +16,12 @@ import {
   resolveLineHeight,
 } from "../../content/typography-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
+import { useBoundValue } from "../../binding";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
 export type ContentHeadingProps = WithLayout<{
   text: string;
+  valueContext?: ValueContext | null;
   textAlign: "left" | "center" | "right";
   fontFamily: "body" | "option1" | "option2";
   fontSize: string;
@@ -148,6 +151,7 @@ const ContentHeadingInner: ComponentConfig<ContentHeadingProps> = {
   render: (props) => {
     const {
       text,
+      valueContext,
       level,
       textAlign,
       fontFamily,
@@ -158,6 +162,7 @@ const ContentHeadingInner: ComponentConfig<ContentHeadingProps> = {
       textTransform,
       color,
     } = props;
+    const resolvedText = useBoundValue(text, valueContext);
     const H = Tag[Math.min(Math.max(parseInt(level, 10) || 2, 1), 6) - 1];
     const fontCss = COMPONENT_FONT_CSS[fontFamily] ?? COMPONENT_FONT_CSS.body;
     const fs = resolveFontSize(fontSize);
@@ -179,7 +184,7 @@ const ContentHeadingInner: ComponentConfig<ContentHeadingProps> = {
           color: c,
         }}
       >
-        {text}
+        {resolvedText}
       </H>
     );
   },

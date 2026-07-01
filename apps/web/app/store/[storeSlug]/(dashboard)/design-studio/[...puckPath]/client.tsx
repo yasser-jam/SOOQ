@@ -15,6 +15,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import {
   CircleHelp,
+  Copy,
+  Check,
   Eye,
   FileJson,
   Keyboard,
@@ -85,12 +87,40 @@ function JsonViewerDialog({
 }) {
   const usePuck = createUsePuck()
   const puckData = usePuck((s) => s.appState.data)
+  const [copied, setCopied] = useState(false)
 
   const jsonString = useMemo(() => {
     if (!open) return ""
 
     return JSON.stringify(normalizeSiteData(getSiteSnapshot()), null, 2)
   }, [open, getSiteSnapshot, puckData])
+
+  useEffect(() => {
+    if (!open) {
+      setCopied(false)
+    }
+  }, [open])
+
+  const handleCopy = useCallback(async () => {
+    if (!jsonString || typeof navigator === "undefined") return
+
+    try {
+      await navigator.clipboard.writeText(jsonString)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      const textarea = document.createElement("textarea")
+      textarea.value = jsonString
+      textarea.style.position = "fixed"
+      textarea.style.opacity = "0"
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand("copy")
+      document.body.removeChild(textarea)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    }
+  }, [jsonString])
 
   if (!open) return null
 
@@ -116,14 +146,26 @@ function JsonViewerDialog({
             <h2 className="EditorShortcutTitle">JSON</h2>
           </div>
 
-          <button
-            type="button"
-            className="EditorShortcutClose"
-            onClick={onClose}
-            aria-label="Close JSON viewer"
-          >
-            <X size={16} />
-          </button>
+          <div className="EditorJsonDialog-actions">
+            <button
+              type="button"
+              className="EditorJsonDialog-copyBtn"
+              onClick={() => void handleCopy()}
+              aria-label="Copy JSON to clipboard"
+            >
+              {copied ? <Check size={16} /> : <Copy size={16} />}
+              {copied ? "تم النسخ" : "نسخ JSON"}
+            </button>
+
+            <button
+              type="button"
+              className="EditorShortcutClose"
+              onClick={onClose}
+              aria-label="Close JSON viewer"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         <div className="EditorJsonDialog-preWrap" dir="ltr">

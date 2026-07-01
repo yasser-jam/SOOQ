@@ -26,7 +26,12 @@ const getClassName = getClassNameFactory("LinkField", styles);
  */
 export type LinkValue =
   | { kind: "none" }
-  | { kind: "page"; pageId: string; newTab?: boolean }
+  | {
+      kind: "page";
+      pageId: string;
+      newTab?: boolean;
+      dynamicSegment?: { param: string; valueContext: string };
+    }
   | { kind: "external"; url: string; newTab?: boolean }
   | { kind: "anchor"; hash: string };
 
@@ -34,17 +39,41 @@ export const EMPTY_LINK: LinkValue = { kind: "none" };
 
 // ─── Resolution helpers (used by render functions) ──────────────────────────
 
+import { resolveValueContextAsString } from "../../binding/resolve-value-context";
+
+type ResolveLinkOptions = {
+  boundData?: Record<string, unknown> | null;
+  locale?: "ar" | "en";
+};
+
 /**
  * Turn a `LinkValue` into an `href` string the renderer can attach to `<a>`.
  * Returns `null` when there is no link (render sites should treat `null` as
  * "render plain text, no anchor").
  */
-export function resolveLinkHref(link: LinkValue | undefined | null): string | null {
+export function resolveLinkHref(
+  link: LinkValue | undefined | null,
+  options: ResolveLinkOptions = {}
+): string | null {
   if (!link) return null;
   switch (link.kind) {
-    case "page":
-      // pageId === the canonical path (`/`, `/cart`, `/products/:slug`).
-      return link.pageId || null;
+    case "page": {
+      let href = link.pageId || null;
+      if (!href) return null;
+
+      if (link.dynamicSegment && options.boundData) {
+        const segmentValue = resolveValueContextAsString(
+          link.dynamicSegment.valueContext,
+          options.boundData,
+          { locale: options.locale }
+        );
+        if (segmentValue) {
+          href = href.replace(`:${link.dynamicSegment.param}`, segmentValue);
+        }
+      }
+
+      return href;
+    }
     case "external":
       return (link.url || "").trim() || null;
     case "anchor": {

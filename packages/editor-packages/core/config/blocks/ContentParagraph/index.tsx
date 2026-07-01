@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { ComponentConfig, Fields } from "@/core/types";
 import { WithLayout, withLayout, hideLayoutPosition } from "../../components/Layout";
@@ -13,9 +14,12 @@ import {
 } from "../../content/typography-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import type { ValueContext } from "../../binding";
+import { useBoundValue } from "../../binding";
 
 export type ContentParagraphProps = WithLayout<{
   text: string;
+  valueContext?: ValueContext | null;
   textAlign: "left" | "center" | "right";
   fontFamily: "body" | "option1" | "option2";
   fontSize: string;
@@ -142,6 +146,7 @@ const ContentParagraphInner: ComponentConfig<ContentParagraphProps> = {
   render: (props) => {
     const {
       text,
+      valueContext,
       textAlign,
       fontFamily,
       fontSize,
@@ -151,6 +156,7 @@ const ContentParagraphInner: ComponentConfig<ContentParagraphProps> = {
       textTransform,
       color,
     } = props;
+    const resolvedText = useBoundValue(text, valueContext);
     const fontCss = COMPONENT_FONT_CSS[fontFamily] ?? COMPONENT_FONT_CSS.body;
     const fs = resolveFontSize(fontSize ?? "theme-md");
     const fw = resolveFontWeight(fontWeight ?? "theme-light");
@@ -171,7 +177,7 @@ const ContentParagraphInner: ComponentConfig<ContentParagraphProps> = {
           color: c,
         }}
       >
-        {text}
+        {resolvedText}
       </p>
     );
   },

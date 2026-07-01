@@ -7,3 +7,10 @@
   min-width: 0;
   box-sizing: border-box;
 }
+
+.Group-empty {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #64748b;
+  text-align: center;
+}
