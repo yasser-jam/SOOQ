@@ -1,6 +1,8 @@
 import { UserData } from "./types";
 import { products } from "./data/products";
-import { DEFAULT_PRODUCT_CARD_PROPS } from "./blocks/ProductCard";
+import {
+  createDemoProductCard,
+} from "./presets/products-grid";
 import {
   buildThemesGalleryData,
   buildAllThemeDemoInitialEntries,
@@ -119,58 +121,15 @@ export const initialData: Record<string, UserData> = {
               },
             },
             {
-              type: "Grid",
+              type: "ProductsGrid",
               props: {
-                id: "Grid-products",
-                gap: 24,
-                numColumns: 3,
-                items: [
-                  {
-                    type: "ProductCard",
-                    props: {
-                      id: "ProductCard-home-1",
-                      product: { id: products[0]?.id ?? "", titleAr: products[0]?.title, titleEn: products[0]?.title },
-                      ...DEFAULT_PRODUCT_CARD_PROPS,
-                      variant: "vertical",
-                      layout: {
-                        grow: true,
-                        spanCol: 1,
-                        spanRow: 1,
-                        padding: "0px",
-                      },
-                    },
-                  },
-                  {
-                    type: "ProductCard",
-                    props: {
-                      id: "ProductCard-home-2",
-                      product: { id: products[1]?.id ?? "", titleAr: products[1]?.title, titleEn: products[1]?.title },
-                      ...DEFAULT_PRODUCT_CARD_PROPS,
-                      variant: "vertical",
-                      layout: {
-                        grow: true,
-                        spanCol: 1,
-                        spanRow: 1,
-                        padding: "0px",
-                      },
-                    },
-                  },
-                  {
-                    type: "ProductCard",
-                    props: {
-                      id: "ProductCard-home-3",
-                      product: { id: products[2]?.id ?? "", titleAr: products[2]?.title, titleEn: products[2]?.title },
-                      ...DEFAULT_PRODUCT_CARD_PROPS,
-                      variant: "vertical",
-                      layout: {
-                        grow: true,
-                        spanCol: 1,
-                        spanRow: 1,
-                        padding: "0px",
-                      },
-                    },
-                  },
-                ],
+                id: "ProductsGrid-home",
+                collection: null,
+                metadata: null,
+                columns: "3",
+                maxRows: "0",
+                gap: "md",
+                layout: { padding: "0px" },
               },
             },
           ],
@@ -412,21 +371,11 @@ export const initialData: Record<string, UserData> = {
           theme: "light",
           maxWidth: "1200px",
           content: [
-            {
-              type: "ProductCard",
-              props: {
-                id: "ProductCard-detail",
-                product: { id: "prod-001", titleAr: "Classic White Sneakers", titleEn: "Classic White Sneakers" },
-                ...DEFAULT_PRODUCT_CARD_PROPS,
-                variant: "horizontal",
-                layout: {
-                  grow: true,
-                  spanCol: 1,
-                  spanRow: 1,
-                  padding: "0px",
-                },
-              },
-            },
+            createDemoProductCard("ProductCard-detail", {
+              id: "prod-001",
+              titleAr: "Classic White Sneakers",
+              titleEn: "Classic White Sneakers",
+            }),
           ],
         },
       },

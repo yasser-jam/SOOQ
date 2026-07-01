@@ -38,4 +38,11 @@ export function getPresetsByCategory(
 }
 
 export { GENERAL_PRESETS, HERO_PRESETS, HEADER_PRESETS, FOOTER_PRESETS, PRODUCTS_GRID_PRESETS };
-export { createProductCardGroup } from "./products-grid";
+export {
+  createProductCardGroup,
+  createProductCardBlock,
+  createDemoProductCard,
+  createProductsGridBlock,
+  createProductsGridSection,
+  createProductsGridPlaceholderContent,
+} from "./products-grid";

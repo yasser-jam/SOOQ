@@ -37,12 +37,19 @@ const Item = ({
   )) as WithPuckProps<ComponentData["props"]>;
 
   const richtextProps = useRichtextProps(Component.fields, props);
+  const puckFromMetadata =
+    metadata && typeof metadata === "object" && "puck" in metadata
+      ? (metadata as { puck?: Record<string, unknown> }).puck
+      : undefined;
 
   return (
     <Component.render
       {...props}
       {...richtextProps}
       puck={{
+        dragRef: null,
+        isEditing: false,
+        ...puckFromMetadata,
         ...props.puck,
         metadata: metadata || {},
       }}

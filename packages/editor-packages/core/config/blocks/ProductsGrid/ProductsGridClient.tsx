@@ -9,7 +9,7 @@ import {
   type CollectionPickerRef,
   type ProductsGridResourceMetadata,
 } from "@/modules/product/collection/data-store";
-import { ProductCardGroupCell } from "./ProductCardGroupCell";
+import { ProductCardGroupCell } from "../../components/ProductCardGroupCell";
 import styles from "./styles.module.css";
 import { getClassNameFactory } from "@/core/lib";
 
@@ -28,7 +28,8 @@ export type ProductsGridClientProps = {
   columns: string;
   maxRows: string;
   gap: keyof typeof GAP_MAP;
-  puck?: { isEditing?: boolean };
+  useCollection: boolean;
+  isEditing?: boolean;
 };
 
 export function ProductsGridClient({
@@ -37,7 +38,8 @@ export function ProductsGridClient({
   columns,
   maxRows,
   gap,
-  puck,
+  useCollection,
+  isEditing = false,
 }: ProductsGridClientProps) {
   const apiUrl =
     metadata?.apiUrl ??
@@ -46,7 +48,7 @@ export function ProductsGridClient({
   const { data: products = [], isLoading, isError } = useQuery({
     queryKey: collectionPickerKeys.products(apiUrl ?? ""),
     queryFn: () => fetchCollectionProductsFromUrl(apiUrl!),
-    enabled: Boolean(apiUrl),
+    enabled: Boolean(useCollection && apiUrl),
     staleTime: 60_000,
   });
 
@@ -55,11 +57,6 @@ export function ProductsGridClient({
     Math.max(1, parseInt(String(columns), 10) || 1)
   );
   const rowCap = Math.max(0, parseInt(String(maxRows), 10) || 0);
-
-  const maxCells =
-    rowCap > 0 ? Math.min(products.length, rowCap * colCount) : products.length;
-  const list = products.slice(0, maxCells);
-
   const gapPx = GAP_MAP[gap] ?? GAP_MAP.md;
 
   const gridStyle: CSSProperties = {
@@ -68,7 +65,7 @@ export function ProductsGridClient({
     gap: gapPx,
   };
 
-  if (!apiUrl) {
+  if (!useCollection || !apiUrl) {
     return (
       <div className={getClassName()}>
         <div className={getClassName("empty")}>
@@ -94,6 +91,10 @@ export function ProductsGridClient({
     );
   }
 
+  const maxCells =
+    rowCap > 0 ? Math.min(products.length, rowCap * colCount) : products.length;
+  const list = products.slice(0, maxCells);
+
   if (list.length === 0) {
     return (
       <div className={getClassName()}>
@@ -109,7 +110,7 @@ export function ProductsGridClient({
       <div className={getClassName("grid")} style={gridStyle}>
         {list.map((product) => (
           <div key={product.id} className={getClassName("cell")}>
-            <ProductCardGroupCell product={product} puck={puck} />
+            <ProductCardGroupCell product={product} isEditing={isEditing} />
           </div>
         ))}
       </div>

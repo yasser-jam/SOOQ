@@ -35,7 +35,7 @@ export type ProductsGridProps = WithLayout<{
 }>;
 
 const ProductsGridInner: ComponentConfig<ProductsGridProps> = {
-  label: "Products Grid",
+  label: "شبكة المنتجات",
 
   fields: {
     collection: collectionExternalField,
@@ -103,7 +103,22 @@ const ProductsGridInner: ComponentConfig<ProductsGridProps> = {
     return { props: { metadata } };
   },
 
-  render: (props) => <ProductsGridClient {...props} />,
+  render: (props) => {
+    const { collection, metadata, columns, maxRows, gap, puck } = props;
+    const useCollection = Boolean(collection?.id || metadata?.collectionId);
+
+    return (
+      <ProductsGridClient
+        collection={collection}
+        metadata={metadata}
+        columns={columns}
+        maxRows={maxRows}
+        gap={gap}
+        useCollection={useCollection}
+        isEditing={puck?.isEditing === true}
+      />
+    );
+  },
 };
 
 export const ProductsGrid = withLayout(ProductsGridInner);

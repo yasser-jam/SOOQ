@@ -79,6 +79,79 @@ export function createProductCardGroup(
   };
 }
 
+/** Sidebar / palette block: product card preset as ProductCard type. */
+export function createProductCardBlock(
+  overrides: Record<string, unknown> = {}
+): ComponentDataOptionalId {
+  return {
+    type: "ProductCard",
+    props: {
+      ...(createProductCardGroup().props as Record<string, unknown>),
+      layout: {
+        grow: true,
+        spanCol: 1,
+        spanRow: 1,
+        padding: "0px",
+      },
+      ...overrides,
+    },
+  };
+}
+
+export function createProductsGridPlaceholderContent(count = 3) {
+  return Array.from({ length: count }, () => createProductCardBlock());
+}
+
+export function createProductsGridBlock(
+  overrides: Record<string, unknown> = {}
+): ComponentDataOptionalId {
+  return {
+    type: "ProductsGrid",
+    props: {
+      collection: null,
+      metadata: null,
+      columns: "3",
+      maxRows: "0",
+      gap: "md",
+      layout: { padding: "0px" },
+      ...overrides,
+    },
+  };
+}
+
+export function createProductsGridSection(
+  cardCount = 3,
+  overrides: Record<string, unknown> = {}
+): ComponentDataOptionalId {
+  return createSection({
+    name: "Products grid",
+    columns: cardCount,
+    columnsMobile: 1,
+    gridGap: "24px",
+    paddingTop: "48px",
+    paddingBottom: "48px",
+    content: Array.from({ length: cardCount }, () => createProductCardBlock()),
+    ...overrides,
+  });
+}
+
+export function createDemoProductCard(
+  id: string,
+  product?: { id: string; titleAr?: string; titleEn?: string } | null
+): ComponentDataOptionalId {
+  const block = createProductCardBlock({
+    product: product ?? null,
+  });
+
+  return {
+    type: "ProductCard",
+    props: {
+      ...(block.props as Record<string, unknown>),
+      id,
+    },
+  };
+}
+
 const productCardVertical: SectionPreset = {
   id: "product-card-vertical",
   category: "products-grid",
@@ -92,8 +165,20 @@ const productCardVertical: SectionPreset = {
     gridGap: "24px",
     paddingTop: "0px",
     paddingBottom: "0px",
-    content: [createProductCardGroup()],
+    content: [createProductCardBlock()],
   }),
 };
 
-export const PRODUCTS_GRID_PRESETS: SectionPreset[] = [productCardVertical];
+const productsGridThreeColumns: SectionPreset = {
+  id: "products-grid-three-columns",
+  category: "products-grid",
+  title: "شبكة منتجات",
+  previewImage:
+    "https://placehold.co/800x400/e2e8f0/64748b?text=Products+Grid",
+  componentData: createProductsGridSection(3),
+};
+
+export const PRODUCTS_GRID_PRESETS: SectionPreset[] = [
+  productCardVertical,
+  productsGridThreeColumns,
+];

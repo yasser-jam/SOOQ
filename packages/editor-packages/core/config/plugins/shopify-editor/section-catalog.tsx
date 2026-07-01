@@ -23,6 +23,7 @@ import {
   createStarterTextBlock,
   createSectionStarterContent,
 } from "../../blocks/Section/starter-data";
+import { createProductsGridSection } from "../../presets/products-grid";
 
 /**
  * Shopify-style Section Catalog.
@@ -107,17 +108,6 @@ const section = (
     name: DEFAULT_SECTION_NAME,
     content: createSectionStarterContent(),
     ...overrides,
-  },
-});
-
-const productGridBlock = () => ({
-  type: "ProductsGrid",
-  props: {
-    collection: null,
-    columns: "3",
-    maxRows: "2",
-    gap: "md",
-    cardVariant: "vertical",
   },
 });
 
@@ -332,17 +322,7 @@ export const sectionCatalog: SectionPreset[] = [
     category: "commerce",
     icon: <Grid3x3 size={20} />,
     gradient: "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)",
-    build: () => ({
-      type: "Section",
-      props: {
-        ...SECTION_BASE_PROPS,
-        paddingTop: "48px",
-        paddingBottom: "48px",
-        content: [
-          productGridBlock(),
-        ],
-      },
-    }),
+    build: () => createProductsGridSection(3),
   },
   {
     id: "category-list",

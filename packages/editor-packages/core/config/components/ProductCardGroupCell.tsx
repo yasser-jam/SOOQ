@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useMemo } from "react";
-import conf from "../../index";
-import { useSlots } from "@/core/lib/use-slots";
+import conf from "../index";
 import { SlotRenderPure } from "@/core/components/SlotRender/server";
 import { assignComponentIds } from "@/core/lib/assign-component-ids";
-import { createProductCardGroup } from "../../presets/products-grid";
+import { createProductCardBlock } from "../presets/products-grid";
 import {
   buildProductResourceMetadata,
   type ProductPickerRef,
@@ -13,12 +12,15 @@ import {
 
 type ProductCardGroupCellProps = {
   product: ProductPickerRef;
-  puck?: { isEditing?: boolean };
+  isEditing?: boolean;
 };
 
-export function ProductCardGroupCell({ product, puck }: ProductCardGroupCellProps) {
-  const item = useMemo(() => {
-    const group = createProductCardGroup({
+export function ProductCardGroupCell({
+  product,
+  isEditing = false,
+}: ProductCardGroupCellProps) {
+  const content = useMemo(() => {
+    const card = createProductCardBlock({
       product: {
         id: product.id,
         titleAr: product.titleAr,
@@ -27,19 +29,20 @@ export function ProductCardGroupCell({ product, puck }: ProductCardGroupCellProp
       metadata: buildProductResourceMetadata(product.id),
     });
 
-    return assignComponentIds(group, `product-card-${product.id}`);
+    return [assignComponentIds(card, `product-card-${product.id}`)];
   }, [product.id, product.titleAr, product.titleEn]);
 
-  const props = useSlots(conf, item, (slotProps) => (
-    <SlotRenderPure {...slotProps} config={conf} metadata={{}} />
-  ));
-
-  const Group = conf.components.Group;
-
   return (
-    <Group.render
-      {...props}
-      puck={props.puck}
+    <SlotRenderPure
+      content={content}
+      zone={`product-card-${product.id}`}
+      config={conf}
+      metadata={{
+        puck: {
+          dragRef: null,
+          isEditing,
+        },
+      }}
     />
   );
 }

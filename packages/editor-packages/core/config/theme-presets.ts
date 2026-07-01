@@ -2,7 +2,6 @@ import type { FullThemeProps } from "./theme";
 import { DEFAULT_THEME, DEFAULT_COLORS } from "./theme";
 import type { UserData } from "./types";
 import { products } from "./data/products";
-import { DEFAULT_PRODUCT_CARD_PROPS } from "./blocks/ProductCard";
 
 const galleryRootProps = {
   title: "Theme gallery",
@@ -308,58 +307,15 @@ function buildAtelierThemeDemoPageData(): UserData {
               },
             },
             {
-              type: "Grid",
+              type: "ProductsGrid",
               props: {
-                id: "Grid-atelier-products",
-                gap: 28,
-                numColumns: 3,
-                items: [
-                  {
-                    type: "ProductCard",
-                    props: {
-                      id: "ProductCard-atelier-1",
-                      product: { id: products[0]?.id ?? "", titleAr: products[0]?.title, titleEn: products[0]?.title },
-                      ...DEFAULT_PRODUCT_CARD_PROPS,
-                      variant: "vertical",
-                      layout: {
-                        grow: true,
-                        spanCol: 1,
-                        spanRow: 1,
-                        padding: "0px",
-                      },
-                    },
-                  },
-                  {
-                    type: "ProductCard",
-                    props: {
-                      id: "ProductCard-atelier-2",
-                      product: { id: products[1]?.id ?? "", titleAr: products[1]?.title, titleEn: products[1]?.title },
-                      ...DEFAULT_PRODUCT_CARD_PROPS,
-                      variant: "vertical",
-                      layout: {
-                        grow: true,
-                        spanCol: 1,
-                        spanRow: 1,
-                        padding: "0px",
-                      },
-                    },
-                  },
-                  {
-                    type: "ProductCard",
-                    props: {
-                      id: "ProductCard-atelier-3",
-                      product: { id: products[2]?.id ?? "", titleAr: products[2]?.title, titleEn: products[2]?.title },
-                      ...DEFAULT_PRODUCT_CARD_PROPS,
-                      variant: "vertical",
-                      layout: {
-                        grow: true,
-                        spanCol: 1,
-                        spanRow: 1,
-                        padding: "0px",
-                      },
-                    },
-                  },
-                ],
+                id: "ProductsGrid-atelier",
+                collection: null,
+                metadata: null,
+                columns: "3",
+                maxRows: "0",
+                gap: "md",
+                layout: { padding: "0px" },
               },
             },
           ],

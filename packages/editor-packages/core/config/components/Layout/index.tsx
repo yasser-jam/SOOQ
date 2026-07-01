@@ -123,7 +123,7 @@ export function withLayout<
         <Layout
           className={getClassName()}
           layout={layoutProps.layout as LayoutFieldProps}
-          ref={layoutProps.puck.dragRef}
+          ref={layoutProps.puck?.dragRef}
           puckIsEditing={layoutProps.puck?.isEditing === true}
         >
           {componentConfig.render(props as never)}
