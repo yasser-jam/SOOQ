@@ -2,6 +2,7 @@ const cookiesConfig = {
   accessToken: "sooq-access-token",
   refreshToken: "sooq-refresh-token",
   tenantSlug: "sooq-tenant-slug",
+  tenantId: "sooq-tenant-id",
 } as const
 
 export type CookieName =
