@@ -1,11 +1,9 @@
-/* ── Panel root ─────────────────────────────────────────────────────────────── */
 .PagesPanel {
-  padding: 12px 0;
+  padding: 12px 0 16px;
 }
 
-/* ── Section header ─────────────────────────────────────────────────────────── */
 .PagesPanel-header {
-  padding: 0 16px 10px;
+  padding: 0 16px 8px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -14,28 +12,21 @@
 }
 
 .PagesPanel-intro {
-  margin: -4px 16px 12px;
+  margin: 0 16px 12px;
   color: var(--puck-color-grey-05, #6b7280);
   font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
-/* ── Create form ───────────────────────────────────────────────────────────── */
-.PagesPanel-create {
-  display: grid;
-  gap: 8px;
-  margin: 0 12px 12px;
-  padding: 12px;
-  border: 1px solid var(--puck-color-grey-09, #d1d5db);
-  border-radius: 10px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--puck-color-azure-11, #eff6ff) 36%, #ffffff),
-    #ffffff
-  );
+.PagesPanel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 12px;
 }
 
-.PagesPanel-createHeader {
+.PagesPanel-groupTitle {
+  margin: 0;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -43,191 +34,10 @@
   color: var(--puck-color-grey-05, #6b7280);
 }
 
-.PagesPanel-fieldLabel {
-  display: grid;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--puck-color-grey-04, #4b5563);
-}
-
-.PagesPanel-fieldLabel input {
-  border: 1px solid var(--puck-color-grey-09, #d1d5db);
-  border-radius: 8px;
-  background: #ffffff;
-  color: var(--puck-color-grey-02, #111827);
-  font-size: 12px;
-  font-family: inherit;
-  padding: 7px 9px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.PagesPanel-fieldLabel input:focus-visible {
-  border-color: var(--puck-color-azure-06, #3b82f6);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--puck-color-azure-09, #bfdbfe) 50%, transparent);
-  outline: none;
-}
-
-.PagesPanel-error {
-  margin: 0;
-  color: #b91c1c;
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-.PagesPanel-createButton {
-  align-items: center;
-  display: inline-flex;
-  justify-content: center;
-  gap: 6px;
-  border: 1px solid var(--puck-color-azure-07, #93c5fd);
-  background: var(--puck-color-azure-11, #eff6ff);
-  color: var(--puck-color-azure-03, #1d4ed8);
-  border-radius: 8px;
-  min-height: 32px;
-  padding: 0 10px;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.PagesPanel-createButton:hover {
-  background: var(--puck-color-azure-10, #dbeafe);
-}
-
-.PagesPanel-createButton:focus-visible {
-  outline: 2px solid var(--puck-color-azure-05, #60a5fa);
-  outline-offset: 1px;
-}
-
-/* ── Page list ──────────────────────────────────────────────────────────────── */
-.PagesPanel-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 0 8px;
-}
-
-/* ── Page item ──────────────────────────────────────────────────────────────── */
-.PagesPanel-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  text-decoration: none;
-  transition: background 0.12s;
-  color: var(--puck-color-grey-02, #111827);
-}
-
-.PagesPanel-item:hover {
-  background: var(--puck-color-grey-11, #f3f4f6);
-}
-
-.PagesPanel-item--active {
-  background: var(--puck-color-azure-11, #eff6ff);
-}
-
-.PagesPanel-item--active:hover {
-  background: var(--puck-color-azure-10, #dbeafe);
-}
-
-/* ── Icon container ─────────────────────────────────────────────────────────── */
-.PagesPanel-iconWrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: var(--puck-color-grey-10, #e5e7eb);
-  color: var(--puck-color-grey-04, #6b7280);
-  flex-shrink: 0;
-  transition: background 0.12s, color 0.12s;
-}
-
-.PagesPanel-item--active .PagesPanel-iconWrap {
-  background: var(--puck-color-azure-09, #bfdbfe);
-  color: var(--puck-color-azure-04, #2563eb);
-}
-
-/* ── Text block ─────────────────────────────────────────────────────────────── */
-.PagesPanel-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.PagesPanel-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--puck-color-grey-02, #111827);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.PagesPanel-item--active .PagesPanel-label {
-  color: var(--puck-color-azure-03, #1d4ed8);
-}
-
-.PagesPanel-path {
-  font-size: 11px;
-  color: var(--puck-color-grey-05, #6b7280);
-  font-family: "SF Mono", "Fira Code", ui-monospace, monospace;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 1px;
-}
-
-/* ── Active indicator ───────────────────────────────────────────────────────── */
-.PagesPanel-activeDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--puck-color-azure-04, #2563eb);
-  flex-shrink: 0;
-}
-
-/* ── Hint at the bottom ─────────────────────────────────────────────────────── */
 .PagesPanel-hint {
   margin-top: 16px;
   padding: 0 16px;
   font-size: 11px;
   color: var(--puck-color-grey-06, #9ca3af);
   line-height: 1.5;
-}
-
-/* ── Dynamic badge ──────────────────────────────────────────────────────────── */
-.PagesPanel-dynamicBadge {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--puck-color-azure-04, #2563eb);
-  background: var(--puck-color-azure-11, #eff6ff);
-  border: 1px solid var(--puck-color-azure-09, #bfdbfe);
-  border-radius: 4px;
-  padding: 1px 5px;
-  flex-shrink: 0;
-}
-
-.PagesPanel-customBadge {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #0f766e;
-  background: #ccfbf1;
-  border: 1px solid #99f6e4;
-  border-radius: 4px;
-  padding: 1px 5px;
-  flex-shrink: 0;
 }

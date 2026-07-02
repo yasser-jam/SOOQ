@@ -121,11 +121,23 @@ export function getEditPath(page: Pick<PageDefinition, "path" | "examplePath">) 
   return page.examplePath ?? page.path;
 }
 
-/** Derives the current page (if any) from a browser pathname like "/cart/edit" */
+/** Derives the current page from a design-studio pathname or legacy `/path/edit`. */
 export function matchCurrentPage(
   pathname: string,
   pages: PageDefinition[] = PAGES
 ): PageDefinition | undefined {
+  const studioMatch = pathname.match(
+    /^(\/store\/[^/]+\/design-studio)(?:\/(.*))?$/
+  );
+
+  if (studioMatch) {
+    const suffix = (studioMatch[2] ?? "").replace(/\/(edit|preview)$/, "");
+    const current =
+      !suffix || suffix === "home" ? "/" : `/${suffix.replace(/^\/+/, "")}`;
+
+    return pages.find((p) => getEditPath(p) === current);
+  }
+
   const current = pathname.replace(/\/edit$/, "") || "/";
   return pages.find((p) => getEditPath(p) === current);
 }

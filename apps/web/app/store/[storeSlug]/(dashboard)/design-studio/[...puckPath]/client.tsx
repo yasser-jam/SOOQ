@@ -581,15 +581,11 @@ export function Client({
             siteDataRef.current = readSiteData()
           }}
           plugins={plugins}
-          // Keep the built-in Blocks palette so merchants can still drag
-          // individual components (Heading, Button, ProductCard, Sidebar,
-          // NavMenu, …) onto a section on the canvas. Our shopifyOutlinePlugin
-          // is registered under name "outline", which by Puck's plugin-merge
-          // rule replaces the built-in outline plugin while leaving "blocks"
-          // untouched. Merchants now get both Shopify-style section picking
-          // (via our outline + Add Section modal) AND free-form drag-and-drop
-          // for leaf blocks.
-          builtinPlugins={["blocks"]}
+          // Keep both built-in plugins: "blocks" for the drag-and-drop palette
+          // and "outline" for the block hierarchy tree view. shopifyOutlinePlugin
+          // is filtered out via hiddenPluginNames so the built-in outline is
+          // shown as-is without being overridden.
+          builtinPlugins={["blocks", "outline"]}
           headerPath={path}
           iframe={{
             enabled: params.get("disableIframe") === "true" ? false : true,
