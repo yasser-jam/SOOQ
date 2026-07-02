@@ -38,6 +38,8 @@ export function mapPayloadToProductCardData(
       : [];
 
   const variants = rawVariants.map((variant) => ({
+    variantId:
+      variant.variantId != null ? String(variant.variantId) : undefined,
     attributes: {},
     price: Number(variant.price ?? pricing.basePrice ?? 0),
     compareAtPrice: Number(variant.compareAtPrice ?? pricing.compareAtPrice ?? 0),
@@ -86,12 +88,18 @@ export function mapPayloadToProductCardData(
 export function buildProductActionDetail(
   payload: Record<string, unknown>,
   language: "ar" | "en",
-  metadata: ProductResourceMetadata | null
+  metadata: ProductResourceMetadata | null,
+  selectedVariantId?: string | null
 ): ProductCardActionEventDetail | null {
   const product = mapPayloadToProductCardData(payload);
   if (!product) return null;
 
-  const selectedVariant = product.variants[0] ?? null;
+  const selectedVariant =
+    (selectedVariantId
+      ? product.variants.find((variant) => variant.variantId === selectedVariantId)
+      : null) ??
+    product.variants[0] ??
+    null;
   const price = selectedVariant?.price ?? product.basePrice;
   const compareAt = selectedVariant?.compareAtPrice ?? product.compareAtPrice;
   const hasDiscount = compareAt > 0 && compareAt > price;

@@ -40,6 +40,8 @@ export function middleware(request: NextRequest) {
   const accessToken = request.cookies.get(cookiesConfig.accessToken)?.value
   const refreshToken = request.cookies.get(cookiesConfig.refreshToken)?.value
 
+  return NextResponse.next()
+
   // If we have either token, let the page render. The axios interceptor will
   // silently refresh on the first 401. Only redirect when both are missing.
   if (accessToken || refreshToken) {

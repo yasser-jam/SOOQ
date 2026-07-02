@@ -42,6 +42,7 @@ export function buildProductResourceMetadata(id: string): ProductResourceMetadat
 }
 
 export type ProductCardVariant = {
+	variantId?: string
 	attributes: Record<string, string>
 	price: number
 	compareAtPrice: number

@@ -9,6 +9,8 @@ const defaultValue: BoundDataContextValue = {
   isError: false,
   metadata: null,
   language: "ar",
+  selectedVariantId: null,
+  setSelectedVariantId: () => {},
 };
 
 export const BoundDataContext = createContext<BoundDataContextValue>(defaultValue);

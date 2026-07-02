@@ -12,6 +12,8 @@ import { Space } from "./blocks/Space";
 import { RichText } from "./blocks/RichText";
 import { ProductCard } from "./blocks/ProductCard";
 import { ProductsGrid } from "./blocks/ProductsGrid";
+import { ProductImageCarousel } from "./blocks/ProductImageCarousel";
+import { ProductVariants } from "./blocks/ProductVariants";
 import { CartSection } from "./blocks/CartSection";
 import { CheckoutForm } from "./blocks/CheckoutForm";
 import { ProductSearchMenu } from "./blocks/ProductSearchMenu";
@@ -87,6 +89,8 @@ export const conf: UserConfig = {
       components: [
         "ProductsGrid",
         "ProductCard",
+        "ProductImageCarousel",
+        "ProductVariants",
         "CategoryListMenu",
         "CartSection",
         "CheckoutForm",
@@ -141,6 +145,8 @@ export const conf: UserConfig = {
     // Bound — commerce
     ProductsGrid,
     ProductCard,
+    ProductImageCarousel,
+    ProductVariants,
     CategoryListMenu,
     CartSection,
     CheckoutForm,

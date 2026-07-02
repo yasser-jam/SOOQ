@@ -14,4 +14,6 @@ export type BoundDataContextValue = {
   isError: boolean;
   metadata: ProductResourceMetadata | null;
   language: "ar" | "en";
+  selectedVariantId: string | null;
+  setSelectedVariantId: (id: string | null) => void;
 };

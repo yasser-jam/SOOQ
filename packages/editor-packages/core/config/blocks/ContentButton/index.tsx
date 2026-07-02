@@ -250,7 +250,8 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       puck,
     } = props;
 
-    const { data: boundData, language, metadata } = useBoundData();
+    const { data: boundData, language, metadata, selectedVariantId } =
+      useBoundData();
     const resolvedLabel = useBoundValue(label, labelValueContext);
     const resolvedAlign = align ?? "center";
     const destType =
@@ -329,7 +330,12 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       if (puck.isEditing) return;
 
       if (action === "addToCart" && boundData) {
-        const detail = buildProductActionDetail(boundData, language, metadata);
+        const detail = buildProductActionDetail(
+          boundData,
+          language,
+          metadata,
+          selectedVariantId
+        );
         if (detail) {
           dispatchProductCardEvent("add-product", detail);
           return;
@@ -337,7 +343,12 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       }
 
       if (action === "addToWishlist" && boundData) {
-        const detail = buildProductActionDetail(boundData, language, metadata);
+        const detail = buildProductActionDetail(
+          boundData,
+          language,
+          metadata,
+          selectedVariantId
+        );
         if (detail) {
           dispatchProductCardEvent("add-product-to-favourite", detail);
           return;

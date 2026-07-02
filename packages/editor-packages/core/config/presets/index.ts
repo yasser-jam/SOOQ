@@ -45,4 +45,5 @@ export {
   createProductsGridBlock,
   createProductsGridSection,
   createProductsGridPlaceholderContent,
+  createProductDetailSection,
 } from "./products-grid";

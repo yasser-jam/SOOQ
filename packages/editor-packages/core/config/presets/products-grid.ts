@@ -152,6 +152,104 @@ export function createDemoProductCard(
   };
 }
 
+export function createProductDetailSection(
+  overrides: Record<string, unknown> = {}
+): ComponentDataOptionalId {
+  return createSection({
+    name: "Product details",
+    columns: 1,
+    columnsMobile: 1,
+    content: [
+      {
+        type: "Group",
+        props: {
+          direction: "row",
+          gap: 48,
+          alignItems: "flex-start",
+          justifyContent: "flex-start",
+          wrap: "wrap",
+          product: null,
+          metadata: null,
+          language: "ar",
+          content: [
+            {
+              type: "Group",
+              props: {
+                direction: "column",
+                gap: 0,
+                alignItems: "stretch",
+                justifyContent: "flex-start",
+                wrap: "nowrap",
+                layout: { grow: true },
+                content: [
+                  {
+                    type: "ProductImageCarousel",
+                    props: {
+                      placeholderSrc:
+                        "https://placehold.co/600x600/e2e8f0/64748b?text=Product",
+                      radius: "theme-md",
+                      aspectRatio: "square",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              type: "Group",
+              props: {
+                direction: "column",
+                gap: 16,
+                alignItems: "flex-start",
+                justifyContent: "flex-start",
+                wrap: "nowrap",
+                layout: { grow: true },
+                content: [
+                  createHeading("عنوان المنتج", {
+                    valueContext: { path: "product.title" },
+                    fontSize: "theme-2xl",
+                    fontWeight: "theme-bold",
+                    textAlign: "right",
+                  }),
+                  createParagraph("وصف المنتج", {
+                    valueContext: { path: "product.description" },
+                    fontSize: "theme-md",
+                    color: "theme-neutral",
+                    textAlign: "right",
+                  }),
+                  {
+                    type: "ProductVariants",
+                    props: {
+                      showOptionLabels: true,
+                      chipStyle: "pill",
+                    },
+                  },
+                  createParagraph("0.00 SYP", {
+                    valueContext: { path: "pricing.displayPrice" },
+                    fontSize: "theme-lg",
+                    fontWeight: "theme-bold",
+                    textAlign: "right",
+                  }),
+                  createParagraph("", {
+                    valueContext: { path: "pricing.displayCompareAt" },
+                    fontSize: "theme-md",
+                    color: "theme-neutral",
+                    textAlign: "right",
+                  }),
+                  createPrimaryButton("إضافة إلى السلة", {
+                    destinationType: "action",
+                    buttonAction: "addToCart",
+                  }),
+                ],
+              },
+            },
+          ],
+          ...overrides,
+        },
+      },
+    ],
+  });
+}
+
 const productCardVertical: SectionPreset = {
   id: "product-card-vertical",
   category: "products-grid",
@@ -178,7 +276,17 @@ const productsGridThreeColumns: SectionPreset = {
   componentData: createProductsGridSection(3),
 };
 
+const productDetailLayout: SectionPreset = {
+  id: "product-detail-layout",
+  category: "products-grid",
+  title: "تفاصيل المنتج",
+  previewImage:
+    "https://placehold.co/800x500/e2e8f0/64748b?text=Product+Details",
+  componentData: createProductDetailSection(),
+};
+
 export const PRODUCTS_GRID_PRESETS: SectionPreset[] = [
   productCardVertical,
   productsGridThreeColumns,
+  productDetailLayout,
 ];

@@ -54,8 +54,7 @@ export default function ImportUploadPage() {
   }
 
   return (
-    <div className="container bg-[#F8F9FA] min-h-screen py-8">
-      {/* Header - العنوان والوصف في اليمين، زر السجل في اليسار */}
+    <div className="container py-8">
       <div className="mb-8 flex items-center justify-between">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold text-[#1e3a47] tracking-tight">استيراد منتجات</h1>
@@ -73,7 +72,6 @@ export default function ImportUploadPage() {
 
       {/* Bento Grid Layout */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* منطقة الرفع - كارد رئيسي */}
         <div className="lg:col-span-2">
           <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
             <CardHeader>
@@ -83,7 +81,6 @@ export default function ImportUploadPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* منطقة Dropzone المحسّنة */}
               <div
                 onDragOver={(e) => {
                   e.preventDefault()
@@ -137,7 +134,6 @@ export default function ImportUploadPage() {
                 </p>
               </div>
 
-              {/* زر الإجراء الرئيسي */}
               <div className="mt-6 flex items-center justify-start">
                 <Button
                   type="button"
@@ -154,7 +150,6 @@ export default function ImportUploadPage() {
           </Card>
         </div>
 
-        {/* كارد الإعدادات الإضافية */}
         <div>
           <Card className="rounded-2xl border-gray-200/50 shadow-sm bg-white">
             <CardHeader className="flex flex-row items-center gap-3 pb-4">
@@ -169,7 +164,6 @@ export default function ImportUploadPage() {
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-6">
-              {/* Toggle Switch للتشغيل التجريبي */}
               <div className="flex items-center justify-between rounded-xl border border-gray-200/50 bg-gray-50/50 p-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-semibold text-gray-800">

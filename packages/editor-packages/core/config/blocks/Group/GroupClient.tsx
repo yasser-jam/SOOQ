@@ -54,12 +54,20 @@ export function GroupClient({
   const productApiUrl =
     metadata?.apiUrl ?? (productId ? getProductCardApiUrl(productId) : null);
 
+  const [selectedVariantId, setSelectedVariantId] = React.useState<string | null>(
+    null
+  );
+
   const { data, isLoading, isError } = useQuery({
     queryKey: productPickerKeys.detail(productId ?? "", productApiUrl ?? ""),
     queryFn: () => fetchProductDetailPayloadFromUrl(productApiUrl!),
     enabled: Boolean(productApiUrl),
     staleTime: 60_000,
   });
+
+  React.useEffect(() => {
+    setSelectedVariantId(null);
+  }, [productId]);
 
   const boundData = React.useMemo(() => {
     if (data) return data;
@@ -81,6 +89,8 @@ export function GroupClient({
     isError,
     metadata: metadata ?? null,
     language,
+    selectedVariantId,
+    setSelectedVariantId,
   };
 
   const showLoading = Boolean(productApiUrl) && isLoading;
