@@ -22,6 +22,7 @@ import { ProductImageProps } from "./blocks/ProductImage";
 import { ProductInfoProps } from "./blocks/ProductInfo";
 import { SectionProps } from "./blocks/Section";
 import { GroupProps } from "./blocks/Group";
+import type { RowGroupProps } from "./blocks/RowGroup/types";
 
 import { RootProps } from "./root";
 import { RichTextProps } from "./blocks/RichText";
@@ -54,6 +55,7 @@ export type Components = {
   SiteFooter: SiteFooterProps;
   Section: SectionProps;
   Group: GroupProps;
+  RowGroup: RowGroupProps;
   Button: ButtonProps;
   Card: CardProps;
   Grid: GridProps;

@@ -6,7 +6,7 @@ Each block is described with its **properties**, accepted **values**, and a read
 > Most blocks wrap their props with a `WithLayout` higher-order type that adds a shared `layout` object. The `layout` prop controls advanced positioning (padding, shadow, float, per-breakpoint visibility via `hideOnMobile` / `hideOnTablet` / `hideOnDesktop`, etc.). It is omitted from the examples below for brevity; add it only when you need non-default positioning.
 
 > **Block registry**  
-> Blocks registered in the editor are grouped as: **layout** (`Section`, `Group`, `Sidebar`), **blocks** (content primitives), **storeBlocks** (commerce/customer), **shell** (`SiteHeader`, `SiteDrawerShell`, `SiteFooter`), and **legacy** (hidden from the picker but still rendered from old `store_config.json`). `Blank` exists in code only and is **not** registered — it will not appear in published store config.
+> Blocks registered in the editor are grouped as: **layout** (`Section`, `Group`, `RowGroup`, `Sidebar`), **blocks** (content primitives), **storeBlocks** (commerce/customer), **shell** (`SiteHeader`, `SiteDrawerShell`, `SiteFooter`), and **legacy** (hidden from the picker but still rendered from old `store_config.json`). `Blank` exists in code only and is **not** registered — it will not appear in published store config.
 >
 > **Legacy blocks** (still in `store_config.json`, hidden from picker): `SideDrawer`, `Heading`, `Text`, `RichText`, `Button`, `Card`, `Grid`, `Flex`, `Hero`, `Logos`, `Stats`, `Template`, `NavMenu`, `ContentIcon`, `ContentHtml`, `ProductImage`, `ProductInfo`.
 
@@ -35,31 +35,32 @@ Each block is described with its **properties**, accepted **values**, and a read
 16. [Flex](#flex)
 17. [Grid](#grid)
 18. [Group](#group)
-19. [Heading](#heading)
-20. [Hero](#hero)
-21. [ImageGallery](#imagegallery)
-22. [Logos](#logos)
-23. [NavMenu](#navmenu)
-24. [OrderHistory](#orderhistory)
-25. [ProductCard](#productcard)
-26. [ProductImage](#productimage)
-27. [ProductInfo](#productinfo)
-28. [ProductSearchMenu](#productsearchmenu)
-29. [ProductsGrid](#productsgrid)
-30. [RichText](#richtext)
-31. [Section](#section)
-32. [Sidebar](#sidebar)
-33. [SideDrawer](#sidedrawer)
-34. [SiteDrawerShell](#sitedrawershell)
-35. [SiteFooter](#sitefooter)
-36. [SiteHeader](#siteheader)
-37. [Space](#space)
-38. [Stats](#stats)
-39. [Template](#template)
-40. [Testimonials](#testimonials)
-41. [Text](#text)
-42. [VideoEmbed](#videoembed)
-43. [Wishlist](#wishlist)
+19. [RowGroup](#rowgroup)
+20. [Heading](#heading)
+21. [Hero](#hero)
+22. [ImageGallery](#imagegallery)
+23. [Logos](#logos)
+24. [NavMenu](#navmenu)
+25. [OrderHistory](#orderhistory)
+26. [ProductCard](#productcard)
+27. [ProductImage](#productimage)
+28. [ProductInfo](#productinfo)
+29. [ProductSearchMenu](#productsearchmenu)
+30. [ProductsGrid](#productsgrid)
+31. [RichText](#richtext)
+32. [Section](#section)
+33. [Sidebar](#sidebar)
+34. [SideDrawer](#sidedrawer)
+35. [SiteDrawerShell](#sitedrawershell)
+36. [SiteFooter](#sitefooter)
+37. [SiteHeader](#siteheader)
+38. [Space](#space)
+39. [Stats](#stats)
+40. [Template](#template)
+41. [Testimonials](#testimonials)
+42. [Text](#text)
+43. [VideoEmbed](#videoembed)
+44. [Wishlist](#wishlist)
 
 ---
 
@@ -195,8 +196,38 @@ Each block is described with its **properties**, accepted **values**, and a read
 
 ## CartSection
 
-**Label:** Cart Section  
-**Description:** Displays the current user's shopping cart items. Bound to cart data at render time.
+**Label:** قسم السلة  
+**Description:** Renders shopping cart rows from browser `localStorage` key `store-cart`. Each row shows product image (right in RTL), title, description, price, link to `/products/:slug`, and quantity stepper. Includes subtotal and an order button that dispatches a `make-order` event.
+
+### Data source (`metadata`)
+
+| Field | Type | Notes |
+|---|---|---|
+| `metadata.dataSource` | `"localStorage"` | Always `localStorage` for this block |
+| `metadata.storageKey` | `"store-cart"` | Fixed key for cart persistence |
+
+### `store-cart` localStorage schema
+
+```json
+{
+  "items": [
+    {
+      "lineId": "prod-001:{\"Color\":\"Red\"}",
+      "quantity": 2,
+      "product": { "id": "...", "titleAr": "...", "slug": "...", "mediaUrls": ["..."], "currencyCode": "SYP" },
+      "selectedVariant": null,
+      "selectedAttributes": {},
+      "pricing": { "price": 10000, "compareAt": null, "discountPercent": 0, "hasDiscount": false },
+      "language": "ar",
+      "metadata": { "type": "product", "method": "get", "apiUrl": "...", "id": "..." },
+      "addedAt": "2026-07-02T12:00:00.000Z"
+    }
+  ],
+  "updatedAt": "2026-07-02T12:00:00.000Z"
+}
+```
+
+Items are added when product blocks dispatch the `add-product` browser event (e.g. `ContentButton` with `buttonAction: "addToCart"`).
 
 ### Properties
 
@@ -205,6 +236,12 @@ Each block is described with its **properties**, accepted **values**, and a read
 | `layoutStyle` | `"rows" \| "cards"` | Display layout | `"rows"` |
 | `gap` | `"sm" \| "md" \| "lg" \| "xl"` | Space between items | `"md"` |
 | `showDividerLines` | `boolean` | Show separator lines | `true` |
+| `orderButtonLabel` | `string` | Label for the order CTA | `"إتمام الطلب"` |
+| `metadata` | `CartSectionResourceMetadata` | Auto-populated data source descriptor | see above |
+
+### Events
+
+- **`make-order`** — dispatched when the order button is clicked. Detail: `{ cart: StoreCart }`. Listen on `window` to integrate checkout.
 
 ### JSON Example
 
@@ -214,7 +251,12 @@ Each block is described with its **properties**, accepted **values**, and a read
   "props": {
     "layoutStyle": "rows",
     "gap": "md",
-    "showDividerLines": true
+    "showDividerLines": true,
+    "orderButtonLabel": "إتمام الطلب",
+    "metadata": {
+      "dataSource": "localStorage",
+      "storageKey": "store-cart"
+    }
   }
 }
 ```
@@ -330,7 +372,7 @@ Each block is described with its **properties**, accepted **values**, and a read
 | `align` | `"left" \| "center" \| "right"` | Horizontal alignment | `"center"` |
 | `destinationType` | `"link" \| "action"` | Navigate to URL or trigger an action | `"link"` |
 | `link` | `LinkValue` | Navigation target | `EMPTY_LINK` |
-| `buttonAction` | `ButtonAction` | In-app action key (when `destinationType = "action"`) | `"login"` |
+| `buttonAction` | `ButtonAction` | In-app action key (when `destinationType = "action"`): `login`, `logout`, `addToCart`, `addToWishlist`, `makeOrder` | `"login"` |
 | `buttonVariantMode` | `"variant" \| "fixed"` | Use theme variant or manual colors | `"variant"` |
 | `buttonVariant` | `"primary" \| "secondary" \| "error"` | Theme variant | `"primary"` |
 | `buttonVariantSize` | `"sm" \| "md" \| "lg"` | Size when using variant mode | `"md"` |
@@ -657,6 +699,44 @@ Each block is described with its **properties**, accepted **values**, and a read
     "padding": "0px",
     "borderRadius": "theme-none",
     "boxShadow": "none",
+    "content": []
+  }
+}
+```
+
+---
+
+## RowGroup
+
+**Label:** صف أفقي  
+**Description:** A horizontal flex row container for grouping blocks side-by-side. Fixed `direction: row` (unlike `Group` which can be row or column).
+
+### Properties
+
+| Property | Type | Values / Notes | Default |
+|---|---|---|---|
+| `gap` | `number` | Gap in pixels (0–120) | `16` |
+| `alignItems` | `"flex-start" \| "center" \| "flex-end" \| "stretch" \| "baseline"` | Cross-axis alignment | `"center"` |
+| `justifyContent` | `"flex-start" \| "center" \| "flex-end" \| "space-between" \| "space-around" \| "space-evenly"` | Main-axis alignment | `"flex-start"` |
+| `wrap` | `"wrap" \| "nowrap"` | Whether items wrap | `"nowrap"` |
+| `backgroundColor` | `string` | Background (theme token or hex/rgba) | `""` |
+| `padding` | `string` | Inner padding (spacing preset or px) | `"0px"` |
+| `borderRadius` | `string` | Corner radius (`"theme-none"` or px) | `"theme-none"` |
+| `content` | `Slot` | Child blocks (Section not allowed) | `[]` |
+
+### JSON Example
+
+```json
+{
+  "type": "RowGroup",
+  "props": {
+    "gap": 16,
+    "alignItems": "center",
+    "justifyContent": "space-between",
+    "wrap": "nowrap",
+    "backgroundColor": "",
+    "padding": "0px",
+    "borderRadius": "theme-none",
     "content": []
   }
 }

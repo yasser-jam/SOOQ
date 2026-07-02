@@ -3,6 +3,7 @@ import {
   LayoutTemplate,
   ShoppingBag,
   Sparkles,
+  ShoppingCart,
   MessageSquareText,
   Star,
   Mail,
@@ -24,6 +25,7 @@ import {
   createSectionStarterContent,
 } from "../../blocks/Section/starter-data";
 import { createProductsGridSection } from "../../presets/products-grid";
+import { createCartSectionPreset } from "../../presets/cart";
 
 /**
  * Shopify-style Section Catalog.
@@ -323,6 +325,16 @@ export const sectionCatalog: SectionPreset[] = [
     icon: <Grid3x3 size={20} />,
     gradient: "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)",
     build: () => createProductsGridSection(3),
+  },
+  {
+    id: "shopping-cart",
+    label: "Shopping Cart",
+    description:
+      "Cart rows from localStorage (store-cart) with quantity controls and order button.",
+    category: "commerce",
+    icon: <ShoppingCart size={20} />,
+    gradient: "linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)",
+    build: () => createCartSectionPreset(),
   },
   {
     id: "category-list",

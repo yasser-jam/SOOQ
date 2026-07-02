@@ -26,6 +26,8 @@ import {
   useBoundData,
   useBoundValue,
 } from "../../binding";
+import { addOrUpdateLine, readStoreCart } from "../../cart/store-cart";
+import { dispatchMakeOrderEvent } from "../../cart/make-order";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
 export type ContentButtonProps = WithLayout<{
@@ -338,6 +340,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
         );
         if (detail) {
           dispatchProductCardEvent("add-product", detail);
+          addOrUpdateLine(detail);
           return;
         }
       }
@@ -353,6 +356,16 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
           dispatchProductCardEvent("add-product-to-favourite", detail);
           return;
         }
+      }
+
+      if (action === "makeOrder") {
+        const cart = readStoreCart();
+        if (cart.items.length === 0) {
+          window.alert("السلة فارغة. أضف منتجات قبل إتمام الطلب.");
+          return;
+        }
+        dispatchMakeOrderEvent(cart);
+        return;
       }
 
       window.alert(`إجراء الزر: ${buttonActionLabel(action)}`);

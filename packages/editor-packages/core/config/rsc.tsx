@@ -22,6 +22,7 @@ import { ProductImage } from "./blocks/ProductImage";
 import { ProductInfo } from "./blocks/ProductInfo";
 import { Section } from "./blocks/Section";
 import { Group } from "./blocks/Group";
+import { RowGroup } from "./blocks/RowGroup";
 import { ContentHeading } from "./blocks/ContentHeading";
 import { ContentParagraph } from "./blocks/ContentParagraph";
 import { Accordion } from "./blocks/Accordion";
@@ -101,7 +102,7 @@ const rscConf = {
     group: {
       title: "تخطيط",
       defaultExpanded: true,
-      components: ["Group", "Sidebar"],
+      components: ["Group", "RowGroup", "Sidebar"],
     },
     legacy: {
       title: "إصدار سابق (مخفي)",
@@ -123,6 +124,7 @@ const rscConf = {
   components: {
     Section,
     Group,
+    RowGroup,
     Card,
     Grid,
     Hero,

@@ -22,6 +22,7 @@ import { ProductImage } from "./blocks/ProductImage";
 import { ProductInfo } from "./blocks/ProductInfo";
 import { Section } from "./blocks/Section";
 import { Group } from "./blocks/Group";
+import { RowGroup } from "./blocks/RowGroup";
 import { ContentHeading } from "./blocks/ContentHeading";
 import { ContentParagraph } from "./blocks/ContentParagraph";
 import { Accordion } from "./blocks/Accordion";
@@ -98,7 +99,7 @@ const conf: UserConfig = {
     group: {
       title: "تخطيط",
       defaultExpanded: true,
-      components: ["Group", "Sidebar", "NavMenu"],
+      components: ["Group", "RowGroup", "Sidebar", "NavMenu"],
     },
     legacy: {
       title: "إصدار سابق (مخفي)",
@@ -125,6 +126,7 @@ const conf: UserConfig = {
     SiteFooter,
     Section,
     Group,
+    RowGroup,
     Button,
     Card,
     Grid,

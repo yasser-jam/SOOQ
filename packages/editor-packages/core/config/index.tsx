@@ -22,6 +22,7 @@ import { ProductImage } from "./blocks/ProductImage";
 import { ProductInfo } from "./blocks/ProductInfo";
 import { Section } from "./blocks/Section";
 import { Group } from "./blocks/Group";
+import { RowGroup } from "./blocks/RowGroup";
 import { ContentHeading } from "./blocks/ContentHeading";
 import { ContentParagraph } from "./blocks/ContentParagraph";
 import { Accordion } from "./blocks/Accordion";
@@ -65,6 +66,7 @@ export const conf: UserConfig = {
       components: [
         "Section",
         "Group",
+        "RowGroup",
         "Sidebar",
       ],
     },
@@ -142,6 +144,7 @@ export const conf: UserConfig = {
     Section,
     // Group / Layout
     Group,
+    RowGroup,
     // Bound — commerce
     ProductsGrid,
     ProductCard,

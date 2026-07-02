@@ -1,21 +1,30 @@
 import React from "react";
 import { ComponentConfig } from "@/core/types";
 import { withLayout } from "../../components/Layout";
+import {
+  STORE_CART_KEY,
+  type CartSectionResourceMetadata,
+} from "../../cart/store-cart";
 import { CartSectionClient } from "./CartSectionClient";
 import type { CartSectionProps } from "./types";
 
 export type { CartSectionProps };
 
+const DEFAULT_METADATA: CartSectionResourceMetadata = {
+  dataSource: "localStorage",
+  storageKey: STORE_CART_KEY,
+};
+
 const CartSectionInner: ComponentConfig<CartSectionProps> = {
-  label: "Cart Section",
+  label: "قسم السلة",
 
   fields: {
     layoutStyle: {
       type: "radio",
       label: "التخطيط",
       options: [
-        { label: "Rows", value: "rows" },
-        { label: "Cards", value: "cards" },
+        { label: "صفوف", value: "rows" },
+        { label: "بطاقات", value: "cards" },
       ],
     },
     gap: {
@@ -36,12 +45,29 @@ const CartSectionInner: ComponentConfig<CartSectionProps> = {
         { label: "Hide", value: false },
       ],
     },
+    orderButtonLabel: {
+      type: "text",
+      label: "نص زر الطلب",
+    },
   },
 
   defaultProps: {
     layoutStyle: "rows",
     gap: "md",
     showDividerLines: true,
+    orderButtonLabel: "إتمام الطلب",
+    metadata: DEFAULT_METADATA,
+  },
+
+  resolveData: ({ props }) => {
+    const current = props.metadata;
+    if (
+      current?.dataSource === DEFAULT_METADATA.dataSource &&
+      current?.storageKey === DEFAULT_METADATA.storageKey
+    ) {
+      return {};
+    }
+    return { props: { metadata: DEFAULT_METADATA } };
   },
 
   render: (props) => <CartSectionClient {...props} />,
