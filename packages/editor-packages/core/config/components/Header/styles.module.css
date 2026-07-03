@@ -194,6 +194,15 @@
   color: #ffffff;
 }
 
+/* ── Right action slot ────────────────────────────────────────────── */
+.rightActions {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+  margin-inline-start: 8px;
+}
+
 /* ── Drawer toggle (hamburger) ─────────────────────────────────────── */
 .drawerToggle {
   align-items: center;

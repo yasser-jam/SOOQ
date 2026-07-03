@@ -65,6 +65,11 @@ const triggerRefresh = (): Promise<string | null> => {
 
 const redirectToLogin = () => {
   if (typeof window === "undefined") return
+  // Only redirect when a merchant session exists. Without an access token the
+  // caller was never authenticated (e.g. a storefront visitor in apps/store),
+  // so there is no need to redirect to the OTP login page.
+  const hadSession = !!getCookie(cookiesConfig.accessToken)
+  if (!hadSession) return
   removeCookie(cookiesConfig.accessToken)
   removeCookie(cookiesConfig.tenantSlug)
   window.location.href = "/request-otp"

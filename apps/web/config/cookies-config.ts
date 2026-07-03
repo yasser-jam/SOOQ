@@ -3,6 +3,7 @@ const cookiesConfig = {
   refreshToken: "sooq-refresh-token",
   tenantSlug: "sooq-tenant-slug",
   tenantId: "sooq-tenant-id",
+  userName: "sooq-user-name",
 } as const
 
 export type CookieName =

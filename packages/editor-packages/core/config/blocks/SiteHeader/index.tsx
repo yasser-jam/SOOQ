@@ -1,5 +1,6 @@
 import React from "react";
 import { ComponentConfig } from "@/core/types";
+import type { Slot } from "@/core/types";
 import { colorField } from "../../fields/ColorField";
 import { EMPTY_LINK, linkField } from "../../fields/LinkField";
 import {
@@ -28,6 +29,8 @@ export type SiteHeaderProps = {
   showDrawerButton: boolean;
   drawerButtonIcon: HeaderDrawerIcon;
   drawerName: string;
+  /** Optional action buttons (e.g. CartIconButton, LoginButton) rendered at the end of the header */
+  rightSlot: Slot;
 };
 
 export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
@@ -138,6 +141,10 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
       label: "اسم القائمة",
       placeholder: "site-drawer",
     },
+    rightSlot: {
+      type: "slot",
+      disallow: ["Section", "SiteHeader", "SiteDrawerShell", "SiteFooter"],
+    },
   },
   defaultProps: {
     title: "",
@@ -154,6 +161,7 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
     showDrawerButton: false,
     drawerButtonIcon: "menu",
     drawerName: "site-drawer",
+    rightSlot: [],
   },
   render: ({
     title,
@@ -170,6 +178,7 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
     showDrawerButton,
     drawerButtonIcon,
     drawerName,
+    rightSlot: RightSlot,
     puck,
   }) => {
     return (
@@ -189,6 +198,7 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
         showDrawerButton={showDrawerButton}
         drawerButtonIcon={drawerButtonIcon}
         drawerName={drawerName || "site-drawer"}
+        rightSlot={<RightSlot />}
       />
     );
   },

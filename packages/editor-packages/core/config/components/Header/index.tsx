@@ -149,6 +149,8 @@ export type HeaderProps = {
   drawerButtonIcon?: HeaderDrawerIcon;
   /** Which drawer name to toggle. Defaults to "site-drawer". */
   drawerName?: string;
+  /** Optional action items (CartIconButton, LoginButton …) rendered at the end of the header */
+  rightSlot?: React.ReactNode;
 };
 
 const pickLabel = (link: HeaderLink, language: "ar" | "en"): string => {
@@ -173,6 +175,7 @@ const Header = ({
   showDrawerButton = false,
   drawerButtonIcon = "menu",
   drawerName = "site-drawer",
+  rightSlot,
 }: HeaderProps) => {
   if (!visible) return null;
 
@@ -233,6 +236,10 @@ const Header = ({
     </nav>
   );
 
+  const rightActions = rightSlot ? (
+    <div className={styles.rightActions}>{rightSlot}</div>
+  ) : null;
+
   if (variant === "default") {
     return (
       <div
@@ -257,16 +264,19 @@ const Header = ({
             <>
               <div className={styles.brandSlot}>{brandNode}</div>
               {navNode}
+              {rightActions}
             </>
           ) : menuAlign === "start" ? (
             <>
               {navNode}
               <div className={styles.brandSlotEnd}>{brandNode}</div>
+              {rightActions}
             </>
           ) : (
             <>
               {brandNode}
               {navNode}
+              {rightActions}
             </>
           )}
         </header>
@@ -298,6 +308,7 @@ const Header = ({
             />
           ))}
         </nav>
+        {rightActions}
       </header>
     </div>
   );
