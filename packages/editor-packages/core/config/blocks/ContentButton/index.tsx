@@ -32,6 +32,7 @@ import { closeZone, dispatchZoneEvent } from "../../lib/zone-events";
 import {
   collectSooqInputValues,
   dispatchLoginEvent,
+  dispatchVerifyOtpEvent,
 } from "../../lib/login-events";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
@@ -41,6 +42,7 @@ export type ContentButtonProps = WithLayout<{
   align: "left" | "center" | "right";
   destinationType: "link" | "action" | "zone";
   buttonAction: ButtonAction;
+  submitRedirectUrl: string;
   link: LinkValue;
   zoneKey: string;
   zoneAction: "open" | "close" | "toggle";
@@ -206,6 +208,11 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       label: "الإجراء",
       options: BUTTON_FUNCTIONAL_ACTION_OPTIONS,
     },
+    submitRedirectUrl: {
+      type: "text",
+      label: "رابط التوجيه بعد الإرسال",
+      placeholder: "https://example.com/success",
+    },
     zoneKey: {
       type: "text",
       label: "مفتاح المنطقة",
@@ -240,6 +247,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
     align: "center",
     destinationType: "link",
     buttonAction: "login",
+    submitRedirectUrl: "",
     link: EMPTY_LINK,
     zoneKey: "login",
     zoneAction: "open",
@@ -265,6 +273,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       align,
       destinationType,
       buttonAction,
+      submitRedirectUrl,
       link,
       zoneKey,
       zoneAction,
@@ -359,6 +368,12 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
           : "center",
     };
 
+    const maybeRedirect = () => {
+      if (submitRedirectUrl && typeof window !== "undefined") {
+        window.location.href = submitRedirectUrl;
+      }
+    };
+
     const onFunctionalClick = (e: MouseEvent) => {
       e.preventDefault();
       if (puck.isEditing) return;
@@ -373,6 +388,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
           const panelZoneKey = panel.getAttribute("data-sooq-zone-panel");
           if (panelZoneKey) closeZone(panelZoneKey);
         }
+        maybeRedirect();
         return;
       }
 
@@ -403,6 +419,20 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
         }
       }
 
+      if (action === "verifyOtp") {
+        const button = e.currentTarget as HTMLElement;
+        const panel = button.closest("[data-sooq-zone-panel]");
+        const scope = panel ?? button.closest("form") ?? document;
+        const values = collectSooqInputValues(scope);
+        dispatchVerifyOtpEvent(values);
+        if (panel) {
+          const panelZoneKey = panel.getAttribute("data-sooq-zone-panel");
+          if (panelZoneKey) closeZone(panelZoneKey);
+        }
+        maybeRedirect();
+        return;
+      }
+
       if (action === "makeOrder") {
         const cart = readStoreCart();
         if (cart.items.length === 0) {
@@ -410,6 +440,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
           return;
         }
         dispatchMakeOrderEvent(cart);
+        maybeRedirect();
         return;
       }
 
@@ -476,6 +507,7 @@ const FIELD_ORDER = [
   "destinationType",
   "link",
   "buttonAction",
+  "submitRedirectUrl",
   "radius",
   "bgColor",
   "textColor",
@@ -506,6 +538,8 @@ function resolveButtonFields(
       continue;
     }
     if (destType === "link" && key === "buttonAction") continue;
+    if (destType === "link" && key === "submitRedirectUrl") continue;
+    if (destType === "zone" && key === "submitRedirectUrl") continue;
     if (destType === "action" && key === "link") continue;
 
     if (key === "layout" && typeof field === "object") {

@@ -9,6 +9,7 @@ import { PreviewThemeProvider } from "./preview-theme-provider"
 import { StoreNotFound } from "./store-not-found"
 import { LoginHandler } from "./LoginHandler"
 import { MakeOrderHandler } from "./checkout/MakeOrderHandler"
+import { VerifyOtpHandler } from "./VerifyOtpHandler"
 import { STORE_FIXED_THEME_ID } from "../lib/store-config"
 import { useStorePathname } from "../lib/use-store-pathname"
 import { useStorefrontData } from "../lib/use-storefront-data"
@@ -55,6 +56,7 @@ export function StorefrontRenderer() {
 			    and opens the checkout drawer to collect delivery info + submit order */}
 			<MakeOrderHandler />
 			<LoginHandler />
+			<VerifyOtpHandler />
 		</>
 	)
 }

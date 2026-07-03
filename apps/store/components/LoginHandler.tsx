@@ -4,15 +4,11 @@ import { useEffect } from "react"
 
 import {
 	LOGIN_EVENT,
+	dispatchLoginSuccessEvent,
 	type LoginEventDetail,
 } from "@/core/config/lib/login-events"
+import { openZone } from "@/core/config/lib/zone-events"
 
-/**
- * Mounts once at the root of the storefront renderer.
- * Listens for the "login" custom event dispatched by ContentButton
- * (with action="login") inside the login popup, and logs the
- * submitted credentials so they can be sent to the auth API.
- */
 export function LoginHandler() {
 	useEffect(() => {
 		const handler = (event: Event) => {
@@ -20,12 +16,15 @@ export function LoginHandler() {
 
 			console.log("[SOOQ] Login event received:", detail)
 
-			if (detail.email) {
-				console.log("[SOOQ] Email:", detail.email)
+			if (detail.phone) {
+				console.log("[SOOQ] Phone:", detail.phone)
 			}
-			if (detail.password) {
-				console.log("[SOOQ] Password:", detail.password)
+			if (detail.fullName) {
+				console.log("[SOOQ] Full Name:", detail.fullName)
 			}
+
+			dispatchLoginSuccessEvent(detail)
+			openZone("verify-otp")
 		}
 
 		window.addEventListener(LOGIN_EVENT, handler)

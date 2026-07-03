@@ -7,6 +7,7 @@ export const BUTTON_ACTIONS = [
   "addToCart",
   "addToWishlist",
   "makeOrder",
+  "verifyOtp",
 ] as const;
 
 export type ButtonAction = (typeof BUTTON_ACTIONS)[number];
@@ -18,6 +19,7 @@ export const BUTTON_ACTION_OPTIONS: { label: string; value: ButtonAction }[] = [
   { label: "إضافة إلى السلة", value: "addToCart" },
   { label: "إضافة إلى المفضلة", value: "addToWishlist" },
   { label: "إتمام الطلب", value: "makeOrder" },
+  { label: "تحقق من الرمز", value: "verifyOtp" },
 ];
 
 export const BUTTON_FUNCTIONAL_ACTION_OPTIONS = BUTTON_ACTION_OPTIONS.filter(
@@ -33,6 +35,7 @@ export function buttonActionLabel(action: ButtonAction): string {
     addToCart: "إضافة إلى السلة",
     addToWishlist: "إضافة إلى المفضلة",
     makeOrder: "إتمام الطلب",
+    verifyOtp: "تحقق من الرمز",
   };
   return map[action];
 }

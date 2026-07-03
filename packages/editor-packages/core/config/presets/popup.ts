@@ -26,17 +26,17 @@ const popupLogin: ZonePreset = {
       slot: [
         createHeading("تسجيل الدخول", { textAlign: "center" }),
         createParagraph(
-          "أدخل بريدك الإلكتروني وكلمة المرور للمتابعة.",
+          "أدخل رقم هاتفك واسمك الكامل للمتابعة.",
           { textAlign: "center" }
         ),
-        createInput("البريد الإلكتروني", "email", {
-          inputType: "email",
-          placeholder: "example@email.com",
+        createInput("رقم الهاتف", "phone", {
+          inputType: "tel",
+          placeholder: "+963...",
           required: true,
         }),
-        createInput("كلمة المرور", "password", {
-          inputType: "password",
-          placeholder: "••••••••",
+        createInput("الاسم الكامل", "fullName", {
+          inputType: "text",
+          placeholder: "أدخل اسمك",
           required: true,
         }),
         createPrimaryButton("تسجيل الدخول", {
@@ -74,6 +74,49 @@ const popupBasic: ZonePreset = {
   },
 };
 
-export const ZONE_POPUP_PRESETS: ZonePreset[] = [popupLogin, popupBasic];
+const popupVerifyOtp: ZonePreset = {
+  id: "popup-verify-otp",
+  category: "zone-popup",
+  title: "نافذة التحقق من الرمز",
+  previewImage:
+    "https://placehold.co/480x360/ffffff/64748b?text=OTP+Popup",
+  componentData: {
+    type: "ZonePopup",
+    props: {
+      is_active: true,
+      is_mobile_only: false,
+      key: "verify-otp",
+      backgroundColor: "#ffffff",
+      borderRadius: "12px",
+      maxWidth: "480px",
+      overlay: true,
+      showCloseButton: true,
+      slot: [
+        createHeading("التحقق من الرمز", { textAlign: "center" }),
+        createParagraph("تم إرسال رمز التحقق إلى رقم هاتفك.", {
+          textAlign: "center",
+        }),
+        createInput("رمز التحقق", "otp", {
+          inputType: "text",
+          placeholder: "------",
+          required: true,
+        }),
+        createPrimaryButton("إرسال", {
+          align: "center",
+          destinationType: "action",
+          buttonAction: "verifyOtp",
+        }),
+      ],
+    },
+  },
+};
+
+export const ZONE_POPUP_PRESETS: ZonePreset[] = [
+  popupLogin,
+  popupVerifyOtp,
+  popupBasic,
+];
+
+export const DEFAULT_ZONE_POPUP_PRESETS = [popupLogin, popupVerifyOtp];
 
 export const DEFAULT_ZONE_POPUP_PRESET = popupLogin;

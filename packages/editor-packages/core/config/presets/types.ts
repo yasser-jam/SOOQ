@@ -3,7 +3,8 @@ import type { ComponentDataOptionalId } from "@/core/types";
 export type SectionPresetCategory =
   | "general"
   | "hero"
-  | "products-grid";
+  | "products-grid"
+  | "forms";
 
 export type SectionPreset = {
   id: string;

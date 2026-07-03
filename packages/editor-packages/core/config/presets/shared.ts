@@ -90,6 +90,7 @@ export function createPrimaryButton(
       bgColor: "theme-primary",
       textColor: "theme-surface",
       buttonSize: "theme-md",
+      submitRedirectUrl: "",
       ...overrides,
     },
   };

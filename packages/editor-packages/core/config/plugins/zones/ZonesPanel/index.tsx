@@ -4,7 +4,7 @@ import React, { useCallback, useMemo } from "react";
 import { Check, ChevronRight } from "lucide-react";
 import { useAppStore, useAppStoreApi } from "@/core/store";
 import { getClassNameFactory } from "@/core/lib";
-import { applyZonePreset } from "../../../lib/apply-zone-preset";
+import { applyZonePreset, applyZonePresets } from "../../../lib/apply-zone-preset";
 import {
   ensureZoneBlockSelector,
   ensureZoneSectionSelector,
@@ -15,7 +15,7 @@ import {
   type ZoneDefinition,
 } from "../../../lib/zone-registry";
 import { resolveZoneDefinitionFromState } from "../../../lib/zone-selection";
-import { DEFAULT_ZONE_POPUP_PRESET } from "../../../presets/popup";
+import { DEFAULT_ZONE_POPUP_PRESETS } from "../../../presets/popup";
 import { DEFAULT_ZONE_FOOTER_PRESET } from "../../../presets/footer";
 import { DEFAULT_ZONE_HEADER_PRESET } from "../../../presets/header";
 import { getZonePresetsByCategory } from "../../../presets/index";
@@ -178,9 +178,9 @@ export function ZonesPanel() {
             item.props.slot.length === 0
         )
       ) {
-        selector = applyZonePreset(
+        selector = applyZonePresets(
           definition.rootZone,
-          DEFAULT_ZONE_POPUP_PRESET,
+          DEFAULT_ZONE_POPUP_PRESETS,
           appStoreApi
         );
       }

@@ -46,3 +46,47 @@ export function applyZonePreset(
 
   return selector;
 }
+
+/** Insert multiple presets into a zone at once, selecting the first one. */
+export function applyZonePresets(
+  rootZone: string,
+  presets: ZonePreset[],
+  appStoreApi: AppStoreApi
+) {
+  if (presets.length === 0) return null;
+  if (presets.length === 1) return applyZonePreset(rootZone, presets[0], appStoreApi);
+
+  const { config, state, dispatch } = appStoreApi.getState();
+
+  dispatch({ type: "registerZone", zone: rootZone, recordHistory: false });
+
+  const nodes = presets.map((p) => populateIds(p.componentData, config));
+  const zones = {
+    ...(state.data.zones ?? {}),
+    [rootZone]: nodes,
+  };
+
+  const walked = walkAppState(
+    { ...state, data: { ...state.data, zones } },
+    config
+  );
+
+  dispatch({
+    type: "set",
+    state: walked,
+    recordHistory: true,
+  });
+
+  const selector = getSelectorForId(walked, nodes[0].props.id as string);
+  if (!selector) return null;
+
+  dispatch({
+    type: "setUi",
+    ui: {
+      itemSelector: selector,
+      rightSideBarVisible: true,
+    },
+  });
+
+  return selector;
+}

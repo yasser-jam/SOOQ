@@ -1,4 +1,5 @@
 import { FOOTER_PRESETS, ZONE_FOOTER_PRESETS } from "./footer";
+import { FORMS_PRESETS } from "./forms";
 import { GENERAL_PRESETS } from "./general";
 import { HEADER_PRESETS, ZONE_HEADER_PRESETS } from "./header";
 import { HERO_PRESETS } from "./hero";
@@ -19,12 +20,14 @@ export const PRESET_CATEGORY_LABELS: Record<SectionPresetCategory, string> = {
   general: "عام",
   hero: "هيرو",
   "products-grid": "شبكة المنتجات",
+  forms: "استبيانات",
 };
 
 export const PRESET_CATEGORY_ORDER: SectionPresetCategory[] = [
   "general",
   "hero",
   "products-grid",
+  "forms",
 ];
 
 export const ZONE_PRESET_CATEGORY_LABELS: Record<ZonePresetCategory, string> = {
@@ -47,6 +50,7 @@ export const SECTION_PRESETS: SectionPreset[] = [
   ...GENERAL_PRESETS,
   ...HERO_PRESETS,
   ...PRODUCTS_GRID_PRESETS,
+  ...FORMS_PRESETS,
 ];
 
 export const ZONE_PRESETS: ZonePreset[] = [
@@ -70,6 +74,7 @@ export function getZonePresetsByCategory(
 }
 
 export {
+  FORMS_PRESETS,
   GENERAL_PRESETS,
   HERO_PRESETS,
   HEADER_PRESETS,

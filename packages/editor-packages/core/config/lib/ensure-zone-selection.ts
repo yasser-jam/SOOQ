@@ -5,8 +5,8 @@ import { insertComponent } from "@/core/lib/insert-component";
 import type { useAppStoreApi } from "@/core/store";
 import type { PrivateAppState } from "@/core/types/Internal";
 import type { ZonePreset } from "../presets/types";
-import { applyZonePreset } from "./apply-zone-preset";
-import { DEFAULT_ZONE_POPUP_PRESET } from "../presets/popup";
+import { applyZonePreset, applyZonePresets } from "./apply-zone-preset";
+import { DEFAULT_ZONE_POPUP_PRESETS } from "../presets/popup";
 
 type AppStoreApi = ReturnType<typeof useAppStoreApi>;
 
@@ -62,7 +62,7 @@ export async function ensureZoneBlockSelector(
 
   if (!block) {
     if (blockType === "ZonePopup") {
-      return applyZonePreset(rootZone, DEFAULT_ZONE_POPUP_PRESET, appStoreApi);
+      return applyZonePresets(rootZone, DEFAULT_ZONE_POPUP_PRESETS, appStoreApi);
     }
 
     await insertComponent(blockType, rootZone, 0, appStoreApi);
