@@ -1,5 +1,10 @@
 import type { ZonePreset } from "./types";
-import { createHeading, createParagraph } from "./shared";
+import {
+  createHeading,
+  createInput,
+  createParagraph,
+  createPrimaryButton,
+} from "./shared";
 
 const popupLogin: ZonePreset = {
   id: "popup-login",
@@ -21,18 +26,24 @@ const popupLogin: ZonePreset = {
       slot: [
         createHeading("تسجيل الدخول", { textAlign: "center" }),
         createParagraph(
-          "أدخل بريدك الإلكتروني أو رقم هاتفك للمتابعة.",
+          "أدخل بريدك الإلكتروني وكلمة المرور للمتابعة.",
           { textAlign: "center" }
         ),
-        {
-          type: "LoginButton",
-          props: {
-            userNameCookie: "sooq-user-name",
-            guestLabel: "تسجيل الدخول",
-            showIcon: true,
-            textColor: "inherit",
-          },
-        },
+        createInput("البريد الإلكتروني", "email", {
+          inputType: "email",
+          placeholder: "example@email.com",
+          required: true,
+        }),
+        createInput("كلمة المرور", "password", {
+          inputType: "password",
+          placeholder: "••••••••",
+          required: true,
+        }),
+        createPrimaryButton("تسجيل الدخول", {
+          align: "center",
+          destinationType: "action",
+          buttonAction: "login",
+        }),
       ],
     },
   },
@@ -64,3 +75,5 @@ const popupBasic: ZonePreset = {
 };
 
 export const ZONE_POPUP_PRESETS: ZonePreset[] = [popupLogin, popupBasic];
+
+export const DEFAULT_ZONE_POPUP_PRESET = popupLogin;

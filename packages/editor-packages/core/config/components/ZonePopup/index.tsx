@@ -8,7 +8,7 @@ import {
   useZoneOverlay,
   useZonePortalTarget,
 } from "../ZoneOverlay/useZoneOverlay";
-import { useZonePreviewSelected } from "../../lib/use-zone-preview-selected";
+import { useZoneEditorPreview } from "../../lib/use-zone-editor-preview";
 import selectionStyles from "../../lib/zone-selection.module.css";
 
 import styles from "./styles.module.css";
@@ -40,7 +40,7 @@ export const ZonePopup = ({
   componentId,
   children,
 }: ZonePopupProps) => {
-  const previewSelected = useZonePreviewSelected(componentId);
+  const previewSelected = useZoneEditorPreview("ZonePopup");
   const { isOpen, close, shouldRender } = useZoneOverlay({
     zoneKey,
     isActive,
@@ -55,7 +55,7 @@ export const ZonePopup = ({
 
   const panel = (
     <div
-      className={`${styles.root} ${deviceClass}`.trim()}
+      className={`${styles.root} ${editMode ? styles.rootEditor : ""} ${deviceClass}`.trim()}
       data-zone-key={zoneKey}
     >
       {overlay && (!editMode || previewSelected) && (

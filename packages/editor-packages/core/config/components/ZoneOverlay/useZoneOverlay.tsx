@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   SOOQ_ZONE_EVENT,
@@ -93,11 +93,11 @@ export const useZonePortalTarget = () => {
   const anchorRef = useRef<HTMLDivElement | null>(null);
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof document === "undefined") return;
     const doc = anchorRef.current?.ownerDocument ?? document;
     if (doc.body) setPortalTarget(doc.body);
-  }, []);
+  });
 
   const Portal = ({ children }: { children: React.ReactNode }) => (
     <div ref={anchorRef} aria-hidden style={{ display: "contents" }}>

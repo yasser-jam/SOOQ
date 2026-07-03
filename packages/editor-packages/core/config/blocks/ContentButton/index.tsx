@@ -28,7 +28,11 @@ import {
 } from "../../binding";
 import { addOrUpdateLine, readStoreCart } from "../../cart/store-cart";
 import { dispatchMakeOrderEvent } from "../../cart/make-order";
-import { dispatchZoneEvent } from "../../lib/zone-events";
+import { closeZone, dispatchZoneEvent } from "../../lib/zone-events";
+import {
+  collectSooqInputValues,
+  dispatchLoginEvent,
+} from "../../lib/login-events";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
 export type ContentButtonProps = WithLayout<{
@@ -358,6 +362,19 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
     const onFunctionalClick = (e: MouseEvent) => {
       e.preventDefault();
       if (puck.isEditing) return;
+
+      if (action === "login") {
+        const button = e.currentTarget as HTMLElement;
+        const panel = button.closest("[data-sooq-zone-panel]");
+        const scope = panel ?? button.closest("form") ?? document;
+        const values = collectSooqInputValues(scope);
+        dispatchLoginEvent(values);
+        if (panel) {
+          const panelZoneKey = panel.getAttribute("data-sooq-zone-panel");
+          if (panelZoneKey) closeZone(panelZoneKey);
+        }
+        return;
+      }
 
       if (action === "addToCart" && boundData) {
         const detail = buildProductActionDetail(

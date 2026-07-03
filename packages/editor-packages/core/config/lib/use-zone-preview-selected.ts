@@ -1,19 +1,11 @@
 "use client";
 
 import { useAppStore } from "@/core/store";
-import { getItem } from "@/core/lib/data/get-item";
+import { isZonePreviewActive } from "./zone-selection";
 
-/** True when this zone block is the current canvas selection (zones plugin preview). */
+/** True when this zone block (or any nested block inside it) is selected. */
 export function useZonePreviewSelected(componentId?: string) {
-  return useAppStore((s) => {
-    if (!componentId) return false;
-
-    const selector = s.state.ui.itemSelector;
-    if (!selector) return false;
-
-    const item = getItem(selector, s.state);
-    if (!item?.props?.id) return false;
-
-    return item.props.id === componentId;
-  });
+  return useAppStore((s) =>
+    isZonePreviewActive(s.state, s.state.ui.itemSelector, componentId)
+  );
 }

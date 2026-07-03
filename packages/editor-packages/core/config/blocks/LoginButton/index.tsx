@@ -3,20 +3,25 @@
 import React, { CSSProperties, useEffect, useState } from "react";
 import { User } from "lucide-react";
 import type { ComponentConfig } from "@/core/types";
+import { dispatchZoneEvent } from "../../lib/zone-events";
 
-export const LOGIN_EVENT = "login" as const;
+export { LOGIN_EVENT } from "../../lib/login-events";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type LoginButtonProps = {
+  /** Cookie name that indicates an authenticated session (e.g. tenant id) */
+  tenantIdCookie: string;
   /** Cookie name that holds the logged-in user's display name */
   userNameCookie: string;
-  /** Label shown when no user cookie is found */
+  /** Label shown when no session cookie is found */
   guestLabel: string;
   /** Show/hide the user icon */
   showIcon: boolean;
   /** CSS colour — defaults to inherit from parent */
   textColor: string;
+  /** Zone key opened when the guest clicks (e.g. login popup) */
+  zoneKey: string;
 };
 
 // ─── Cookie helper ────────────────────────────────────────────────────────────
@@ -29,14 +34,46 @@ function readCookieValue(name: string): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-function useUserName(cookieName: string): string | null {
-  const [name, setName] = useState<string | null>(null);
+type LoginButtonState = {
+  isLoggedIn: boolean;
+  label: string;
+};
+
+function useLoginButtonState(
+  tenantIdCookie: string,
+  userNameCookie: string,
+  guestLabel: string
+): LoginButtonState {
+  const [state, setState] = useState<LoginButtonState>({
+    isLoggedIn: false,
+    label: guestLabel,
+  });
 
   useEffect(() => {
-    setName(readCookieValue(cookieName) ?? null);
-  }, [cookieName]);
+    const refresh = () => {
+      const tenantId = readCookieValue(tenantIdCookie);
+      const isLoggedIn = Boolean(tenantId);
+      const userName = isLoggedIn ? readCookieValue(userNameCookie) : null;
 
-  return name;
+      setState({
+        isLoggedIn,
+        label: isLoggedIn ? userName ?? guestLabel : guestLabel,
+      });
+    };
+
+    if (typeof window === "undefined") return;
+
+    refresh();
+    window.addEventListener("login", refresh);
+    window.addEventListener("focus", refresh);
+
+    return () => {
+      window.removeEventListener("login", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [tenantIdCookie, userNameCookie, guestLabel]);
+
+  return state;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -45,9 +82,13 @@ export const LoginButton: ComponentConfig<LoginButtonProps> = {
   label: "زر تسجيل الدخول",
 
   fields: {
+    tenantIdCookie: {
+      type: "text",
+      label: "كوكي معرف المتجر",
+    },
     userNameCookie: {
       type: "text",
-      label: "اسم الكوكي",
+      label: "كوكي اسم المستخدم",
     },
     guestLabel: {
       type: "text",
@@ -65,18 +106,35 @@ export const LoginButton: ComponentConfig<LoginButtonProps> = {
       type: "text",
       label: "لون النص",
     },
+    zoneKey: {
+      type: "text",
+      label: "مفتاح النافذة",
+    },
   },
 
   defaultProps: {
+    tenantIdCookie: "sooq-tenant-id",
     userNameCookie: "sooq-user-name",
     guestLabel: "تسجيل الدخول",
     showIcon: true,
     textColor: "inherit",
+    zoneKey: "login",
   },
 
-  render: ({ userNameCookie, guestLabel, showIcon, textColor, puck }) => {
-    const userName = useUserName(userNameCookie);
-    const label = userName ?? guestLabel;
+  render: ({
+    tenantIdCookie,
+    userNameCookie,
+    guestLabel,
+    showIcon,
+    textColor,
+    zoneKey,
+    puck,
+  }) => {
+    const { isLoggedIn, label } = useLoginButtonState(
+      tenantIdCookie,
+      userNameCookie,
+      guestLabel
+    );
 
     const btnStyle: CSSProperties = {
       display: "inline-flex",
@@ -86,7 +144,7 @@ export const LoginButton: ComponentConfig<LoginButtonProps> = {
       background: "transparent",
       border: "none",
       borderRadius: "999px",
-      cursor: puck.isEditing ? "default" : "pointer",
+      cursor: puck.isEditing || isLoggedIn ? "default" : "pointer",
       color: textColor || "inherit",
       fontSize: "0.88rem",
       fontWeight: 600,
@@ -103,7 +161,7 @@ export const LoginButton: ComponentConfig<LoginButtonProps> = {
       </>
     );
 
-    if (puck.isEditing) {
+    if (puck.isEditing || isLoggedIn) {
       return <span style={btnStyle}>{inner}</span>;
     }
 
@@ -111,7 +169,7 @@ export const LoginButton: ComponentConfig<LoginButtonProps> = {
       <button
         type="button"
         style={btnStyle}
-        onClick={() => window.dispatchEvent(new CustomEvent(LOGIN_EVENT))}
+        onClick={() => dispatchZoneEvent(zoneKey || "login", "open")}
       >
         {inner}
       </button>

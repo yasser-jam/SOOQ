@@ -1,0 +1,40 @@
+.ContentInput {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--theme-body-font, inherit);
+}
+
+.ContentInput-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--theme-color-text, #111827);
+}
+
+.ContentInput-required {
+  color: #ef4444;
+  margin-inline-start: 2px;
+}
+
+.ContentInput-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--theme-color-border, #d1d5db);
+  border-radius: var(--theme-radius-md, 8px);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--theme-color-text, #111827);
+  background: var(--theme-color-surface, #ffffff);
+  box-sizing: border-box;
+}
+
+.ContentInput-input:focus {
+  outline: 2px solid var(--theme-color-primary, #3b82f6);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.ContentInput-input::placeholder {
+  color: var(--theme-color-text-muted, #9ca3af);
+}

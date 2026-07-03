@@ -14,6 +14,8 @@ import {
   getZoneDefinitionByRootZone,
   type ZoneDefinition,
 } from "../../../lib/zone-registry";
+import { resolveZoneDefinitionFromState } from "../../../lib/zone-selection";
+import { DEFAULT_ZONE_POPUP_PRESET } from "../../../presets/popup";
 import { DEFAULT_ZONE_FOOTER_PRESET } from "../../../presets/footer";
 import { DEFAULT_ZONE_HEADER_PRESET } from "../../../presets/header";
 import { getZonePresetsByCategory } from "../../../presets/index";
@@ -35,16 +37,11 @@ const getClassName = getClassNameFactory("ZonesPanel", styles);
 const EMPTY_ZONE_ITEMS: never[] = [];
 
 const resolveZoneDefinition = (
-  item: { type: string } | null,
-  itemSelector: { zone?: string } | null
+  item: { type: string; props?: { id?: string } } | null,
+  itemSelector: { zone?: string; index?: number } | null,
+  state: Parameters<typeof resolveZoneDefinitionFromState>[0]
 ): ZoneDefinition | undefined => {
-  if (!item || !itemSelector) return undefined;
-
-  if (item.type === "Section" && itemSelector.zone) {
-    return getZoneDefinitionByRootZone(itemSelector.zone);
-  }
-
-  return ZONE_DEFINITIONS.find((zone) => zone.blockType === item.type);
+  return resolveZoneDefinitionFromState(state, itemSelector, item ?? undefined);
 };
 
 const isZoneActive = (
@@ -94,10 +91,19 @@ export function ZonesPanel() {
   const zones = useAppStore((s) => s.state.data.zones);
   const itemSelector = useAppStore(useShallow((s) => s.state.ui.itemSelector));
   const selectedItem = useAppStore((s) => s.selectedItem);
+  const appState = useAppStore((s) => s.state);
 
   const selectedZoneDefinition = useMemo(() => {
-    return resolveZoneDefinition(selectedItem ?? null, itemSelector) ?? null;
-  }, [itemSelector, selectedItem]);
+    if (appState.ui.zonePreviewRoot) {
+      const fromPreview = getZoneDefinitionByRootZone(appState.ui.zonePreviewRoot);
+      if (fromPreview) return fromPreview;
+    }
+
+    return (
+      resolveZoneDefinition(selectedItem ?? null, itemSelector, appState) ??
+      null
+    );
+  }, [appState, itemSelector, selectedItem]);
 
   const selectedZoneId = selectedZoneDefinition?.id ?? null;
 
@@ -132,6 +138,7 @@ export function ZonesPanel() {
       type: "setUi",
       ui: {
         itemSelector: null,
+        zonePreviewRoot: null,
         plugin: { current: "zones" },
         leftSideBarVisible: true,
         rightSideBarVisible: false,
@@ -148,7 +155,7 @@ export function ZonesPanel() {
         return;
       }
 
-      const selector = definition.isPresetZone
+      let selector = definition.isPresetZone
         ? await ensureZoneSectionSelector(
             definition.rootZone,
             definition.presetCategory === "zone-footer"
@@ -162,12 +169,29 @@ export function ZonesPanel() {
             appStoreApi
           );
 
+      if (
+        definition.blockType === "ZonePopup" &&
+        appStoreApi.getState().state.data.zones?.[definition.rootZone]?.some(
+          (item) =>
+            item.type === "ZonePopup" &&
+            Array.isArray(item.props?.slot) &&
+            item.props.slot.length === 0
+        )
+      ) {
+        selector = applyZonePreset(
+          definition.rootZone,
+          DEFAULT_ZONE_POPUP_PRESET,
+          appStoreApi
+        );
+      }
+
       if (!selector) return;
 
       dispatch({
         type: "setUi",
         ui: {
           itemSelector: selector,
+          zonePreviewRoot: definition.rootZone,
           plugin: { current: "zones" },
           leftSideBarVisible: true,
           rightSideBarVisible: true,
@@ -277,7 +301,7 @@ export function ZonesPanel() {
         })}
       </div>
 
-      {selectedZoneDefinition?.isPresetZone && zonePresets.length > 0 ? (
+      {selectedZoneDefinition?.presetCategory && zonePresets.length > 0 ? (
         <section className={getClassName("presets")}>
           <div className={getClassName("presetsHeader")}>
             <h3 className={getClassName("presetsTitle")}>قوالب {selectedZoneDefinition.title}</h3>

@@ -8,7 +8,7 @@ import {
   useZoneOverlay,
   useZonePortalTarget,
 } from "../ZoneOverlay/useZoneOverlay";
-import { useZonePreviewSelected } from "../../lib/use-zone-preview-selected";
+import { useZoneEditorPreview } from "../../lib/use-zone-editor-preview";
 import selectionStyles from "../../lib/zone-selection.module.css";
 
 import styles from "./styles.module.css";
@@ -40,7 +40,7 @@ export const ZoneDrawer = ({
   componentId,
   children,
 }: ZoneDrawerProps) => {
-  const previewSelected = useZonePreviewSelected(componentId);
+  const previewSelected = useZoneEditorPreview("ZoneDrawer");
   const { isOpen, close, shouldRender } = useZoneOverlay({
     zoneKey,
     isActive,

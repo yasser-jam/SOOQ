@@ -149,7 +149,7 @@ export const Preview = ({ id = "puck-preview" }: { id?: string }) => {
           !el.hasAttribute("data-puck-component") &&
           !el.hasAttribute("data-puck-dropzone")
         ) {
-          dispatch({ type: "setUi", ui: { itemSelector: null } });
+          dispatch({ type: "setUi", ui: { itemSelector: null, zonePreviewRoot: null } });
         }
       }}
     >

@@ -9,6 +9,11 @@
   pointer-events: none;
 }
 
+.rootEditor {
+  z-index: 1000;
+  pointer-events: auto;
+}
+
 .dialog {
   position: relative;
   z-index: 61;

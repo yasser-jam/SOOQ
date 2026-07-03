@@ -17,6 +17,8 @@ export type UiState = {
   rightSideBarWidth?: number | null;
   mobilePanelExpanded?: boolean;
   itemSelector: ItemSelector | null;
+  /** Root zone key (e.g. root:zone-popup) kept open for editor overlay preview. */
+  zonePreviewRoot?: string | null;
   arrayState: Record<string, ArrayState | undefined>;
   previewMode: "interactive" | "edit";
   componentList: Record<

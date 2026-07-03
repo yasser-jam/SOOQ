@@ -53,6 +53,24 @@ export function createParagraph(
   };
 }
 
+export function createInput(
+  label: string,
+  name: string,
+  overrides: Record<string, unknown> = {}
+) {
+  return {
+    type: "ContentInput" as const,
+    props: {
+      label,
+      name,
+      inputType: "text",
+      placeholder: "",
+      required: false,
+      ...overrides,
+    },
+  };
+}
+
 export function createPrimaryButton(
   label: string,
   overrides: Record<string, unknown> = {}

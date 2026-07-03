@@ -29,10 +29,12 @@ export const CART_ICON_BUTTON = {
 export const LOGIN_BUTTON = {
   type: "LoginButton" as const,
   props: {
+    tenantIdCookie: "sooq-tenant-id",
     userNameCookie: "sooq-user-name",
     guestLabel: "تسجيل الدخول",
     showIcon: true,
     textColor: "inherit",
+    zoneKey: "login",
   },
 };
 

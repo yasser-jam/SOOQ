@@ -70,6 +70,7 @@ export const ZONE_DEFINITIONS: ZoneDefinition[] = [
     description: "لوحة منزلقة من الجانب — للقوائم على الجوال",
     icon: PanelLeft,
     isOverlay: true,
+    presetCategory: "zone-drawer",
   },
   {
     id: "popup",
@@ -80,6 +81,7 @@ export const ZONE_DEFINITIONS: ZoneDefinition[] = [
     description: "مربع حوار في منتصف الشاشة — تسجيل دخول، عروض",
     icon: Square,
     isOverlay: true,
+    presetCategory: "zone-popup",
   },
   {
     id: "bottom-sheet",
@@ -90,6 +92,7 @@ export const ZONE_DEFINITIONS: ZoneDefinition[] = [
     description: "لوحة ترتفع من الأسفل — مناسبة للجوال",
     icon: RectangleHorizontal,
     isOverlay: true,
+    presetCategory: "zone-bottom-sheet",
   },
 ];
 

@@ -7,6 +7,7 @@ import type { FullThemeProps } from "@/core/config/theme"
 
 import { PreviewThemeProvider } from "./preview-theme-provider"
 import { StoreNotFound } from "./store-not-found"
+import { LoginHandler } from "./LoginHandler"
 import { MakeOrderHandler } from "./checkout/MakeOrderHandler"
 import { STORE_FIXED_THEME_ID } from "../lib/store-config"
 import { useStorePathname } from "../lib/use-store-pathname"
@@ -53,6 +54,7 @@ export function StorefrontRenderer() {
 			{/* Listens for "make-order" events from CartSection / ContentButton
 			    and opens the checkout drawer to collect delivery info + submit order */}
 			<MakeOrderHandler />
+			<LoginHandler />
 		</>
 	)
 }
