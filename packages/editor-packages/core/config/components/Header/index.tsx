@@ -10,6 +10,14 @@ import {
   resolveLinkTarget,
   type LinkValue,
 } from "../../fields/LinkField";
+import responsiveStyles from "../../lib/zone-responsive.module.css";
+import {
+  ZONE_ACTION_ATTR,
+  ZONE_TOGGLE_ATTR,
+} from "../../lib/zone-events";
+
+import { useZonePreviewSelected } from "../../lib/use-zone-preview-selected";
+import selectionStyles from "../../lib/zone-selection.module.css";
 
 import styles from "./styles.module.css";
 
@@ -132,6 +140,8 @@ export type HeaderProps = {
   language?: "ar" | "en";
   /** When false, the entire header band is hidden. */
   visible?: boolean;
+  /** When true, header is shown only on mobile viewports. */
+  isMobileOnly?: boolean;
   /** Optional brand href; defaults to "/". */
   brandHref?: string;
   /** CSS colour string (any valid CSS colour). Empty falls back to the theme. */
@@ -151,6 +161,8 @@ export type HeaderProps = {
   drawerName?: string;
   /** Optional action items (CartIconButton, LoginButton …) rendered at the end of the header */
   rightSlot?: React.ReactNode;
+  /** Puck block id — used for zone-plugin selection highlight */
+  componentId?: string;
 };
 
 const pickLabel = (link: HeaderLink, language: "ar" | "en"): string => {
@@ -166,6 +178,7 @@ const Header = ({
   links,
   language = "ar",
   visible = true,
+  isMobileOnly = false,
   brandHref = "/",
   backgroundColor,
   textColor,
@@ -176,9 +189,12 @@ const Header = ({
   drawerButtonIcon = "menu",
   drawerName = "site-drawer",
   rightSlot,
+  componentId,
 }: HeaderProps) => {
-  if (!visible) return null;
+  const previewSelected = useZonePreviewSelected(componentId);
+  if (!visible && !previewSelected) return null;
 
+  const deviceClass = isMobileOnly ? responsiveStyles.hideOnDesktop : "";
   const resolvedLinks =
     Array.isArray(links) && links.length > 0 ? links : DEFAULT_HEADER_LINKS;
 
@@ -196,6 +212,10 @@ const Header = ({
       <button
         type="button"
         className={styles.drawerToggle}
+        {...{
+          [ZONE_TOGGLE_ATTR]: drawerName,
+          [ZONE_ACTION_ATTR]: "toggle",
+        }}
         data-sooq-drawer-toggle={drawerName}
         data-sooq-drawer-action="toggle"
         aria-label="Open menu"
@@ -240,15 +260,20 @@ const Header = ({
     <div className={styles.rightActions}>{rightSlot}</div>
   ) : null;
 
+  const chromeClass = previewSelected ? selectionStyles.selected : "";
+
   if (variant === "default") {
     return (
       <div
         className={classnames(
           styles.root,
           isTransparent && styles.rootTransparent,
-          layoutMode === "centered" && styles.rootFixed
+          layoutMode === "centered" && styles.rootFixed,
+          deviceClass,
+          chromeClass
         )}
         style={rootStyle}
+        data-zone-mobile-only={isMobileOnly || undefined}
       >
         <header
           className={classnames(
@@ -285,7 +310,11 @@ const Header = ({
   }
 
   return (
-    <div className={styles.rootCommerce} style={rootStyle}>
+    <div
+      className={classnames(styles.rootCommerce, deviceClass, chromeClass)}
+      style={rootStyle}
+      data-zone-mobile-only={isMobileOnly || undefined}
+    >
       <header className={styles.innerCommerce}>
         {drawerButton}
         {editMode ? (

@@ -27,6 +27,9 @@ const SHELL_COMPONENT_TYPES = new Set([
   "SiteHeader",
   "SiteFooter",
   "SiteDrawerShell",
+  "ZoneDrawer",
+  "ZonePopup",
+  "ZoneBottomSheet",
 ]);
 
 const isBrowser =

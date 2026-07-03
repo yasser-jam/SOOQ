@@ -16,6 +16,7 @@ export type SiteHeaderProps = {
   variant: ShellVariant;
   language: "ar" | "en";
   visible: boolean;
+  is_mobile_only: boolean;
   brandHref: string;
   links: HeaderLink[];
   backgroundColor: string;
@@ -35,6 +36,10 @@ export type SiteHeaderProps = {
 
 export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
   label: "رأس الموقع",
+  permissions: {
+    insert: false,
+    duplicate: false,
+  },
   fields: {
     title: {
       type: "text",
@@ -59,6 +64,14 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
     visible: {
       type: "radio",
       label: "مرئي",
+      options: [
+        { label: "Yes", value: true },
+        { label: "No", value: false },
+      ],
+    },
+    is_mobile_only: {
+      type: "radio",
+      label: "الجوال فقط",
       options: [
         { label: "Yes", value: true },
         { label: "No", value: false },
@@ -151,6 +164,7 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
     variant: "commerce",
     language: "ar",
     visible: true,
+    is_mobile_only: false,
     brandHref: "/",
     links: DEFAULT_HEADER_LINKS,
     backgroundColor: "",
@@ -168,6 +182,7 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
     variant,
     language,
     visible,
+    is_mobile_only,
     brandHref,
     links,
     backgroundColor,
@@ -179,16 +194,19 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
     drawerButtonIcon,
     drawerName,
     rightSlot: RightSlot,
+    id,
     puck,
   }) => {
     return (
       <Header
         editMode={!!puck.isEditing}
+        componentId={typeof id === "string" ? id : undefined}
         variant={variant}
         siteTitle={title}
         links={links}
         language={language}
         visible={visible}
+        isMobileOnly={is_mobile_only}
         brandHref={brandHref}
         backgroundColor={backgroundColor || undefined}
         textColor={textColor || undefined}

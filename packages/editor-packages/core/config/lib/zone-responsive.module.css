@@ -1,0 +1,18 @@
+/* Shared responsive visibility for zone blocks. */
+.hideOnDesktop {
+}
+
+.hideOnMobile {
+}
+
+@media (max-width: 640px) {
+  .hideOnMobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .hideOnDesktop {
+    display: none !important;
+  }
+}

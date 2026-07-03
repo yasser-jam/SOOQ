@@ -65,12 +65,17 @@ const pluginTitleMap: Record<string, string> = {
 // };
 
 const FieldSideBar = () => {
-  const title = useAppStore((s) =>
-    s.selectedItem
-      ? s.config.components[s.selectedItem.type]?.["label"] ??
-        s.selectedItem.type.toString()
-      : s.config.root?.label || "Page"
-  );
+  const selectedItem = useAppStore((s) => s.selectedItem);
+  const title = useAppStore((s) => {
+    const item = s.selectedItem;
+    if (!item) return "";
+
+    return s.config.components[item.type]?.["label"] ?? item.type.toString();
+  });
+
+  if (!selectedItem) {
+    return null;
+  }
 
   return (
     <SidebarSection noBorderTop showBreadcrumbs title={title}>
@@ -210,6 +215,7 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
 
   const setUi = useAppStore((s) => s.setUi);
   const currentPlugin = useAppStore((s) => s.state.ui.plugin?.current);
+  const selectedItem = useAppStore((s) => s.selectedItem);
   const appStoreApi = useAppStoreApi();
 
   const [mobilePanelHeightMode, setMobilePanelHeightMode] = useState<
@@ -359,7 +365,9 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
                   leftSideBarVisible,
                   mounted,
                   rightSideBarVisible:
-                    !hasDesktopFieldsPlugin && rightSideBarVisible,
+                    !hasDesktopFieldsPlugin &&
+                    rightSideBarVisible &&
+                    !!selectedItem,
                   isExpanded: mobilePanelExpanded,
                   mobilePanelHeightToggle: mobilePanelHeightMode === "toggle",
                   mobilePanelHeightMinContent:
@@ -423,7 +431,7 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
                     <Sidebar
                       position="right"
                       sidebarRef={rightSidebarRef}
-                      isVisible={rightSideBarVisible}
+                      isVisible={rightSideBarVisible && !!selectedItem}
                       onResize={setRightWidth}
                       onResizeEnd={handleRightSidebarResizeEnd}
                     >

@@ -1,7 +1,10 @@
 import { RegisterZoneAction, UnregisterZoneAction } from "..";
 import { setupZone } from "../../lib/data/setup-zone";
+import { walkAppState } from "../../lib/data/walk-app-state";
+import { getSelectorForId } from "../../lib/get-selector-for-id";
 import { Content, Data } from "../../types";
 import { PrivateAppState } from "../../types/Internal";
+import { AppStore } from "../../store";
 
 // Restore unregistered zones when re-registering in same session
 export const zoneCache: Record<string, Content> = {};
@@ -12,10 +15,11 @@ export const addToZoneCache = (key: string, data: Content) => {
 
 export function registerZoneAction<UserData extends Data>(
   state: PrivateAppState<UserData>,
-  action: RegisterZoneAction
+  action: RegisterZoneAction,
+  appStore?: AppStore
 ): PrivateAppState<UserData> {
   if (zoneCache[action.zone]) {
-    return {
+    const nextState = {
       ...state,
       data: {
         ...state.data,
@@ -24,6 +28,14 @@ export function registerZoneAction<UserData extends Data>(
           [action.zone]: zoneCache[action.zone],
         },
       },
+    };
+
+    if (appStore) {
+      return walkAppState(nextState, appStore.config);
+    }
+
+    return {
+      ...nextState,
       indexes: {
         ...state.indexes,
         zones: {
@@ -38,7 +50,23 @@ export function registerZoneAction<UserData extends Data>(
     };
   }
 
-  return { ...state, data: setupZone(state.data, action.zone) };
+  const data = setupZone(state.data, action.zone);
+  const nextState = { ...state, data };
+  const zoneContent = data.zones?.[action.zone] ?? [];
+
+  const isOutOfSync =
+    zoneContent.length > 0 &&
+    appStore &&
+    zoneContent.some((item) => {
+      const id = item.props?.id;
+      return typeof id === "string" && !getSelectorForId(state, id);
+    });
+
+  if (isOutOfSync && appStore) {
+    return walkAppState(nextState, appStore.config);
+  }
+
+  return nextState;
 }
 
 export function unregisterZoneAction<UserData extends Data>(

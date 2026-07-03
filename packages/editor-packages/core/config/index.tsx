@@ -45,6 +45,9 @@ import { SideDrawer } from "./blocks/SideDrawer";
 import { SiteHeader } from "./blocks/SiteHeader";
 import { SiteDrawerShell } from "./blocks/SiteDrawerShell";
 import { SiteFooter } from "./blocks/SiteFooter";
+import { ZoneDrawer } from "./blocks/ZoneDrawer";
+import { ZonePopup } from "./blocks/ZonePopup";
+import { ZoneBottomSheet } from "./blocks/ZoneBottomSheet";
 
 import Root from "./root";
 import { UserConfig } from "./types";
@@ -69,7 +72,6 @@ export const conf: UserConfig = {
         "Section",
         "Group",
         "RowGroup",
-        "Sidebar",
       ],
     },
     blocks: {
@@ -107,17 +109,12 @@ export const conf: UserConfig = {
         "ContactForm",
       ],
     },
-    shell: {
-      title: "هيكل",
-      defaultExpanded: true,
-      components: ["SiteHeader", "SiteDrawerShell", "SiteFooter"],
-    },
     legacy: {
       title: "إصدار سابق (مخفي)",
       visible: false,
       components: [
-        // Legacy drawer kept for backward compatibility. New stores should use
-        // the Shell category's "Side Drawer" component.
+        // Legacy drawer shell — use ZoneDrawer for new stores.
+        "SiteDrawerShell",
         "SideDrawer",
         "Heading",
         "Text",
@@ -140,10 +137,13 @@ export const conf: UserConfig = {
     },
   },
   components: {
-    // Shell components
+    // Zone / shell components
     SiteHeader,
-    SiteDrawerShell,
     SiteFooter,
+    ZoneDrawer,
+    ZonePopup,
+    ZoneBottomSheet,
+    SiteDrawerShell,
     // Sections
     Section,
     // Group / Layout

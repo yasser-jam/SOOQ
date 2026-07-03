@@ -1,0 +1,31 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.dialog {
+  position: relative;
+  z-index: 61;
+  width: 100%;
+  max-height: min(90vh, 720px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.dialogOpen {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}

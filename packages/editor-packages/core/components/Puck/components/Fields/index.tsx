@@ -181,6 +181,7 @@ const FieldsChildMemo = memo(FieldsChild);
 
 const FieldsInternal = ({ wrapFields = true }: { wrapFields?: boolean }) => {
   const overrides = useAppStore((s) => s.overrides);
+  const selectedItem = useAppStore((s) => s.selectedItem);
   const componentResolving = useAppStore((s) => {
     const loadingCount = s.selectedItem
       ? s.componentState[s.selectedItem.props.id]?.loadingCount
@@ -207,6 +208,10 @@ const FieldsInternal = ({ wrapFields = true }: { wrapFields?: boolean }) => {
   const isLoading = fieldsLoading || componentResolving;
 
   const Wrapper = useMemo(() => overrides.fields || DefaultFields, [overrides]);
+
+  if (!selectedItem) {
+    return null;
+  }
 
   return (
     <form

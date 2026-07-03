@@ -1,4 +1,4 @@
-import type { SectionPreset } from "./types";
+import type { ZonePreset } from "./types";
 import { PRESET_HEADER_LINKS } from "./shell-defaults";
 import { createShellBlock } from "./shared";
 
@@ -26,9 +26,9 @@ const LOGIN_BUTTON = {
 
 // ─── Presets ──────────────────────────────────────────────────────────────────
 
-const headerTransparentCentered: SectionPreset = {
+const headerTransparentCentered: ZonePreset = {
   id: "header-transparent-centered",
-  category: "header",
+  category: "zone-header",
   title: "رأس شفاف — قائمة وسط",
   previewImage:
     "https://placehold.co/800x240/f8fafc/64748b?text=Transparent+Header",
@@ -37,6 +37,7 @@ const headerTransparentCentered: SectionPreset = {
     variant: "default",
     language: "ar",
     visible: true,
+    is_mobile_only: false,
     brandHref: "/",
     links: [...PRESET_HEADER_LINKS],
     backgroundColor: "transparent",
@@ -51,9 +52,9 @@ const headerTransparentCentered: SectionPreset = {
   }),
 };
 
-const headerSolidSplit: SectionPreset = {
+const headerSolidSplit: ZonePreset = {
   id: "header-solid-split",
-  category: "header",
+  category: "zone-header",
   title: "رأس ملون — شعار وقائمة",
   previewImage:
     "https://placehold.co/800x240/ffffff/64748b?text=Solid+Header",
@@ -62,6 +63,7 @@ const headerSolidSplit: SectionPreset = {
     variant: "default",
     language: "ar",
     visible: true,
+    is_mobile_only: false,
     brandHref: "/",
     links: [...PRESET_HEADER_LINKS],
     backgroundColor: "#ffffff",
@@ -77,9 +79,9 @@ const headerSolidSplit: SectionPreset = {
 };
 
 /** Commerce dark header with cart badge + login button in the right slot */
-const headerCommerceWithActions: SectionPreset = {
+const headerCommerceWithActions: ZonePreset = {
   id: "header-commerce-actions",
-  category: "header",
+  category: "zone-header",
   title: "رأس تجاري — سلة + دخول",
   previewImage:
     "https://placehold.co/800x240/10213a/ffffff?text=Commerce+Header",
@@ -88,6 +90,7 @@ const headerCommerceWithActions: SectionPreset = {
     variant: "commerce",
     language: "ar",
     visible: true,
+    is_mobile_only: false,
     brandHref: "/",
     links: [...PRESET_HEADER_LINKS],
     backgroundColor: "",
@@ -103,9 +106,9 @@ const headerCommerceWithActions: SectionPreset = {
 };
 
 /** Light split header with cart badge + login button */
-const headerLightWithActions: SectionPreset = {
+const headerLightWithActions: ZonePreset = {
   id: "header-light-actions",
-  category: "header",
+  category: "zone-header",
   title: "رأس فاتح — سلة + دخول",
   previewImage:
     "https://placehold.co/800x240/ffffff/0f172a?text=Light+Header",
@@ -114,6 +117,7 @@ const headerLightWithActions: SectionPreset = {
     variant: "default",
     language: "ar",
     visible: true,
+    is_mobile_only: false,
     brandHref: "/",
     links: [...PRESET_HEADER_LINKS],
     backgroundColor: "#ffffff",
@@ -128,9 +132,12 @@ const headerLightWithActions: SectionPreset = {
   }),
 };
 
-export const HEADER_PRESETS: SectionPreset[] = [
+export const ZONE_HEADER_PRESETS: ZonePreset[] = [
   headerTransparentCentered,
   headerSolidSplit,
   headerCommerceWithActions,
   headerLightWithActions,
 ];
+
+/** @deprecated Use ZONE_HEADER_PRESETS */
+export const HEADER_PRESETS = ZONE_HEADER_PRESETS;

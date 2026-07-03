@@ -413,6 +413,7 @@ export const DraggableComponent = ({
           type: "setUi",
           ui: {
             itemSelector: null,
+            rightSideBarVisible: false,
           },
         });
       } else {
@@ -420,6 +421,7 @@ export const DraggableComponent = ({
           type: "setUi",
           ui: {
             itemSelector: { index, zone: zoneCompound },
+            rightSideBarVisible: true,
           },
         });
       }

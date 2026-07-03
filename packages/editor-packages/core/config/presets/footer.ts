@@ -1,13 +1,13 @@
-import type { SectionPreset } from "./types";
+import type { ZonePreset } from "./types";
 import {
   PRESET_FOOTER_BOTTOM_LINKS,
   PRESET_FOOTER_COLUMNS,
 } from "./shell-defaults";
 import { createShellBlock } from "./shared";
 
-const footerCommerceFull: SectionPreset = {
+const footerCommerceFull: ZonePreset = {
   id: "footer-commerce-full",
-  category: "footer",
+  category: "zone-footer",
   title: "تذييل تجاري — أعمدة كاملة",
   previewImage:
     "https://placehold.co/800x320/10213a/f8fafc?text=Commerce+Footer",
@@ -16,6 +16,7 @@ const footerCommerceFull: SectionPreset = {
     variant: "commerce",
     language: "ar",
     visible: true,
+    is_mobile_only: false,
     tagline: "Your one-stop shop for curated goods.",
     taglineAr: "متجرك الشامل للسلع المختارة بعناية.",
     showBottomBar: true,
@@ -28,9 +29,9 @@ const footerCommerceFull: SectionPreset = {
   }),
 };
 
-const footerDefaultClassic: SectionPreset = {
+const footerDefaultClassic: ZonePreset = {
   id: "footer-default-classic",
-  category: "footer",
+  category: "zone-footer",
   title: "تذييل كلاسيكي — أعمدة",
   previewImage:
     "https://placehold.co/800x320/f8fafc/64748b?text=Classic+Footer",
@@ -39,6 +40,7 @@ const footerDefaultClassic: SectionPreset = {
     variant: "default",
     language: "ar",
     visible: true,
+    is_mobile_only: false,
     tagline: "Quality products, delivered with care.",
     taglineAr: "منتجات عالية الجودة تُسلَّم بعناية.",
     showBottomBar: true,
@@ -51,9 +53,9 @@ const footerDefaultClassic: SectionPreset = {
   }),
 };
 
-const footerCommerceMinimal: SectionPreset = {
+const footerCommerceMinimal: ZonePreset = {
   id: "footer-commerce-minimal",
-  category: "footer",
+  category: "zone-footer",
   title: "تذييل تجاري — مبسّط",
   previewImage:
     "https://placehold.co/800x240/1f2937/f8fafc?text=Minimal+Footer",
@@ -62,6 +64,7 @@ const footerCommerceMinimal: SectionPreset = {
     variant: "commerce",
     language: "ar",
     visible: true,
+    is_mobile_only: false,
     tagline: "Simple footer with brand and two link columns.",
     taglineAr: "تذييل بسيط مع العلامة وعمودين للروابط.",
     showBottomBar: false,
@@ -74,8 +77,11 @@ const footerCommerceMinimal: SectionPreset = {
   }),
 };
 
-export const FOOTER_PRESETS: SectionPreset[] = [
+export const ZONE_FOOTER_PRESETS: ZonePreset[] = [
   footerCommerceFull,
   footerDefaultClassic,
   footerCommerceMinimal,
 ];
+
+/** @deprecated Use ZONE_FOOTER_PRESETS */
+export const FOOTER_PRESETS = ZONE_FOOTER_PRESETS;

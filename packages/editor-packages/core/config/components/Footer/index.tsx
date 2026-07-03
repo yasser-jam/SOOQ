@@ -1,5 +1,6 @@
 "use client";
 import React, { ReactNode, createContext, useContext } from "react";
+import classnames from "classnames";
 import { Section } from "../Section";
 import type { ShellVariant } from "../../theme";
 import {
@@ -9,6 +10,9 @@ import {
   type LinkValue,
 } from "../../fields/LinkField";
 
+import selectionStyles from "../../lib/zone-selection.module.css";
+import responsiveStyles from "../../lib/zone-responsive.module.css";
+import { useZonePreviewSelected } from "../../lib/use-zone-preview-selected";
 import styles from "./styles.module.css";
 
 const FooterVariantContext = createContext<ShellVariant>("commerce");
@@ -179,6 +183,8 @@ export type FooterProps = {
   language?: "ar" | "en";
   editMode?: boolean;
   visible?: boolean;
+  /** When true, footer is shown only on mobile viewports. */
+  isMobileOnly?: boolean;
   showBottomBar?: boolean;
   bottomBarText?: string;
   bottomBarTextAr?: string;
@@ -187,6 +193,7 @@ export type FooterProps = {
   /** Any valid CSS colour. Empty falls back to the theme. */
   backgroundColor?: string;
   textColor?: string;
+  componentId?: string;
 };
 
 const pickText = (
@@ -207,6 +214,7 @@ const Footer = ({
   language = "ar",
   editMode = false,
   visible = true,
+  isMobileOnly = false,
   showBottomBar = true,
   bottomBarText,
   bottomBarTextAr,
@@ -214,8 +222,12 @@ const Footer = ({
   taglineAr,
   backgroundColor,
   textColor,
+  componentId,
 }: FooterProps) => {
-  if (!visible) return null;
+  const previewSelected = useZonePreviewSelected(componentId);
+  if (!visible && !previewSelected) return null;
+
+  const deviceClass = isMobileOnly ? responsiveStyles.hideOnDesktop : "";
 
   // Inline colour overrides. Only emit entries when the merchant provided a
   // value, so the themed defaults still apply when the fields are empty.
@@ -262,10 +274,15 @@ const Footer = ({
     (language === "ar"
       ? "سلع مختارة بعناية — منسّقة وفق القوالب والإعدادات."
       : "Curated goods — styled with your theme tokens and shell layout from Settings.");
+  const chromeClass = previewSelected ? selectionStyles.selected : "";
   if (variant === "default") {
     return (
       <FooterVariantContext.Provider value="default">
-        <footer className={styles.rootDefault} style={rootStyle}>
+        <footer
+          className={classnames(styles.rootDefault, deviceClass, chromeClass)}
+          style={rootStyle}
+          data-zone-mobile-only={isMobileOnly || undefined}
+        >
           <h2 className={styles.visuallyHidden}>Footer</h2>
           <div className={styles.innerPadDefault}>
             <Section>
@@ -290,7 +307,11 @@ const Footer = ({
 
   return (
     <FooterVariantContext.Provider value="commerce">
-      <footer className={styles.rootCommerce} style={rootStyle}>
+      <footer
+        className={classnames(styles.rootCommerce, deviceClass, chromeClass)}
+        style={rootStyle}
+        data-zone-mobile-only={isMobileOnly || undefined}
+      >
         <div className={styles.innerCommerce}>
           <div className={styles.gridCommerce}>
             <div className={styles.brandCol}>

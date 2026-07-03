@@ -106,7 +106,7 @@ export function createReducer<UserData extends Data>({
       }
 
       if (action.type === "registerZone") {
-        return registerZoneAction(state, action);
+        return registerZoneAction(state, action, appStore);
       }
 
       if (action.type === "unregisterZone") {

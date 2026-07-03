@@ -28,6 +28,7 @@ import { settingsPlugin } from "@/core/config/plugins/settings"
 import { HtmlBlockPaletteSync } from "@/core/config/plugins/html-block-palette"
 import headingAnalyzer from "@/plugin-heading-analyzer"
 import { pagesPlugin } from "@/core/config/plugins/pages"
+import { zonesPlugin } from "@/core/config/plugins/zones"
 import { themesPlugin } from "@/core/config/plugins/themes"
 import { shopifyOutlinePlugin } from "@/core/config/plugins/shopify-editor"
 import { canvasInteractionsPlugin } from "@/core/config/plugins/canvas-interactions"
@@ -320,6 +321,7 @@ export function Client({
     () =>
       [
         shopifyOutlinePlugin,
+        zonesPlugin,
         pagesPlugin,
         themesPlugin,
         headingAnalyzer,

@@ -3,8 +3,18 @@ import type { UserData } from "../types";
 import {
   ROOT_SHELL_LEFT_ZONE,
   ROOT_SHELL_RIGHT_ZONE,
+  ROOT_ZONE_DRAWER,
+  ROOT_ZONE_FOOTER,
+  ROOT_ZONE_HEADER,
+  ROOT_ZONE_POPUP,
+  ROOT_ZONE_BOTTOM_SHEET,
   SHELL_LEFT_ZONE,
   SHELL_RIGHT_ZONE,
+  ZONE_DRAWER,
+  ZONE_FOOTER,
+  ZONE_HEADER,
+  ZONE_POPUP,
+  ZONE_BOTTOM_SHEET,
 } from "../shell-zones";
 
 type JsonRecord = Record<string, unknown>;
@@ -17,7 +27,7 @@ type ComponentLike = {
 };
 
 const SHELL_MIGRATION_VERSION_KEY = "shellComponentsMigrationVersion";
-const CURRENT_SHELL_MIGRATION_VERSION = 2;
+const CURRENT_SHELL_MIGRATION_VERSION = 3;
 
 const isPlainObject = (value: unknown): value is JsonRecord => {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -197,6 +207,7 @@ const buildSiteHeaderPropsFromRoot = (rootProps: JsonRecord): JsonRecord => {
     variant: readString(rootProps.headerVariant, "commerce"),
     language: readString(rootProps.language, "ar"),
     visible: readBoolean(rootProps.headerVisible, true),
+    is_mobile_only: false,
     brandHref: readString(rootProps.headerBrandHref, "/"),
     links: Array.isArray(rootProps.headerLinks) ? rootProps.headerLinks : [],
     backgroundColor: readString(rootProps.headerBackgroundColor, ""),
@@ -220,6 +231,7 @@ const buildSiteFooterPropsFromRoot = (rootProps: JsonRecord): JsonRecord => {
     variant: readString(rootProps.footerVariant, "commerce"),
     language: readString(rootProps.language, "ar"),
     visible: readBoolean(rootProps.footerVisible, true),
+    is_mobile_only: false,
     tagline: readString(rootProps.footerTagline, ""),
     taglineAr: readString(rootProps.footerTaglineAr, ""),
     columns: Array.isArray(rootProps.footerColumns) ? rootProps.footerColumns : [],
@@ -280,41 +292,92 @@ const normalizeZones = (
       return;
     }
 
-    const canonicalZoneName =
-      zoneName === SHELL_LEFT_ZONE
-        ? ROOT_SHELL_LEFT_ZONE
-        : zoneName === SHELL_RIGHT_ZONE
-        ? ROOT_SHELL_RIGHT_ZONE
-        : zoneName;
+    const canonicalZoneNameValue = canonicalZoneName(zoneName);
 
     const normalizedItems = rawItems
       .filter((item) => isComponentNode(item))
       .map((item) => normalizeComponentNode(item, components)) as UserData["content"];
 
-    const existing = Array.isArray(nextZones[canonicalZoneName])
-      ? (nextZones[canonicalZoneName] as UserData["content"])
+    const existing = Array.isArray(nextZones[canonicalZoneNameValue])
+      ? (nextZones[canonicalZoneNameValue] as UserData["content"])
       : [];
 
-    nextZones[canonicalZoneName] = [...existing, ...normalizedItems];
+    nextZones[canonicalZoneNameValue] = [...existing, ...normalizedItems];
   });
 
   return nextZones;
 };
 
-const getShellDrawerZone = (side: unknown): string => {
-  return side === "right" ? ROOT_SHELL_RIGHT_ZONE : ROOT_SHELL_LEFT_ZONE;
+const ZONE_COMPONENT_TYPES = new Set([
+  "SiteHeader",
+  "SiteFooter",
+  "SiteDrawerShell",
+  "ZoneDrawer",
+  "ZonePopup",
+  "ZoneBottomSheet",
+]);
+
+const getZoneForComponentType = (type: string): string | null => {
+  switch (type) {
+    case "SiteHeader":
+      return ROOT_ZONE_HEADER;
+    case "SiteFooter":
+      return ROOT_ZONE_FOOTER;
+    case "SiteDrawerShell":
+    case "ZoneDrawer":
+      return ROOT_ZONE_DRAWER;
+    case "ZonePopup":
+      return ROOT_ZONE_POPUP;
+    case "ZoneBottomSheet":
+      return ROOT_ZONE_BOTTOM_SHEET;
+    default:
+      return null;
+  }
 };
 
-const getShellDrawerSideFromZone = (zoneName: string): "left" | "right" | null => {
-  if (zoneName === ROOT_SHELL_RIGHT_ZONE || zoneName === SHELL_RIGHT_ZONE) {
-    return "right";
+const canonicalZoneName = (zoneName: string): string => {
+  const legacyZoneAliases: Record<string, string> = {
+    "zone:header": ROOT_ZONE_HEADER,
+    "root:zone:header": ROOT_ZONE_HEADER,
+    "zone:footer": ROOT_ZONE_FOOTER,
+    "root:zone:footer": ROOT_ZONE_FOOTER,
+    "zone:drawer": ROOT_ZONE_DRAWER,
+    "root:zone:drawer": ROOT_ZONE_DRAWER,
+    "zone:popup": ROOT_ZONE_POPUP,
+    "root:zone:popup": ROOT_ZONE_POPUP,
+    "zone:bottom-sheet": ROOT_ZONE_BOTTOM_SHEET,
+    "root:zone:bottom-sheet": ROOT_ZONE_BOTTOM_SHEET,
+  };
+
+  if (legacyZoneAliases[zoneName]) {
+    return legacyZoneAliases[zoneName];
   }
 
-  if (zoneName === ROOT_SHELL_LEFT_ZONE || zoneName === SHELL_LEFT_ZONE) {
-    return "left";
-  }
+  if (zoneName === SHELL_LEFT_ZONE) return ROOT_SHELL_LEFT_ZONE;
+  if (zoneName === SHELL_RIGHT_ZONE) return ROOT_SHELL_RIGHT_ZONE;
+  if (zoneName === ZONE_HEADER) return ROOT_ZONE_HEADER;
+  if (zoneName === ZONE_FOOTER) return ROOT_ZONE_FOOTER;
+  if (zoneName === ZONE_DRAWER) return ROOT_ZONE_DRAWER;
+  if (zoneName === ZONE_POPUP) return ROOT_ZONE_POPUP;
+  if (zoneName === ZONE_BOTTOM_SHEET) return ROOT_ZONE_BOTTOM_SHEET;
+  return zoneName;
+};
 
-  return null;
+const pushToZone = (
+  zones: ZoneMap,
+  zoneKey: string,
+  item: ComponentLike,
+  replaceType?: string
+) => {
+  const existing = Array.isArray(zones[zoneKey])
+    ? (zones[zoneKey] as ComponentLike[])
+    : [];
+
+  const filtered = replaceType
+    ? existing.filter((entry) => entry.type !== replaceType)
+    : existing;
+
+  zones[zoneKey] = [...filtered, item] as UserData["content"];
 };
 
 const enforceShellPlacement = (
@@ -324,121 +387,95 @@ const enforceShellPlacement = (
   components: ComponentDefaults,
   insertMissingShell: boolean
 ): { content: ComponentLike[]; zones: ZoneMap } => {
-  let nextContent = [...content];
-  const nextZones = { ...zones } as ZoneMap;
+  const nextZones = {} as ZoneMap;
 
-  let shellDrawer: ComponentLike | null = null;
+  Object.entries(zones).forEach(([zoneName, rawItems]) => {
+    const canonical = canonicalZoneName(zoneName);
+    if (!Array.isArray(rawItems)) return;
 
-  // Remove drawer shells from center content; they belong to side zones.
-  nextContent = nextContent.filter((item) => {
-    if (item.type !== "SiteDrawerShell") {
-      return true;
-    }
+    const existing = Array.isArray(nextZones[canonical])
+      ? (nextZones[canonical] as ComponentLike[])
+      : [];
 
-    if (!shellDrawer) {
-      shellDrawer = item;
-    }
+    const normalizedItems = rawItems
+      .filter((item) => isComponentNode(item))
+      .map((item) => normalizeComponentNode(item, components));
 
-    return false;
+    nextZones[canonical] = [...existing, ...normalizedItems] as UserData["content"];
   });
 
-  let hasLegacyDrawer = nextContent.some((item) => item.type === "SideDrawer");
+  const nextContent: ComponentLike[] = [];
 
-  Object.entries(nextZones).forEach(([zoneName, rawItems]) => {
-    if (!Array.isArray(rawItems)) {
-      delete nextZones[zoneName];
+  content.forEach((item) => {
+    if (!ZONE_COMPONENT_TYPES.has(item.type)) {
+      nextContent.push(item);
       return;
     }
 
-    const sanitized: ComponentLike[] = [];
+    const zoneKey = getZoneForComponentType(item.type);
+    if (!zoneKey) {
+      nextContent.push(item);
+      return;
+    }
 
-    rawItems.forEach((item) => {
-      if (!isComponentNode(item)) {
-        return;
-      }
+    const normalized = normalizeComponentNode(item, components);
+    const replaceType =
+      item.type === "SiteHeader" || item.type === "SiteFooter"
+        ? item.type
+        : undefined;
 
-      const normalized = normalizeComponentNode(item, components);
-
-      if (normalized.type === "SiteDrawerShell") {
-        const zoneSide = getShellDrawerSideFromZone(zoneName);
-        const sideAligned =
-          zoneSide == null || normalized.props.side === zoneSide
-            ? normalized
-            : {
-                ...normalized,
-                props: {
-                  ...normalized.props,
-                  side: zoneSide,
-                },
-              };
-
-        // Last observed drawer wins so explicit placement edits (e.g. right rail)
-        // are preserved when legacy/stale duplicates exist.
-        shellDrawer = sideAligned;
-        return;
-      }
-
-      if (normalized.type === "SideDrawer") {
-        hasLegacyDrawer = true;
-      }
-
-      sanitized.push(normalized);
-    });
-
-    nextZones[zoneName] = sanitized as UserData["content"];
+    pushToZone(nextZones, zoneKey, normalized, replaceType);
   });
 
-  if (!shellDrawer && insertMissingShell && !hasLegacyDrawer) {
-    shellDrawer = normalizeComponentNode(
-      {
-        type: "SiteDrawerShell",
-        props: buildSiteDrawerPropsFromRoot(rootProps),
-      },
-      components
-    );
+  if (insertMissingShell) {
+    const headerZoneItems = (nextZones[ROOT_ZONE_HEADER] ?? []) as ComponentLike[];
+    if (!headerZoneItems.some((item) => item.type === "SiteHeader")) {
+      pushToZone(
+        nextZones,
+        ROOT_ZONE_HEADER,
+        normalizeComponentNode(
+          {
+            type: "SiteHeader",
+            props: {
+              ...buildSiteHeaderPropsFromRoot(rootProps),
+              is_mobile_only: false,
+            },
+          },
+          components
+        ),
+        "SiteHeader"
+      );
+    }
+
+    const footerZoneItems = (nextZones[ROOT_ZONE_FOOTER] ?? []) as ComponentLike[];
+    if (!footerZoneItems.some((item) => item.type === "SiteFooter")) {
+      pushToZone(
+        nextZones,
+        ROOT_ZONE_FOOTER,
+        normalizeComponentNode(
+          {
+            type: "SiteFooter",
+            props: {
+              ...buildSiteFooterPropsFromRoot(rootProps),
+              is_mobile_only: false,
+            },
+          },
+          components
+        ),
+        "SiteFooter"
+      );
+    }
   }
 
-  if (shellDrawer) {
-    const targetZone = getShellDrawerZone(shellDrawer.props.side);
-    const targetZoneItems = Array.isArray(nextZones[targetZone])
-      ? (nextZones[targetZone] as ComponentLike[])
-      : [];
-
-    nextZones[targetZone] = [
-      shellDrawer,
-      ...targetZoneItems.filter((item) => item.type !== "SiteDrawerShell"),
-    ] as UserData["content"];
-  }
-
-  if (!insertMissingShell) {
-    return { content: nextContent, zones: nextZones };
-  }
-
-  const hasHeader = nextContent.some((item) => item.type === "SiteHeader");
-  if (!hasHeader) {
-    nextContent.unshift(
-      normalizeComponentNode(
-        {
-          type: "SiteHeader",
-          props: buildSiteHeaderPropsFromRoot(rootProps),
-        },
-        components
-      )
-    );
-  }
-
-  const hasFooter = nextContent.some((item) => item.type === "SiteFooter");
-  if (!hasFooter) {
-    nextContent.push(
-      normalizeComponentNode(
-        {
-          type: "SiteFooter",
-          props: buildSiteFooterPropsFromRoot(rootProps),
-        },
-        components
-      )
-    );
-  }
+  // Migrate legacy shell-rail drawers into the drawer zone.
+  [ROOT_SHELL_LEFT_ZONE, ROOT_SHELL_RIGHT_ZONE].forEach((legacyZone) => {
+    const legacyItems = (nextZones[legacyZone] ?? []) as ComponentLike[];
+    legacyItems.forEach((item) => {
+      if (item.type !== "SiteDrawerShell") return;
+      pushToZone(nextZones, ROOT_ZONE_DRAWER, item, "SiteDrawerShell");
+    });
+    delete nextZones[legacyZone];
+  });
 
   return { content: nextContent, zones: nextZones };
 };

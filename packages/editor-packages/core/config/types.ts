@@ -46,6 +46,11 @@ import { SideDrawerProps } from "./blocks/SideDrawer";
 import { SiteHeaderProps } from "./blocks/SiteHeader";
 import { SiteDrawerShellProps } from "./blocks/SiteDrawerShell";
 import { SiteFooterProps } from "./blocks/SiteFooter";
+import { ZoneDrawerProps } from "./blocks/ZoneDrawer";
+import { ZonePopupProps } from "./blocks/ZonePopup";
+import { ZoneBottomSheetProps } from "./blocks/ZoneBottomSheet";
+import type { CartIconButtonProps } from "./blocks/CartIconButton";
+import type { LoginButtonProps } from "./blocks/LoginButton";
 
 export type { RootProps } from "./root";
 
@@ -53,6 +58,9 @@ export type Components = {
   SiteHeader: SiteHeaderProps;
   SiteDrawerShell: SiteDrawerShellProps;
   SiteFooter: SiteFooterProps;
+  ZoneDrawer: ZoneDrawerProps;
+  ZonePopup: ZonePopupProps;
+  ZoneBottomSheet: ZoneBottomSheetProps;
   Section: SectionProps;
   Group: GroupProps;
   RowGroup: RowGroupProps;
@@ -73,6 +81,8 @@ export type Components = {
   ProductImageCarousel: ProductImageCarouselProps;
   ProductVariants: ProductVariantsProps;
   CartSection: CartSectionProps;
+  CartIconButton: CartIconButtonProps;
+  LoginButton: LoginButtonProps;
   CheckoutForm: CheckoutFormProps;
   ProductSearchMenu: ProductSearchMenuProps;
   CategoryListMenu: CategoryListMenuProps;
@@ -100,7 +110,7 @@ export type Components = {
 export type UserConfig = Config<{
   components: Components;
   root: RootProps;
-  categories: ["layout", "blocks", "storeBlocks", "shell", "legacy"];
+  categories: ["layout", "blocks", "storeBlocks", "legacy"];
   fields: {
     userField: {
       type: "userField";

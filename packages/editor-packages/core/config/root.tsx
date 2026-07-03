@@ -46,6 +46,13 @@ import {
   type BadgeStyle,
 } from "./theme";
 // import { SHELL_LEFT_ZONE, SHELL_RIGHT_ZONE } from "./shell-zones";
+import {
+  ZONE_HEADER,
+  ZONE_FOOTER,
+  ZONE_DRAWER,
+  ZONE_POPUP,
+  ZONE_BOTTOM_SHEET,
+} from "./shell-zones";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -324,35 +331,56 @@ export const Root: RootConfig<{
           dir={direction}
           lang={language}
         >
-          <div style={{ display: "flex", flexGrow: 1, minHeight: 0 }}>
-            {/* Left shell zone — disabled for now
-            <div style={shellRailStyle}>
-              <DropZone
-                zone={SHELL_LEFT_ZONE}
-                allow={["SiteDrawerShell"]}
-                minEmptyHeight={isEditing ? "100vh" : 0}
-                style={shellDropStyle}
-              />
-            </div>
-            */}
+          <DropZone
+            zone={ZONE_HEADER}
+            allow={["SiteHeader"]}
+            minEmptyHeight={isEditing ? 72 : 0}
+            style={isEditing ? { borderBottom: "1px dashed rgba(37, 99, 235, 0.25)" } : undefined}
+          />
 
+          <div style={{ display: "flex", flexGrow: 1, minHeight: 0, flexDirection: "column" }}>
             <DropZone
               zone="default-zone"
-              allow={["SiteHeader", "Section", "SiteFooter"]}
+              allow={["Section"]}
               style={{ flexGrow: 1 }}
             />
-
-            {/* Right shell zone — disabled for now
-            <div style={shellRailStyle}>
-              <DropZone
-                zone={SHELL_RIGHT_ZONE}
-                allow={["SiteDrawerShell"]}
-                minEmptyHeight={isEditing ? "100vh" : 0}
-                style={shellDropStyle}
-              />
-            </div>
-            */}
           </div>
+
+          <DropZone
+            zone={ZONE_FOOTER}
+            allow={["SiteFooter"]}
+            minEmptyHeight={isEditing ? 72 : 0}
+            style={isEditing ? { borderTop: "1px dashed rgba(37, 99, 235, 0.25)" } : undefined}
+          />
+
+          {/* Overlay zones — managed via Zones plugin; hidden drop chrome in editor */}
+          <DropZone
+            zone={ZONE_DRAWER}
+            allow={["ZoneDrawer", "SiteDrawerShell"]}
+            style={
+              isEditing
+                ? { height: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }
+                : { display: "contents" }
+            }
+          />
+          <DropZone
+            zone={ZONE_POPUP}
+            allow={["ZonePopup"]}
+            style={
+              isEditing
+                ? { height: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }
+                : { display: "contents" }
+            }
+          />
+          <DropZone
+            zone={ZONE_BOTTOM_SHEET}
+            allow={["ZoneBottomSheet"]}
+            style={
+              isEditing
+                ? { height: 0, overflow: "hidden", opacity: 0, pointerEvents: "none" }
+                : { display: "contents" }
+            }
+          />
         </div>
       </>
     );

@@ -1,0 +1,53 @@
+.ZonesPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+.ZonesPanel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ZonesPanel-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.ZonesPanel-subtitle {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.ZonesPanel-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ZonesPanel-cardButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+.ZonesPanel-cardButton:hover :global(.border) {
+  border-color: #94a3b8;
+}
+
+.cardSelected {
+  /* marker class for module scope */
+}

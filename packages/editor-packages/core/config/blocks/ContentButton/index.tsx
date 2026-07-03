@@ -28,15 +28,18 @@ import {
 } from "../../binding";
 import { addOrUpdateLine, readStoreCart } from "../../cart/store-cart";
 import { dispatchMakeOrderEvent } from "../../cart/make-order";
+import { dispatchZoneEvent } from "../../lib/zone-events";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
 export type ContentButtonProps = WithLayout<{
   label: string;
   labelValueContext?: ValueContext | null;
   align: "left" | "center" | "right";
-  destinationType: "link" | "action";
+  destinationType: "link" | "action" | "zone";
   buttonAction: ButtonAction;
   link: LinkValue;
+  zoneKey: string;
+  zoneAction: "open" | "close" | "toggle";
   buttonVariantMode: "variant" | "fixed";
   buttonVariant: "primary" | "secondary" | "error";
   buttonVariantSize: "sm" | "md" | "lg";
@@ -190,6 +193,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       options: [
         { label: "رابط", value: "link" },
         { label: "إجراء", value: "action" },
+        { label: "منطقة", value: "zone" },
       ],
     },
     link: linkField({ label: "الرابط" }),
@@ -197,6 +201,20 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       type: "select",
       label: "الإجراء",
       options: BUTTON_FUNCTIONAL_ACTION_OPTIONS,
+    },
+    zoneKey: {
+      type: "text",
+      label: "مفتاح المنطقة",
+      placeholder: "login",
+    },
+    zoneAction: {
+      type: "select",
+      label: "إجراء المنطقة",
+      options: [
+        { label: "فتح", value: "open" },
+        { label: "إغلاق", value: "close" },
+        { label: "تبديل", value: "toggle" },
+      ],
     },
     radius: themeFixedSelectField({
       label: "زاوية الحدود",
@@ -219,6 +237,8 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
     destinationType: "link",
     buttonAction: "login",
     link: EMPTY_LINK,
+    zoneKey: "login",
+    zoneAction: "open",
     buttonVariantMode: "variant",
     buttonVariant: "primary",
     buttonVariantSize: "md",
@@ -242,6 +262,8 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       destinationType,
       buttonAction,
       link,
+      zoneKey,
+      zoneAction,
       buttonVariantMode,
       buttonVariant,
       buttonVariantSize,
@@ -260,6 +282,12 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       destinationType ??
       (buttonAction && buttonAction !== "link" ? "action" : "link");
     const action: ButtonAction = destType === "action" ? buttonAction ?? "login" : "link";
+
+    const onZoneClick = (e: MouseEvent) => {
+      e.preventDefault();
+      if (puck.isEditing || !zoneKey) return;
+      dispatchZoneEvent(zoneKey, zoneAction ?? "toggle");
+    };
 
     let sharedStyle: CSSProperties;
 
@@ -370,6 +398,16 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
 
       window.alert(`إجراء الزر: ${buttonActionLabel(action)}`);
     };
+
+    if (destType === "zone") {
+      return (
+        <div style={placementStyle}>
+          <button type="button" onClick={onZoneClick} style={sharedStyle}>
+            {resolvedLabel}
+          </button>
+        </div>
+      );
+    }
 
     if (action !== "link") {
       return (

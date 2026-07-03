@@ -1,0 +1,35 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.sheet {
+  position: relative;
+  z-index: 61;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 -8px 40px rgba(15, 23, 42, 0.16);
+  transform: translateY(100%);
+  transition: transform 240ms ease;
+  pointer-events: none;
+}
+
+.sheetOpen {
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.handle {
+  width: 40px;
+  height: 4px;
+  margin: 10px auto 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.15);
+}

@@ -8,35 +8,36 @@ import { getClassNameFactory } from "../../lib";
 
 const getClassName = getClassNameFactory("FieldsPlugin", styles);
 
-const formatRootFocusTitle = (focus: string | null | undefined) => {
-  if (!focus) return "Page";
-
-  if (focus.startsWith("header")) return "Header";
-  if (focus.startsWith("footer")) return "Footer";
-  if (focus.startsWith("drawer")) return "Side Drawer";
-
-  return (
-    focus
-      .replace(/^__+/, "")
-      .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-      .replace(/[-_]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .replace(/^./, (c) => c.toUpperCase()) || "Page"
-  );
-};
-
 const CurrentTitle = () => {
   const label = useAppStore((s) => {
     const selectedItem = s.selectedItem;
-    const focus = s.state.ui.field.focus;
+    if (!selectedItem) return null;
 
-    return selectedItem
-      ? s.config.components[selectedItem.type]?.label ?? selectedItem.type
-      : formatRootFocusTitle(focus);
+    return (
+      s.config.components[selectedItem.type]?.label ?? selectedItem.type
+    );
   });
 
   return label;
+};
+
+const FieldsPluginBody = () => {
+  const selectedItem = useAppStore((s) => s.selectedItem);
+
+  if (!selectedItem) {
+    return null;
+  }
+
+  return (
+    <>
+      <div className={getClassName("header")}>
+        <Breadcrumbs numParents={2}>
+          <CurrentTitle />
+        </Breadcrumbs>
+      </div>
+      <Fields />
+    </>
+  );
 };
 
 export const fieldsPlugin: (params?: {
@@ -46,12 +47,7 @@ export const fieldsPlugin: (params?: {
   label: "Fields",
   render: () => (
     <div className={getClassName()}>
-      <div className={getClassName("header")}>
-        <Breadcrumbs numParents={2}>
-          <CurrentTitle />
-        </Breadcrumbs>
-      </div>
-      <Fields />
+      <FieldsPluginBody />
     </div>
   ),
   icon: <FormInput />,

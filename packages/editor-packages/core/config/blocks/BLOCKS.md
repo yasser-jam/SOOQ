@@ -6,9 +6,9 @@ Each block is described with its **properties**, accepted **values**, and a read
 > Most blocks wrap their props with a `WithLayout` higher-order type that adds a shared `layout` object. The `layout` prop controls advanced positioning (padding, shadow, float, per-breakpoint visibility via `hideOnMobile` / `hideOnTablet` / `hideOnDesktop`, etc.). It is omitted from the examples below for brevity; add it only when you need non-default positioning.
 
 > **Block registry**  
-> Blocks registered in the editor are grouped as: **layout** (`Section`, `Group`, `RowGroup`, `Sidebar`), **blocks** (content primitives), **storeBlocks** (commerce/customer), **shell** (`SiteHeader`, `SiteDrawerShell`, `SiteFooter`), and **legacy** (hidden from the picker but still rendered from old `store_config.json`). `Blank` exists in code only and is **not** registered — it will not appear in published store config.
+> Blocks registered in the editor are grouped as: **layout** (`Section`, `Group`, `RowGroup`), **blocks** (content primitives), **storeBlocks** (commerce/customer), and **legacy** (hidden). **Site zones** (`SiteHeader`, `SiteFooter`, `ZoneDrawer`, `ZonePopup`, `ZoneBottomSheet`) are managed via the **المناطق** sidebar plugin — not the blocks palette. See [ZONES.md](./ZONES.md).
 >
-> **Legacy blocks** (still in `store_config.json`, hidden from picker): `SideDrawer`, `Heading`, `Text`, `RichText`, `Button`, `Card`, `Grid`, `Flex`, `Hero`, `Logos`, `Stats`, `Template`, `NavMenu`, `ContentIcon`, `ContentHtml`, `ProductImage`, `ProductInfo`.
+> **Legacy blocks** (still in `store_config.json`, hidden from picker): `SiteDrawerShell`, `SideDrawer`, `Heading`, `Text`, `RichText`, `Button`, `Card`, `Grid`, `Flex`, `Hero`, `Logos`, `Stats`, `Template`, `NavMenu`, `ContentIcon`, `ContentHtml`, `ProductImage`, `ProductInfo`.
 
 > **Runtime metadata**  
 > `ProductCard` and `ProductsGrid` auto-populate a read-only `metadata` object when a product/collection is selected. Mobile converters should use `metadata.apiUrl` to fetch live data at render time rather than embedding product payloads in JSON.
@@ -20,47 +20,52 @@ Each block is described with its **properties**, accepted **values**, and a read
 1. [Accordion](#accordion)
 2. [Blank](#blank)
 3. [Button](#button)
-4. [Card](#card)
-5. [CartSection](#cartsection)
-6. [CategoryListMenu](#categorylistmenu)
-7. [CheckoutForm](#checkoutform)
-8. [ContactForm](#contactform)
-9. [ContentButton](#contentbutton)
-10. [ContentDivider](#contentdivider)
-11. [ContentHeading](#contentheading)
-12. [ContentHtml](#contenthtml)
-13. [ContentIcon](#contenticon)
-14. [ContentImage](#contentimage)
-15. [ContentParagraph](#contentparagraph)
-16. [Flex](#flex)
-17. [Grid](#grid)
-18. [Group](#group)
-19. [RowGroup](#rowgroup)
-20. [Heading](#heading)
-21. [Hero](#hero)
-22. [ImageGallery](#imagegallery)
-23. [Logos](#logos)
-24. [NavMenu](#navmenu)
-25. [OrderHistory](#orderhistory)
-26. [ProductCard](#productcard)
-27. [ProductImage](#productimage)
-28. [ProductInfo](#productinfo)
-29. [ProductSearchMenu](#productsearchmenu)
-30. [ProductsGrid](#productsgrid)
-31. [RichText](#richtext)
-32. [Section](#section)
-33. [Sidebar](#sidebar)
-34. [SideDrawer](#sidedrawer)
-35. [SiteDrawerShell](#sitedrawershell)
-36. [SiteFooter](#sitefooter)
-37. [SiteHeader](#siteheader)
-38. [Space](#space)
-39. [Stats](#stats)
-40. [Template](#template)
-41. [Testimonials](#testimonials)
-42. [Text](#text)
-43. [VideoEmbed](#videoembed)
-44. [Wishlist](#wishlist)
+4. [CartIconButton](#carticonbutton)
+5. [Card](#card)
+6. [CartSection](#cartsection)
+7. [CategoryListMenu](#categorylistmenu)
+8. [CheckoutForm](#checkoutform)
+9. [ContactForm](#contactform)
+10. [ContentButton](#contentbutton)
+11. [ContentDivider](#contentdivider)
+12. [ContentHeading](#contentheading)
+13. [ContentHtml](#contenthtml)
+14. [ContentIcon](#contenticon)
+15. [ContentImage](#contentimage)
+16. [ContentParagraph](#contentparagraph)
+17. [Flex](#flex)
+18. [Grid](#grid)
+19. [Group](#group)
+20. [RowGroup](#rowgroup)
+21. [Heading](#heading)
+22. [Hero](#hero)
+23. [ImageGallery](#imagegallery)
+24. [LoginButton](#loginbutton)
+25. [Logos](#logos)
+26. [NavMenu](#navmenu)
+27. [OrderHistory](#orderhistory)
+28. [ProductCard](#productcard)
+29. [ProductImage](#productimage)
+30. [ProductInfo](#productinfo)
+31. [ProductSearchMenu](#productsearchmenu)
+32. [ProductsGrid](#productsgrid)
+33. [RichText](#richtext)
+34. [Section](#section)
+35. [Sidebar](#sidebar)
+36. [SideDrawer](#sidedrawer)
+37. [SiteDrawerShell](#sitedrawershell) *(legacy)*
+38. [SiteFooter](#sitefooter)
+39. [SiteHeader](#siteheader)
+40. [Space](#space)
+41. [Stats](#stats)
+42. [Template](#template)
+43. [Testimonials](#testimonials)
+44. [Text](#text)
+45. [VideoEmbed](#videoembed)
+46. [Wishlist](#wishlist)
+47. [ZoneBottomSheet](#zonebottomsheet)
+48. [ZoneDrawer](#zonedrawer)
+49. [ZonePopup](#zonepopup)
 
 ---
 
@@ -370,9 +375,11 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 |---|---|---|---|
 | `label` | `string` | Button text | `"زر"` |
 | `align` | `"left" \| "center" \| "right"` | Horizontal alignment | `"center"` |
-| `destinationType` | `"link" \| "action"` | Navigate to URL or trigger an action | `"link"` |
+| `destinationType` | `"link" \| "action" \| "zone"` | Navigate, trigger action, or open/close a zone | `"link"` |
 | `link` | `LinkValue` | Navigation target | `EMPTY_LINK` |
 | `buttonAction` | `ButtonAction` | In-app action key (when `destinationType = "action"`): `login`, `logout`, `addToCart`, `addToWishlist`, `makeOrder` | `"login"` |
+| `zoneKey` | `string` | Zone event key (when `destinationType = "zone"`) | `"login"` |
+| `zoneAction` | `"open" \| "close" \| "toggle"` | Zone event action | `"open"` |
 | `buttonVariantMode` | `"variant" \| "fixed"` | Use theme variant or manual colors | `"variant"` |
 | `buttonVariant` | `"primary" \| "secondary" \| "error"` | Theme variant | `"primary"` |
 | `buttonVariantSize` | `"sm" \| "md" \| "lg"` | Size when using variant mode | `"md"` |
@@ -1403,8 +1410,10 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 
 ## SiteDrawerShell
 
+> **Deprecated** — use `ZoneDrawer` instead. Kept in the legacy category for backward compatibility with old `store_config.json`. See [ZONES.md](./ZONES.md).
+
 **Label:** درج جانبي  
-**Description:** Site-level drawer shell (singleton). Configures the global side-navigation drawer registered in the site layout. Cannot be inserted, duplicated, or deleted by users.
+**Description:** Legacy site-level drawer shell. **Not recommended for new stores.** Use `ZoneDrawer` with a `slot` for flexible content.
 
 ### Properties
 
@@ -1497,6 +1506,7 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 | `variant` | `"commerce" \| "default"` | Layout style | `"commerce"` |
 | `language` | `"ar" \| "en"` | Display language | `"ar"` |
 | `visible` | `boolean` | Show/hide footer | `true` |
+| `is_mobile_only` | `boolean` | Show only on mobile viewports | `false` |
 | `tagline` | `string` | Tagline (EN) | `""` |
 | `taglineAr` | `string` | Tagline (AR) | `""` |
 | `showBottomBar` | `boolean` | Show bottom bar | `true` |
@@ -1520,6 +1530,7 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
     "variant": "commerce",
     "language": "ar",
     "visible": true,
+    "is_mobile_only": false,
     "tagline": "Your one-stop shop.",
     "taglineAr": "متجرك الشامل.",
     "showBottomBar": true,
@@ -1558,6 +1569,7 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 | `variant` | `"commerce" \| "default"` | Layout style | `"commerce"` |
 | `language` | `"ar" \| "en"` | Display language | `"ar"` |
 | `visible` | `boolean` | Show/hide header | `true` |
+| `is_mobile_only` | `boolean` | Show only on mobile viewports | `false` |
 | `brandHref` | `string` | Brand logo/title link | `"/"` |
 | `links` | `HeaderLink[]` | Nav links `[{ label, labelAr, link }]` | default links |
 | `backgroundColor` | `string` | Background color (empty = theme) | `""` |
@@ -1567,7 +1579,8 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 | `navStyle` | `"underline" \| "pill"` | Nav hover/active styling | `"pill"` |
 | `showDrawerButton` | `boolean` | Show hamburger button | `false` |
 | `drawerButtonIcon` | `"menu" \| "filter" \| "cart" \| "user" \| "none"` | Icon type | `"menu"` |
-| `drawerName` | `string` | Target drawer name | `"site-drawer"` |
+| `drawerName` | `string` | Target zone/drawer key for menu button | `"site-drawer"` |
+| `rightSlot` | `Slot` | Nested blocks (e.g. `CartIconButton`, `LoginButton`) at header end | `[]` |
 
 ### JSON Example
 
@@ -1579,6 +1592,7 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
     "variant": "commerce",
     "language": "ar",
     "visible": true,
+    "is_mobile_only": false,
     "brandHref": "/",
     "links": [
       { "label": "Home", "labelAr": "الرئيسية", "link": { "kind": "page", "pageId": "/" } },
@@ -1592,10 +1606,95 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
     "navStyle": "pill",
     "showDrawerButton": true,
     "drawerButtonIcon": "menu",
-    "drawerName": "site-drawer"
+    "drawerName": "site-drawer",
+    "rightSlot": []
   }
 }
 ```
+
+---
+
+## CartIconButton
+
+**Label:** أيقونة السلة  
+**Description:** Cart icon with live item-count badge. Used inside `SiteHeader.rightSlot`.
+
+| Property | Type | Default |
+|---|---|---|
+| `href` | `string` | `"/cart"` |
+| `iconSize` | `number` | `22` |
+| `badgeColor` | `string` | `"#ef4444"` |
+| `badgeTextColor` | `string` | `"#ffffff"` |
+
+---
+
+## LoginButton
+
+**Label:** زر تسجيل الدخول  
+**Description:** Shows guest label or logged-in user name from cookie. Used inside `SiteHeader.rightSlot` or login popups.
+
+| Property | Type | Default |
+|---|---|---|
+| `userNameCookie` | `string` | `"sooq-user-name"` |
+| `guestLabel` | `string` | `"تسجيل الدخول"` |
+| `showIcon` | `boolean` | `true` |
+| `textColor` | `string` | `"inherit"` |
+
+---
+
+## ZoneDrawer
+
+**Label:** درج المنطقة  
+**Description:** Site-wide slide-in drawer with slot content. Opens via `sooq:zone` events. See [ZONES.md](./ZONES.md).
+
+| Property | Type | Default |
+|---|---|---|
+| `is_active` | `boolean` | `false` |
+| `is_mobile_only` | `boolean` | `true` |
+| `key` | `string` | `"site-drawer"` |
+| `side` | `"left" \| "right"` | `"left"` |
+| `backgroundColor` | `string` | `"#ffffff"` |
+| `overlay` | `boolean` | `true` |
+| `showCloseButton` | `boolean` | `true` |
+| `slot` | `Slot` | `[]` |
+
+---
+
+## ZonePopup
+
+**Label:** نافذة منبثقة  
+**Description:** Centered modal overlay with slot content. Opens via `sooq:zone` events.
+
+| Property | Type | Default |
+|---|---|---|
+| `is_active` | `boolean` | `false` |
+| `is_mobile_only` | `boolean` | `false` |
+| `key` | `string` | `"login"` |
+| `backgroundColor` | `string` | `"#ffffff"` |
+| `borderRadius` | `string` | `"12px"` |
+| `maxWidth` | `string` | `"480px"` |
+| `overlay` | `boolean` | `true` |
+| `showCloseButton` | `boolean` | `true` |
+| `slot` | `Slot` | `[]` |
+
+---
+
+## ZoneBottomSheet
+
+**Label:** ورقة سفلية  
+**Description:** Bottom sheet overlay with slot content. Opens via `sooq:zone` events.
+
+| Property | Type | Default |
+|---|---|---|
+| `is_active` | `boolean` | `false` |
+| `is_mobile_only` | `boolean` | `true` |
+| `key` | `string` | `"cart-sheet"` |
+| `backgroundColor` | `string` | `"#ffffff"` |
+| `borderRadius` | `string` | `"16px 16px 0 0"` |
+| `maxHeight` | `string` | `"80vh"` |
+| `overlay` | `boolean` | `true` |
+| `showCloseButton` | `boolean` | `true` |
+| `slot` | `Slot` | `[]` |
 
 ---
 

@@ -16,6 +16,7 @@ export type SiteFooterProps = {
   variant: ShellVariant;
   language: "ar" | "en";
   visible: boolean;
+  is_mobile_only: boolean;
   tagline: string;
   taglineAr: string;
   showBottomBar: boolean;
@@ -29,6 +30,10 @@ export type SiteFooterProps = {
 
 export const SiteFooter: ComponentConfig<SiteFooterProps> = {
   label: "تذييل الموقع",
+  permissions: {
+    insert: false,
+    duplicate: false,
+  },
   fields: {
     title: {
       type: "text",
@@ -53,6 +58,14 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
     visible: {
       type: "radio",
       label: "مرئي",
+      options: [
+        { label: "Yes", value: true },
+        { label: "No", value: false },
+      ],
+    },
+    is_mobile_only: {
+      type: "radio",
+      label: "الجوال فقط",
       options: [
         { label: "Yes", value: true },
         { label: "No", value: false },
@@ -144,6 +157,7 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
     variant: "commerce",
     language: "ar",
     visible: true,
+    is_mobile_only: false,
     tagline: "",
     taglineAr: "",
     showBottomBar: true,
@@ -159,6 +173,7 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
     variant,
     language,
     visible,
+    is_mobile_only,
     tagline,
     taglineAr,
     showBottomBar,
@@ -168,6 +183,7 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
     bottomLinks,
     backgroundColor,
     textColor,
+    id,
     puck,
   }) => {
     return (
@@ -177,7 +193,9 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
         columns={columns}
         language={language}
         editMode={!!puck.isEditing}
+        componentId={typeof id === "string" ? id : undefined}
         visible={visible}
+        isMobileOnly={is_mobile_only}
         showBottomBar={showBottomBar}
         bottomBarText={bottomBarText}
         bottomBarTextAr={bottomBarTextAr}
