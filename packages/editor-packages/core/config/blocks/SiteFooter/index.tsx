@@ -10,6 +10,7 @@ import {
   type FooterLinkData,
 } from "../../components/Footer";
 import type { ShellVariant } from "../../theme";
+import { ZONE_BLOCK_PERMISSIONS } from "../../shell-zones";
 
 export type SiteFooterProps = {
   title: string;
@@ -31,8 +32,7 @@ export type SiteFooterProps = {
 export const SiteFooter: ComponentConfig<SiteFooterProps> = {
   label: "تذييل الموقع",
   permissions: {
-    insert: false,
-    duplicate: false,
+    ...ZONE_BLOCK_PERMISSIONS,
   },
   fields: {
     title: {

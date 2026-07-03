@@ -1,4 +1,7 @@
+import { generateId } from "@/core/lib/generate-id";
 import config from "../index";
+import { DEFAULT_ZONE_FOOTER_PRESET } from "../presets/footer";
+import { DEFAULT_ZONE_HEADER_PRESET } from "../presets/header";
 import type { UserData } from "../types";
 import {
   ROOT_SHELL_LEFT_ZONE,
@@ -10,6 +13,7 @@ import {
   ROOT_ZONE_BOTTOM_SHEET,
   SHELL_LEFT_ZONE,
   SHELL_RIGHT_ZONE,
+  ZONE_BLOCK_TYPES,
   ZONE_DRAWER,
   ZONE_FOOTER,
   ZONE_HEADER,
@@ -194,52 +198,6 @@ const readNumber = (value: unknown, fallback: number): number => {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 };
 
-const buildSiteHeaderPropsFromRoot = (rootProps: JsonRecord): JsonRecord => {
-  const siteTitle = readString(rootProps.title, "");
-  const headerTitle =
-    typeof rootProps.headerBrandTitle === "string"
-      ? rootProps.headerBrandTitle
-      : siteTitle;
-
-  return {
-    id: "SiteHeader-shell",
-    title: headerTitle,
-    variant: readString(rootProps.headerVariant, "commerce"),
-    language: readString(rootProps.language, "ar"),
-    visible: readBoolean(rootProps.headerVisible, true),
-    is_mobile_only: false,
-    brandHref: readString(rootProps.headerBrandHref, "/"),
-    links: Array.isArray(rootProps.headerLinks) ? rootProps.headerLinks : [],
-    backgroundColor: readString(rootProps.headerBackgroundColor, ""),
-    textColor: readString(rootProps.headerTextColor, ""),
-    showDrawerButton: readBoolean(rootProps.headerShowDrawerButton, false),
-    drawerButtonIcon: readString(rootProps.headerDrawerButtonIcon, "menu"),
-    drawerName: "site-drawer",
-  };
-};
-
-const buildSiteFooterPropsFromRoot = (rootProps: JsonRecord): JsonRecord => {
-  const siteTitle = readString(rootProps.title, "");
-  const footerTitle =
-    typeof rootProps.footerBrandTitle === "string"
-      ? rootProps.footerBrandTitle
-      : siteTitle;
-
-  return {
-    id: "SiteFooter-shell",
-    title: footerTitle,
-    variant: readString(rootProps.footerVariant, "commerce"),
-    language: readString(rootProps.language, "ar"),
-    visible: readBoolean(rootProps.footerVisible, true),
-    is_mobile_only: false,
-    tagline: readString(rootProps.footerTagline, ""),
-    taglineAr: readString(rootProps.footerTaglineAr, ""),
-    columns: Array.isArray(rootProps.footerColumns) ? rootProps.footerColumns : [],
-    backgroundColor: readString(rootProps.footerBackgroundColor, ""),
-    textColor: readString(rootProps.footerTextColor, ""),
-  };
-};
-
 const buildSiteDrawerPropsFromRoot = (rootProps: JsonRecord): JsonRecord => {
   return {
     id: "SiteDrawer-shell",
@@ -308,14 +266,7 @@ const normalizeZones = (
   return nextZones;
 };
 
-const ZONE_COMPONENT_TYPES = new Set([
-  "SiteHeader",
-  "SiteFooter",
-  "SiteDrawerShell",
-  "ZoneDrawer",
-  "ZonePopup",
-  "ZoneBottomSheet",
-]);
+const ZONE_COMPONENT_TYPES = new Set<string>(ZONE_BLOCK_TYPES);
 
 const getZoneForComponentType = (type: string): string | null => {
   switch (type) {
@@ -380,6 +331,32 @@ const pushToZone = (
   zones[zoneKey] = [...filtered, item] as UserData["content"];
 };
 
+const ensurePresetZoneContent = (
+  zones: ZoneMap,
+  zoneKey: string,
+  defaultPreset: { componentData: ComponentLike },
+  components: ComponentDefaults
+) => {
+  const rawItems = (zones[zoneKey] ?? []) as ComponentLike[];
+
+  const migrated = rawItems
+    .map((item) => {
+      if (item.type === "SiteHeader" || item.type === "SiteFooter") {
+        return normalizeComponentNode(defaultPreset.componentData, components);
+      }
+      return normalizeComponentNode(item, components);
+    })
+    .filter((item) => item.type !== "SiteHeader" && item.type !== "SiteFooter");
+
+  const sections = migrated.filter((item) => item.type === "Section");
+
+  zones[zoneKey] = (
+    sections.length > 0
+      ? [sections[0]]
+      : [normalizeComponentNode(defaultPreset.componentData, components)]
+  ) as UserData["content"];
+};
+
 const enforceShellPlacement = (
   content: ComponentLike[],
   zones: ZoneMap,
@@ -407,6 +384,32 @@ const enforceShellPlacement = (
   const nextContent: ComponentLike[] = [];
 
   content.forEach((item) => {
+    if (item.type === "SiteHeader") {
+      pushToZone(
+        nextZones,
+        ROOT_ZONE_HEADER,
+        normalizeComponentNode(
+          DEFAULT_ZONE_HEADER_PRESET.componentData,
+          components
+        ),
+        "SiteHeader"
+      );
+      return;
+    }
+
+    if (item.type === "SiteFooter") {
+      pushToZone(
+        nextZones,
+        ROOT_ZONE_FOOTER,
+        normalizeComponentNode(
+          DEFAULT_ZONE_FOOTER_PRESET.componentData,
+          components
+        ),
+        "SiteFooter"
+      );
+      return;
+    }
+
     if (!ZONE_COMPONENT_TYPES.has(item.type)) {
       nextContent.push(item);
       return;
@@ -419,53 +422,21 @@ const enforceShellPlacement = (
     }
 
     const normalized = normalizeComponentNode(item, components);
-    const replaceType =
-      item.type === "SiteHeader" || item.type === "SiteFooter"
-        ? item.type
-        : undefined;
-
-    pushToZone(nextZones, zoneKey, normalized, replaceType);
+    pushToZone(nextZones, zoneKey, normalized);
   });
 
-  if (insertMissingShell) {
-    const headerZoneItems = (nextZones[ROOT_ZONE_HEADER] ?? []) as ComponentLike[];
-    if (!headerZoneItems.some((item) => item.type === "SiteHeader")) {
-      pushToZone(
-        nextZones,
-        ROOT_ZONE_HEADER,
-        normalizeComponentNode(
-          {
-            type: "SiteHeader",
-            props: {
-              ...buildSiteHeaderPropsFromRoot(rootProps),
-              is_mobile_only: false,
-            },
-          },
-          components
-        ),
-        "SiteHeader"
-      );
-    }
-
-    const footerZoneItems = (nextZones[ROOT_ZONE_FOOTER] ?? []) as ComponentLike[];
-    if (!footerZoneItems.some((item) => item.type === "SiteFooter")) {
-      pushToZone(
-        nextZones,
-        ROOT_ZONE_FOOTER,
-        normalizeComponentNode(
-          {
-            type: "SiteFooter",
-            props: {
-              ...buildSiteFooterPropsFromRoot(rootProps),
-              is_mobile_only: false,
-            },
-          },
-          components
-        ),
-        "SiteFooter"
-      );
-    }
-  }
+  ensurePresetZoneContent(
+    nextZones,
+    ROOT_ZONE_HEADER,
+    DEFAULT_ZONE_HEADER_PRESET,
+    components
+  );
+  ensurePresetZoneContent(
+    nextZones,
+    ROOT_ZONE_FOOTER,
+    DEFAULT_ZONE_FOOTER_PRESET,
+    components
+  );
 
   // Migrate legacy shell-rail drawers into the drawer zone.
   [ROOT_SHELL_LEFT_ZONE, ROOT_SHELL_RIGHT_ZONE].forEach((legacyZone) => {
@@ -536,19 +507,81 @@ const normalizeComponentNode = (
     cleanedProps,
     components
   ) as JsonRecord;
-  const fallbackId =
-    typeof item.props.id === "string" ? item.props.id : item.type;
+
+  const existingId =
+    typeof normalizedProps.id === "string" && normalizedProps.id.trim()
+      ? normalizedProps.id
+      : typeof item.props.id === "string" && item.props.id.trim()
+        ? item.props.id
+        : generateId(item.type);
 
   return {
     ...item,
     props: {
       ...normalizedProps,
-      id:
-        typeof normalizedProps.id === "string"
-          ? normalizedProps.id
-          : fallbackId,
+      id: existingId,
     },
   };
+};
+
+/** Fix duplicate or type-only ids (e.g. multiple `Group` blocks all named "Group"). */
+const ensureUniqueComponentIds = (data: {
+  content: ComponentLike[];
+  zones: ZoneMap;
+}): { content: UserData["content"]; zones: ZoneMap } => {
+  const seen = new Set<string>();
+
+  const fixValue = (value: unknown): unknown => {
+    if (Array.isArray(value)) {
+      return value.map(fixValue);
+    }
+
+    if (isComponentNode(value)) {
+      return fixComponent(value);
+    }
+
+    if (!isPlainObject(value)) {
+      return value;
+    }
+
+    const next: JsonRecord = {};
+    Object.entries(value).forEach(([key, entry]) => {
+      next[key] = fixValue(entry);
+    });
+    return next;
+  };
+
+  const fixComponent = (item: ComponentLike): ComponentLike => {
+    const props = fixValue(item.props) as JsonRecord;
+    let id = props.id;
+
+    if (
+      typeof id !== "string" ||
+      !id.trim() ||
+      seen.has(id) ||
+      id === item.type
+    ) {
+      id = generateId(item.type);
+    }
+
+    seen.add(id);
+
+    return {
+      ...item,
+      props: {
+        ...props,
+        id,
+      },
+    };
+  };
+
+  const content = data.content.map(fixComponent) as UserData["content"];
+  const zones = Object.entries(data.zones).reduce<ZoneMap>((acc, [zoneKey, items]) => {
+    acc[zoneKey] = (Array.isArray(items) ? items : []).map(fixComponent) as UserData["content"];
+    return acc;
+  }, {} as ZoneMap);
+
+  return { content, zones };
 };
 
 /**
@@ -605,13 +638,18 @@ export function normalizeEditorData(
     [SHELL_MIGRATION_VERSION_KEY]: CURRENT_SHELL_MIGRATION_VERSION,
   };
 
+  const { content: uniqueContent, zones: uniqueZones } = ensureUniqueComponentIds({
+    content: shellPlacementResult.content as ComponentLike[],
+    zones: shellPlacementResult.zones,
+  });
+
   return {
     ...input,
     root: {
       ...(isPlainObject(input.root) ? input.root : {}),
       props: rootPropsWithMigrationFlag,
     },
-    content: shellPlacementResult.content as UserData["content"],
-    zones: shellPlacementResult.zones,
+    content: uniqueContent,
+    zones: uniqueZones,
   } as UserData;
 }

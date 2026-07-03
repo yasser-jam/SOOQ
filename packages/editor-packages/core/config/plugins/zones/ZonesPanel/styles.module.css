@@ -51,3 +51,82 @@
 .cardSelected {
   /* marker class for module scope */
 }
+
+.ZonesPanel-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.ZonesPanel-presetsHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ZonesPanel-presetsTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.ZonesPanel-presetsSubtitle {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.ZonesPanel-presetGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ZonesPanel-presetCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  text-align: start;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ZonesPanel-presetCard:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.ZonesPanel-presetPreview {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #f1f5f9;
+}
+
+.ZonesPanel-presetImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ZonesPanel-presetPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%);
+}
+
+.ZonesPanel-presetLabel {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #334155;
+}

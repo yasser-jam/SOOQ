@@ -3,6 +3,7 @@ import { ComponentConfig } from "@/core/types";
 import type { Slot } from "@/core/types";
 import { colorField } from "../../fields/ColorField";
 import { ZonePopup as ZonePopupComponent } from "../../components/ZonePopup";
+import { ZONE_BLOCK_PERMISSIONS, ZONE_BLOCK_TYPES } from "../../shell-zones";
 
 export type ZonePopupProps = {
   is_active: boolean;
@@ -19,8 +20,7 @@ export type ZonePopupProps = {
 export const ZonePopup: ComponentConfig<ZonePopupProps> = {
   label: "نافذة منبثقة",
   permissions: {
-    insert: false,
-    duplicate: false,
+    ...ZONE_BLOCK_PERMISSIONS,
   },
   fields: {
     is_active: {
@@ -75,14 +75,7 @@ export const ZonePopup: ComponentConfig<ZonePopupProps> = {
     },
     slot: {
       type: "slot",
-      disallow: [
-        "Section",
-        "SiteHeader",
-        "SiteFooter",
-        "ZoneDrawer",
-        "ZonePopup",
-        "ZoneBottomSheet",
-      ],
+      disallow: ["Section", ...ZONE_BLOCK_TYPES],
     },
   },
   defaultProps: {

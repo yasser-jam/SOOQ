@@ -8,6 +8,7 @@ import {
 } from "../../content/typography-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import { withLayout } from "../../components/Layout";
+import { ZONE_BLOCK_TYPES } from "../../shell-zones";
 import type { RowGroupProps } from "./types";
 
 const RowGroupInner: ComponentConfig<RowGroupProps> = {
@@ -65,7 +66,7 @@ const RowGroupInner: ComponentConfig<RowGroupProps> = {
     }),
     content: {
       type: "slot",
-      disallow: ["Section"],
+      disallow: ["Section", ...ZONE_BLOCK_TYPES],
     },
   },
 

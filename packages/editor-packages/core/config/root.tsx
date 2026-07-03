@@ -333,7 +333,8 @@ export const Root: RootConfig<{
         >
           <DropZone
             zone={ZONE_HEADER}
-            allow={["SiteHeader"]}
+            allow={["Section"]}
+            disallow={["SiteHeader", "SiteFooter"]}
             minEmptyHeight={isEditing ? 72 : 0}
             style={isEditing ? { borderBottom: "1px dashed rgba(37, 99, 235, 0.25)" } : undefined}
           />
@@ -348,7 +349,8 @@ export const Root: RootConfig<{
 
           <DropZone
             zone={ZONE_FOOTER}
-            allow={["SiteFooter"]}
+            allow={["Section"]}
+            disallow={["SiteHeader", "SiteFooter"]}
             minEmptyHeight={isEditing ? 72 : 0}
             style={isEditing ? { borderTop: "1px dashed rgba(37, 99, 235, 0.25)" } : undefined}
           />

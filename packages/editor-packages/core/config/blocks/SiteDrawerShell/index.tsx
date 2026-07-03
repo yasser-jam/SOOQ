@@ -11,6 +11,7 @@ import {
   type SiteDrawerSide,
   type SiteDrawerTrigger,
 } from "../../components/SiteDrawer";
+import { ZONE_BLOCK_PERMISSIONS } from "../../shell-zones";
 
 export type SiteDrawerShellProps = {
   name: string;
@@ -47,9 +48,7 @@ export type SiteDrawerShellProps = {
 export const SiteDrawerShell: ComponentConfig<SiteDrawerShellProps> = {
   label: "درج جانبي",
   permissions: {
-    insert: false,
-    duplicate: false,
-    delete: false,
+    ...ZONE_BLOCK_PERMISSIONS,
   },
   fields: {
     enabled: {

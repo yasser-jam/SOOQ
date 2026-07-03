@@ -4,7 +4,7 @@ import { IframeConfig, UiState } from "../../../../types";
 import { usePropsContext } from "../..";
 import styles from "./styles.module.css";
 import { useInjectGlobalCss } from "../../../../lib/use-inject-css";
-import { useAppStore, useAppStoreApi } from "../../../../store";
+import { useAppStore } from "../../../../store";
 import { DefaultOverride } from "../../../DefaultOverride";
 import { monitorHotkeys, useMonitorHotkeys } from "../../../../lib/use-hotkey";
 import { getFrame } from "../../../../lib/get-frame";
@@ -70,7 +70,10 @@ const FieldSideBar = () => {
     const item = s.selectedItem;
     if (!item) return "";
 
-    return s.config.components[item.type]?.["label"] ?? item.type.toString();
+    const label = s.config.components[item.type]?.label;
+    if (typeof label === "string" && label.trim()) return label;
+
+    return item.type.toString();
   });
 
   if (!selectedItem) {
@@ -216,7 +219,6 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
   const setUi = useAppStore((s) => s.setUi);
   const currentPlugin = useAppStore((s) => s.state.ui.plugin?.current);
   const selectedItem = useAppStore((s) => s.selectedItem);
-  const appStoreApi = useAppStoreApi();
 
   const [mobilePanelHeightMode, setMobilePanelHeightMode] = useState<
     "toggle" | "min-content"
@@ -288,15 +290,16 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
     });
 
     return details;
-  }, [plugins, builtinPlugins, currentPlugin, appStoreApi, leftSideBarVisible]);
+  }, [plugins, builtinPlugins, currentPlugin, leftSideBarVisible]);
 
   useEffect(() => {
-    if (!currentPlugin) {
-      const names = Object.keys(pluginItems);
+    if (currentPlugin) return;
 
-      setUi({ plugin: { current: names[0] } });
-    }
-  }, [pluginItems, currentPlugin]);
+    const names = Object.keys(pluginItems);
+    if (names.length === 0) return;
+
+    setUi({ plugin: { current: names[0] } });
+  }, [pluginItems, currentPlugin, setUi]);
 
   const hasDesktopFieldsPlugin =
     pluginItems["fields"] && pluginItems["fields"].mobileOnly === false;

@@ -36,3 +36,23 @@ export const ROOT_SITE_ZONE_KEYS = [
   ROOT_ZONE_POPUP,
   ROOT_ZONE_BOTTOM_SHEET,
 ] as const;
+
+/** Puck block types that belong only in site-wide zone DropZones — never in page sections. */
+export const ZONE_BLOCK_TYPES = [
+  "SiteHeader",
+  "SiteFooter",
+  "SiteDrawerShell",
+  "ZoneDrawer",
+  "ZonePopup",
+  "ZoneBottomSheet",
+] as const;
+
+export type ZoneBlockType = (typeof ZONE_BLOCK_TYPES)[number];
+
+/** Fixed permissions for zone shell blocks (managed via المناطق plugin). */
+export const ZONE_BLOCK_PERMISSIONS = {
+  insert: false,
+  duplicate: false,
+  drag: false,
+  delete: false,
+} as const;

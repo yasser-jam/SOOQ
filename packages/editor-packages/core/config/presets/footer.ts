@@ -1,9 +1,12 @@
 import type { ZonePreset } from "./types";
+import { createHeading } from "./shared";
 import {
-  PRESET_FOOTER_BOTTOM_LINKS,
-  PRESET_FOOTER_COLUMNS,
-} from "./shell-defaults";
-import { createShellBlock } from "./shared";
+  DEFAULT_FOOTER_BOTTOM,
+  DEFAULT_FOOTER_BOTTOM_LINKS_NAV,
+  DEFAULT_FOOTER_TAGLINE,
+  createDefaultFooterColumns,
+  createFooterSection,
+} from "./zone-shell";
 
 const footerCommerceFull: ZonePreset = {
   id: "footer-commerce-full",
@@ -11,22 +14,37 @@ const footerCommerceFull: ZonePreset = {
   title: "تذييل تجاري — أعمدة كاملة",
   previewImage:
     "https://placehold.co/800x320/10213a/f8fafc?text=Commerce+Footer",
-  componentData: createShellBlock("SiteFooter", {
-    title: "متجري",
-    variant: "commerce",
-    language: "ar",
-    visible: true,
-    is_mobile_only: false,
-    tagline: "Your one-stop shop for curated goods.",
-    taglineAr: "متجرك الشامل للسلع المختارة بعناية.",
-    showBottomBar: true,
-    bottomBarText: "© 2026 Meridian",
-    bottomBarTextAr: "© ٢٠٢٦ متجري",
-    columns: [...PRESET_FOOTER_COLUMNS],
-    bottomLinks: [...PRESET_FOOTER_BOTTOM_LINKS],
-    backgroundColor: "",
-    textColor: "",
-  }),
+  componentData: createFooterSection(
+    {
+      backgroundColor: "#10213a",
+      theme: "light",
+    },
+    [
+      createHeading("متجري", {
+        fontSize: "theme-2xl",
+        fontWeight: "theme-bold",
+        color: "theme-surface",
+      }),
+      DEFAULT_FOOTER_TAGLINE,
+      {
+        type: "Group",
+        props: {
+          direction: "row",
+          gap: 32,
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          wrap: "wrap",
+          backgroundColor: "",
+          padding: "0px",
+          borderRadius: "theme-none",
+          boxShadow: "none",
+          content: createDefaultFooterColumns(),
+        },
+      },
+      DEFAULT_FOOTER_BOTTOM_LINKS_NAV,
+      DEFAULT_FOOTER_BOTTOM,
+    ]
+  ),
 };
 
 const footerDefaultClassic: ZonePreset = {
@@ -35,22 +53,35 @@ const footerDefaultClassic: ZonePreset = {
   title: "تذييل كلاسيكي — أعمدة",
   previewImage:
     "https://placehold.co/800x320/f8fafc/64748b?text=Classic+Footer",
-  componentData: createShellBlock("SiteFooter", {
-    title: "متجري",
-    variant: "default",
-    language: "ar",
-    visible: true,
-    is_mobile_only: false,
-    tagline: "Quality products, delivered with care.",
-    taglineAr: "منتجات عالية الجودة تُسلَّم بعناية.",
-    showBottomBar: true,
-    bottomBarText: "© 2026 Meridian",
-    bottomBarTextAr: "© ٢٠٢٦ متجري",
-    columns: [...PRESET_FOOTER_COLUMNS.slice(0, 2)],
-    bottomLinks: [...PRESET_FOOTER_BOTTOM_LINKS],
-    backgroundColor: "",
-    textColor: "",
-  }),
+  componentData: createFooterSection(
+    {
+      backgroundColor: "#f8fafc",
+      theme: "dark",
+    },
+    [
+      createHeading("متجري", {
+        fontSize: "theme-xl",
+        fontWeight: "theme-bold",
+      }),
+      DEFAULT_FOOTER_TAGLINE,
+      {
+        type: "Group",
+        props: {
+          direction: "row",
+          gap: 32,
+          alignItems: "flex-start",
+          justifyContent: "flex-start",
+          wrap: "wrap",
+          backgroundColor: "",
+          padding: "0px",
+          borderRadius: "theme-none",
+          boxShadow: "none",
+          content: createDefaultFooterColumns().slice(0, 2),
+        },
+      },
+      DEFAULT_FOOTER_BOTTOM,
+    ]
+  ),
 };
 
 const footerCommerceMinimal: ZonePreset = {
@@ -59,22 +90,36 @@ const footerCommerceMinimal: ZonePreset = {
   title: "تذييل تجاري — مبسّط",
   previewImage:
     "https://placehold.co/800x240/1f2937/f8fafc?text=Minimal+Footer",
-  componentData: createShellBlock("SiteFooter", {
-    title: "متجري",
-    variant: "commerce",
-    language: "ar",
-    visible: true,
-    is_mobile_only: false,
-    tagline: "Simple footer with brand and two link columns.",
-    taglineAr: "تذييل بسيط مع العلامة وعمودين للروابط.",
-    showBottomBar: false,
-    bottomBarText: "",
-    bottomBarTextAr: "",
-    columns: [...PRESET_FOOTER_COLUMNS.slice(0, 2)],
-    bottomLinks: [...PRESET_FOOTER_BOTTOM_LINKS.slice(0, 1)],
-    backgroundColor: "#10213a",
-    textColor: "#ffffff",
-  }),
+  componentData: createFooterSection(
+    {
+      backgroundColor: "#1f2937",
+      theme: "light",
+      paddingTop: "32px",
+      paddingBottom: "32px",
+    },
+    [
+      createHeading("متجري", {
+        fontSize: "theme-lg",
+        fontWeight: "theme-semibold",
+        color: "theme-surface",
+      }),
+      {
+        type: "Group",
+        props: {
+          direction: "row",
+          gap: 24,
+          alignItems: "flex-start",
+          justifyContent: "flex-start",
+          wrap: "wrap",
+          backgroundColor: "",
+          padding: "0px",
+          borderRadius: "theme-none",
+          boxShadow: "none",
+          content: createDefaultFooterColumns().slice(0, 2),
+        },
+      },
+    ]
+  ),
 };
 
 export const ZONE_FOOTER_PRESETS: ZonePreset[] = [
@@ -82,6 +127,8 @@ export const ZONE_FOOTER_PRESETS: ZonePreset[] = [
   footerDefaultClassic,
   footerCommerceMinimal,
 ];
+
+export const DEFAULT_ZONE_FOOTER_PRESET = footerDefaultClassic;
 
 /** @deprecated Use ZONE_FOOTER_PRESETS */
 export const FOOTER_PRESETS = ZONE_FOOTER_PRESETS;

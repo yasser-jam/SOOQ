@@ -8,6 +8,7 @@ import {
 } from "../../content/typography-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import { WithLayout, withLayout } from "../../components/Layout";
+import { ZONE_BLOCK_TYPES } from "../../shell-zones";
 import {
   productExternalField,
   buildProductResourceMetadata,
@@ -177,7 +178,7 @@ const GroupInternal: ComponentConfig<GroupProps> = {
     },
     content: {
       type: "slot",
-      disallow: ["Section"],
+      disallow: ["Section", ...ZONE_BLOCK_TYPES],
     },
   },
 

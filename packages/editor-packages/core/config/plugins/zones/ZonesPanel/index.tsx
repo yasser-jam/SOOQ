@@ -4,12 +4,20 @@ import React, { useCallback, useMemo } from "react";
 import { Check, ChevronRight } from "lucide-react";
 import { useAppStore, useAppStoreApi } from "@/core/store";
 import { getClassNameFactory } from "@/core/lib";
-import { getItem } from "@/core/lib/data/get-item";
-import { ensureZoneBlockSelector } from "../../../lib/ensure-zone-selection";
+import { applyZonePreset } from "../../../lib/apply-zone-preset";
+import {
+  ensureZoneBlockSelector,
+  ensureZoneSectionSelector,
+} from "../../../lib/ensure-zone-selection";
 import {
   ZONE_DEFINITIONS,
+  getZoneDefinitionByRootZone,
   type ZoneDefinition,
 } from "../../../lib/zone-registry";
+import { DEFAULT_ZONE_FOOTER_PRESET } from "../../../presets/footer";
+import { DEFAULT_ZONE_HEADER_PRESET } from "../../../presets/header";
+import { getZonePresetsByCategory } from "../../../presets/index";
+import type { ZonePreset } from "../../../presets/types";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   Card,
@@ -19,21 +27,60 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
+import { useShallow } from "zustand/react/shallow";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("ZonesPanel", styles);
 
+const EMPTY_ZONE_ITEMS: never[] = [];
+
+const resolveZoneDefinition = (
+  item: { type: string } | null,
+  itemSelector: { zone?: string } | null
+): ZoneDefinition | undefined => {
+  if (!item || !itemSelector) return undefined;
+
+  if (item.type === "Section" && itemSelector.zone) {
+    return getZoneDefinitionByRootZone(itemSelector.zone);
+  }
+
+  return ZONE_DEFINITIONS.find((zone) => zone.blockType === item.type);
+};
+
 const isZoneActive = (
-  blockType: string,
+  definition: ZoneDefinition,
   props: Record<string, unknown> | undefined
 ): boolean => {
   if (!props) return false;
 
-  if (blockType === "SiteHeader" || blockType === "SiteFooter") {
+  if (definition.isPresetZone) {
     return props.visible !== false;
   }
 
   return props.is_active === true;
+};
+
+const getZoneBlock = (definition: ZoneDefinition, items: { type: string }[]) => {
+  if (definition.isPresetZone) {
+    return items.find((item) => item.type === "Section") ?? null;
+  }
+
+  return items.find((item) => item.type === definition.blockType) ?? null;
+};
+
+const getZoneDisplayTitle = (
+  definition: ZoneDefinition,
+  props: Record<string, unknown>
+) => {
+  if (definition.isPresetZone) {
+    const name = props.name;
+    if (typeof name === "string" && name.trim()) return name;
+  }
+
+  const title = props.title;
+  if (typeof title === "string" && title.trim()) return title;
+
+  return definition.title;
 };
 
 const getZoneStatusLabel = (active: boolean, configured: boolean) => {
@@ -44,40 +91,29 @@ const getZoneStatusLabel = (active: boolean, configured: boolean) => {
 export function ZonesPanel() {
   const dispatch = useAppStore((s) => s.dispatch);
   const appStoreApi = useAppStoreApi();
-  const zones = useAppStore((s) => s.state.data.zones ?? {});
-  const itemSelector = useAppStore((s) => s.state.ui.itemSelector);
-  const state = useAppStore((s) => s.state);
+  const zones = useAppStore((s) => s.state.data.zones);
+  const itemSelector = useAppStore(useShallow((s) => s.state.ui.itemSelector));
+  const selectedItem = useAppStore((s) => s.selectedItem);
 
-  const selectedZoneId = useMemo(() => {
-    if (!itemSelector) return null;
+  const selectedZoneDefinition = useMemo(() => {
+    return resolveZoneDefinition(selectedItem ?? null, itemSelector) ?? null;
+  }, [itemSelector, selectedItem]);
 
-    const item = getItem(itemSelector, state);
-    if (!item) return null;
-
-    const definition = ZONE_DEFINITIONS.find(
-      (zone) => zone.blockType === item.type
-    );
-    return definition?.id ?? null;
-  }, [itemSelector, state]);
+  const selectedZoneId = selectedZoneDefinition?.id ?? null;
 
   const zoneCards = useMemo(() => {
     return ZONE_DEFINITIONS.map((definition) => {
-      const items = zones[definition.rootZone] ?? [];
-      const index = items.findIndex((item) => item.type === definition.blockType);
-      const block = index >= 0 ? items[index] : null;
+      const items = zones?.[definition.rootZone] ?? EMPTY_ZONE_ITEMS;
+      const block = getZoneBlock(definition, items);
       const props = (block?.props ?? {}) as Record<string, unknown>;
-      const configured = index >= 0;
-      const active = configured && isZoneActive(definition.blockType, props);
+      const configured = block !== null;
+      const active = configured && isZoneActive(definition, props);
 
       return {
         definition,
-        index,
         configured,
         active,
-        title:
-          typeof props.title === "string" && props.title.trim()
-            ? props.title
-            : definition.title,
+        title: getZoneDisplayTitle(definition, props),
         eventKey:
           typeof props.key === "string" && props.key.trim()
             ? props.key
@@ -85,6 +121,11 @@ export function ZonesPanel() {
       };
     });
   }, [zones]);
+
+  const zonePresets = useMemo(() => {
+    if (!selectedZoneDefinition?.presetCategory) return [];
+    return getZonePresetsByCategory(selectedZoneDefinition.presetCategory);
+  }, [selectedZoneDefinition]);
 
   const deselectZone = useCallback(() => {
     dispatch({
@@ -107,11 +148,19 @@ export function ZonesPanel() {
         return;
       }
 
-      const selector = await ensureZoneBlockSelector(
-        definition.rootZone,
-        definition.blockType,
-        appStoreApi
-      );
+      const selector = definition.isPresetZone
+        ? await ensureZoneSectionSelector(
+            definition.rootZone,
+            definition.presetCategory === "zone-footer"
+              ? DEFAULT_ZONE_FOOTER_PRESET
+              : DEFAULT_ZONE_HEADER_PRESET,
+            appStoreApi
+          )
+        : await ensureZoneBlockSelector(
+            definition.rootZone,
+            definition.blockType,
+            appStoreApi
+          );
 
       if (!selector) return;
 
@@ -128,6 +177,24 @@ export function ZonesPanel() {
     [appStoreApi, deselectZone, dispatch, selectedZoneId]
   );
 
+  const applyPreset = useCallback(
+    (preset: ZonePreset) => {
+      if (!selectedZoneDefinition) return;
+
+      applyZonePreset(selectedZoneDefinition.rootZone, preset, appStoreApi);
+
+      dispatch({
+        type: "setUi",
+        ui: {
+          plugin: { current: "zones" },
+          leftSideBarVisible: true,
+          rightSideBarVisible: true,
+        },
+      });
+    },
+    [appStoreApi, dispatch, selectedZoneDefinition]
+  );
+
   return (
     <div className={getClassName()}>
       <header className={getClassName("header")}>
@@ -138,62 +205,111 @@ export function ZonesPanel() {
       </header>
 
       <div className={getClassName("grid")}>
-        {zoneCards.map(
-          ({ definition, configured, active, title, eventKey }) => {
-            const Icon = definition.icon;
-            const isSelected = selectedZoneId === definition.id;
+        {zoneCards.map(({ definition, configured, active, title, eventKey }) => {
+          const Icon = definition.icon;
+          const isSelected = selectedZoneId === definition.id;
 
-            return (
-              <button
-                key={definition.id}
-                type="button"
-                className={cn(getClassName("cardButton"), isSelected && styles.cardSelected)}
-                onClick={() => selectZone(definition)}
+          return (
+            <button
+              key={definition.id}
+              type="button"
+              className={cn(
+                getClassName("cardButton"),
+                isSelected && styles.cardSelected
+              )}
+              onClick={() => selectZone(definition)}
+            >
+              <Card
+                className={cn(
+                  "text-start",
+                  isSelected && "border-primary ring-2 ring-primary/20"
+                )}
               >
-                <Card className={cn("text-start", isSelected && "border-primary ring-2 ring-primary/20")}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={cn(
-                            "flex h-10 w-10 items-center justify-center rounded-lg",
-                            isSelected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                          )}
-                        >
-                          <Icon size={18} />
-                        </span>
-                        <div>
-                          <CardTitle className="text-base">{definition.title}</CardTitle>
-                          <CardDescription className="text-xs">
-                            {configured && title !== definition.title ? title : definition.description}
-                          </CardDescription>
-                        </div>
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={cn(
+                          "flex h-10 w-10 items-center justify-center rounded-lg",
+                          isSelected
+                            ? "bg-primary/10 text-primary"
+                            : "bg-muted text-muted-foreground"
+                        )}
+                      >
+                        <Icon size={18} />
+                      </span>
+                      <div>
+                        <CardTitle className="text-base">
+                          {definition.title}
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                          {configured && title !== definition.title
+                            ? title
+                            : definition.description}
+                        </CardDescription>
                       </div>
-                      {isSelected ? (
-                        <Check size={18} className="text-primary shrink-0" />
-                      ) : (
-                        <ChevronRight size={18} className="text-muted-foreground shrink-0" />
-                      )}
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant={active ? "default" : "secondary"}>
-                        {getZoneStatusLabel(active, configured)}
+                    {isSelected ? (
+                      <Check size={18} className="text-primary shrink-0" />
+                    ) : (
+                      <ChevronRight
+                        size={18}
+                        className="text-muted-foreground shrink-0"
+                      />
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant={active ? "default" : "secondary"}>
+                      {getZoneStatusLabel(active, configured)}
+                    </Badge>
+                    {eventKey && definition.isOverlay ? (
+                      <Badge variant="outline" className="font-mono text-[11px]">
+                        {eventKey}
                       </Badge>
-                      {eventKey && definition.isOverlay ? (
-                        <Badge variant="outline" className="font-mono text-[11px]">
-                          {eventKey}
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </CardContent>
-                </Card>
-              </button>
-            );
-          }
-        )}
+                    ) : null}
+                  </div>
+                </CardContent>
+              </Card>
+            </button>
+          );
+        })}
       </div>
+
+      {selectedZoneDefinition?.isPresetZone && zonePresets.length > 0 ? (
+        <section className={getClassName("presets")}>
+          <div className={getClassName("presetsHeader")}>
+            <h3 className={getClassName("presetsTitle")}>قوالب {selectedZoneDefinition.title}</h3>
+            <p className={getClassName("presetsSubtitle")}>
+              اختر قالباً لاستبدال محتوى المنطقة. يمكنك تعديل المحتوى بعد التطبيق.
+            </p>
+          </div>
+          <div className={getClassName("presetGrid")}>
+            {zonePresets.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className={getClassName("presetCard")}
+                onClick={() => applyPreset(preset)}
+              >
+                <div className={getClassName("presetPreview")}>
+                  {preset.previewImage ? (
+                    <img
+                      src={preset.previewImage}
+                      alt=""
+                      className={getClassName("presetImage")}
+                    />
+                  ) : (
+                    <div className={getClassName("presetPlaceholder")} />
+                  )}
+                </div>
+                <span className={getClassName("presetLabel")}>{preset.title}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

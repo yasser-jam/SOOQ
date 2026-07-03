@@ -3,6 +3,7 @@ import { ComponentConfig } from "@/core/types";
 import type { Slot } from "@/core/types";
 import { colorField } from "../../fields/ColorField";
 import { ZoneDrawer as ZoneDrawerComponent } from "../../components/ZoneDrawer";
+import { ZONE_BLOCK_PERMISSIONS, ZONE_BLOCK_TYPES } from "../../shell-zones";
 
 export type ZoneDrawerProps = {
   is_active: boolean;
@@ -18,8 +19,7 @@ export type ZoneDrawerProps = {
 export const ZoneDrawer: ComponentConfig<ZoneDrawerProps> = {
   label: "درج المنطقة",
   permissions: {
-    insert: false,
-    duplicate: false,
+    ...ZONE_BLOCK_PERMISSIONS,
   },
   fields: {
     is_active: {
@@ -73,14 +73,7 @@ export const ZoneDrawer: ComponentConfig<ZoneDrawerProps> = {
     },
     slot: {
       type: "slot",
-      disallow: [
-        "Section",
-        "SiteHeader",
-        "SiteFooter",
-        "ZoneDrawer",
-        "ZonePopup",
-        "ZoneBottomSheet",
-      ],
+      disallow: ["Section", ...ZONE_BLOCK_TYPES],
     },
   },
   defaultProps: {

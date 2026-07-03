@@ -4,6 +4,8 @@ import { getSelectorForId } from "@/core/lib/get-selector-for-id";
 import { insertComponent } from "@/core/lib/insert-component";
 import type { useAppStoreApi } from "@/core/store";
 import type { PrivateAppState } from "@/core/types/Internal";
+import type { ZonePreset } from "../presets/types";
+import { applyZonePreset } from "./apply-zone-preset";
 
 type AppStoreApi = ReturnType<typeof useAppStoreApi>;
 
@@ -64,6 +66,54 @@ export async function ensureZoneBlockSelector(
   }
 
   const blockId = block?.props?.id;
+  if (typeof blockId !== "string" || !blockId) {
+    return null;
+  }
+
+  let selector = getSelectorForId(state, blockId);
+
+  if (!selector) {
+    reindexState(appStoreApi);
+    selector = getSelectorForId(appStoreApi.getState().state, blockId);
+  }
+
+  if (!selector) return null;
+
+  const item = getItem(selector, appStoreApi.getState().state);
+  if (!item) return null;
+
+  return selector;
+}
+
+/** Ensures a header/footer zone has a Section (from default preset if empty). */
+export async function ensureZoneSectionSelector(
+  rootZone: string,
+  defaultPreset: ZonePreset,
+  appStoreApi: AppStoreApi
+): Promise<ItemSelector | null> {
+  appStoreApi.getState().dispatch({
+    type: "registerZone",
+    zone: rootZone,
+    recordHistory: false,
+  });
+
+  let state = appStoreApi.getState().state;
+  const zoneItems = state.data.zones?.[rootZone] ?? [];
+  let section = zoneItems.find((item) => item.type === "Section");
+
+  if (!section) {
+    const hasLegacyShell = zoneItems.some(
+      (item) => item.type === "SiteHeader" || item.type === "SiteFooter"
+    );
+
+    if (hasLegacyShell || zoneItems.length === 0) {
+      return applyZonePreset(rootZone, defaultPreset, appStoreApi);
+    }
+
+    return null;
+  }
+
+  const blockId = section.props?.id;
   if (typeof blockId !== "string" || !blockId) {
     return null;
   }

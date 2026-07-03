@@ -50,6 +50,20 @@ export function registerZoneAction<UserData extends Data>(
     };
   }
 
+  const existingZoneContent = state.data.zones?.[action.zone];
+  const zoneAlreadyIndexed =
+    Array.isArray(existingZoneContent) &&
+    existingZoneContent.length > 0 &&
+    appStore &&
+    existingZoneContent.every((item) => {
+      const id = item.props?.id;
+      return typeof id === "string" && !!getSelectorForId(state, id);
+    });
+
+  if (zoneAlreadyIndexed) {
+    return state;
+  }
+
   const data = setupZone(state.data, action.zone);
   const nextState = { ...state, data };
   const zoneContent = data.zones?.[action.zone] ?? [];

@@ -6,6 +6,7 @@ import {
   Square,
   RectangleHorizontal,
 } from "lucide-react";
+import type { ZonePresetCategory } from "../presets/types";
 import {
   ROOT_ZONE_BOTTOM_SHEET,
   ROOT_ZONE_DRAWER,
@@ -24,11 +25,15 @@ export type ZoneDefinition = {
   id: string;
   zoneKey: SiteZoneKey;
   rootZone: string;
+  /** Puck block type for overlay zones; `Section` for header/footer preset zones */
   blockType: string;
   title: string;
   description: string;
   icon: LucideIcon;
   isOverlay: boolean;
+  /** Header/footer zones use Section presets instead of a single shell block */
+  isPresetZone?: boolean;
+  presetCategory?: ZonePresetCategory;
 };
 
 export const ZONE_DEFINITIONS: ZoneDefinition[] = [
@@ -36,21 +41,25 @@ export const ZONE_DEFINITIONS: ZoneDefinition[] = [
     id: "header",
     zoneKey: ZONE_HEADER,
     rootZone: ROOT_ZONE_HEADER,
-    blockType: "SiteHeader",
+    blockType: "Section",
     title: "رأس الموقع",
-    description: "شريط العلامة التجارية والتنقل أعلى كل صفحة",
+    description: "قسم علوي ثابت — اختر قالباً وعدّل المحتوى داخله",
     icon: LayoutPanelTop,
     isOverlay: false,
+    isPresetZone: true,
+    presetCategory: "zone-header",
   },
   {
     id: "footer",
     zoneKey: ZONE_FOOTER,
     rootZone: ROOT_ZONE_FOOTER,
-    blockType: "SiteFooter",
+    blockType: "Section",
     title: "تذييل الموقع",
-    description: "أعمدة الروابط والشريط السفلي في نهاية الصفحة",
+    description: "قسم سفلي ثابت — اختر قالباً وعدّل المحتوى داخله",
     icon: PanelBottom,
     isOverlay: false,
+    isPresetZone: true,
+    presetCategory: "zone-footer",
   },
   {
     id: "drawer",

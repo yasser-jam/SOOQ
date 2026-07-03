@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-import { useAppStore } from "@/core/store";
+import { useAppStore, useAppStoreApi } from "@/core/store";
 
 /** Content palette without HTML block (matches `config.categories.content.components`). */
 export const CONTENT_PALETTE_BASE = [
@@ -42,35 +42,34 @@ export function HtmlBlockPaletteSync() {
       (s.state.data.root.props as { enableHtmlRichTextBlock?: boolean })
         ?.enableHtmlRichTextBlock === true
   );
-  const dispatch = useAppStore((s) => s.dispatch);
+  const appStoreApi = useAppStoreApi();
 
   useEffect(() => {
+    const { state, dispatch } = appStoreApi.getState();
+    const content = state.ui.componentList?.content;
+    if (!content?.components) return;
+
+    const next = enable
+      ? [...CONTENT_PALETTE_WITH_HTML]
+      : [...CONTENT_PALETTE_BASE];
+
+    if (listsEqual(content.components as string[], next)) {
+      return;
+    }
+
     dispatch({
       type: "setUi",
-      ui: (prev) => {
-        const content = prev.componentList?.content;
-        if (!content?.components) return {};
-
-        const next = enable
-          ? [...CONTENT_PALETTE_WITH_HTML]
-          : [...CONTENT_PALETTE_BASE];
-
-        if (listsEqual(content.components as string[], next)) {
-          return {};
-        }
-
-        return {
-          componentList: {
-            ...prev.componentList,
-            content: {
-              ...content,
-              components: next,
-            },
+      ui: {
+        componentList: {
+          ...state.ui.componentList,
+          content: {
+            ...content,
+            components: next,
           },
-        };
+        },
       },
     });
-  }, [enable, dispatch]);
+  }, [enable, appStoreApi]);
 
   return null;
 }

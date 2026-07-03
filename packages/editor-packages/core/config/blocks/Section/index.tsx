@@ -4,6 +4,7 @@ import { getClassNameFactory } from "@/core/lib";
 import { spacingOptions } from "../../options";
 import { resolveColor } from "../../content/color-fields";
 import { WithLayout, withLayout } from "../../components/Layout";
+import { ZONE_BLOCK_TYPES } from "../../shell-zones";
 import {
   DEFAULT_SECTION_NAME,
   createSectionStarterContent,
@@ -214,7 +215,7 @@ const SectionInner: ComponentConfig<SectionProps> = {
     // ── Content slot ─────────────────────────────────────────────────────
     content: {
       type: "slot",
-      disallow: ["Section"], // no nested sections
+      disallow: ["Section", ...ZONE_BLOCK_TYPES],
     },
   },
 

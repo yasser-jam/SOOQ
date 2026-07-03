@@ -9,7 +9,7 @@ import {
   type HeaderDrawerIcon,
   type HeaderLink,
 } from "../../components/Header";
-import type { ShellVariant } from "../../theme";
+import { ZONE_BLOCK_PERMISSIONS, ZONE_BLOCK_TYPES } from "../../shell-zones";
 
 export type SiteHeaderProps = {
   title: string;
@@ -37,8 +37,7 @@ export type SiteHeaderProps = {
 export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
   label: "رأس الموقع",
   permissions: {
-    insert: false,
-    duplicate: false,
+    ...ZONE_BLOCK_PERMISSIONS,
   },
   fields: {
     title: {
@@ -156,7 +155,7 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
     },
     rightSlot: {
       type: "slot",
-      disallow: ["Section", "SiteHeader", "SiteDrawerShell", "SiteFooter"],
+      disallow: ["Section", ...ZONE_BLOCK_TYPES],
     },
   },
   defaultProps: {

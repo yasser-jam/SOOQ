@@ -3,6 +3,7 @@ import { ComponentConfig } from "@/core/types";
 import type { Slot } from "@/core/types";
 import { colorField } from "../../fields/ColorField";
 import { ZoneBottomSheet as ZoneBottomSheetComponent } from "../../components/ZoneBottomSheet";
+import { ZONE_BLOCK_PERMISSIONS, ZONE_BLOCK_TYPES } from "../../shell-zones";
 
 export type ZoneBottomSheetProps = {
   is_active: boolean;
@@ -19,8 +20,7 @@ export type ZoneBottomSheetProps = {
 export const ZoneBottomSheet: ComponentConfig<ZoneBottomSheetProps> = {
   label: "ورقة سفلية",
   permissions: {
-    insert: false,
-    duplicate: false,
+    ...ZONE_BLOCK_PERMISSIONS,
   },
   fields: {
     is_active: {
@@ -75,14 +75,7 @@ export const ZoneBottomSheet: ComponentConfig<ZoneBottomSheetProps> = {
     },
     slot: {
       type: "slot",
-      disallow: [
-        "Section",
-        "SiteHeader",
-        "SiteFooter",
-        "ZoneDrawer",
-        "ZonePopup",
-        "ZoneBottomSheet",
-      ],
+      disallow: ["Section", ...ZONE_BLOCK_TYPES],
     },
   },
   defaultProps: {
