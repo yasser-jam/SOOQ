@@ -16,13 +16,18 @@ import {
 import type { ProductCardActionEventDetail } from "@/core/config/binding/product-actions"
 import {
 	addOrUpdateLine,
-	clearCart,
 	readStoreCart,
+	type StoreCart,
 } from "@/core/config/cart/store-cart"
+import {
+	CREATE_ORDER_EVENT,
+	type CreateOrderEventDetail,
+} from "@/core/config/cart/make-order"
 import { registerAddProductCartListener } from "@/core/config/cart/use-store-cart"
+import { CheckoutDrawer } from "./checkout/CheckoutDrawer"
 import {
 	getStoreTenantId,
-	submitCheckoutOrderFromCart,
+	validateCartForCheckout,
 } from "./checkout/checkout-api"
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -83,6 +88,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		verifyOtp: null,
 		makeOrder: null,
 	})
+
+	const [checkoutOpen, setCheckoutOpen] = useState(false)
+	const [checkoutCart, setCheckoutCart] = useState<StoreCart | null>(null)
 
 	// Hydrate auth state from cookies on the client
 	useEffect(() => {
@@ -170,32 +178,50 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		}
 	}, [])
 
+	// ─── checkout dialog ───────────────────────────────────────────────────────
+
+	const openCheckout = useCallback((cart: StoreCart) => {
+		validateCartForCheckout(cart)
+		setCheckoutCart(cart)
+		setCheckoutOpen(true)
+	}, [])
+
+	const closeCheckout = useCallback(() => {
+		setCheckoutOpen(false)
+		setCheckoutCart(null)
+	}, [])
+
+	useEffect(() => {
+		const handler = (e: Event) => {
+			const detail = (e as CustomEvent<CreateOrderEventDetail>).detail
+			if (!detail?.cart) return
+
+			try {
+				openCheckout(detail.cart)
+			} catch (err) {
+				console.error("[create-order]", err)
+			}
+		}
+
+		window.addEventListener(CREATE_ORDER_EVENT, handler)
+		return () => window.removeEventListener(CREATE_ORDER_EVENT, handler)
+	}, [openCheckout])
+
 	// ─── makeOrder ─────────────────────────────────────────────────────────────
 
 	const makeOrder = useCallback(async () => {
 		const cart = readStoreCart()
-
-		if (cart.items.length === 0) {
-			throw new Error("السلة فارغة. أضف منتجات قبل إتمام الطلب.")
-		}
-
-		console.log("[complete-order] cart items:", cart.items)
-
-		setLoading((prev) => ({ ...prev, makeOrder: true }))
 		setErrors((prev) => ({ ...prev, makeOrder: null }))
 
 		try {
-			await submitCheckoutOrderFromCart(cart, getStoreTenantId())
-			clearCart()
+			openCheckout(cart)
 		} catch (err) {
 			const msg =
 				err instanceof Error ? err.message : "حدث خطأ أثناء تقديم الطلب."
 			setErrors((prev) => ({ ...prev, makeOrder: msg }))
 			throw err
-		} finally {
-			setLoading((prev) => ({ ...prev, makeOrder: false }))
 		}
-	}, [])
+	}, [openCheckout])
 
 	// ─── addToCart ─────────────────────────────────────────────────────────────
 
@@ -237,5 +263,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		},
 	}
 
-	return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
+	return (
+		<StoreContext.Provider value={value}>
+			{children}
+			<CheckoutDrawer
+				open={checkoutOpen}
+				onClose={closeCheckout}
+				cart={checkoutCart}
+				tenantId={getStoreTenantId()}
+			/>
+		</StoreContext.Provider>
+	)
 }

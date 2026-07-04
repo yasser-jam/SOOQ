@@ -15,6 +15,8 @@ import {
 	type StoreCart,
 } from "@/core/config/cart/store-cart"
 import {
+	defaultCheckoutFormValues,
+	getCheckoutCustomerFromCookies,
 	mapCartToOrderItems,
 	submitCheckoutOrder,
 	validateCheckoutForm,
@@ -199,16 +201,32 @@ function Spinner() {
 	)
 }
 
-// ─── Drawer ───────────────────────────────────────────────────────────────────
+// ─── Recipient summary (read-only from cookies) ───────────────────────────────
 
-const EMPTY_FORM: CheckoutFormValues = {
-	recipientName: "",
-	phone: "",
-	addressLabel: "",
-	latitude: "",
-	longitude: "",
-	guestEmail: "",
+function RecipientSummary({
+	recipientName,
+	phone,
+}: {
+	recipientName: string
+	phone: string
+}) {
+	return (
+		<div className="space-y-2 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3.5">
+			<div className="flex items-center justify-between gap-3 text-sm">
+				<span className="text-gray-500">اسم المستلم</span>
+				<span className="font-semibold text-gray-900">{recipientName}</span>
+			</div>
+			<div className="flex items-center justify-between gap-3 text-sm">
+				<span className="text-gray-500">رقم الهاتف</span>
+				<span className="font-semibold text-gray-900" dir="ltr">
+					{phone}
+				</span>
+			</div>
+		</div>
+	)
 }
+
+// ─── Drawer ───────────────────────────────────────────────────────────────────
 
 type CheckoutDrawerProps = {
 	open: boolean
@@ -221,11 +239,23 @@ export function CheckoutDrawer({ open, onClose, cart, tenantId }: CheckoutDrawer
 	const dialogRef = useRef<HTMLDialogElement>(null)
 	const [panelVisible, setPanelVisible] = useState(false)
 
-	const [form, setForm] = useState<CheckoutFormValues>(EMPTY_FORM)
+	const [form, setForm] = useState<CheckoutFormValues>(defaultCheckoutFormValues)
 	const [errors, setErrors] = useState<CheckoutFormErrors>({})
 	const [submitError, setSubmitError] = useState<string | null>(null)
 	const [loading, setLoading] = useState(false)
 	const [succeeded, setSucceeded] = useState(false)
+
+	const recipient = useMemo(() => getCheckoutCustomerFromCookies(), [open])
+
+	// Reset form when dialog opens
+	useEffect(() => {
+		if (!open) return
+		setForm(defaultCheckoutFormValues())
+		setErrors({})
+		setSubmitError(null)
+		setSucceeded(false)
+		setLoading(false)
+	}, [open])
 
 	// ── Open / close the native <dialog> with animation ──────────────────────
 	useEffect(() => {
@@ -267,7 +297,7 @@ export function CheckoutDrawer({ open, onClose, cart, tenantId }: CheckoutDrawer
 
 	const handleClose = useCallback(() => {
 		if (succeeded) {
-			setForm(EMPTY_FORM)
+			setForm(defaultCheckoutFormValues())
 			setErrors({})
 			setSubmitError(null)
 			setSucceeded(false)
@@ -396,47 +426,13 @@ export function CheckoutDrawer({ open, onClose, cart, tenantId }: CheckoutDrawer
 								{/* Divider */}
 								<div className="h-px bg-gray-100" aria-hidden />
 
-								{/* Recipient info */}
+								{/* Recipient info (from cookies) */}
 								<div className="flex flex-col gap-4">
 									<SectionHeading icon="👤" title="معلومات المستلم" />
-
-									<Field id="recipientName" label="اسم المستلم" error={errors.recipientName}>
-										<TextInput
-											id="recipientName"
-											value={form.recipientName}
-											onChange={set("recipientName")}
-											placeholder="أحمد علي"
-											hasError={Boolean(errors.recipientName)}
-										/>
-									</Field>
-
-									<div className="grid grid-cols-2 gap-3">
-										<Field id="phone" label="رقم الهاتف" error={errors.phone}>
-											<TextInput
-												id="phone"
-												value={form.phone}
-												onChange={set("phone")}
-												placeholder="+963944…"
-												type="tel"
-												dir="ltr"
-												inputMode="tel"
-												hasError={Boolean(errors.phone)}
-											/>
-										</Field>
-
-										<Field id="guestEmail" label="البريد الإلكتروني" error={errors.guestEmail}>
-											<TextInput
-												id="guestEmail"
-												value={form.guestEmail}
-												onChange={set("guestEmail")}
-												placeholder="you@example.com"
-												type="email"
-												dir="ltr"
-												inputMode="email"
-												hasError={Boolean(errors.guestEmail)}
-											/>
-										</Field>
-									</div>
+									<RecipientSummary
+										recipientName={recipient.recipientName}
+										phone={recipient.phone}
+									/>
 								</div>
 
 								{/* Divider */}

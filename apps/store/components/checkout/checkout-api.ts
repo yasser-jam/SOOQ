@@ -97,34 +97,61 @@ export function mapCartToOrderItems(cart: StoreCart): MapCartResult {
 	return { items, warnings }
 }
 
+// ─── Pre-open validation (StoreProvider / create-order event) ─────────────────
+
+export function validateCartForCheckout(cart: StoreCart): void {
+	if (cart.items.length === 0) {
+		throw new Error("السلة فارغة. أضف منتجات قبل إتمام الطلب.")
+	}
+
+	const { recipientName, phone } = getCheckoutCustomerFromCookies()
+
+	if (!recipientName) {
+		throw new Error("اسم المستلم غير متوفر. سجّل الدخول أولاً.")
+	}
+
+	if (!phone) {
+		throw new Error("رقم الهاتف غير متوفر. سجّل الدخول أولاً.")
+	}
+
+	const { items, warnings } = mapCartToOrderItems(cart)
+
+	if (items.length === 0) {
+		const detail =
+			warnings.length > 0
+				? `\n${warnings.map((w) => `• ${w.productTitle}`).join("\n")}`
+				: ""
+		throw new Error(`لا توجد منتجات قابلة للطلب — تحقق من اختيار المتغيرات.${detail}`)
+	}
+}
+
 // ─── Form values (used by CheckoutDrawer) ──────────────────────────────────────
 
 export type CheckoutFormValues = {
-	recipientName: string
-	phone: string
 	addressLabel: string
 	latitude: string
 	longitude: string
-	guestEmail: string
 }
 
 export type CheckoutFormErrors = Partial<Record<keyof CheckoutFormValues, string>>
 
+export function defaultCheckoutFormValues(): CheckoutFormValues {
+	return {
+		addressLabel: DEFAULT_SHIPPING_ADDRESS.addressLabel,
+		latitude: String(DEFAULT_SHIPPING_ADDRESS.latitude),
+		longitude: String(DEFAULT_SHIPPING_ADDRESS.longitude),
+	}
+}
+
 export function validateCheckoutForm(values: CheckoutFormValues): CheckoutFormErrors {
 	const errors: CheckoutFormErrors = {}
 
-	if (!values.recipientName.trim())
-		errors.recipientName = "اسم المستلم مطلوب"
-	if (!values.phone.trim())
-		errors.phone = "رقم الهاتف مطلوب"
 	if (!values.addressLabel.trim())
 		errors.addressLabel = "وصف العنوان مطلوب"
 	if (!values.latitude || isNaN(Number(values.latitude)))
 		errors.latitude = "خط العرض مطلوب (رقم)"
 	if (!values.longitude || isNaN(Number(values.longitude)))
 		errors.longitude = "خط الطول مطلوب (رقم)"
-	if (!values.guestEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.guestEmail))
-		errors.guestEmail = "أدخل بريدًا إلكترونيًا صحيحًا"
 
 	return errors
 }
@@ -192,6 +219,16 @@ export async function submitCheckoutOrder(
 		throw new Error(`لا توجد منتجات قابلة للطلب — تحقق من اختيار المتغيرات.${detail}`)
 	}
 
+	const { recipientName, phone } = getCheckoutCustomerFromCookies()
+
+	if (!recipientName) {
+		throw new Error("اسم المستلم غير متوفر. سجّل الدخول أولاً.")
+	}
+
+	if (!phone) {
+		throw new Error("رقم الهاتف غير متوفر. سجّل الدخول أولاً.")
+	}
+
 	const headers: Record<string, string> = {}
 	if (tenantId) headers["X-Tenant-Id"] = tenantId
 
@@ -202,12 +239,12 @@ export async function submitCheckoutOrder(
 			shippingAddress: {
 				latitude: Number(values.latitude),
 				longitude: Number(values.longitude),
-				recipientName: values.recipientName,
-				phone: values.phone,
+				recipientName,
+				phone,
 				addressLabel: values.addressLabel,
 			},
 			paymentMethod: "COD",
-			guestEmail: values.guestEmail,
+			guestEmail: DEFAULT_GUEST_EMAIL,
 		},
 		{ headers },
 	)
