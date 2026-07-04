@@ -55,41 +55,42 @@ export const LINE_HEIGHT_OPTIONS = (
   ] as const
 ).map(([value, label]) => ({ label, value: value as LineHeightStep }));
 
-function stripPrefix(value: string): string {
+function stripPrefix(value: string | undefined): string {
+  if (!value) return "";
   return value.startsWith("theme-") ? value.slice(6) : value;
 }
 
-export function resolveFontSize(value: string, size?: TextSizeStep, fixed?: string): string {
+export function resolveFontSize(value: string | undefined, size?: TextSizeStep, fixed?: string): string {
   if (size === undefined) {
     const key = stripPrefix(value);
-    if (value.startsWith("theme-")) return textSizeVar(key as TextSizeStep);
+    if (value?.startsWith("theme-")) return textSizeVar(key as TextSizeStep);
     return key ? `${key}px` : "1rem";
   }
   return (value === "theme" ? textSizeVar(size) : fixed) || "1rem";
 }
 
-export function resolveFontWeight(value: string, step?: FontWeightStep, fixed?: string): string | number {
+export function resolveFontWeight(value: string | undefined, step?: FontWeightStep, fixed?: string): string | number {
   if (step === undefined) {
     const key = stripPrefix(value);
-    if (value.startsWith("theme-")) return fontWeightVar(key as FontWeightStep);
+    if (value?.startsWith("theme-")) return fontWeightVar(key as FontWeightStep);
     return key || 400;
   }
   return (value === "theme" ? fontWeightVar(step) : fixed) || 400;
 }
 
-export function resolveLineHeight(value: string, step?: LineHeightStep, fixed?: string): string {
+export function resolveLineHeight(value: string | undefined, step?: LineHeightStep, fixed?: string): string {
   if (step === undefined) {
     const key = stripPrefix(value);
-    if (value.startsWith("theme-")) return lineHeightVar(key as LineHeightStep);
+    if (value?.startsWith("theme-")) return lineHeightVar(key as LineHeightStep);
     return key || "1.5";
   }
   return (value === "theme" ? lineHeightVar(step) : fixed) || "1.5";
 }
 
-export function resolveRadius(value: string, step?: RadiusStep, fixed?: string): string {
+export function resolveRadius(value: string | undefined, step?: RadiusStep, fixed?: string): string {
   if (step === undefined) {
     const key = stripPrefix(value);
-    if (value.startsWith("theme-")) return radiusVar(key as RadiusStep);
+    if (value?.startsWith("theme-")) return radiusVar(key as RadiusStep);
     return key ? `${key}px` : "0";
   }
   return (value === "theme" ? radiusVar(step) : fixed) || "0";

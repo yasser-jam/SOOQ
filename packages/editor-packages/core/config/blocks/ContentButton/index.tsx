@@ -27,6 +27,7 @@ import {
 } from "../../binding";
 import { dispatchZoneEvent } from "../../lib/zone-events";
 import { collectSooqInputValues } from "../../lib/login-events";
+import { bumpCartLineQuantity } from "../../cart/cart-qty-actions";
 import { useStore } from "../../store-context";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
@@ -411,6 +412,16 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
         } catch (err) {
           window.alert(err instanceof Error ? err.message : "حدث خطأ أثناء تقديم الطلب.");
         }
+        return;
+      }
+
+      if (action === "cartQtyIncrease") {
+        bumpCartLineQuantity(boundData, 1, puck.isEditing);
+        return;
+      }
+
+      if (action === "cartQtyDecrease") {
+        bumpCartLineQuantity(boundData, -1, puck.isEditing);
         return;
       }
 

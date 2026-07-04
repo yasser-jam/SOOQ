@@ -2,7 +2,7 @@
 
 import React, { CSSProperties, useEffect } from "react";
 import { getClassNameFactory } from "@/core/lib";
-import { CartItemGroupCell } from "../../components/CartItemGroupCell";
+import { CartLineGroupCell } from "../../components/CartLineGroupCell";
 import {
   createDemoCartLine,
   mapCartLineToBoundData,
@@ -66,7 +66,7 @@ export function CartListClient({
       <div className={listClass} style={listStyle}>
         {lines.map((line) => (
           <div key={line.lineId} className={getClassName("item")}>
-            <CartItemGroupCell line={line} isEditing={isEditing} />
+            <CartLineGroupCell line={line} isEditing={isEditing} />
           </div>
         ))}
       </div>

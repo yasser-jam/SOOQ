@@ -164,11 +164,11 @@ const ContentHeadingInner: ComponentConfig<ContentHeadingProps> = {
     } = props;
     const resolvedText = useBoundValue(text, valueContext);
     const H = Tag[Math.min(Math.max(parseInt(level, 10) || 2, 1), 6) - 1];
-    const fontCss = COMPONENT_FONT_CSS[fontFamily] ?? COMPONENT_FONT_CSS.body;
-    const fs = resolveFontSize(fontSize);
-    const fw = resolveFontWeight(fontWeight);
-    const lh = resolveLineHeight(lineHeight);
-    const c = resolveColor(color);
+    const fontCss = COMPONENT_FONT_CSS[fontFamily ?? "body"] ?? COMPONENT_FONT_CSS.body;
+    const fs = resolveFontSize(fontSize ?? "theme-lg");
+    const fw = resolveFontWeight(fontWeight ?? "theme-semibold");
+    const lh = resolveLineHeight(lineHeight ?? "theme-normal");
+    const c = resolveColor(color ?? "theme-text");
     return (
       <H
         style={{

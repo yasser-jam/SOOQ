@@ -3,6 +3,7 @@ import { products } from "./data/products";
 import {
   createDemoProductCard,
 } from "./presets/products-grid";
+import { createCartPageContent } from "./presets/cart";
 import {
   buildThemesGalleryData,
   buildAllThemeDemoInitialEntries,
@@ -297,74 +298,7 @@ export const initialData: Record<string, UserData> = {
       },
     },
     zones: {},
-    content: [
-      {
-        type: "Section",
-        props: {
-          id: "Section-cart",
-          name: "سلة التسوق",
-          paddingTop: "48px",
-          paddingBottom: "48px",
-          paddingHorizontal: "24px",
-          backgroundColor: "#ffffff",
-          theme: "light",
-          maxWidth: "900px",
-          columns: 1,
-          gridGap: "24px",
-          anchorId: "",
-          visible: true,
-          content: [
-            {
-              type: "ContentHeading",
-              props: {
-                id: "ContentHeading-cart-title",
-                text: "سلة التسوق",
-                textAlign: "right",
-                fontFamily: "body",
-                fontSize: "theme-2xl",
-                fontWeight: "theme-bold",
-                lineHeight: "theme-normal",
-                fontStyle: "normal",
-                textTransform: "none",
-                color: "theme-text",
-                layout: { padding: "0px" },
-              },
-            },
-            {
-              type: "ContentParagraph",
-              props: {
-                id: "ContentParagraph-cart-intro",
-                text: "راجع المنتجات في سلتك وعدّل الكميات قبل إتمام الطلب.",
-                textAlign: "right",
-                fontFamily: "body",
-                fontSize: "theme-sm",
-                fontWeight: "theme-normal",
-                lineHeight: "theme-relaxed",
-                fontStyle: "normal",
-                textTransform: "none",
-                color: "theme-neutral",
-                layout: { padding: "0px" },
-              },
-            },
-            {
-              type: "CartSection",
-              props: {
-                id: "CartSection-cart-main",
-                layoutStyle: "rows",
-                gap: "md",
-                showDividerLines: true,
-                orderButtonLabel: "إتمام الطلب",
-                metadata: {
-                  dataSource: "localStorage",
-                  storageKey: "store-cart",
-                },
-                layout: { padding: "0px" },
-              },
-            },
-          ],
-        },
-      },
-    ],
+    content: createCartPageContent(),
   },
 
   // ── Product details page (example slug) ───────────────────────────────────

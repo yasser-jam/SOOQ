@@ -61,6 +61,8 @@ export type GroupProps = WithLayout<{
   /** Auto-populated when product is selected */
   metadata?: ProductResourceMetadata | null;
   language?: "ar" | "en";
+  /** Binds this group to a `store-cart` line (cart section preset rows). */
+  cartLineId?: string | null;
   /** Accepts all blocks, including nested Groups. Section is excluded
    *  because sections are page-level containers only. */
   content: Slot;
@@ -193,6 +195,7 @@ const GroupInternal: ComponentConfig<GroupProps> = {
     product: null,
     metadata: null,
     language: "ar",
+    cartLineId: null,
     direction: "row",
     gap: 16,
     alignItems: "stretch",
@@ -250,6 +253,7 @@ const GroupInternal: ComponentConfig<GroupProps> = {
     product,
     metadata,
     language,
+    cartLineId,
     content: Content,
     puck,
   }) => {
@@ -327,6 +331,8 @@ const GroupInternal: ComponentConfig<GroupProps> = {
           product={product}
           metadata={metadata}
           language={language ?? "ar"}
+          cartLineId={cartLineId}
+          isEditing={puck?.isEditing === true}
         />
       </div>
     );

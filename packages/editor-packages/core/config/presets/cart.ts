@@ -1,13 +1,43 @@
 import type { ComponentDataOptionalId } from "@/core/types";
 import type { SectionPreset } from "./types";
-import { STORE_CART_KEY } from "../cart/store-cart";
+import { buildCartSectionProps } from "../blocks/Section/section-preset-kinds";
 import {
-  createHeading,
-  createParagraph,
-  createPrimaryButton,
-  createSection,
-} from "./shared";
+  buildCartSectionShellContent,
+  resolveCartSectionContent,
+} from "../blocks/Section/cart-section";
+import { createHeading, createParagraph, createPrimaryButton, createSection } from "./shared";
 
+function createCartQtyButton(
+  label: string,
+  buttonAction: "cartQtyDecrease" | "cartQtyIncrease"
+) {
+  return createPrimaryButton(label, {
+    align: "center",
+    destinationType: "action",
+    buttonAction,
+    buttonVariantMode: "fixed",
+    buttonVariant: "secondary",
+    buttonVariantSize: "sm",
+    radius: "theme-md",
+    bgColor: "theme-surface",
+    textColor: "theme-text",
+    buttonSize: "theme-sm",
+  });
+}
+
+const nestedGroupDefaults = {
+  backgroundColor: "",
+  backgroundImage: "",
+  backgroundOverlayColor: "",
+  padding: "0px",
+  borderRadius: "theme-none",
+  boxShadow: "none",
+  product: null,
+  metadata: null,
+  cartLineId: null,
+};
+
+/** Cart row preset — a Group with image, title, price, and quantity controls. */
 export function createCartItemGroup(
   overrides: Record<string, unknown> = {}
 ): ComponentDataOptionalId {
@@ -20,6 +50,7 @@ export function createCartItemGroup(
       justifyContent: "flex-start",
       wrap: "nowrap",
       language: "ar",
+      cartLineId: null,
       backgroundColor: "",
       padding: "12px 0",
       borderRadius: "theme-none",
@@ -41,6 +72,7 @@ export function createCartItemGroup(
         {
           type: "Group",
           props: {
+            ...nestedGroupDefaults,
             direction: "column",
             gap: 8,
             alignItems: "stretch",
@@ -68,72 +100,31 @@ export function createCartItemGroup(
                 textAlign: "right",
               }),
               {
-                type: "CartQuantity",
+                type: "Group",
                 props: {
-                  align: "right",
+                  ...nestedGroupDefaults,
+                  direction: "row",
+                  gap: 8,
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  wrap: "nowrap",
+                  language: "ar",
+                  content: [
+                    createCartQtyButton("−", "cartQtyDecrease"),
+                    createParagraph("1", {
+                      valueContext: { path: "quantity" },
+                      textAlign: "center",
+                      fontSize: "theme-md",
+                      fontWeight: "theme-semibold",
+                    }),
+                    createCartQtyButton("+", "cartQtyIncrease"),
+                  ],
                 },
               },
             ],
           },
         },
       ],
-      ...overrides,
-    },
-  };
-}
-
-/** Sidebar / palette block: cart item preset as CartItem type. */
-export function createCartItemBlock(
-  overrides: Record<string, unknown> = {}
-): ComponentDataOptionalId {
-  return {
-    type: "CartItem",
-    props: {
-      ...(createCartItemGroup().props as Record<string, unknown>),
-      layout: {
-        grow: true,
-        spanCol: 1,
-        spanRow: 1,
-        padding: "0px",
-      },
-      ...overrides,
-    },
-  };
-}
-
-export function createCartListBlock(
-  overrides: Record<string, unknown> = {}
-): ComponentDataOptionalId {
-  return {
-    type: "CartList",
-    props: {
-      gap: "md",
-      showDividerLines: true,
-      metadata: {
-        dataSource: "localStorage",
-        storageKey: STORE_CART_KEY,
-      },
-      layout: { padding: "0px" },
-      ...overrides,
-    },
-  };
-}
-
-export function createCartSectionBlock(
-  overrides: Record<string, unknown> = {}
-): ComponentDataOptionalId {
-  return {
-    type: "CartSection",
-    props: {
-      layoutStyle: "rows",
-      gap: "md",
-      showDividerLines: true,
-      orderButtonLabel: "إتمام الطلب",
-      metadata: {
-        dataSource: "localStorage",
-        storageKey: STORE_CART_KEY,
-      },
-      layout: { padding: "0px" },
       ...overrides,
     },
   };
@@ -149,29 +140,28 @@ export function createCartSectionPreset(
     paddingBottom: "48px",
     paddingHorizontal: "24px",
     columns: 1,
-    content: [
-      createHeading("سلة التسوق", {
-        textAlign: "right",
-        fontSize: "theme-2xl",
-      }),
-      createParagraph("راجع المنتجات في سلتك وعدّل الكميات قبل إتمام الطلب.", {
-        textAlign: "right",
-        color: "theme-neutral",
-        fontSize: "theme-sm",
-      }),
-      createCartListBlock(),
-      createPrimaryButton("إتمام الطلب", {
-        align: "center",
-        destinationType: "action",
-        buttonAction: "makeOrder",
-      }),
-    ],
+    ...buildCartSectionProps(),
     ...overrides,
   });
 }
 
 export function createCartPageContent(): ComponentDataOptionalId[] {
-  return [createCartSectionPreset({ id: "Section-cart" })];
+  const resolved = resolveCartSectionContent(buildCartSectionShellContent());
+
+  return [
+    createSection({
+      id: "Section-cart",
+      name: "سلة التسوق",
+      maxWidth: "900px",
+      paddingTop: "48px",
+      paddingBottom: "48px",
+      paddingHorizontal: "24px",
+      columns: 1,
+      ...buildCartSectionProps(),
+      content: resolved.content,
+      cartSlotItems: resolved.cartSlotItems,
+    }),
+  ];
 }
 
 const cartSectionPreset: SectionPreset = {
@@ -195,7 +185,7 @@ const cartItemPreset: SectionPreset = {
     columnsMobile: 1,
     paddingTop: "0px",
     paddingBottom: "0px",
-    content: [createCartItemBlock()],
+    content: [createCartItemGroup()],
   }),
 };
 

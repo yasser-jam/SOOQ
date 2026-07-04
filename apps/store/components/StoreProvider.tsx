@@ -19,6 +19,7 @@ import {
 	clearCart,
 	readStoreCart,
 } from "@/core/config/cart/store-cart"
+import { registerAddProductCartListener } from "@/core/config/cart/use-store-cart"
 import {
 	getStoreTenantId,
 	submitCheckoutOrderFromCart,
@@ -86,6 +87,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 	// Hydrate auth state from cookies on the client
 	useEffect(() => {
 		setAuth(readAuthFromCookies())
+	}, [])
+
+	useEffect(() => {
+		registerAddProductCartListener()
 	}, [])
 
 	// ─── login ─────────────────────────────────────────────────────────────────
@@ -173,6 +178,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		if (cart.items.length === 0) {
 			throw new Error("السلة فارغة. أضف منتجات قبل إتمام الطلب.")
 		}
+
+		console.log("[complete-order] cart items:", cart.items)
 
 		setLoading((prev) => ({ ...prev, makeOrder: true }))
 		setErrors((prev) => ({ ...prev, makeOrder: null }))

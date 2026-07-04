@@ -1,5 +1,6 @@
 import React from "react";
 import { ComponentConfig, Slot } from "@/core/types";
+import type { ComponentDataOptionalId } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";
 import { spacingOptions } from "../../options";
 import { resolveColor } from "../../content/color-fields";
@@ -17,6 +18,12 @@ import {
   SECTION_KIND_PRODUCTS_GRID,
   type SectionPresetMetadata,
 } from "./products-grid-section";
+import {
+  isCartSection,
+  resolveCartSectionContent,
+  SECTION_KIND_CART,
+} from "./cart-section";
+import { CartSectionStorefront } from "./CartSectionStorefront";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("Section", styles);
@@ -93,11 +100,13 @@ export type SectionProps = WithLayout<{
   /** Color overlay on top of background image (supports rgba for transparency) */
   backgroundOverlayColor?: string;
   /** @deprecated Prefer `metadata.preset`. Kept for older saved configs. */
-  sectionKind?: typeof SECTION_KIND_PRODUCTS_GRID | null;
+  sectionKind?: typeof SECTION_KIND_PRODUCTS_GRID | typeof SECTION_KIND_CART | null;
   /** Identifies preset-driven sections (e.g. products-grid) in store_config.json. */
   metadata?: SectionPresetMetadata | null;
   /** Selected collection — available on every section; drives products-grid fill. */
   collection?: CollectionPickerRef | null;
+  /** Raw slot snapshot for cart preset storefront rendering. */
+  cartSlotItems?: ComponentDataOptionalId[] | null;
   content: Slot;
 }>;
 
@@ -264,6 +273,27 @@ const SectionInner: ComponentConfig<SectionProps> = {
   },
 
   resolveData: async ({ props }, { changed, trigger }) => {
+    if (isCartSection(props)) {
+      const shouldSync =
+        trigger === "insert" ||
+        trigger === "force" ||
+        trigger === "load" ||
+        Boolean(changed.content);
+
+      if (!shouldSync) return {};
+
+      const resolved = resolveCartSectionContent(
+        props.content as ComponentDataOptionalId[] | undefined
+      );
+      return {
+        props: {
+          content: resolved.content,
+          cartSlotItems: resolved.cartSlotItems,
+          columns: resolved.columns,
+        },
+      };
+    }
+
     if (!isProductsGridSection(props)) return {};
 
     const collectionChanged = Boolean(changed.collection);
@@ -317,6 +347,7 @@ const SectionInner: ComponentConfig<SectionProps> = {
     sectionKind,
     collection,
     metadata: sectionMetadata,
+    cartSlotItems,
     content: Content,
     puck,
   }) => {
@@ -353,7 +384,9 @@ const SectionInner: ComponentConfig<SectionProps> = {
         data-section-preset={
           isProductsGridSection({ sectionKind, metadata: sectionMetadata })
             ? SECTION_KIND_PRODUCTS_GRID
-            : undefined
+            : isCartSection({ sectionKind, metadata: sectionMetadata })
+              ? SECTION_KIND_CART
+              : undefined
         }
         className={getClassName({ hidden: isHidden })}
         style={{
@@ -442,16 +475,34 @@ const SectionInner: ComponentConfig<SectionProps> = {
               اختر مجموعة من لوحة الحقول لعرض منتجاتها.
             </div>
           ) : null}
-          <Content
-            className={gridClassName}
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-              gap,
-              alignContent: "start",
-              width: "100%",
-            }}
-          />
+          {isCartSection({ sectionKind, metadata: sectionMetadata }) &&
+          !puck.isEditing ? (
+            <CartSectionStorefront
+              cartSlotItems={
+                (cartSlotItems as ComponentDataOptionalId[] | null) ??
+                []
+              }
+              gridClassName={gridClassName}
+              gridStyle={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+                gap,
+                alignContent: "start",
+                width: "100%",
+              }}
+            />
+          ) : (
+            <Content
+              className={gridClassName}
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+                gap,
+                alignContent: "start",
+                width: "100%",
+              }}
+            />
+          )}
         </div>
       </section>
     );

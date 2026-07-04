@@ -7,22 +7,23 @@ import { assignComponentIds } from "@/core/lib/assign-component-ids";
 import { BoundDataProvider } from "../binding";
 import { mapCartLineToBoundData } from "../cart/map-cart-line-to-bound-data";
 import type { StoreCartLine } from "../cart/store-cart";
-import { createCartItemBlock } from "../presets/cart";
+import { createCartItemGroup } from "../presets/cart";
 
-type CartItemGroupCellProps = {
+type CartLineGroupCellProps = {
   line: StoreCartLine;
   isEditing?: boolean;
 };
 
-export function CartItemGroupCell({
+/** Renders one cart line using the cart item Group preset + bound localStorage data. */
+export function CartLineGroupCell({
   line,
   isEditing = false,
-}: CartItemGroupCellProps) {
+}: CartLineGroupCellProps) {
   const boundData = useMemo(() => mapCartLineToBoundData(line), [line]);
 
   const content = useMemo(() => {
-    const item = createCartItemBlock();
-    return [assignComponentIds(item, `cart-item-${line.lineId}`)];
+    const item = createCartItemGroup({ cartLineId: line.lineId });
+    return [assignComponentIds(item, `cart-line-${line.lineId}`)];
   }, [line.lineId]);
 
   return (
@@ -39,7 +40,7 @@ export function CartItemGroupCell({
     >
       <SlotRenderPure
         content={content}
-        zone={`cart-item-${line.lineId}`}
+        zone={`cart-line-${line.lineId}`}
         config={conf}
         metadata={{
           puck: {

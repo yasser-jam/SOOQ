@@ -1,6 +1,6 @@
 "use client";
 
-import React, { CSSProperties } from "react";
+import React, { CSSProperties, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Slot } from "@/core/types";
 import {
@@ -11,6 +11,11 @@ import {
   type ProductResourceMetadata,
 } from "@/modules/product/product/data-store";
 import { BoundDataProvider, useBoundData } from "../../binding";
+import {
+  createDemoCartLine,
+  mapCartLineToBoundData,
+} from "../../cart/map-cart-line-to-bound-data";
+import { useStoreCart } from "../../cart/use-store-cart";
 import { getClassNameFactory } from "@/core/lib";
 import styles from "./styles.module.css";
 
@@ -40,6 +45,8 @@ export type GroupClientProps = {
   product?: ProductPickerRef | null;
   metadata?: ProductResourceMetadata | null;
   language?: "ar" | "en";
+  cartLineId?: string | null;
+  isEditing?: boolean;
 };
 
 export function GroupClient({
@@ -49,8 +56,11 @@ export function GroupClient({
   product,
   metadata,
   language = "ar",
+  cartLineId,
+  isEditing = false,
 }: GroupClientProps) {
   const parentBound = useBoundData();
+  const { cart } = useStoreCart();
   const productId = product?.id;
   const productApiUrl =
     metadata?.apiUrl ?? (productId ? getProductCardApiUrl(productId) : null);
@@ -62,15 +72,26 @@ export function GroupClient({
   const { data, isLoading, isError } = useQuery({
     queryKey: productPickerKeys.detail(productId ?? "", productApiUrl ?? ""),
     queryFn: () => fetchProductDetailPayloadFromUrl(productApiUrl!),
-    enabled: Boolean(productApiUrl),
+    enabled: Boolean(productApiUrl) && !cartLineId,
     staleTime: 60_000,
   });
 
   React.useEffect(() => {
     setSelectedVariantId(null);
-  }, [productId]);
+  }, [productId, cartLineId]);
+
+  const cartLine = useMemo(() => {
+    if (!cartLineId) return null;
+    return cart.items.find((item) => item.lineId === cartLineId) ?? null;
+  }, [cart.items, cartLineId]);
 
   const boundData = React.useMemo(() => {
+    if (cartLineId) {
+      if (cartLine) return mapCartLineToBoundData(cartLine);
+      if (isEditing) return mapCartLineToBoundData(createDemoCartLine());
+      return null;
+    }
+
     if (data) return data;
     if (!product?.id) return parentBound.data;
 
@@ -82,20 +103,25 @@ export function GroupClient({
       },
       images: [],
     };
-  }, [data, product, parentBound.data]);
+  }, [cartLine, cartLineId, data, isEditing, product, parentBound.data]);
+
+  if (cartLineId && !boundData) {
+    return null;
+  }
 
   const boundProviderValue = {
     data: boundData,
-    isLoading,
-    isError,
-    metadata: metadata ?? null,
-    language,
-    selectedVariantId,
+    isLoading: cartLineId ? false : isLoading,
+    isError: cartLineId ? false : isError,
+    metadata: cartLine?.metadata ?? metadata ?? parentBound.metadata ?? null,
+    language: cartLine?.language ?? language,
+    selectedVariantId:
+      cartLine?.selectedVariant?.variantId ?? selectedVariantId,
     setSelectedVariantId,
   };
 
-  const showLoading = Boolean(productApiUrl) && isLoading;
-  const showError = Boolean(productApiUrl) && isError;
+  const showLoading = Boolean(productApiUrl) && !cartLineId && isLoading;
+  const showError = Boolean(productApiUrl) && !cartLineId && isError;
 
   return (
     <div className={getClassName()} style={surfaceStyle}>

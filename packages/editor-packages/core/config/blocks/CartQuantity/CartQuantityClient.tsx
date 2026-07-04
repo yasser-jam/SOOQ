@@ -5,6 +5,7 @@ import { getClassNameFactory } from "@/core/lib";
 import { resolveValueContext } from "../../binding";
 import { useBoundData } from "../../binding/BoundDataContext";
 import { setLineQuantity } from "../../cart/store-cart";
+import { useStoreCart } from "../../cart/use-store-cart";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("CartQuantity", styles);
@@ -19,13 +20,18 @@ export function CartQuantityClient({
   isEditing = false,
 }: CartQuantityClientProps) {
   const { data } = useBoundData();
+  const { cart } = useStoreCart();
   const lineId =
     typeof data?.lineId === "string" ? data.lineId : undefined;
   const quantityValue = resolveValueContext("quantity", data);
-  const quantity =
+  const boundQuantity =
     typeof quantityValue === "number"
       ? quantityValue
       : Number(quantityValue) || 1;
+  const liveLine = lineId
+    ? cart.items.find((item) => item.lineId === lineId)
+    : undefined;
+  const quantity = liveLine?.quantity ?? boundQuantity;
 
   const onBump = (delta: number) => {
     if (isEditing || !lineId || lineId === "demo-line") return;

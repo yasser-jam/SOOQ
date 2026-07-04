@@ -23,7 +23,6 @@ import { CategoryListMenuProps } from "./blocks/CategoryListMenu";
 import { ProductImageProps } from "./blocks/ProductImage";
 import { ProductInfoProps } from "./blocks/ProductInfo";
 import { SectionProps } from "./blocks/Section";
-import { GroupProps } from "./blocks/Group";
 import type { RowGroupProps } from "./blocks/RowGroup/types";
 
 import { RootProps } from "./root";

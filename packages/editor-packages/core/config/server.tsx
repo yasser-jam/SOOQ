@@ -15,6 +15,10 @@ import { ProductsGrid } from "./blocks/ProductsGrid";
 import { ProductImageCarousel } from "./blocks/ProductImageCarousel";
 import { ProductVariants } from "./blocks/ProductVariants";
 import { CartSection } from "./blocks/CartSection";
+import { CartList } from "./blocks/CartList";
+import { CartItem } from "./blocks/CartItem";
+import { CartQuantity } from "./blocks/CartQuantity";
+import { CartIconButton } from "./blocks/CartIconButton";
 import { CheckoutForm } from "./blocks/CheckoutForm";
 import { ProductSearchMenu } from "./blocks/ProductSearchMenu";
 import { CategoryListMenu } from "./blocks/CategoryListMenu";
@@ -68,7 +72,6 @@ const conf: UserConfig = {
         "ProductImageCarousel",
         "ProductVariants",
         "CategoryListMenu",
-        "CartSection",
         "CheckoutForm",
         "ProductSearchMenu",
         "OrderHistory",
@@ -117,6 +120,11 @@ const conf: UserConfig = {
         "Logos",
         "Stats",
         "Template",
+        "CartSection",
+        "CartList",
+        "CartItem",
+        "CartQuantity",
+        "CartIconButton",
       ],
     },
   },
@@ -144,6 +152,10 @@ const conf: UserConfig = {
     ProductImageCarousel,
     ProductVariants,
     CartSection,
+    CartList,
+    CartItem,
+    CartQuantity,
+    CartIconButton,
     CheckoutForm,
     ProductSearchMenu,
     CategoryListMenu,

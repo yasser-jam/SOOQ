@@ -100,13 +100,8 @@ export const conf: UserConfig = {
         "ProductImageCarousel",
         "ProductVariants",
         "CategoryListMenu",
-        "CartSection",
-        "CartList",
-        "CartItem",
-        "CartQuantity",
         "CheckoutForm",
         "ProductSearchMenu",
-        "CartIconButton",
         "OrderHistory",
         "Wishlist",
         "Testimonials",
@@ -117,6 +112,12 @@ export const conf: UserConfig = {
       title: "إصدار سابق (مخفي)",
       visible: false,
       components: [
+        // Cart — use Shopping Cart section preset (Section + Group) instead.
+        "CartSection",
+        "CartList",
+        "CartItem",
+        "CartQuantity",
+        "CartIconButton",
         // ProductsGrid uses SlotRenderPure (non-editable cards) — insert via
         // the "Products Grid" section preset instead, which also sets the
         // collection picker.
@@ -165,11 +166,6 @@ export const conf: UserConfig = {
     ProductImageCarousel,
     ProductVariants,
     CategoryListMenu,
-    CartSection,
-    CartList,
-    CartItem,
-    CartQuantity,
-    CartIconButton,
     CheckoutForm,
     ProductSearchMenu,
     ProductImage,
@@ -179,6 +175,12 @@ export const conf: UserConfig = {
     Wishlist,
     Testimonials,
     ContactForm,
+    // Legacy cart blocks — old store_config.json only
+    CartSection,
+    CartList,
+    CartItem,
+    CartQuantity,
+    CartIconButton,
     // Content (DSN-004 a–j)
     ContentHeading,
     ContentParagraph,

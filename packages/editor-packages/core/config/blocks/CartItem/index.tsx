@@ -5,12 +5,12 @@ import { createCartItemGroup } from "../../presets/cart";
 const groupConfig = Group as ComponentConfig<GroupProps>;
 const presetProps = createCartItemGroup().props as Partial<GroupProps>;
 
+/** @deprecated Legacy alias — cart rows use Group + `cartLineId` via presets. */
 export type CartItemProps = GroupProps;
 
-/** Cart line preset — a bound Group with image, title, price, and quantity stepper. */
 export const CartItem: ComponentConfig<GroupProps> = {
   ...groupConfig,
-  label: "عنصر السلة",
+  label: "عنصر السلة (قديم)",
   defaultProps: {
     ...groupConfig.defaultProps,
     ...presetProps,

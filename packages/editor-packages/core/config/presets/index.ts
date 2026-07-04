@@ -101,9 +101,6 @@ export {
 } from "./products-grid";
 export {
   createCartItemGroup,
-  createCartItemBlock,
-  createCartListBlock,
-  createCartSectionBlock,
   createCartSectionPreset,
   createCartPageContent,
 } from "./cart";
