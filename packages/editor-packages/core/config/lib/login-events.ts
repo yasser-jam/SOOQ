@@ -1,5 +1,4 @@
 export const LOGIN_EVENT = "login" as const;
-export const LOGIN_SUCCESS_EVENT = "login-success" as const;
 export const VERIFY_OTP_EVENT = "verify-otp" as const;
 
 export const SOOQ_INPUT_ATTR = "data-sooq-input";
@@ -33,10 +32,6 @@ function dispatchCustom(name: string, values: LoginEventDetail) {
 
 export function dispatchLoginEvent(values: LoginEventDetail) {
   dispatchCustom(LOGIN_EVENT, values);
-}
-
-export function dispatchLoginSuccessEvent(values: LoginEventDetail) {
-  dispatchCustom(LOGIN_SUCCESS_EVENT, values);
 }
 
 export function dispatchVerifyOtpEvent(values: LoginEventDetail) {

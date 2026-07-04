@@ -6,7 +6,6 @@ import {
 	VERIFY_OTP_EVENT,
 	type LoginEventDetail,
 } from "@/core/config/lib/login-events"
-import { closeZone } from "@/core/config/lib/zone-events"
 
 const BASE_URL =
 	"https://shopengine-production-c68b.up.railway.app"
@@ -65,7 +64,6 @@ export function VerifyOtpHandler() {
 				localStorage.removeItem("sooq-login-phone")
 				localStorage.removeItem("sooq-login-fullName")
 
-				closeZone("verify-otp")
 				window.location.href = "/"
 			} catch (err) {
 				console.error("[SOOQ] OTP verify error:", err)

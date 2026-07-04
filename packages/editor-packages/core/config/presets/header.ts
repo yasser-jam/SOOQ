@@ -2,7 +2,6 @@ import type { ZonePreset } from "./types";
 import { createSection } from "./shared";
 import {
   CART_ICON_BUTTON,
-  LOGIN_BUTTON,
   createHeaderBrandTitle,
   createHeaderNavMenu,
   createHeaderRowSection,
@@ -51,7 +50,7 @@ const headerSolidSplit: ZonePreset = {
 const headerCommerceWithActions: ZonePreset = {
   id: "header-commerce-actions",
   category: "zone-header",
-  title: "رأس تجاري — سلة + دخول",
+  title: "رأس تجاري — سلة",
   previewImage:
     "https://placehold.co/800x240/10213a/ffffff?text=Commerce+Header",
   componentData: createHeaderRowSection(
@@ -74,7 +73,7 @@ const headerCommerceWithActions: ZonePreset = {
           padding: "0px",
           borderRadius: "theme-none",
           boxShadow: "none",
-          content: [CART_ICON_BUTTON, LOGIN_BUTTON],
+          content: [CART_ICON_BUTTON],
         },
       },
     ]
@@ -84,7 +83,7 @@ const headerCommerceWithActions: ZonePreset = {
 const headerLightWithActions: ZonePreset = {
   id: "header-light-actions",
   category: "zone-header",
-  title: "رأس فاتح — سلة + دخول",
+  title: "رأس فاتح — سلة",
   previewImage:
     "https://placehold.co/800x240/ffffff/0f172a?text=Light+Header",
   componentData: createHeaderRowSection(
@@ -107,7 +106,7 @@ const headerLightWithActions: ZonePreset = {
           padding: "0px",
           borderRadius: "theme-none",
           boxShadow: "none",
-          content: [CART_ICON_BUTTON, LOGIN_BUTTON],
+          content: [CART_ICON_BUTTON],
         },
       },
     ]

@@ -36,6 +36,7 @@ const formLogin: SectionPreset = {
         align: "center",
         destinationType: "action",
         buttonAction: "login",
+        submitRedirectUrl: "/verify-otp",
       }),
     ],
   }),

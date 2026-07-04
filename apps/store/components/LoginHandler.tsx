@@ -4,10 +4,8 @@ import { useEffect } from "react"
 
 import {
 	LOGIN_EVENT,
-	dispatchLoginSuccessEvent,
 	type LoginEventDetail,
 } from "@/core/config/lib/login-events"
-import { openZone } from "@/core/config/lib/zone-events"
 
 const BASE_URL =
 	"https://shopengine-production-c68b.up.railway.app"
@@ -53,9 +51,6 @@ export function LoginHandler() {
 			try {
 				const data = await requestOtp(phone, fullName)
 				console.log("[SOOQ] OTP requested successfully:", data)
-
-				dispatchLoginSuccessEvent(detail)
-				openZone("verify-otp")
 			} catch (err) {
 				console.error("[SOOQ] OTP request error:", err)
 				window.alert("فشل إرسال رمز التحقق. حاول مرة أخرى.")

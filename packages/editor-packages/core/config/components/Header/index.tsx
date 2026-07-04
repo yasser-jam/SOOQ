@@ -159,7 +159,7 @@ export type HeaderProps = {
   drawerButtonIcon?: HeaderDrawerIcon;
   /** Which drawer name to toggle. Defaults to "site-drawer". */
   drawerName?: string;
-  /** Optional action items (CartIconButton, LoginButton …) rendered at the end of the header */
+  /** Optional action items (CartIconButton …) rendered at the end of the header */
   rightSlot?: React.ReactNode;
   /** Puck block id — used for zone-plugin selection highlight */
   componentId?: string;

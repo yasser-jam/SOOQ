@@ -42,7 +42,7 @@ export const ZonePopup: ComponentConfig<ZonePopupProps> = {
     key: {
       type: "text",
       label: "مفتاح الحدث",
-      placeholder: "login",
+      placeholder: "popup-main",
     },
     backgroundColor: colorField({
       label: "لون الخلفية",
@@ -81,7 +81,7 @@ export const ZonePopup: ComponentConfig<ZonePopupProps> = {
   defaultProps: {
     is_active: false,
     is_mobile_only: false,
-    key: "login",
+    key: "popup-main",
     backgroundColor: "#ffffff",
     borderRadius: "12px",
     maxWidth: "480px",
@@ -103,7 +103,7 @@ export const ZonePopup: ComponentConfig<ZonePopupProps> = {
     puck,
   }) => (
     <ZonePopupComponent
-      zoneKey={zoneKey || "login"}
+      zoneKey={zoneKey || "popup-main"}
       isActive={is_active}
       isMobileOnly={is_mobile_only}
       backgroundColor={backgroundColor || "#ffffff"}
