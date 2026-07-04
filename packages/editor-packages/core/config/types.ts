@@ -15,6 +15,8 @@ import type { ProductsGridProps } from "./blocks/ProductsGrid";
 import type { ProductImageCarouselProps } from "./blocks/ProductImageCarousel";
 import type { ProductVariantsProps } from "./blocks/ProductVariants";
 import { CartSectionProps } from "./blocks/CartSection";
+import type { CartListProps } from "./blocks/CartList";
+import type { CartQuantityProps } from "./blocks/CartQuantity";
 import { CheckoutFormProps } from "./blocks/CheckoutForm";
 import { ProductSearchMenuProps } from "./blocks/ProductSearchMenu";
 import { CategoryListMenuProps } from "./blocks/CategoryListMenu";
@@ -82,6 +84,9 @@ export type Components = {
   ProductImageCarousel: ProductImageCarouselProps;
   ProductVariants: ProductVariantsProps;
   CartSection: CartSectionProps;
+  CartList: CartListProps;
+  CartItem: GroupProps;
+  CartQuantity: CartQuantityProps;
   CartIconButton: CartIconButtonProps;
   LoginButton: LoginButtonProps;
   CheckoutForm: CheckoutFormProps;

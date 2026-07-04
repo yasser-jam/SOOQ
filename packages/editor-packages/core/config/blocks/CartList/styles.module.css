@@ -1,0 +1,26 @@
+.CartList {
+  width: 100%;
+  min-width: 0;
+}
+
+.CartList-list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.CartList-list--divider .CartList-item:not(:last-child) {
+  border-bottom: 1px solid var(--puck-color-grey-08, #e2e8f0);
+}
+
+.CartList-item {
+  min-width: 0;
+}
+
+.CartList-empty {
+  padding: 1.25rem;
+  border: 1px dashed var(--puck-color-grey-07, #cbd5e1);
+  border-radius: 8px;
+  color: var(--puck-color-grey-03, #64748b);
+  font-size: 0.9rem;
+}

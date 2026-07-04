@@ -10,7 +10,7 @@ import {
   type ProductPickerRef,
   type ProductResourceMetadata,
 } from "@/modules/product/product/data-store";
-import { BoundDataProvider } from "../../binding";
+import { BoundDataProvider, useBoundData } from "../../binding";
 import { getClassNameFactory } from "@/core/lib";
 import styles from "./styles.module.css";
 
@@ -50,6 +50,7 @@ export function GroupClient({
   metadata,
   language = "ar",
 }: GroupClientProps) {
+  const parentBound = useBoundData();
   const productId = product?.id;
   const productApiUrl =
     metadata?.apiUrl ?? (productId ? getProductCardApiUrl(productId) : null);
@@ -71,7 +72,7 @@ export function GroupClient({
 
   const boundData = React.useMemo(() => {
     if (data) return data;
-    if (!product?.id) return null;
+    if (!product?.id) return parentBound.data;
 
     return {
       product: {
@@ -81,7 +82,7 @@ export function GroupClient({
       },
       images: [],
     };
-  }, [data, product]);
+  }, [data, product, parentBound.data]);
 
   const boundProviderValue = {
     data: boundData,

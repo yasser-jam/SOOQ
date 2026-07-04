@@ -60,6 +60,7 @@ export function VerifyOtpHandler() {
 				const tenantId = data?.tenantId ?? data?.tenant_id ?? TENANT_SLUG
 				setCookie("sooq-tenant-id", tenantId)
 				setCookie("sooq-user-name", fullName)
+				setCookie("sooq-user-phone", phone)
 
 				localStorage.removeItem("sooq-login-phone")
 				localStorage.removeItem("sooq-login-fullName")

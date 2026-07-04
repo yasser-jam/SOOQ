@@ -75,6 +75,7 @@ export function mapPayloadToProductCardData(
     options: [],
     variants: variants.length > 0 ? variants : [
       {
+        variantId: id,
         attributes: {},
         price,
         compareAtPrice: compareAt,

@@ -52,8 +52,8 @@ export function StorefrontRenderer() {
 			<PreviewThemeProvider rootProps={rootProps}>
 				<Render config={config} data={resolvedData} metadata={metadata} />
 			</PreviewThemeProvider>
-			{/* Listens for "make-order" events from CartSection / ContentButton
-			    and opens the checkout drawer to collect delivery info + submit order */}
+			{/* Listens for "create-order" events from CartSection / ContentButton
+			    and submits checkout using localStorage cart + customer cookies */}
 			<MakeOrderHandler />
 			<LoginHandler />
 			<VerifyOtpHandler />

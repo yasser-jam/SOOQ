@@ -210,6 +210,8 @@ function mapVariantsFromDetail(data: Record<string, unknown>): ProductCardVarian
 		}
 
 		return {
+			variantId:
+				variant.variantId != null ? String(variant.variantId) : undefined,
 			attributes,
 			price: Number(variant.price ?? 0),
 			compareAtPrice: Number(variant.compareAtPrice ?? 0),

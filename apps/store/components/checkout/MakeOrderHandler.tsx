@@ -1,53 +1,61 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef } from "react"
 
 import {
-	MAKE_ORDER_EVENT,
-	type MakeOrderEventDetail,
+	CREATE_ORDER_EVENT,
+	type CreateOrderEventDetail,
 } from "@/core/config/cart/make-order"
-import type { StoreCart } from "@/core/config/cart/store-cart"
+import { clearCart, readStoreCart } from "@/core/config/cart/store-cart"
 
-import { CheckoutDrawer } from "./CheckoutDrawer"
-import { getStoreTenantId } from "./checkout-api"
+import {
+	getStoreTenantId,
+	submitCheckoutOrderFromCart,
+} from "./checkout-api"
 
 /**
  * Mounts once at the root of the storefront renderer.
- * Listens for the "make-order" custom event dispatched by CartSectionClient
- * (and by ContentButton with action="makeOrder"), then opens the checkout
- * drawer with the current cart snapshot and the tenant UUID from cookie.
- *
- * Renders no visible DOM on its own — only the <CheckoutDrawer /> portal.
+ * Listens for the "create-order" custom event dispatched by CartSectionClient
+ * (and by ContentButton with action="makeOrder"), then submits checkout using
+ * cart lines from localStorage and customer info from cookies.
  */
 export function MakeOrderHandler() {
-	const [open, setOpen] = useState(false)
-	const [cart, setCart] = useState<StoreCart | null>(null)
-	const [tenantId, setTenantId] = useState<string | null>(null)
+	const submittingRef = useRef(false)
 
 	useEffect(() => {
-		const handler = (event: Event) => {
-			const { cart: incomingCart } = (
-				event as CustomEvent<MakeOrderEventDetail>
-			).detail
+		const handler = async (event: Event) => {
+			if (submittingRef.current) return
 
-			if (!incomingCart || incomingCart.items.length === 0) return
+			const incomingCart = (event as CustomEvent<CreateOrderEventDetail>).detail
+				?.cart
+			const cart =
+				incomingCart && incomingCart.items.length > 0
+					? incomingCart
+					: readStoreCart()
 
-			// Read the cookie fresh each time the order dialog opens
-			setTenantId(getStoreTenantId())
-			setCart(incomingCart)
-			setOpen(true)
+			if (cart.items.length === 0) {
+				window.alert("السلة فارغة. أضف منتجات قبل إتمام الطلب.")
+				return
+			}
+
+			submittingRef.current = true
+
+			try {
+				await submitCheckoutOrderFromCart(cart, getStoreTenantId())
+				clearCart()
+				window.alert("تم استلام طلبك! سنتواصل معك قريبًا.")
+			} catch (err) {
+				const msg =
+					err instanceof Error ? err.message : "حدث خطأ أثناء تقديم الطلب."
+				window.alert(msg)
+			} finally {
+				submittingRef.current = false
+			}
 		}
 
-		window.addEventListener(MAKE_ORDER_EVENT, handler)
-		return () => window.removeEventListener(MAKE_ORDER_EVENT, handler)
+		window.addEventListener(CREATE_ORDER_EVENT, handler)
+		return () => window.removeEventListener(CREATE_ORDER_EVENT, handler)
 	}, [])
 
-	return (
-		<CheckoutDrawer
-			open={open}
-			onClose={() => setOpen(false)}
-			cart={cart}
-			tenantId={tenantId}
-		/>
-	)
+	return null
 }

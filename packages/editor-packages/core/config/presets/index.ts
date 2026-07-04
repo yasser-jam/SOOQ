@@ -1,3 +1,4 @@
+import { CART_PRESETS } from "./cart";
 import { FOOTER_PRESETS, ZONE_FOOTER_PRESETS } from "./footer";
 import { FORMS_PRESETS } from "./forms";
 import { GENERAL_PRESETS } from "./general";
@@ -21,6 +22,7 @@ export const PRESET_CATEGORY_LABELS: Record<SectionPresetCategory, string> = {
   hero: "هيرو",
   "products-grid": "شبكة المنتجات",
   forms: "استبيانات",
+  cart: "السلة",
 };
 
 export const PRESET_CATEGORY_ORDER: SectionPresetCategory[] = [
@@ -28,6 +30,7 @@ export const PRESET_CATEGORY_ORDER: SectionPresetCategory[] = [
   "hero",
   "products-grid",
   "forms",
+  "cart",
 ];
 
 export const ZONE_PRESET_CATEGORY_LABELS: Record<ZonePresetCategory, string> = {
@@ -51,6 +54,7 @@ export const SECTION_PRESETS: SectionPreset[] = [
   ...HERO_PRESETS,
   ...PRODUCTS_GRID_PRESETS,
   ...FORMS_PRESETS,
+  ...CART_PRESETS,
 ];
 
 export const ZONE_PRESETS: ZonePreset[] = [
@@ -74,6 +78,7 @@ export function getZonePresetsByCategory(
 }
 
 export {
+  CART_PRESETS,
   FORMS_PRESETS,
   GENERAL_PRESETS,
   HERO_PRESETS,
@@ -95,3 +100,11 @@ export {
   createProductsGridPlaceholderContent,
   createProductDetailSection,
 } from "./products-grid";
+export {
+  createCartItemGroup,
+  createCartItemBlock,
+  createCartListBlock,
+  createCartSectionBlock,
+  createCartSectionPreset,
+  createCartPageContent,
+} from "./cart";

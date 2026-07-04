@@ -4,7 +4,8 @@ export type SectionPresetCategory =
   | "general"
   | "hero"
   | "products-grid"
-  | "forms";
+  | "forms"
+  | "cart";
 
 export type SectionPreset = {
   id: string;
