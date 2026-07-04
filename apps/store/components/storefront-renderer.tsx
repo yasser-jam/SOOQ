@@ -7,9 +7,7 @@ import type { FullThemeProps } from "@/core/config/theme"
 
 import { PreviewThemeProvider } from "./preview-theme-provider"
 import { StoreNotFound } from "./store-not-found"
-import { LoginHandler } from "./LoginHandler"
-import { MakeOrderHandler } from "./checkout/MakeOrderHandler"
-import { VerifyOtpHandler } from "./VerifyOtpHandler"
+import { StoreProvider } from "./StoreProvider"
 import { STORE_FIXED_THEME_ID } from "../lib/store-config"
 import { useStorePathname } from "../lib/use-store-pathname"
 import { useStorefrontData } from "../lib/use-storefront-data"
@@ -48,15 +46,10 @@ export function StorefrontRenderer() {
 	}
 
 	return (
-		<>
+		<StoreProvider>
 			<PreviewThemeProvider rootProps={rootProps}>
 				<Render config={config} data={resolvedData} metadata={metadata} />
 			</PreviewThemeProvider>
-			{/* Listens for "create-order" events from CartSection / ContentButton
-			    and submits checkout using localStorage cart + customer cookies */}
-			<MakeOrderHandler />
-			<LoginHandler />
-			<VerifyOtpHandler />
-		</>
+		</StoreProvider>
 	)
 }

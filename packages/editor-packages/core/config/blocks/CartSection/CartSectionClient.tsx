@@ -5,13 +5,12 @@ import { getClassNameFactory } from "@/core/lib";
 import {
   formatCartMoney,
   getCartSubtotal,
-  readStoreCart,
 } from "../../cart/store-cart";
-import { dispatchMakeOrderEvent } from "../../cart/make-order";
 import {
   registerAddProductCartListener,
   useStoreCart,
 } from "../../cart/use-store-cart";
+import { useStore } from "../../store-context";
 import { CartRowGroupUI } from "./CartRowGroupUI";
 import styles from "./styles.module.css";
 import type { CartSectionProps } from "./types";
@@ -34,6 +33,7 @@ export function CartSectionClient({
 }: CartSectionProps & { puck?: { isEditing?: boolean } }) {
   const { cart, bumpQuantity, removeCartLine } = useStoreCart();
   const isEditing = puck?.isEditing === true;
+  const { actions, loading } = useStore();
 
   useEffect(() => {
     registerAddProductCartListener();
@@ -45,14 +45,13 @@ export function CartSectionClient({
   const currency =
     cart.items[0]?.product.currencyCode ?? "SYP";
 
-  const onMakeOrder = useCallback(() => {
-    const currentCart = readStoreCart();
-    if (currentCart.items.length === 0) {
-      window.alert("السلة فارغة. أضف منتجات قبل إتمام الطلب.");
-      return;
+  const onMakeOrder = useCallback(async () => {
+    try {
+      await actions.makeOrder();
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "حدث خطأ أثناء تقديم الطلب.");
     }
-    dispatchMakeOrderEvent(currentCart);
-  }, []);
+  }, [actions]);
 
   if (cart.items.length === 0) {
     return (
@@ -102,8 +101,10 @@ export function CartSectionClient({
           type="button"
           className={getClassName("checkout")}
           onClick={onMakeOrder}
+          disabled={loading.makeOrder}
+          style={{ opacity: loading.makeOrder ? 0.65 : 1 }}
         >
-          {orderButtonLabel || "إتمام الطلب"}
+          {loading.makeOrder ? "جاري تقديم الطلب..." : orderButtonLabel || "إتمام الطلب"}
         </button>
       </div>
     </div>

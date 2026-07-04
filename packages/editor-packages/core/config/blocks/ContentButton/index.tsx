@@ -22,18 +22,12 @@ import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import type { ValueContext } from "../../binding";
 import {
   buildProductActionDetail,
-  dispatchProductCardEvent,
   useBoundData,
   useBoundValue,
 } from "../../binding";
-import { addOrUpdateLine, readStoreCart } from "../../cart/store-cart";
-import { dispatchMakeOrderEvent } from "../../cart/make-order";
 import { dispatchZoneEvent } from "../../lib/zone-events";
-import {
-  collectSooqInputValues,
-  dispatchLoginEvent,
-  dispatchVerifyOtpEvent,
-} from "../../lib/login-events";
+import { collectSooqInputValues } from "../../lib/login-events";
+import { useStore } from "../../store-context";
 import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
 export type ContentButtonProps = WithLayout<{
@@ -296,6 +290,14 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       (buttonAction && buttonAction !== "link" ? "action" : "link");
     const action: ButtonAction = destType === "action" ? buttonAction ?? "link" : "link";
 
+    const { actions, loading } = useStore();
+
+    const isLoading =
+      destType === "action" &&
+      ((action === "login" && loading.login) ||
+        (action === "verifyOtp" && loading.verifyOtp) ||
+        (action === "makeOrder" && loading.makeOrder));
+
     const onZoneClick = (e: MouseEvent) => {
       e.preventDefault();
       if (puck.isEditing || !zoneKey) return;
@@ -374,67 +376,65 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       }
     };
 
-    const onFunctionalClick = (e: MouseEvent) => {
+    const onFunctionalClick = async (e: MouseEvent) => {
       e.preventDefault();
       if (puck.isEditing) return;
 
       if (action === "login") {
-        const button = e.currentTarget as HTMLElement;
-        const scope = button.closest("form") ?? document;
+        const scope = (e.currentTarget as HTMLElement).closest("form") ?? document;
         const values = collectSooqInputValues(scope);
-        dispatchLoginEvent(values);
-        maybeRedirect();
+        try {
+          await actions.login(values.phone ?? "", values.fullName ?? "");
+          maybeRedirect();
+        } catch (err) {
+          window.alert(err instanceof Error ? err.message : "فشل إرسال رمز التحقق.");
+        }
+        return;
+      }
+
+      if (action === "verifyOtp") {
+        const scope = (e.currentTarget as HTMLElement).closest("form") ?? document;
+        const values = collectSooqInputValues(scope);
+        try {
+          await actions.verifyOtp(values.otp ?? "");
+          maybeRedirect();
+        } catch (err) {
+          window.alert(err instanceof Error ? err.message : "رمز التحقق غير صحيح.");
+        }
+        return;
+      }
+
+      if (action === "makeOrder") {
+        try {
+          await actions.makeOrder();
+          maybeRedirect();
+        } catch (err) {
+          window.alert(err instanceof Error ? err.message : "حدث خطأ أثناء تقديم الطلب.");
+        }
         return;
       }
 
       if (action === "addToCart" && boundData) {
-        const detail = buildProductActionDetail(
-          boundData,
-          language,
-          metadata,
-          selectedVariantId
-        );
+        const detail = buildProductActionDetail(boundData, language, metadata, selectedVariantId);
         if (detail) {
-          dispatchProductCardEvent("add-product", detail);
-          addOrUpdateLine(detail);
+          actions.addToCart(detail);
           return;
         }
       }
 
       if (action === "addToWishlist" && boundData) {
-        const detail = buildProductActionDetail(
-          boundData,
-          language,
-          metadata,
-          selectedVariantId
-        );
+        const detail = buildProductActionDetail(boundData, language, metadata, selectedVariantId);
         if (detail) {
-          dispatchProductCardEvent("add-product-to-favourite", detail);
+          actions.addToWishlist(detail);
           return;
         }
       }
 
-      if (action === "verifyOtp") {
-        const button = e.currentTarget as HTMLElement;
-        const scope = button.closest("form") ?? document;
-        const values = collectSooqInputValues(scope);
-        dispatchVerifyOtpEvent(values);
+      if (action === "logout") {
+        actions.logout();
         maybeRedirect();
         return;
       }
-
-      if (action === "makeOrder") {
-        const cart = readStoreCart();
-        if (cart.items.length === 0) {
-          window.alert("السلة فارغة. أضف منتجات قبل إتمام الطلب.");
-          return;
-        }
-        dispatchMakeOrderEvent(cart);
-        maybeRedirect();
-        return;
-      }
-
-      window.alert(`إجراء الزر: ${buttonActionLabel(action)}`);
     };
 
     if (destType === "zone") {
@@ -450,8 +450,13 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
     if (action !== "link") {
       return (
         <div style={placementStyle}>
-          <button type="button" onClick={onFunctionalClick} style={sharedStyle}>
-            {resolvedLabel}
+          <button
+            type="button"
+            onClick={onFunctionalClick}
+            disabled={isLoading}
+            style={{ ...sharedStyle, opacity: isLoading ? 0.65 : 1 }}
+          >
+            {isLoading ? "..." : resolvedLabel}
           </button>
         </div>
       );
