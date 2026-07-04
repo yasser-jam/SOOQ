@@ -1,4 +1,5 @@
 import type { ComponentDataOptionalId } from "@/core/types";
+import { buildProductsGridSectionProps } from "../blocks/Section/section-preset-kinds";
 import type { SectionPreset } from "./types";
 import {
   createHeading,
@@ -79,12 +80,12 @@ export function createProductCardGroup(
   };
 }
 
-/** Sidebar / palette block: product card preset as ProductCard type. */
+/** Product card preset — a bound Group with image, title, price, and actions. */
 export function createProductCardBlock(
   overrides: Record<string, unknown> = {}
 ): ComponentDataOptionalId {
   return {
-    type: "ProductCard",
+    type: "Group",
     props: {
       ...(createProductCardGroup().props as Record<string, unknown>),
       layout: {
@@ -96,10 +97,6 @@ export function createProductCardBlock(
       ...overrides,
     },
   };
-}
-
-export function createProductsGridPlaceholderContent(count = 3) {
-  return Array.from({ length: count }, () => createProductCardBlock());
 }
 
 export function createProductsGridBlock(
@@ -120,19 +117,19 @@ export function createProductsGridBlock(
 }
 
 export function createProductsGridSection(
-  cardCount = 3,
   overrides: Record<string, unknown> = {}
 ): ComponentDataOptionalId {
-  return createSection({
-    name: "Products grid",
-    columns: cardCount,
-    columnsMobile: 1,
-    gridGap: "24px",
-    paddingTop: "48px",
-    paddingBottom: "48px",
-    content: Array.from({ length: cardCount }, () => createProductCardBlock()),
-    ...overrides,
-  });
+  return createSection(
+    buildProductsGridSectionProps({
+      name: "Products grid",
+      columns: 1,
+      columnsMobile: 1,
+      gridGap: "24px",
+      paddingTop: "48px",
+      paddingBottom: "48px",
+      ...overrides,
+    })
+  );
 }
 
 export function createDemoProductCard(
@@ -144,7 +141,7 @@ export function createDemoProductCard(
   });
 
   return {
-    type: "ProductCard",
+    type: "Group",
     props: {
       ...(block.props as Record<string, unknown>),
       id,
@@ -273,7 +270,7 @@ const productsGridThreeColumns: SectionPreset = {
   title: "شبكة منتجات",
   previewImage:
     "https://placehold.co/800x400/e2e8f0/64748b?text=Products+Grid",
-  componentData: createProductsGridSection(3),
+  componentData: createProductsGridSection(),
 };
 
 const productDetailLayout: SectionPreset = {

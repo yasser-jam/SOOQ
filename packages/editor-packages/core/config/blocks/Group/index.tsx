@@ -12,6 +12,7 @@ import { ZONE_BLOCK_TYPES } from "../../shell-zones";
 import {
   productExternalField,
   buildProductResourceMetadata,
+  buildPublicProductResourceMetadata,
   type ProductPickerRef,
   type ProductResourceMetadata,
 } from "@/modules/product/product/data-store";
@@ -81,7 +82,13 @@ const GroupInternal: ComponentConfig<GroupProps> = {
   label: "مجموعة",
 
   fields: {
-    product: productExternalField,
+    product: {
+      ...productExternalField,
+      label: "اختر منتج",
+      metadata: {
+        helpText: "ابحث واختر منتجاً لربط هذه المجموعة ببياناته الحية.",
+      },
+    },
     language: {
       type: "radio",
       label: "لغة بيانات المنتج",
@@ -201,7 +208,8 @@ const GroupInternal: ComponentConfig<GroupProps> = {
   },
 
   resolveData: ({ props }) => {
-    const productId = props.product?.id;
+    const product = props.product;
+    const productId = product?.id;
 
     if (!productId) {
       if (props.metadata != null) {
@@ -210,7 +218,9 @@ const GroupInternal: ComponentConfig<GroupProps> = {
       return {};
     }
 
-    const metadata = buildProductResourceMetadata(productId);
+    const metadata = product.slug
+      ? buildPublicProductResourceMetadata(product.slug, productId)
+      : buildProductResourceMetadata(productId);
     const current = props.metadata;
 
     if (

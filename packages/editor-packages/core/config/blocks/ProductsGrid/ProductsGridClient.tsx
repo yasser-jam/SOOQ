@@ -43,7 +43,7 @@ export function ProductsGridClient({
 }: ProductsGridClientProps) {
   const apiUrl =
     metadata?.apiUrl ??
-    (collection?.id ? getCollectionProductsApiUrl(collection.id) : null);
+    (collection?.slug ? getCollectionProductsApiUrl(collection.slug) : null);
 
   const { data: products = [], isLoading, isError } = useQuery({
     queryKey: collectionPickerKeys.products(apiUrl ?? ""),

@@ -7,7 +7,7 @@ import axios, {
 import { handleApiError } from "@/lib/api-error"
 
 /**
- * HTTP client for unauthenticated public endpoints (`/api/v1/public/**`).
+ * HTTP client for unauthenticated tenant-scoped endpoints under `/api/v1/**`.
  *
  * The backend's `TenantFilter` (see SOOQ-Back commit 052ac838) resolves the
  * tenant from an `X-Tenant-Id: <uuid>` header for these endpoints. If a

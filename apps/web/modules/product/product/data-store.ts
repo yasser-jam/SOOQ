@@ -1,11 +1,14 @@
 import type { ExternalField } from "@/core/types/Fields"
 import api, { toFullApiUrl } from "@/lib/api"
+import publicApi from "@/lib/public-api"
+import { getEditorTenantId } from "@/lib/tenant-context"
 import type { ApiResponse, PagedApiResponse } from "@/lib/types"
 
 export type ProductPickerRef = {
 	id: string
 	titleAr?: string
 	titleEn?: string
+	slug?: string
 }
 
 export type ProductResourceMetadata = {
@@ -38,6 +41,65 @@ export function buildProductResourceMetadata(id: string): ProductResourceMetadat
 		method: "get",
 		apiUrl: getProductCardApiUrl(id),
 		id,
+	}
+}
+
+export function getPublicProductApiPath(slug: string): string {
+	return `/api/v1/public/products/${encodeURIComponent(slug)}`
+}
+
+export function getPublicProductApiUrl(slug: string): string {
+	return toFullApiUrl(getPublicProductApiPath(slug))
+}
+
+export function buildPublicProductResourceMetadata(
+	slug: string,
+	id?: string,
+): ProductResourceMetadata {
+	return {
+		type: "product",
+		method: "get",
+		apiUrl: getPublicProductApiUrl(slug),
+		id: id ?? slug,
+	}
+}
+
+function isPublicApiUrl(apiUrl: string): boolean {
+	return apiUrl.includes("/api/v1/public/")
+}
+
+function normalizePublicProductPayload(
+	raw: ProductDetailPayload,
+): ProductDetailPayload {
+	if (raw.product != null) return raw
+
+	const flat = raw as Record<string, unknown>
+	const productId = String(flat.productId ?? flat.id ?? "")
+
+	return {
+		product: {
+			productId,
+			titleAr: flat.titleAr,
+			titleEn: flat.titleEn,
+			descriptionAr: flat.descriptionAr,
+			descriptionEn: flat.descriptionEn,
+			slug: flat.slug,
+			basePrice: flat.basePrice,
+			compareAtPrice: flat.compareAtPrice,
+			currencyCode: flat.currencyCode,
+			status: flat.status,
+			primaryImageUrl: flat.primaryImageUrl,
+			primaryThumbnailUrl: flat.primaryThumbnailUrl,
+			media: flat.primaryImageUrl
+				? [{ url: flat.primaryImageUrl, thumbnailUrl: flat.primaryThumbnailUrl }]
+				: [],
+		},
+		pricing: {
+			basePrice: flat.basePrice,
+			compareAtPrice: flat.compareAtPrice,
+			currencyCode: flat.currencyCode,
+			displayPrice: flat.displayPrice,
+		},
 	}
 }
 
@@ -280,7 +342,7 @@ function mapAdminDetailToProductCardData(
 		categories,
 		tags,
 		mediaUrls,
-		options: payload.options ?? [],
+		options: Array.isArray(payload.options) ? payload.options : [],
 		variants,
 	}
 }
@@ -291,6 +353,18 @@ export type ProductDetailPayload = Record<string, unknown>
 export async function fetchProductDetailPayloadFromUrl(
 	apiUrl: string,
 ): Promise<ProductDetailPayload | null> {
+	if (isPublicApiUrl(apiUrl)) {
+		const tenantId = getEditorTenantId()
+		if (!tenantId) return null
+
+		const response = await publicApi<ApiResponse<ProductDetailPayload>>(apiUrl, {
+			tenantId,
+		})
+		const raw = response.data
+		if (!raw) return null
+		return normalizePublicProductPayload(raw)
+	}
+
 	const response = await api<ApiResponse<ProductDetailPayload>>(apiUrl)
 	return response.data ?? null
 }

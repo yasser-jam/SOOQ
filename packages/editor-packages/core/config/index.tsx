@@ -97,8 +97,6 @@ export const conf: UserConfig = {
       title: "عناصر المتجر",
       defaultExpanded: true,
       components: [
-        "ProductsGrid",
-        "ProductCard",
         "ProductImageCarousel",
         "ProductVariants",
         "CategoryListMenu",
@@ -119,6 +117,12 @@ export const conf: UserConfig = {
       title: "إصدار سابق (مخفي)",
       visible: false,
       components: [
+        // ProductsGrid uses SlotRenderPure (non-editable cards) — insert via
+        // the "Products Grid" section preset instead, which also sets the
+        // collection picker.
+        "ProductsGrid",
+        // ProductCard alias — old configs; insert product cards as Group + product picker.
+        "ProductCard",
         // Legacy drawer shell — use ZoneDrawer for new stores.
         "SiteDrawerShell",
         "SideDrawer",

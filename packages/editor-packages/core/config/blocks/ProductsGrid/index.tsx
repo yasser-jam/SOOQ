@@ -1,7 +1,7 @@
 import React from "react";
 import { ComponentConfig } from "@/core/types";
 import { WithLayout, withLayout } from "../../components/Layout";
-import { collectionExternalField } from "../../data/products";
+import { sectionCollectionPickerField } from "../../fields/CollectionPickerField";
 import {
   buildProductsGridResourceMetadata,
   type CollectionPickerRef,
@@ -38,7 +38,7 @@ const ProductsGridInner: ComponentConfig<ProductsGridProps> = {
   label: "شبكة المنتجات",
 
   fields: {
-    collection: collectionExternalField,
+    collection: sectionCollectionPickerField,
 
     columns: {
       type: "select",
@@ -80,7 +80,7 @@ const ProductsGridInner: ComponentConfig<ProductsGridProps> = {
     }
 
     const collection = props.collection;
-    if (!collection?.id) {
+    if (!collection?.slug) {
       if (props.metadata != null) {
         return { props: { metadata: null } };
       }
@@ -92,6 +92,7 @@ const ProductsGridInner: ComponentConfig<ProductsGridProps> = {
 
     if (
       current?.collectionId === metadata.collectionId &&
+      current?.collectionSlug === metadata.collectionSlug &&
       current?.productCount === metadata.productCount &&
       current?.type === metadata.type &&
       current?.method === metadata.method &&
@@ -105,7 +106,7 @@ const ProductsGridInner: ComponentConfig<ProductsGridProps> = {
 
   render: (props) => {
     const { collection, metadata, columns, maxRows, gap, puck } = props;
-    const useCollection = Boolean(collection?.id || metadata?.collectionId);
+    const useCollection = Boolean(collection?.slug || metadata?.collectionSlug);
 
     return (
       <ProductsGridClient

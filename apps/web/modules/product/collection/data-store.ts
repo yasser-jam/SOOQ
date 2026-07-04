@@ -1,10 +1,13 @@
 import type { ExternalField } from "@/core/types/Fields"
-import api, { toFullApiUrl } from "@/lib/api"
-import type { ApiResponse, PagedApiResponse } from "@/lib/types"
+import { toFullApiUrl } from "@/lib/api"
+import publicApi from "@/lib/public-api"
+import { getEditorTenantId } from "@/lib/tenant-context"
+import type { PagedApiResponse } from "@/lib/types"
 
 export type CollectionPickerRef = {
 	id: string
 	name: string
+	slug: string
 	productCount?: number
 }
 
@@ -12,17 +15,25 @@ export type ProductsGridResourceMetadata = {
 	type: "collection"
 	method: "get"
 	collectionId: string
+	collectionSlug: string
 	productCount: number
 	apiUrl: string
 }
 
-type AdminCollectionListItem = {
+type PublicCollectionListItem = {
 	collectionId: string
 	collectionName: string
+	collectionSlug: string
 	productCount?: number
 }
 
-/** Same shape as the admin product list / collection products endpoints. */
+export type CollectionProductRef = {
+	id: string
+	titleAr?: string
+	titleEn?: string
+	slug?: string
+}
+
 type CollectionProductListItem = {
 	productId: string
 	titleAr?: string
@@ -44,6 +55,7 @@ let cachedCollectionList: CollectionListRow[] | null = null
 type CollectionListRow = {
 	id: string
 	name: string
+	slug: string
 	productCount: number
 }
 
@@ -54,18 +66,26 @@ export const collectionPickerKeys = {
 		[...collectionPickerKeys.all, "products", apiUrl] as const,
 }
 
+function requireEditorTenantId(): string {
+	const tenantId = getEditorTenantId()
+	if (!tenantId) {
+		throw new Error("Tenant ID is not available for public collection API calls.")
+	}
+	return tenantId
+}
+
 export function getCollectionsListApiUrl(): string {
 	return toFullApiUrl(
-		`/admin/collections?page=0&size=${COLLECTION_LIST_PAGE_SIZE}`,
+		`/public/collections?page=0&size=${COLLECTION_LIST_PAGE_SIZE}`,
 	)
 }
 
-export function getCollectionProductsApiPath(collectionId: string): string {
-	return `/admin/collections/${collectionId}/products?page=0&size=${COLLECTION_PRODUCTS_PAGE_SIZE}`
+export function getCollectionProductsApiPath(collectionSlug: string): string {
+	return `/public/collections/${encodeURIComponent(collectionSlug)}/products?page=0&size=${COLLECTION_PRODUCTS_PAGE_SIZE}`
 }
 
-export function getCollectionProductsApiUrl(collectionId: string): string {
-	return toFullApiUrl(getCollectionProductsApiPath(collectionId))
+export function getCollectionProductsApiUrl(collectionSlug: string): string {
+	return toFullApiUrl(getCollectionProductsApiPath(collectionSlug))
 }
 
 export function buildProductsGridResourceMetadata(
@@ -75,17 +95,20 @@ export function buildProductsGridResourceMetadata(
 		type: "collection",
 		method: "get",
 		collectionId: collection.id,
+		collectionSlug: collection.slug,
 		productCount: collection.productCount ?? 0,
-		apiUrl: getCollectionProductsApiUrl(collection.id),
+		apiUrl: getCollectionProductsApiUrl(collection.slug),
 	}
 }
 
 async function fetchCollectionListRows(): Promise<CollectionListRow[]> {
 	if (cachedCollectionList) return cachedCollectionList
 
-	const response = await api<PagedApiResponse<AdminCollectionListItem>>(
-		"/admin/collections",
+	const tenantId = requireEditorTenantId()
+	const response = await publicApi<PagedApiResponse<PublicCollectionListItem>>(
+		"/public/collections",
 		{
+			tenantId,
 			params: { page: 0, size: COLLECTION_LIST_PAGE_SIZE },
 		},
 	)
@@ -93,6 +116,7 @@ async function fetchCollectionListRows(): Promise<CollectionListRow[]> {
 	cachedCollectionList = (response.data ?? []).map((item) => ({
 		id: item.collectionId,
 		name: item.collectionName,
+		slug: item.collectionSlug,
 		productCount: item.productCount ?? 0,
 	}))
 
@@ -109,35 +133,49 @@ function filterCollectionList(
 	return rows.filter(
 		(collection) =>
 			collection.name.toLowerCase().includes(normalized) ||
+			collection.slug.toLowerCase().includes(normalized) ||
 			collection.id.toLowerCase().includes(normalized),
 	)
 }
 
 function mapCollectionProductItems(
 	items: CollectionProductListItem[],
-): Array<{ id: string; titleAr?: string; titleEn?: string }> {
+): CollectionProductRef[] {
 	return items.map((item) => ({
 		id: item.productId,
 		titleAr: item.titleAr,
 		titleEn: item.titleEn,
+		slug: item.slug,
 	}))
 }
 
 export async function fetchCollectionProductsFromUrl(
 	apiUrl: string,
-): Promise<Array<{ id: string; titleAr?: string; titleEn?: string }>> {
-	const response = await api<
-		PagedApiResponse<CollectionProductListItem> | ApiResponse<CollectionProductListItem[]>
-	>(apiUrl)
+): Promise<CollectionProductRef[]> {
+	const tenantId = requireEditorTenantId()
+	const response = await publicApi<PagedApiResponse<CollectionProductListItem>>(
+		apiUrl,
+		{ tenantId },
+	)
 
 	const items = Array.isArray(response.data) ? response.data : []
 	return mapCollectionProductItems(items)
 }
 
+export async function fetchCollectionProductsBySlug(
+	collectionSlug: string,
+): Promise<CollectionProductRef[]> {
+	return fetchCollectionProductsFromUrl(getCollectionProductsApiUrl(collectionSlug))
+}
+
+/** @deprecated Prefer fetchCollectionProductsBySlug — public API uses collection slug. */
 export async function fetchCollectionProductRefs(
 	collectionId: string,
-): Promise<Array<{ id: string; titleAr?: string; titleEn?: string }>> {
-	return fetchCollectionProductsFromUrl(getCollectionProductsApiUrl(collectionId))
+): Promise<CollectionProductRef[]> {
+	const rows = await fetchCollectionListRows()
+	const match = rows.find((row) => row.id === collectionId)
+	if (!match?.slug) return []
+	return fetchCollectionProductsBySlug(match.slug)
 }
 
 export const collectionExternalField: ExternalField<CollectionPickerRef | null> = {
@@ -155,6 +193,7 @@ export const collectionExternalField: ExternalField<CollectionPickerRef | null> 
 	mapProp: (item: CollectionListRow) => ({
 		id: item.id,
 		name: item.name,
+		slug: item.slug,
 		productCount: item.productCount,
 	}),
 	getItemSummary: (item) =>

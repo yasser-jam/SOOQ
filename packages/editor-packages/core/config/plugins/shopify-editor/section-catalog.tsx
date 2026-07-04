@@ -24,8 +24,9 @@ import {
   createStarterTextBlock,
   createSectionStarterContent,
 } from "../../blocks/Section/starter-data";
-import { createProductsGridSection } from "../../presets/products-grid";
 import { createCartSectionPreset } from "../../presets/cart";
+import { SECTION_KIND_PRODUCTS_GRID, PRODUCTS_GRID_SECTION_METADATA } from "../../blocks/Section/products-grid-section";
+import type { CollectionPickerRef } from "@/modules/product/collection/data-store";
 
 /**
  * Shopify-style Section Catalog.
@@ -51,6 +52,19 @@ export type SectionCategory =
   | "content"
   | "layout";
 
+/**
+ * A config field that the AddSectionModal shows before inserting the preset.
+ * Currently only "collection-picker" is supported.
+ */
+export type SectionPresetConfigField = {
+  type: "collection-picker";
+  /** Key used to pass the resolved value into build(params). */
+  key: string;
+  label: string;
+  placeholder?: string;
+  required?: boolean;
+};
+
 export type SectionPreset = {
   /** Stable key — never rename (persisted in analytics, not in JSON). */
   id: string;
@@ -61,12 +75,22 @@ export type SectionPreset = {
   /** CSS background for the card thumbnail (gradient, color, etc.). */
   gradient: string;
   /**
+   * When present, clicking the preset opens a configure step in the modal
+   * before inserting. The modal collects these fields and passes the results
+   * to build() as params.
+   */
+  configFields?: SectionPresetConfigField[];
+  /**
    * Build the ComponentData shape to insert into the root content array.
    * Always returns type "Section" so it satisfies the root DropZone
    * `allow={["Section"]}` contract — specialised presets wrap themselves
    * in a Section.
+   *
+   * For configurable presets, params carries the collected values:
+   *   - params.collection — selected collection ref
+   *   - params.collectionName — human-readable collection name
    */
-  build: () => {
+  build: (params?: Record<string, unknown>) => {
     type: string;
     props: Record<string, unknown>;
   };
@@ -320,11 +344,41 @@ export const sectionCatalog: SectionPreset[] = [
   {
     id: "products-grid",
     label: "Products Grid",
-    description: "Featured collection / product grid bound to tenant data.",
+    description:
+      "Choose a collection — products are fetched and each one becomes a bound, editable product card.",
     category: "commerce",
     icon: <Grid3x3 size={20} />,
     gradient: "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)",
-    build: () => createProductsGridSection(3),
+    configFields: [
+      {
+        type: "collection-picker",
+        key: "collection",
+        label: "اختر مجموعة",
+        placeholder: "ابحث عن مجموعة…",
+        required: true,
+      },
+    ],
+    build: (params = {}) => {
+      const collection = (params.collection as CollectionPickerRef | null) ?? null;
+      const name = (params.collectionName as string) || collection?.name || "Products";
+
+      return {
+        type: "Section",
+        props: {
+          ...SECTION_BASE_PROPS,
+          paddingTop: "48px",
+          paddingBottom: "48px",
+          name,
+          columns: 1,
+          columnsMobile: 1,
+          gridGap: "24px",
+          metadata: PRODUCTS_GRID_SECTION_METADATA,
+          sectionKind: SECTION_KIND_PRODUCTS_GRID,
+          collection,
+          content: [],
+        },
+      };
+    },
   },
   {
     id: "shopping-cart",

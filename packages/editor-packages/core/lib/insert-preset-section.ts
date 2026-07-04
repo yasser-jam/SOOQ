@@ -1,6 +1,8 @@
 import type { AppStore } from "../store";
 import { rootDroppableId } from "./root-droppable-id";
 import type { SectionPreset } from "../config/presets";
+import { getItem } from "./data/get-item";
+import { resolveAndReplaceData } from "./data/resolve-and-replace-data";
 
 const SHELL_REPLACE_TYPES = new Set(["SiteHeader", "SiteFooter"]);
 
@@ -17,11 +19,20 @@ function findShellIndex(
  * Section presets append to root content; shell presets replace the existing
  * SiteHeader / SiteFooter when present (same persistence path as drag-and-drop).
  */
-export function insertPresetSection(
+async function resolveInsertedSection(
+  appStore: AppStore,
+  itemSelector: { index: number; zone: string }
+): Promise<void> {
+  const itemData = getItem(itemSelector, appStore.getState().state);
+  if (!itemData) return;
+  await resolveAndReplaceData(itemData, appStore.getState, "insert");
+}
+
+export async function insertPresetSection(
   preset: SectionPreset,
   appStore: AppStore,
   insertIndex?: number
-): number {
+): Promise<number> {
   const { getState } = appStore;
   const dispatch = getState().dispatch;
   const content = getState().state.data.content ?? [];
@@ -57,6 +68,11 @@ export function insertPresetSection(
         },
       });
 
+      await resolveInsertedSection(appStore, {
+        index: existingIndex,
+        zone: rootDroppableId,
+      });
+
       return existingIndex;
     }
 
@@ -81,6 +97,8 @@ export function insertPresetSection(
       ui: { itemSelector: { index: idx, zone: rootDroppableId } },
     });
 
+    await resolveInsertedSection(appStore, { index: idx, zone: rootDroppableId });
+
     return idx;
   }
 
@@ -103,6 +121,8 @@ export function insertPresetSection(
     type: "setUi",
     ui: { itemSelector: { index: idx, zone: rootDroppableId } },
   });
+
+  await resolveInsertedSection(appStore, { index: idx, zone: rootDroppableId });
 
   return idx;
 }

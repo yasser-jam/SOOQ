@@ -5,10 +5,18 @@ import { spacingOptions } from "../../options";
 import { resolveColor } from "../../content/color-fields";
 import { WithLayout, withLayout } from "../../components/Layout";
 import { ZONE_BLOCK_TYPES } from "../../shell-zones";
+import { sectionCollectionPickerField } from "../../fields/CollectionPickerField";
+import type { CollectionPickerRef } from "@/modules/product/collection/data-store";
 import {
   DEFAULT_SECTION_NAME,
   createSectionStarterContent,
 } from "./starter-data";
+import {
+  isProductsGridSection,
+  resolveProductsGridSectionContent,
+  SECTION_KIND_PRODUCTS_GRID,
+  type SectionPresetMetadata,
+} from "./products-grid-section";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("Section", styles);
@@ -84,6 +92,12 @@ export type SectionProps = WithLayout<{
   backgroundImage?: string;
   /** Color overlay on top of background image (supports rgba for transparency) */
   backgroundOverlayColor?: string;
+  /** @deprecated Prefer `metadata.preset`. Kept for older saved configs. */
+  sectionKind?: typeof SECTION_KIND_PRODUCTS_GRID | null;
+  /** Identifies preset-driven sections (e.g. products-grid) in store_config.json. */
+  metadata?: SectionPresetMetadata | null;
+  /** Selected collection — available on every section; drives products-grid fill. */
+  collection?: CollectionPickerRef | null;
   content: Slot;
 }>;
 
@@ -234,7 +248,54 @@ const SectionInner: ComponentConfig<SectionProps> = {
     gridGap: "24px",
     backgroundImage: "",
     backgroundOverlayColor: "",
+    collection: null,
     content: createSectionStarterContent(),
+  },
+
+  resolveFields: (data, { fields }) => {
+    if (!isProductsGridSection(data.props)) {
+      return fields;
+    }
+
+    return {
+      collection: sectionCollectionPickerField,
+      ...fields,
+    } as typeof fields;
+  },
+
+  resolveData: async ({ props }, { changed, trigger }) => {
+    if (!isProductsGridSection(props)) return {};
+
+    const collectionChanged = Boolean(changed.collection);
+    const content = props.content;
+    const hasEmptyContent = !Array.isArray(content) || content.length === 0;
+    const shouldSync =
+      collectionChanged ||
+      trigger === "insert" ||
+      trigger === "force" ||
+      (trigger === "load" && Boolean(props.collection?.slug) && hasEmptyContent);
+
+    if (!shouldSync) return {};
+
+    const collection = props.collection;
+
+    if (!collection?.slug) {
+      return { props: { content: [], columns: 1 } };
+    }
+
+    try {
+      const resolved = await resolveProductsGridSectionContent(collection);
+      return {
+        props: {
+          content: resolved.content,
+          columns: resolved.columns,
+          ...(resolved.name ? { name: resolved.name } : {}),
+        },
+      };
+    } catch (error) {
+      console.error("[Section] Failed to load collection products:", error);
+      return { props: { content: [], columns: 1 } };
+    }
   },
 
   render: ({
@@ -253,6 +314,9 @@ const SectionInner: ComponentConfig<SectionProps> = {
     columns,
     columnsMobile,
     gridGap,
+    sectionKind,
+    collection,
+    metadata: sectionMetadata,
     content: Content,
     puck,
   }) => {
@@ -286,6 +350,11 @@ const SectionInner: ComponentConfig<SectionProps> = {
       <section
         id={cleanAnchor || sectionScopeId}
         data-section-id={sectionScopeId}
+        data-section-preset={
+          isProductsGridSection({ sectionKind, metadata: sectionMetadata })
+            ? SECTION_KIND_PRODUCTS_GRID
+            : undefined
+        }
         className={getClassName({ hidden: isHidden })}
         style={{
           paddingTop,
@@ -354,6 +423,25 @@ const SectionInner: ComponentConfig<SectionProps> = {
             zIndex: 1,
           }}
         >
+          {isProductsGridSection({ sectionKind, metadata: sectionMetadata }) &&
+          !collection?.slug &&
+          puck.isEditing ? (
+            <div
+              className={getClassName("productsGridEmpty")}
+              style={{
+                gridColumn: "1 / -1",
+                padding: "32px 16px",
+                textAlign: "center",
+                color: "#6b7280",
+                fontSize: 14,
+                border: "1px dashed #d1d5db",
+                borderRadius: 8,
+                background: "#f9fafb",
+              }}
+            >
+              اختر مجموعة من لوحة الحقول لعرض منتجاتها.
+            </div>
+          ) : null}
           <Content
             className={gridClassName}
             style={{

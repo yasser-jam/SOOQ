@@ -53,7 +53,7 @@ export function AddSectionDialog({ open, onClose }: AddSectionDialogProps) {
       if (isInsertingRef.current) return;
       isInsertingRef.current = true;
       onClose();
-      insertPresetSection(preset, storeApi);
+      void insertPresetSection(preset, storeApi);
     },
     [onClose, storeApi]
   );

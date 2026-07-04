@@ -7,9 +7,11 @@ import React, {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { X, Search } from "lucide-react";
+import { X, Search, ArrowLeft, Loader2 } from "lucide-react";
 import { getClassNameFactory } from "@/core/lib";
 import { rootDroppableId } from "@/core/lib/root-droppable-id";
+import { getItem } from "@/core/lib/data/get-item";
+import { resolveAndReplaceData } from "@/core/lib/data/resolve-and-replace-data";
 import { useAppStore, useAppStoreApi } from "@/core/store";
 import {
   assertSerializable,
@@ -23,6 +25,10 @@ import {
   DEFAULT_SECTION_NAME,
   createSectionStarterContent,
 } from "../../../blocks/Section/starter-data";
+import {
+  collectionExternalField,
+  type CollectionPickerRef,
+} from "@/modules/product/collection/data-store";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("AddSectionModal", styles);
@@ -30,11 +36,18 @@ const getClassName = getClassNameFactory("AddSectionModal", styles);
 type Props = {
   open: boolean;
   onClose: () => void;
-  /** Where to insert the new section in the root content array (defaults: end). */
   insertIndex?: number;
 };
 
 type TabFilter = "all" | SectionCategory;
+
+// ─── Collection picker state ──────────────────────────────────────────────────
+
+type CollectionRow = {
+  id: string;
+  name: string;
+  productCount: number;
+};
 
 function ensureSectionStarterPayload(
   payload: ReturnType<SectionPreset["build"]>
@@ -46,11 +59,9 @@ function ensureSectionStarterPayload(
   const rawContent = props.content;
 
   const hasName = typeof rawName === "string" && rawName.trim().length > 0;
-  const hasContent = Array.isArray(rawContent) && rawContent.length > 0;
+  const hasContent = Array.isArray(rawContent);
 
-  if (hasName && hasContent) {
-    return payload;
-  }
+  if (hasName && hasContent) return payload;
 
   return {
     ...payload,
@@ -62,51 +73,206 @@ function ensureSectionStarterPayload(
   };
 }
 
-/**
- * Shopify-style Add Section modal.
- *
- * Persistence invariant: every insertion is a dispatch through the Puck
- * reducer (`insert`), so the result is in `data.content` and therefore in
- * `store_config.json`. No editor-only state is introduced.
- *
- * Performance: we use the atomic `insert` action (targeted walkAppState on
- * the insertion path) rather than `setData` (full-tree walk). We also move
- * selection to the newly inserted section to reduce the next click.
- */
+// ─── Collection Picker Step ───────────────────────────────────────────────────
+
+type CollectionPickerStepProps = {
+  preset: SectionPreset;
+  onBack: () => void;
+  onInsert: (collection: CollectionPickerRef) => void;
+  isInserting: boolean;
+};
+
+function CollectionPickerStep({
+  preset,
+  onBack,
+  onInsert,
+  isInserting,
+}: CollectionPickerStepProps) {
+  const [query, setQuery] = useState("");
+  const [collections, setCollections] = useState<CollectionRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selected, setSelected] = useState<CollectionPickerRef | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Fetch collection list once on mount
+  useEffect(() => {
+    setIsLoading(true);
+    collectionExternalField
+      .fetchList({ query: "", filters: {} })
+      .then((rows) => {
+        setCollections(rows as CollectionRow[]);
+      })
+      .catch(() => setCollections([]))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => searchRef.current?.focus(), 50);
+    return () => clearTimeout(t);
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return collections;
+    return collections.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q)
+    );
+  }, [collections, query]);
+
+  const configField = preset.configFields?.[0];
+  const placeholder = configField?.placeholder ?? "ابحث عن مجموعة…";
+
+  return (
+    <>
+      {/* Step header */}
+      <div className={getClassName("configHeader")}>
+        <button
+          type="button"
+          className={getClassName("backBtn")}
+          onClick={onBack}
+          disabled={isInserting}
+          aria-label="Back to sections"
+        >
+          <ArrowLeft size={16} />
+          <span>رجوع</span>
+        </button>
+        <div className={getClassName("configPresetLabel")}>
+          <span className={getClassName("configPresetIcon")}>{preset.icon}</span>
+          {preset.label}
+        </div>
+      </div>
+
+      {/* Collection search */}
+      <div className={getClassName("configSearchWrap")}>
+        <Search size={14} className={getClassName("searchIcon")} />
+        <input
+          ref={searchRef}
+          type="text"
+          className={getClassName("search")}
+          placeholder={placeholder}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          disabled={isInserting}
+          dir="auto"
+        />
+      </div>
+
+      {/* Collection list */}
+      <div className={getClassName("configList")}>
+        {isLoading ? (
+          <div className={getClassName("configLoading")}>
+            <Loader2 size={18} className={getClassName("spin")} />
+            <span>جاري تحميل المجموعات…</span>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className={getClassName("configEmpty")}>
+            لا توجد مجموعات تطابق "{query}".
+          </div>
+        ) : (
+          filtered.map((collection) => {
+            const isSelected = selected?.id === collection.id;
+            return (
+              <button
+                key={collection.id}
+                type="button"
+                className={`${getClassName("collectionRow")} ${
+                  isSelected ? getClassName("collectionRow--selected") : ""
+                }`}
+                onClick={() =>
+                  setSelected(
+                    collectionExternalField.mapProp!(collection) as CollectionPickerRef
+                  )
+                }
+                disabled={isInserting}
+              >
+                <span className={getClassName("collectionName")}>
+                  {collection.name}
+                </span>
+                <span className={getClassName("collectionCount")}>
+                  {collection.productCount} منتج
+                </span>
+              </button>
+            );
+          })
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className={getClassName("configFooter")}>
+        {selected && (
+          <span className={getClassName("configSelectedLabel")}>
+            {selected.name}
+            {selected.productCount != null && ` · ${selected.productCount} منتج`}
+          </span>
+        )}
+        <button
+          type="button"
+          className={getClassName("insertBtn")}
+          disabled={!selected || isInserting}
+          onClick={() => selected && onInsert(selected)}
+        >
+          {isInserting ? (
+            <>
+              <Loader2 size={14} className={getClassName("spin")} />
+              <span>جاري التحميل…</span>
+            </>
+          ) : (
+            "إضافة القسم"
+          )}
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ─── Main modal ───────────────────────────────────────────────────────────────
+
 export function AddSectionModal({ open, onClose, insertIndex }: Props) {
-  // We read dispatch directly from the app store so we can round-trip
-  // through the reducer (same mechanism users drag-drop uses). This is the
-  // pattern the rest of the demo uses (see SettingsPanel, html-block-palette).
   const dispatch = useAppStore((s) => s.dispatch);
 
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<TabFilter>("all");
   const searchInputRef = useRef<HTMLInputElement>(null);
-  // Guard against double-insertion from React StrictMode double-invoking the
-  // setData updater, or from rapid double-clicks. A ref (not state) avoids
-  // re-renders and ensures the lock is observable synchronously.
   const isInsertingRef = useRef(false);
 
-  // Focus search on open; reset filters on close.
+  // Config step state
+  const [configuringPreset, setConfiguringPreset] =
+    useState<SectionPreset | null>(null);
+  const [isInserting, setIsInserting] = useState(false);
+
+  const storeApi = useAppStoreApi();
+
+  // Reset on close
   useEffect(() => {
     if (open) {
       isInsertingRef.current = false;
+      setConfiguringPreset(null);
+      setIsInserting(false);
       const id = setTimeout(() => searchInputRef.current?.focus(), 50);
       return () => clearTimeout(id);
     }
     setSearch("");
     setTab("all");
+    setConfiguringPreset(null);
+    setIsInserting(false);
   }, [open]);
 
-  // Close on Escape.
+  // Close on Escape (only when not in insert config step)
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        if (configuringPreset) {
+          setConfiguringPreset(null);
+        } else {
+          onClose();
+        }
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open, onClose, configuringPreset]);
 
   const filtered: SectionPreset[] = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -136,42 +302,25 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
 
   const showQuickPicks = tab === "all" && search.trim() === "";
 
-  // Read content length from the store, but only when we actually need it
-  // (inside the click handler). `useAppStoreApi()` returns the underlying
-  // Zustand store — calling `.getState()` on it is imperative and does NOT
-  // subscribe this modal to state changes. Avoids re-renders every time
-  // something changes elsewhere in the editor.
-  const storeApi = useAppStoreApi();
-
-  const handlePick = useCallback(
-    (preset: SectionPreset) => {
-      if (isInsertingRef.current) return; // swallow double-fire
-      isInsertingRef.current = true;
-
-      if (process.env.NODE_ENV !== "production") {
-        assertSerializable(preset);
-      }
-
-      const payload = ensureSectionStarterPayload(preset.build());
-      const currentLength = storeApi.getState().state.data.content?.length ?? 0;
+  /** Dispatch a fully-built payload immediately. */
+  const dispatchPayload = useCallback(
+    async (payload: ReturnType<SectionPreset["build"]>) => {
+      const normalized = ensureSectionStarterPayload(payload);
+      const currentLength =
+        storeApi.getState().state.data.content?.length ?? 0;
       const idx =
         typeof insertIndex === "number"
           ? Math.min(Math.max(insertIndex, 0), currentLength)
           : currentLength;
 
-      // Close first, then insert and move selection to the new row so the
-      // merchant can edit immediately.
       onClose();
 
       dispatch({
         type: "insert",
-        componentType: payload.type,
+        componentType: normalized.type,
         destinationZone: rootDroppableId,
         destinationIndex: idx,
-        // The props field is merged over Section.defaultProps inside
-        // insertAction; nested slot content (e.g. the Bound block a
-        // Commerce preset wraps) is populated with ids by populateIds.
-        props: payload.props,
+        props: normalized.props,
         recordHistory: true,
       });
 
@@ -179,8 +328,64 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
         type: "setUi",
         ui: { itemSelector: { index: idx, zone: rootDroppableId } },
       });
+
+      const itemData = getItem(
+        { index: idx, zone: rootDroppableId },
+        storeApi.getState().state
+      );
+      if (itemData) {
+        await resolveAndReplaceData(itemData, storeApi.getState, "insert");
+      }
     },
     [dispatch, storeApi, insertIndex, onClose]
+  );
+
+  /** Handle a regular (non-configurable) preset click. */
+  const handlePick = useCallback(
+    (preset: SectionPreset) => {
+      if (isInsertingRef.current) return;
+
+      // Configurable preset → go to config step instead of inserting immediately
+      if (preset.configFields && preset.configFields.length > 0) {
+        setConfiguringPreset(preset);
+        return;
+      }
+
+      isInsertingRef.current = true;
+
+      if (process.env.NODE_ENV !== "production") {
+        assertSerializable(preset);
+      }
+
+      void dispatchPayload(preset.build());
+    },
+    [dispatchPayload]
+  );
+
+  /**
+   * Called when the user has selected a collection in the config step.
+   * Inserts the section shell; Section.resolveData loads product cards.
+   */
+  const handleCollectionInsert = useCallback(
+    (preset: SectionPreset, collection: CollectionPickerRef) => {
+      if (isInsertingRef.current) return;
+      isInsertingRef.current = true;
+      setIsInserting(true);
+
+      void (async () => {
+        try {
+          const payload = preset.build({
+            collection,
+            collectionName: collection.name,
+          });
+          await dispatchPayload(payload);
+        } finally {
+          setIsInserting(false);
+          setConfiguringPreset(null);
+        }
+      })();
+    },
+    [dispatchPayload]
   );
 
   if (!open) return null;
@@ -190,131 +395,151 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
     <div
       className={getClassName("overlay")}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget && !isInserting) onClose();
       }}
       role="dialog"
       aria-modal="true"
       aria-label="Add section"
     >
       <div className={getClassName("dialog")}>
-        {/* Header */}
-        <div className={getClassName("header")}>
-          <div className={getClassName("titleGroup")}>
-            <h2 className={getClassName("title")}>Add section</h2>
-            <p className={getClassName("subtitle")}>
-              Pick a pre-built section. You can customize every block afterward.
-            </p>
-          </div>
-          <button
-            type="button"
-            className={getClassName("close")}
-            onClick={onClose}
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Toolbar */}
-        <div className={getClassName("toolbar")}>
-          <div className={getClassName("searchWrap")}>
-            <Search size={14} className={getClassName("searchIcon")} />
-            <input
-              ref={searchInputRef}
-              type="text"
-              className={getClassName("search")}
-              placeholder="Search sections…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && filtered.length > 0) {
-                  e.preventDefault();
-                  handlePick(filtered[0]!);
-                }
-              }}
-              dir="ltr"
-            />
-          </div>
-
-          <div className={getClassName("categoryTabs")}>
-            {visibleTabs.map((t) => (
+        {/* ── Config step ───────────────────────────────────────────────── */}
+        {configuringPreset ? (
+          <CollectionPickerStep
+            preset={configuringPreset}
+            onBack={() => setConfiguringPreset(null)}
+            onInsert={(collection) =>
+              handleCollectionInsert(configuringPreset, collection)
+            }
+            isInserting={isInserting}
+          />
+        ) : (
+          <>
+            {/* ── Catalog step ────────────────────────────────────────── */}
+            {/* Header */}
+            <div className={getClassName("header")}>
+              <div className={getClassName("titleGroup")}>
+                <h2 className={getClassName("title")}>Add section</h2>
+                <p className={getClassName("subtitle")}>
+                  Pick a pre-built section. You can customize every block
+                  afterward.
+                </p>
+              </div>
               <button
-                key={t}
                 type="button"
-                className={`${getClassName("tab")} ${
-                  tab === t ? getClassName("tab--active") : ""
-                }`.trim()}
-                onClick={() => setTab(t)}
+                className={getClassName("close")}
+                onClick={onClose}
+                aria-label="Close"
               >
-                {t === "all" ? "All" : CATEGORY_LABELS[t]}
+                <X size={18} />
               </button>
-            ))}
-          </div>
-        </div>
-
-        {showQuickPicks && quickPicks.length > 0 && (
-          <div className={getClassName("quickPicks")}>
-            <span className={getClassName("quickPicksLabel")}>Quick start</span>
-            <div className={getClassName("quickPicksList")}>
-              {quickPicks.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  className={getClassName("quickPick")}
-                  onClick={() => handlePick(preset)}
-                >
-                  {preset.label}
-                </button>
-              ))}
             </div>
-          </div>
-        )}
 
-        {/* Card grid */}
-        <div className={getClassName("grid")}>
-          {filtered.length === 0 ? (
-            <div className={getClassName("empty")}>
-              No sections match "{search}". Try a different search term.
-              <div className={getClassName("emptyActions")}>
-                <button
-                  type="button"
-                  className={getClassName("emptyActionBtn")}
-                  onClick={() => {
-                    setSearch("");
-                    setTab("all");
-                    searchInputRef.current?.focus();
+            {/* Toolbar */}
+            <div className={getClassName("toolbar")}>
+              <div className={getClassName("searchWrap")}>
+                <Search size={14} className={getClassName("searchIcon")} />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  className={getClassName("search")}
+                  placeholder="Search sections…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && filtered.length > 0) {
+                      e.preventDefault();
+                      handlePick(filtered[0]!);
+                    }
                   }}
-                >
-                  Clear filters
-                </button>
+                  dir="ltr"
+                />
+              </div>
+
+              <div className={getClassName("categoryTabs")}>
+                {visibleTabs.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`${getClassName("tab")} ${
+                      tab === t ? getClassName("tab--active") : ""
+                    }`.trim()}
+                    onClick={() => setTab(t)}
+                  >
+                    {t === "all" ? "All" : CATEGORY_LABELS[t]}
+                  </button>
+                ))}
               </div>
             </div>
-          ) : (
-            filtered.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                className={getClassName("card")}
-                onClick={() => handlePick(preset)}
-              >
-                <div
-                  className={getClassName("thumb")}
-                  style={{ background: preset.gradient }}
-                >
-                  <div className={getClassName("thumbIcon")}>{preset.icon}</div>
+
+            {showQuickPicks && quickPicks.length > 0 && (
+              <div className={getClassName("quickPicks")}>
+                <span className={getClassName("quickPicksLabel")}>
+                  Quick start
+                </span>
+                <div className={getClassName("quickPicksList")}>
+                  {quickPicks.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      className={getClassName("quickPick")}
+                      onClick={() => handlePick(preset)}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
                 </div>
-                <div className={getClassName("cardBody")}>
-                  <span className={getClassName("cardLabel")}>
-                    {preset.label}
-                  </span>
-                  <span className={getClassName("cardDesc")}>
-                    {preset.description}
-                  </span>
+              </div>
+            )}
+
+            {/* Card grid */}
+            <div className={getClassName("grid")}>
+              {filtered.length === 0 ? (
+                <div className={getClassName("empty")}>
+                  No sections match "{search}". Try a different search term.
+                  <div className={getClassName("emptyActions")}>
+                    <button
+                      type="button"
+                      className={getClassName("emptyActionBtn")}
+                      onClick={() => {
+                        setSearch("");
+                        setTab("all");
+                        searchInputRef.current?.focus();
+                      }}
+                    >
+                      Clear filters
+                    </button>
+                  </div>
                 </div>
-              </button>
-            ))
-          )}
-        </div>
+              ) : (
+                filtered.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    className={getClassName("card")}
+                    onClick={() => handlePick(preset)}
+                  >
+                    <div
+                      className={getClassName("thumb")}
+                      style={{ background: preset.gradient }}
+                    >
+                      <div className={getClassName("thumbIcon")}>
+                        {preset.icon}
+                      </div>
+                    </div>
+                    <div className={getClassName("cardBody")}>
+                      <span className={getClassName("cardLabel")}>
+                        {preset.label}
+                      </span>
+                      <span className={getClassName("cardDesc")}>
+                        {preset.description}
+                      </span>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>,
     document.body

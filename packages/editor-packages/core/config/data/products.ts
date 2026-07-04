@@ -59,9 +59,14 @@ export function discountedPrice(price: number, discount: number): number {
 	return price * (1 - discount / 100)
 }
 
-export { productExternalField } from "@/modules/product/product/data-store"
 export {
 	collectionExternalField,
 	type CollectionPickerRef,
 	type ProductsGridResourceMetadata,
 } from "@/modules/product/collection/data-store"
+export { sectionCollectionPickerField, collectionPickerField } from "../fields/CollectionPickerField"
+export {
+	buildPublicProductResourceMetadata,
+	productExternalField,
+} from "@/modules/product/product/data-store"
+export { productPickerField } from "../fields/ProductPickerField"

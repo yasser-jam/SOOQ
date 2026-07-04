@@ -71,10 +71,15 @@ export function withLayout<
         ...componentConfig.defaultProps?.layout,
       },
     },
-    resolveFields: (_, params) => {
+    resolveFields: async (data, params) => {
+      const resolvedFromConfig =
+        (componentConfig.resolveFields
+          ? await componentConfig.resolveFields(data, params)
+          : params.fields) ?? params.fields;
+
       if (params.parent?.type === "Grid") {
         return {
-          ...componentConfig.fields,
+          ...resolvedFromConfig,
           layout: createLayoutField({
             showSpanCol: true,
             showSpanRow: true,
@@ -85,7 +90,7 @@ export function withLayout<
       }
       if (params.parent?.type === "Section") {
         return {
-          ...componentConfig.fields,
+          ...resolvedFromConfig,
           layout: createLayoutField({
             showSpanCol: true,
             showSpanRow: true,
@@ -96,7 +101,7 @@ export function withLayout<
       }
       if (params.parent?.type === "Flex") {
         return {
-          ...componentConfig.fields,
+          ...resolvedFromConfig,
           layout: createLayoutField({
             showSpanCol: false,
             showSpanRow: false,
@@ -106,7 +111,7 @@ export function withLayout<
       }
 
       return {
-        ...componentConfig.fields,
+        ...resolvedFromConfig,
         layout: createLayoutField({
           showSpanCol: false,
           showSpanRow: false,
