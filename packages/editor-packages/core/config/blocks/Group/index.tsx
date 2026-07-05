@@ -63,6 +63,11 @@ export type GroupProps = WithLayout<{
   language?: "ar" | "en";
   /** Binds this group to a `store-cart` line (cart section preset rows). */
   cartLineId?: string | null;
+  /**
+   * When true, product card data comes from the parent products-grid list
+   * (or BoundDataProvider) — do not call the product detail API.
+   */
+  skipProductDetailFetch?: boolean;
   /** Accepts all blocks, including nested Groups. Section is excluded
    *  because sections are page-level containers only. */
   content: Slot;
@@ -196,6 +201,7 @@ const GroupInternal: ComponentConfig<GroupProps> = {
     metadata: null,
     language: "ar",
     cartLineId: null,
+    skipProductDetailFetch: false,
     direction: "row",
     gap: 16,
     alignItems: "stretch",
@@ -254,6 +260,7 @@ const GroupInternal: ComponentConfig<GroupProps> = {
     metadata,
     language,
     cartLineId,
+    skipProductDetailFetch,
     content: Content,
     puck,
   }) => {
@@ -332,6 +339,7 @@ const GroupInternal: ComponentConfig<GroupProps> = {
           metadata={metadata}
           language={language ?? "ar"}
           cartLineId={cartLineId}
+          skipProductDetailFetch={skipProductDetailFetch === true}
           isEditing={puck?.isEditing === true}
         />
       </div>

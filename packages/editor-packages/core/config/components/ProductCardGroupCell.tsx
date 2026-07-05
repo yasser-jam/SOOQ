@@ -8,11 +8,13 @@ import { createProductCardBlock } from "../presets/products-grid";
 import {
   buildPublicProductResourceMetadata,
   buildProductResourceMetadata,
-  type ProductPickerRef,
 } from "@/modules/product/product/data-store";
+import type { CollectionProductRef } from "@/modules/product/collection/data-store";
+import { BoundDataProvider } from "../binding";
+import { mapCollectionProductToBoundData } from "../binding/map-collection-product-to-bound-data";
 
 type ProductCardGroupCellProps = {
-  product: ProductPickerRef;
+  product: CollectionProductRef;
   isEditing?: boolean;
 };
 
@@ -20,6 +22,19 @@ export function ProductCardGroupCell({
   product,
   isEditing = false,
 }: ProductCardGroupCellProps) {
+  const boundData = useMemo(
+    () => mapCollectionProductToBoundData(product),
+    [product]
+  );
+
+  const metadata = useMemo(
+    () =>
+      product.slug
+        ? buildPublicProductResourceMetadata(product.slug, product.id)
+        : buildProductResourceMetadata(product.id),
+    [product.id, product.slug]
+  );
+
   const content = useMemo(() => {
     const card = createProductCardBlock({
       product: {
@@ -28,25 +43,36 @@ export function ProductCardGroupCell({
         titleEn: product.titleEn,
         slug: product.slug,
       },
-      metadata: product.slug
-        ? buildPublicProductResourceMetadata(product.slug, product.id)
-        : buildProductResourceMetadata(product.id),
+      metadata,
+      skipProductDetailFetch: true,
     });
 
     return [assignComponentIds(card, `product-card-${product.id}`)];
-  }, [product.id, product.titleAr, product.titleEn, product.slug]);
+  }, [metadata, product.id, product.slug, product.titleAr, product.titleEn]);
 
   return (
-    <SlotRenderPure
-      content={content}
-      zone={`product-card-${product.id}`}
-      config={conf}
-      metadata={{
-        puck: {
-          dragRef: null,
-          isEditing,
-        },
+    <BoundDataProvider
+      value={{
+        data: boundData,
+        isLoading: false,
+        isError: false,
+        metadata,
+        language: "ar",
+        selectedVariantId: null,
+        setSelectedVariantId: () => {},
       }}
-    />
+    >
+      <SlotRenderPure
+        content={content}
+        zone={`product-card-${product.id}`}
+        config={conf}
+        metadata={{
+          puck: {
+            dragRef: null,
+            isEditing,
+          },
+        }}
+      />
+    </BoundDataProvider>
   );
 }

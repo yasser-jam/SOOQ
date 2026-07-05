@@ -45,7 +45,7 @@ export function buildProductResourceMetadata(id: string): ProductResourceMetadat
 }
 
 export function getPublicProductApiPath(slug: string): string {
-	return `/api/v1/public/products/${encodeURIComponent(slug)}`
+	return `/public/products/${encodeURIComponent(slug)}`
 }
 
 export function getPublicProductApiUrl(slug: string): string {
@@ -65,7 +65,10 @@ export function buildPublicProductResourceMetadata(
 }
 
 function isPublicApiUrl(apiUrl: string): boolean {
-	return apiUrl.includes("/api/v1/public/")
+	return (
+		apiUrl.includes("/public/products/") ||
+		apiUrl.includes("/api/v1/public/products/")
+	)
 }
 
 function normalizePublicProductPayload(

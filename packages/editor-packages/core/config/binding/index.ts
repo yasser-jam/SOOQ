@@ -15,3 +15,12 @@ export {
   type ProductCardActionEventDetail,
 } from "./product-actions";
 export { mapPayloadToProductCardData, buildProductActionDetail } from "./map-payload-to-card-data";
+export {
+  mapCollectionProductToBoundData,
+  getBoundProductId,
+} from "./map-collection-product-to-bound-data";
+export {
+  CollectionProductsBoundProvider,
+  useCollectionProductBoundData,
+  useCollectionProductsBoundLoading,
+} from "./CollectionProductsBoundProvider";

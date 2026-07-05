@@ -11,6 +11,11 @@ import {
   type ProductResourceMetadata,
 } from "@/modules/product/product/data-store";
 import { BoundDataProvider, useBoundData } from "../../binding";
+import { getBoundProductId } from "../../binding/map-collection-product-to-bound-data";
+import {
+  useCollectionProductBoundData,
+  useCollectionProductsBoundLoading,
+} from "../../binding/CollectionProductsBoundProvider";
 import {
   createDemoCartLine,
   mapCartLineToBoundData,
@@ -46,6 +51,7 @@ export type GroupClientProps = {
   metadata?: ProductResourceMetadata | null;
   language?: "ar" | "en";
   cartLineId?: string | null;
+  skipProductDetailFetch?: boolean;
   isEditing?: boolean;
 };
 
@@ -57,6 +63,7 @@ export function GroupClient({
   metadata,
   language = "ar",
   cartLineId,
+  skipProductDetailFetch = false,
   isEditing = false,
 }: GroupClientProps) {
   const parentBound = useBoundData();
@@ -65,6 +72,24 @@ export function GroupClient({
   const productApiUrl =
     metadata?.apiUrl ?? (productId ? getProductCardApiUrl(productId) : null);
 
+  const parentBoundProductId = getBoundProductId(
+    parentBound.data as Record<string, unknown> | null
+  );
+  const hasParentProductData = Boolean(
+    parentBound.data && productId && parentBoundProductId === productId
+  );
+  const collectionBoundData = useCollectionProductBoundData(
+    skipProductDetailFetch ? productId : null
+  );
+  const collectionLoading = useCollectionProductsBoundLoading();
+
+  const prefetchedBoundData = hasParentProductData
+    ? (parentBound.data as Record<string, unknown>)
+    : collectionBoundData;
+
+  const shouldFetchProductDetail =
+    Boolean(productApiUrl) && !cartLineId && !skipProductDetailFetch;
+
   const [selectedVariantId, setSelectedVariantId] = React.useState<string | null>(
     null
   );
@@ -72,7 +97,7 @@ export function GroupClient({
   const { data, isLoading, isError } = useQuery({
     queryKey: productPickerKeys.detail(productId ?? "", productApiUrl ?? ""),
     queryFn: () => fetchProductDetailPayloadFromUrl(productApiUrl!),
-    enabled: Boolean(productApiUrl) && !cartLineId,
+    enabled: shouldFetchProductDetail,
     staleTime: 60_000,
   });
 
@@ -92,6 +117,7 @@ export function GroupClient({
       return null;
     }
 
+    if (prefetchedBoundData) return prefetchedBoundData;
     if (data) return data;
     if (!product?.id) return parentBound.data;
 
@@ -103,7 +129,15 @@ export function GroupClient({
       },
       images: [],
     };
-  }, [cartLine, cartLineId, data, isEditing, product, parentBound.data]);
+  }, [
+    cartLine,
+    cartLineId,
+    data,
+    isEditing,
+    parentBound.data,
+    prefetchedBoundData,
+    product,
+  ]);
 
   if (cartLineId && !boundData) {
     return null;
@@ -111,8 +145,12 @@ export function GroupClient({
 
   const boundProviderValue = {
     data: boundData,
-    isLoading: cartLineId ? false : isLoading,
-    isError: cartLineId ? false : isError,
+    isLoading: cartLineId
+      ? false
+      : skipProductDetailFetch
+        ? collectionLoading && !prefetchedBoundData
+        : isLoading,
+    isError: cartLineId ? false : skipProductDetailFetch ? false : isError,
     metadata: cartLine?.metadata ?? metadata ?? parentBound.metadata ?? null,
     language: cartLine?.language ?? language,
     selectedVariantId:
@@ -120,8 +158,11 @@ export function GroupClient({
     setSelectedVariantId,
   };
 
-  const showLoading = Boolean(productApiUrl) && !cartLineId && isLoading;
-  const showError = Boolean(productApiUrl) && !cartLineId && isError;
+  const showLoading =
+    skipProductDetailFetch
+      ? collectionLoading && !prefetchedBoundData
+      : shouldFetchProductDetail && isLoading;
+  const showError = shouldFetchProductDetail && isError;
 
   return (
     <div className={getClassName()} style={surfaceStyle}>

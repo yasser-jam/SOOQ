@@ -32,6 +32,14 @@ export type CollectionProductRef = {
 	titleAr?: string
 	titleEn?: string
 	slug?: string
+	displayPrice?: string
+	basePrice?: number
+	compareAtPrice?: number
+	currencyCode?: string
+	status?: string
+	primaryImageUrl?: string
+	descriptionAr?: string
+	descriptionEn?: string
 }
 
 type CollectionProductListItem = {
@@ -41,9 +49,12 @@ type CollectionProductListItem = {
 	slug?: string
 	displayPrice?: string
 	basePrice?: number
+	compareAtPrice?: number
 	currencyCode?: string
 	status?: string
 	primaryImageUrl?: string
+	descriptionAr?: string
+	descriptionEn?: string
 	sortOrder?: number
 }
 
@@ -146,6 +157,14 @@ function mapCollectionProductItems(
 		titleAr: item.titleAr,
 		titleEn: item.titleEn,
 		slug: item.slug,
+		displayPrice: item.displayPrice,
+		basePrice: item.basePrice,
+		compareAtPrice: item.compareAtPrice,
+		currencyCode: item.currencyCode,
+		status: item.status,
+		primaryImageUrl: item.primaryImageUrl,
+		descriptionAr: item.descriptionAr,
+		descriptionEn: item.descriptionEn,
 	}))
 }
 

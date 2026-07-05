@@ -49,8 +49,23 @@ export function buildProductGroupBlocksFromCollectionProducts(
       metadata: product.slug
         ? buildPublicProductResourceMetadata(product.slug, product.id)
         : buildProductResourceMetadata(product.id),
+      skipProductDetailFetch: true,
     })
   );
+}
+
+export function productsGridContentNeedsResync(
+  content: unknown
+): boolean {
+  if (!Array.isArray(content) || content.length === 0) return false;
+
+  return content.some((item) => {
+    if (!item || typeof item !== "object") return false;
+    const record = item as { type?: string; props?: Record<string, unknown> };
+    if (record.type !== "Group") return false;
+    if (!record.props?.product) return false;
+    return record.props.skipProductDetailFetch !== true;
+  });
 }
 
 export async function resolveProductsGridSectionContent(

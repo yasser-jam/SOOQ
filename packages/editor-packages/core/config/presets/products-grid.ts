@@ -21,6 +21,7 @@ export function createProductCardGroup(
       wrap: "nowrap",
       product: null,
       metadata: null,
+      skipProductDetailFetch: false,
       language: "ar",
       backgroundColor: "theme-surface",
       padding: "16px",

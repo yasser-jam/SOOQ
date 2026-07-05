@@ -14,6 +14,7 @@ import {
 } from "./starter-data";
 import {
   isProductsGridSection,
+  productsGridContentNeedsResync,
   resolveProductsGridSectionContent,
   SECTION_KIND_PRODUCTS_GRID,
   type SectionPresetMetadata,
@@ -24,6 +25,7 @@ import {
   SECTION_KIND_CART,
 } from "./cart-section";
 import { CartSectionStorefront } from "./CartSectionStorefront";
+import { CollectionProductsBoundProvider } from "../../binding/CollectionProductsBoundProvider";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("Section", styles);
@@ -299,10 +301,12 @@ const SectionInner: ComponentConfig<SectionProps> = {
     const collectionChanged = Boolean(changed.collection);
     const content = props.content;
     const hasEmptyContent = !Array.isArray(content) || content.length === 0;
+    const needsSkipFlagResync = productsGridContentNeedsResync(content);
     const shouldSync =
       collectionChanged ||
       trigger === "insert" ||
       trigger === "force" ||
+      needsSkipFlagResync ||
       (trigger === "load" && Boolean(props.collection?.slug) && hasEmptyContent);
 
     if (!shouldSync) return {};
@@ -376,6 +380,28 @@ const SectionInner: ComponentConfig<SectionProps> = {
     // Sanitise the anchor id — CSS ids cannot contain spaces. We trim and
     // replace whitespace so merchants don't have to learn the rules.
     const cleanAnchor = (anchorId ?? "").trim().replace(/\s+/g, "-");
+
+    const gridStyle = {
+      display: "grid",
+      gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+      gap,
+      alignContent: "start",
+      width: "100%",
+    } as const;
+
+    const sectionGridContent = (
+      <Content className={gridClassName} style={gridStyle} />
+    );
+
+    const wrappedSectionGridContent =
+      isProductsGridSection({ sectionKind, metadata: sectionMetadata }) &&
+      collection?.slug ? (
+        <CollectionProductsBoundProvider collectionSlug={collection.slug}>
+          {sectionGridContent}
+        </CollectionProductsBoundProvider>
+      ) : (
+        sectionGridContent
+      );
 
     return (
       <section
@@ -492,16 +518,7 @@ const SectionInner: ComponentConfig<SectionProps> = {
               }}
             />
           ) : (
-            <Content
-              className={gridClassName}
-              style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-                gap,
-                alignContent: "start",
-                width: "100%",
-              }}
-            />
+            wrappedSectionGridContent
           )}
         </div>
       </section>
