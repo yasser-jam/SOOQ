@@ -1,0 +1,65 @@
+.ContentLink {
+  width: 100%;
+}
+
+.ContentLink-inner {
+  display: flex;
+  width: 100%;
+}
+
+.ContentLink-inner--align-left {
+  justify-content: flex-start;
+}
+
+.ContentLink-inner--align-center {
+  justify-content: center;
+}
+
+.ContentLink-inner--align-right {
+  justify-content: flex-end;
+}
+
+.ContentLink-anchor {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  max-width: 100%;
+  color: var(--content-link-color, inherit);
+  font-size: var(--content-link-font-size, inherit);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    text-decoration-color 0.15s ease;
+}
+
+.ContentLink-anchor--hover-underline:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.ContentLink-anchor--hover-border:hover {
+  border-bottom-color: var(--content-link-hover-color, currentColor);
+}
+
+.ContentLink-anchor--hover-color:hover {
+  color: var(--content-link-hover-color, inherit);
+}
+
+.ContentLink-anchor--hover-both:hover {
+  color: var(--content-link-hover-color, inherit);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.ContentLink-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.ContentLink-label {
+  min-width: 0;
+}
