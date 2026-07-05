@@ -2,9 +2,51 @@ import { populateIds } from "@/core/lib/data/populate-ids";
 import { walkAppState } from "@/core/lib/data/walk-app-state";
 import { getSelectorForId } from "@/core/lib/get-selector-for-id";
 import type { useAppStoreApi } from "@/core/store";
+import type { Data } from "@/core/types";
+import type { PrivateAppState } from "@/core/types/Internal";
+import { zoneCache } from "../../reducer/actions/register-zone";
 import type { ZonePreset } from "../presets/types";
 
 type AppStoreApi = ReturnType<typeof useAppStoreApi>;
+
+function collectRemovedNodeIds(
+  state: PrivateAppState,
+  rootZone: string
+): string[] {
+  const items = state.data.zones?.[rootZone] ?? [];
+  const rootIds = items
+    .map((item) => item.props?.id)
+    .filter((id): id is string => typeof id === "string");
+
+  const toDelete = new Set<string>(rootIds);
+
+  Object.entries(state.indexes.nodes).forEach(([nodeId, nodeData]) => {
+    const pathRootIds = nodeData.path.map((p) => p.split(":")[0]);
+    if (pathRootIds.some((id) => toDelete.has(id))) {
+      toDelete.add(nodeId);
+    }
+  });
+
+  return [...toDelete];
+}
+
+function pruneStaleZones<UserData extends Data>(
+  state: PrivateAppState<UserData>
+): PrivateAppState<UserData> {
+  const allowed = new Set(Object.keys(state.indexes.zones));
+
+  return {
+    ...state,
+    data: {
+      ...state.data,
+      zones: Object.fromEntries(
+        Object.entries(state.data.zones ?? {}).filter(([key]) =>
+          allowed.has(key)
+        )
+      ),
+    },
+  };
+}
 
 /** Replace all content in a site zone with a preset (Section for header/footer). */
 export function applyZonePreset(
@@ -12,20 +54,31 @@ export function applyZonePreset(
   preset: ZonePreset,
   appStoreApi: AppStoreApi
 ) {
-  const { config, state, dispatch } = appStoreApi.getState();
+  const { config, dispatch } = appStoreApi.getState();
+
+  delete zoneCache[rootZone];
 
   dispatch({ type: "registerZone", zone: rootZone, recordHistory: false });
 
+  const state = appStoreApi.getState().state;
+  const removedIds = collectRemovedNodeIds(state, rootZone);
   const node = populateIds(preset.componentData, config);
-  const zones = {
-    ...(state.data.zones ?? {}),
-    [rootZone]: [node],
-  };
 
-  const walked = walkAppState(
-    { ...state, data: { ...state.data, zones } },
+  const nextZones = { ...(state.data.zones ?? {}), [rootZone]: [node] };
+
+  Object.keys(nextZones).forEach((zoneCompound) => {
+    const parentId = zoneCompound.split(":")[0];
+    if (removedIds.includes(parentId)) {
+      delete nextZones[zoneCompound];
+    }
+  });
+
+  let walked = walkAppState(
+    { ...state, data: { ...state.data, zones: nextZones } },
     config
   );
+
+  walked = pruneStaleZones(walked);
 
   dispatch({
     type: "set",
@@ -40,7 +93,9 @@ export function applyZonePreset(
     type: "setUi",
     ui: {
       itemSelector: selector,
+      zonePreviewRoot: rootZone,
       rightSideBarVisible: true,
+      plugin: { current: "zones" },
     },
   });
 
@@ -56,20 +111,31 @@ export function applyZonePresets(
   if (presets.length === 0) return null;
   if (presets.length === 1) return applyZonePreset(rootZone, presets[0], appStoreApi);
 
-  const { config, state, dispatch } = appStoreApi.getState();
+  const { config, dispatch } = appStoreApi.getState();
+
+  delete zoneCache[rootZone];
 
   dispatch({ type: "registerZone", zone: rootZone, recordHistory: false });
 
+  const state = appStoreApi.getState().state;
+  const removedIds = collectRemovedNodeIds(state, rootZone);
   const nodes = presets.map((p) => populateIds(p.componentData, config));
-  const zones = {
-    ...(state.data.zones ?? {}),
-    [rootZone]: nodes,
-  };
 
-  const walked = walkAppState(
-    { ...state, data: { ...state.data, zones } },
+  const nextZones = { ...(state.data.zones ?? {}), [rootZone]: nodes };
+
+  Object.keys(nextZones).forEach((zoneCompound) => {
+    const parentId = zoneCompound.split(":")[0];
+    if (removedIds.includes(parentId)) {
+      delete nextZones[zoneCompound];
+    }
+  });
+
+  let walked = walkAppState(
+    { ...state, data: { ...state.data, zones: nextZones } },
     config
   );
+
+  walked = pruneStaleZones(walked);
 
   dispatch({
     type: "set",
@@ -84,7 +150,9 @@ export function applyZonePresets(
     type: "setUi",
     ui: {
       itemSelector: selector,
+      zonePreviewRoot: rootZone,
       rightSideBarVisible: true,
+      plugin: { current: "zones" },
     },
   });
 

@@ -96,6 +96,28 @@ export function createPrimaryButton(
   };
 }
 
+export function createContentLink(
+  title: string,
+  link: Record<string, unknown> = { kind: "none" },
+  overrides: Record<string, unknown> = {}
+) {
+  return {
+    type: "ContentLink" as const,
+    props: {
+      title,
+      link,
+      align: "right",
+      color: "theme-text",
+      hoverColor: "theme-primary",
+      hoverEffect: "underline",
+      fontSize: "theme-sm",
+      icon: "none",
+      iconPosition: "end",
+      ...overrides,
+    },
+  };
+}
+
 export function createHeroButton(
   label: string,
   href = "#",

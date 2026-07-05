@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
-import { Check, ChevronRight } from "lucide-react";
+import React, { useCallback, useMemo, useState } from "react";
+import { Check, ChevronRight, LayoutTemplate } from "lucide-react";
 import { useAppStore, useAppStoreApi } from "@/core/store";
 import { getClassNameFactory } from "@/core/lib";
 import { applyZonePreset, applyZonePresets } from "../../../lib/apply-zone-preset";
@@ -29,7 +29,9 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/button";
 import { useShallow } from "zustand/react/shallow";
+import { HeaderPresetDialog } from "../HeaderPresetDialog";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("ZonesPanel", styles);
@@ -88,6 +90,7 @@ const getZoneStatusLabel = (active: boolean, configured: boolean) => {
 export function ZonesPanel() {
   const dispatch = useAppStore((s) => s.dispatch);
   const appStoreApi = useAppStoreApi();
+  const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const zones = useAppStore((s) => s.state.data.zones);
   const itemSelector = useAppStore(useShallow((s) => s.state.ui.itemSelector));
   const selectedItem = useAppStore((s) => s.selectedItem);
@@ -130,6 +133,7 @@ export function ZonesPanel() {
 
   const zonePresets = useMemo(() => {
     if (!selectedZoneDefinition?.presetCategory) return [];
+    if (selectedZoneDefinition.presetCategory === "zone-header") return [];
     return getZonePresetsByCategory(selectedZoneDefinition.presetCategory);
   }, [selectedZoneDefinition]);
 
@@ -197,6 +201,10 @@ export function ZonesPanel() {
           rightSideBarVisible: true,
         },
       });
+
+      if (definition.presetCategory === "zone-header") {
+        setHeaderDialogOpen(true);
+      }
     },
     [appStoreApi, deselectZone, dispatch, selectedZoneId]
   );
@@ -301,10 +309,40 @@ export function ZonesPanel() {
         })}
       </div>
 
-      {selectedZoneDefinition?.presetCategory && zonePresets.length > 0 ? (
+      {selectedZoneDefinition?.presetCategory === "zone-header" ? (
         <section className={getClassName("presets")}>
           <div className={getClassName("presetsHeader")}>
-            <h3 className={getClassName("presetsTitle")}>قوالب {selectedZoneDefinition.title}</h3>
+            <h3 className={getClassName("presetsTitle")}>قالب رأس الموقع</h3>
+            <p className={getClassName("presetsSubtitle")}>
+              اختر تخطيطاً جاهزاً من مكتبة القوالب. يمكنك تعديل كل عنصر بعد
+              التطبيق.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-center gap-2"
+            onClick={() => setHeaderDialogOpen(true)}
+          >
+            <LayoutTemplate size={16} aria-hidden />
+            <span>اختيار قالب الرأس</span>
+          </Button>
+          <HeaderPresetDialog
+            open={headerDialogOpen}
+            onOpenChange={setHeaderDialogOpen}
+            rootZone={selectedZoneDefinition.rootZone}
+          />
+        </section>
+      ) : null}
+
+      {selectedZoneDefinition?.presetCategory &&
+      selectedZoneDefinition.presetCategory !== "zone-header" &&
+      zonePresets.length > 0 ? (
+        <section className={getClassName("presets")}>
+          <div className={getClassName("presetsHeader")}>
+            <h3 className={getClassName("presetsTitle")}>
+              قوالب {selectedZoneDefinition.title}
+            </h3>
             <p className={getClassName("presetsSubtitle")}>
               اختر قالباً لاستبدال محتوى المنطقة. يمكنك تعديل المحتوى بعد التطبيق.
             </p>

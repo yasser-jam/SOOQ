@@ -1,6 +1,11 @@
 import type { ComponentDataOptionalId } from "@/core/types";
 import { PRESET_FOOTER_BOTTOM_LINKS, PRESET_FOOTER_COLUMNS, PRESET_HEADER_LINKS } from "./shell-defaults";
-import { createHeading, createParagraph, createSection } from "./shared";
+import {
+  createContentLink,
+  createHeading,
+  createParagraph,
+  createSection,
+} from "./shared";
 
 export const toNavMenuItems = (
   links: ReadonlyArray<{
@@ -14,7 +19,80 @@ export const toNavMenuItems = (
     link: link.link ?? { kind: "none" as const },
   }));
 
-export const HEADER_NAV_ITEMS = toNavMenuItems(PRESET_HEADER_LINKS);
+export const HEADER_GROUP_DEFAULTS = {
+  product: null,
+  metadata: null,
+  skipProductDetailFetch: false,
+  language: "ar" as const,
+  backgroundColor: "",
+  padding: "0px",
+  borderRadius: "theme-none",
+  boxShadow: "none",
+};
+
+const HEADER_LINK_VARIANT_STYLES = {
+  plain: {
+    hoverEffect: "underline",
+    hoverColor: "theme-text",
+    color: "theme-text",
+  },
+  pill: {
+    hoverEffect: "color",
+    hoverColor: "theme-primary",
+    color: "theme-text",
+  },
+} as const;
+
+export function createHeaderNavLinksGroup(
+  variant: "plain" | "pill" = "plain",
+  overrides: Record<string, unknown> & {
+    links?: ReadonlyArray<{
+      label: string;
+      labelAr?: string;
+      link?: { kind: string; pageId?: string; hash?: string };
+    }>;
+    linkProps?: Record<string, unknown>;
+  } = {}
+) {
+  const links = overrides.links ?? PRESET_HEADER_LINKS;
+  const linkProps = {
+    fontSize: "theme-sm",
+    icon: "none",
+    align: "right",
+    ...HEADER_LINK_VARIANT_STYLES[variant],
+    ...overrides.linkProps,
+  };
+  const { links: _links, linkProps: _linkProps, ...groupOverrides } = overrides;
+
+  return {
+    type: "Group" as const,
+    props: {
+      ...HEADER_GROUP_DEFAULTS,
+      direction: "row",
+      gap: variant === "pill" ? 12 : 20,
+      alignItems: "center",
+      justifyContent: "flex-end",
+      wrap: "wrap",
+      content: links.map((item) =>
+        createContentLink(
+          item.labelAr ?? item.label,
+          (item.link ?? { kind: "none" }) as Record<string, unknown>,
+          linkProps
+        )
+      ),
+      ...groupOverrides,
+    },
+  };
+}
+
+/** @deprecated Use createHeaderNavLinksGroup — header presets now use ContentLink groups. */
+export function createHeaderNavMenu(
+  variant: "plain" | "pill" | "button",
+  overrides: Record<string, unknown> = {}
+) {
+  const mappedVariant = variant === "button" ? "pill" : variant;
+  return createHeaderNavLinksGroup(mappedVariant, overrides);
+}
 
 export const CART_ICON_BUTTON = {
   type: "CartIconButton" as const,
@@ -54,28 +132,31 @@ const FOOTER_SECTION_BASE = {
   theme: "light" as const,
 };
 
-export function createHeaderNavMenu(
-  variant: "plain" | "pill" | "button",
-  overrides: Record<string, unknown> = {}
-) {
-  return {
-    type: "NavMenu" as const,
-    props: {
-      orientation: "horizontal",
-      variant,
-      activePath: "/",
-      items: HEADER_NAV_ITEMS,
-      ...overrides,
-    },
-  };
-}
-
 export function createHeaderBrandTitle(title = "متجري") {
   return createHeading(title, {
     fontSize: "theme-xl",
     fontWeight: "theme-bold",
     textAlign: "right",
   });
+}
+
+export function createHeaderSlotGroup(
+  content: unknown[],
+  overrides: Record<string, unknown> = {}
+) {
+  return {
+    type: "Group" as const,
+    props: {
+      ...HEADER_GROUP_DEFAULTS,
+      direction: "row",
+      gap: 12,
+      alignItems: "center",
+      justifyContent: "flex-start",
+      wrap: "nowrap",
+      content,
+      ...overrides,
+    },
+  };
 }
 
 export function createHeaderRowSection(

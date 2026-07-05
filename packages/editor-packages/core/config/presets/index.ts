@@ -15,6 +15,7 @@ export type {
   SectionPresetCategory,
   ZonePreset,
   ZonePresetCategory,
+  HeaderPresetLayout,
 } from "./types";
 
 export const PRESET_CATEGORY_LABELS: Record<SectionPresetCategory, string> = {
@@ -85,6 +86,7 @@ export {
   HEADER_PRESETS,
   FOOTER_PRESETS,
   ZONE_HEADER_PRESETS,
+  HEADER_LAYOUT_DEFINITIONS,
   ZONE_FOOTER_PRESETS,
   ZONE_DRAWER_PRESETS,
   ZONE_POPUP_PRESETS,

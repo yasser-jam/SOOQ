@@ -1,0 +1,147 @@
+import type { ComponentDataOptionalId } from "@/core/types";
+import type { HeaderPresetLayout, ZonePreset } from "./types";
+import { createPrimaryButton } from "./shared";
+import {
+  createHeaderBrandTitle,
+  createHeaderNavLinksGroup,
+  createHeaderRowSection,
+  createHeaderSlotGroup,
+  HEADER_GROUP_DEFAULTS,
+} from "./zone-shell";
+
+export type HeaderLayoutId = HeaderPresetLayout;
+
+export type HeaderLayoutOption = {
+  id: string;
+  layout: HeaderLayoutId;
+  title: string;
+  description: string;
+  previewImage: string;
+};
+
+export const HEADER_LAYOUT_OPTIONS: HeaderLayoutOption[] = [
+  {
+    id: "header-logo-right-links-left",
+    layout: "logo-right-links-left",
+    title: "شعار يمين — روابط يسار",
+    description: "الشعار على اليمين وروابط التنقل على اليسار",
+    previewImage:
+      "https://placehold.co/800x240/f8fafc/64748b?text=Logo+Right+%7C+Links+Left",
+  },
+  {
+    id: "header-logo-center-actions",
+    layout: "logo-center-actions",
+    title: "شعار وسط — روابط وزر دخول",
+    description: "الشعار في الوسط، الروابط يساراً، وتسجيل الدخول يميناً",
+    previewImage:
+      "https://placehold.co/800x240/ffffff/64748b?text=Logo+Center+%7C+Login",
+  },
+  {
+    id: "header-logo-left-links-center",
+    layout: "logo-left-links-center",
+    title: "شعار يسار — روابط وسط",
+    description: "الشعار على اليسار والروابط في الوسط",
+    previewImage:
+      "https://placehold.co/800x240/f8fafc/64748b?text=Logo+Left+%7C+Links+Center",
+  },
+];
+
+/** @deprecated Use HEADER_LAYOUT_OPTIONS */
+export const HEADER_LAYOUT_DEFINITIONS = HEADER_LAYOUT_OPTIONS.map(
+  ({ layout, title, description }) => ({
+    layout,
+    label: title,
+    description,
+  })
+);
+
+function createHeaderLoginButton() {
+  return createPrimaryButton("تسجيل الدخول", {
+    destinationType: "action",
+    buttonAction: "login",
+    submitRedirectUrl: "/verify-otp",
+    buttonVariantSize: "sm",
+  });
+}
+
+function createHeaderGrowGroup(
+  content: unknown[],
+  justifyContent: "flex-start" | "center" | "flex-end" = "center"
+) {
+  return {
+    type: "Group" as const,
+    props: {
+      ...HEADER_GROUP_DEFAULTS,
+      direction: "row",
+      gap: 12,
+      alignItems: "center",
+      justifyContent,
+      wrap: "nowrap",
+      layout: { grow: true, spanCol: 1, spanRow: 1, padding: "0px" },
+      content,
+    },
+  };
+}
+
+export function buildHeaderZoneSection(
+  layout: HeaderLayoutId
+): ComponentDataOptionalId {
+  const brand = createHeaderBrandTitle("متجري");
+  const links = createHeaderNavLinksGroup("plain", {
+    justifyContent: "flex-start",
+  });
+
+  let rowContent: unknown[];
+
+  switch (layout) {
+    case "logo-right-links-left":
+      rowContent = [links, brand];
+      break;
+    case "logo-center-actions":
+      rowContent = [
+        links,
+        createHeaderGrowGroup([brand], "center"),
+        createHeaderGrowGroup([createHeaderLoginButton()], "flex-end"),
+      ];
+      break;
+    case "logo-left-links-center":
+      rowContent = [
+        brand,
+        createHeaderGrowGroup(
+          [
+            createHeaderNavLinksGroup("plain", {
+              justifyContent: "center",
+            }),
+          ],
+          "center"
+        ),
+        createHeaderSlotGroup([]),
+      ];
+      break;
+  }
+
+  return createHeaderRowSection(
+    {
+      backgroundColor: "#ffffff",
+      theme: "dark",
+    },
+    rowContent
+  );
+}
+
+export function headerLayoutOptionToPreset(
+  option: HeaderLayoutOption
+): ZonePreset {
+  return {
+    id: option.id,
+    category: "zone-header",
+    title: option.title,
+    previewImage: option.previewImage,
+    headerLayout: option.layout,
+    componentData: buildHeaderZoneSection(option.layout),
+  };
+}
+
+export function getDefaultHeaderLayoutOption(): HeaderLayoutOption {
+  return HEADER_LAYOUT_OPTIONS[0]!;
+}
