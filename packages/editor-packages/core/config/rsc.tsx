@@ -166,6 +166,7 @@ const rscConf = {
     SiteFooter: createEmptyComponent("تذييل الموقع"),
     Button: createEmptyComponent("زر"),
     ContentButton: createEmptyComponent("زر"),
+    ContentLink: createEmptyComponent("رابط"),
     NavMenu: createEmptyComponent("قائمة التنقل"),
     SideDrawer: createEmptyComponent("درج جانبي"),
   },

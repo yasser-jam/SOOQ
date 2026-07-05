@@ -122,6 +122,7 @@ const getPreviewKind = (componentType: string): PreviewKind => {
       return "richText";
     case "Button":
     case "ContentButton":
+    case "ContentLink":
       return "button";
     case "ContentImage":
     case "ProductImage":

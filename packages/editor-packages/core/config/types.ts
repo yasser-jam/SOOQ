@@ -32,6 +32,7 @@ import { ContentParagraphProps } from "./blocks/ContentParagraph";
 import { AccordionProps } from "./blocks/Accordion";
 import { ContentImageProps } from "./blocks/ContentImage";
 import { ContentButtonProps } from "./blocks/ContentButton";
+import { ContentLinkProps } from "./blocks/ContentLink";
 import { ContentInputProps } from "./blocks/ContentInput";
 import { ContentDividerProps } from "./blocks/ContentDivider";
 import { ImageGalleryProps } from "./blocks/ImageGallery";
@@ -96,6 +97,7 @@ export type Components = {
   Accordion: AccordionProps;
   ContentImage: ContentImageProps;
   ContentButton: ContentButtonProps;
+  ContentLink: ContentLinkProps;
   ContentInput: ContentInputProps;
   ContentDivider: ContentDividerProps;
   ImageGallery: ImageGalleryProps;

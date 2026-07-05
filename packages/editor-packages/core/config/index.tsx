@@ -32,6 +32,7 @@ import { ContentParagraph } from "./blocks/ContentParagraph";
 import { Accordion } from "./blocks/Accordion";
 import { ContentImage } from "./blocks/ContentImage";
 import { ContentButton } from "./blocks/ContentButton";
+import { ContentLink } from "./blocks/ContentLink";
 import { ContentInput } from "./blocks/ContentInput";
 import { ContentDivider } from "./blocks/ContentDivider";
 import { ImageGallery } from "./blocks/ImageGallery";
@@ -85,6 +86,7 @@ export const conf: UserConfig = {
         "ContentParagraph",
         "ContentImage",
         "ContentButton",
+        "ContentLink",
         "ContentInput",
         "ContentDivider",
         "Space",
@@ -187,6 +189,7 @@ export const conf: UserConfig = {
     Accordion,
     ContentImage,
     ContentButton,
+    ContentLink,
     ContentInput,
     ContentDivider,
     Space,
