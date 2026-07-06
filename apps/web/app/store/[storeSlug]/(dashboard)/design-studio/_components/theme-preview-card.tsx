@@ -49,13 +49,6 @@ export default function ThemePreviewCard({
         <div className="flex items-center justify-between space-y-1 w-full">
           <CardTitle className="text-base">معاينة {config.label}</CardTitle>
 
-          <Button
-            size="sm"
-            className="flex items-center gap-2"
-            onClick={() => router.push(storePath("/design-studio/themes/edit"))}
-          >
-            <Pencil data-icon="inline-start" className="size-4" />
-          </Button>
         </div>
         
       </CardHeader>

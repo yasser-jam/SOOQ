@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   ExternalLink,
   Globe,
+  Link2Icon,
   Pencil,
   Sparkles,
 } from "lucide-react"
@@ -107,7 +108,7 @@ export default function DesignStudioPage() {
       </header>
 
       {/* Current theme overview */}
-      <Card className="overflow-hidden border border-border/60">
+      {/* <Card className="overflow-hidden border border-border/60">
         <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="relative min-h-[220px] overflow-hidden border-b border-border/60 bg-gradient-to-br from-stone-200/70 via-background to-rose-100/50 lg:border-e lg:border-b-0">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.65),_transparent_60%)]" />
@@ -143,10 +144,10 @@ export default function DesignStudioPage() {
             </div>
           </div>
         </div>
-      </Card>
+      </Card> */}
 
       {/* Website status & URL */}
-      <section className="space-y-4">
+      {/* <section className="space-y-4">
         <div className="space-y-1">
           <h2 className="text-text text-xl font-semibold">حالة الموقع</h2>
           <p className="text-sm text-muted-foreground">
@@ -198,6 +199,59 @@ export default function DesignStudioPage() {
             </Button>
           </CardContent>
         </Card>
+      </section> */}
+
+      <section className="container rounded-md bg-gray-50 py-4">
+        <div className="grid grid-cols-3 gap-4">
+          <div className="col-span-2">
+            <div className="text-xl font-semibold text-gray-800">
+              نوع الثيم الحالي
+            </div>
+            <div className="leading-tonal mt-4 max-w-3/4 text-gray-500">
+              Lorem, ipsum dolor sit amet consectetur adipisicing elit. Adipisci
+              aliquam nemo a vitae eius quisquam mollitia consequuntur, cum
+              velit est ratione, minima facere nesciunt non hic, id enim
+              quibusdam illum?
+            </div>
+
+            <div className="mt-12 rounded-lg bg-gray-200 p-3">
+              <div className="text-gray-500">الألوان المستخدمة</div>
+
+              <div className="mt-2 flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <div className="h-6 w-6 rounded-full bg-primary"></div>
+                  <div className="h-6 w-6 rounded-full bg-secondary"></div>
+                  <div className="h-6 w-6 rounded-full bg-muted"></div>
+                  <div className="h-6 w-6 rounded-full bg-destructive"></div>
+                </div>
+
+                <div className="ms-auto">
+                  <Button variant="outline">تغيير الألوان</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid-cols-1">
+            <div className="min-h-[400px] w-full rounded-lg bg-gray-200 p-4"></div>
+
+            <div className="mt-4 flex w-full gap-2">
+              <Button className="grow">معاينة</Button>
+              <Button className="grow" variant="outline">
+                تعديل
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-lg bg-gray-50 p-4">
+        <div>رابط الموقع</div>
+
+        <div className="flex items-center gap-2 text-lg font-semibold text-primary">
+          <a href="#">https://test.com</a>
+          <Link2Icon />
+        </div>
       </section>
 
       {/* Theme marketplace */}
