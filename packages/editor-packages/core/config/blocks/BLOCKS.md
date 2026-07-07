@@ -30,45 +30,46 @@ Each block is described with its **properties**, accepted **values**, and a read
 8. [CheckoutForm](#checkoutform)
 9. [ContactForm](#contactform)
 10. [ContentButton](#contentbutton)
-11. [ContentDivider](#contentdivider)
-12. [ContentHeading](#contentheading)
-13. [ContentHtml](#contenthtml)
-14. [ContentIcon](#contenticon)
-15. [ContentImage](#contentimage)
-16. [ContentParagraph](#contentparagraph)
-17. [Flex](#flex)
-18. [Grid](#grid)
-19. [Group](#group)
-20. [RowGroup](#rowgroup)
-21. [Heading](#heading)
-22. [Hero](#hero)
-23. [ImageGallery](#imagegallery)
-24. [LoginButton](#loginbutton)
-25. [Logos](#logos)
-26. [NavMenu](#navmenu)
-27. [OrderHistory](#orderhistory)
-28. [ProductCard](#productcard)
-29. [ProductImage](#productimage)
-30. [ProductInfo](#productinfo)
-31. [ProductSearchMenu](#productsearchmenu)
-32. [ProductsGrid](#productsgrid)
-33. [RichText](#richtext)
-34. [Section](#section)
-35. [Sidebar](#sidebar)
-36. [SideDrawer](#sidedrawer)
-37. [SiteDrawerShell](#sitedrawershell) *(legacy)*
-38. [SiteFooter](#sitefooter)
-39. [SiteHeader](#siteheader)
-40. [Space](#space)
-41. [Stats](#stats)
-42. [Template](#template)
-43. [Testimonials](#testimonials)
-44. [Text](#text)
-45. [VideoEmbed](#videoembed)
-46. [Wishlist](#wishlist)
-47. [ZoneBottomSheet](#zonebottomsheet)
-48. [ZoneDrawer](#zonedrawer)
-49. [ZonePopup](#zonepopup)
+11. [ButtonGroup](#buttongroup)
+12. [ContentDivider](#contentdivider)
+13. [ContentHeading](#contentheading)
+14. [ContentHtml](#contenthtml)
+15. [ContentIcon](#contenticon)
+16. [ContentImage](#contentimage)
+17. [ContentParagraph](#contentparagraph)
+18. [Flex](#flex)
+19. [Grid](#grid)
+20. [Group](#group)
+21. [RowGroup](#rowgroup)
+22. [Heading](#heading)
+23. [Hero](#hero)
+24. [ImageGallery](#imagegallery)
+25. [LoginButton](#loginbutton)
+26. [Logos](#logos)
+27. [NavMenu](#navmenu)
+28. [OrderHistory](#orderhistory)
+29. [ProductCard](#productcard)
+30. [ProductImage](#productimage)
+31. [ProductInfo](#productinfo)
+32. [ProductSearchMenu](#productsearchmenu)
+33. [ProductsGrid](#productsgrid)
+34. [RichText](#richtext)
+35. [Section](#section)
+36. [Sidebar](#sidebar)
+37. [SideDrawer](#sidedrawer)
+38. [SiteDrawerShell](#sitedrawershell) *(legacy)*
+39. [SiteFooter](#sitefooter)
+40. [SiteHeader](#siteheader)
+41. [Space](#space)
+42. [Stats](#stats)
+43. [Template](#template)
+44. [Testimonials](#testimonials)
+45. [Text](#text)
+46. [VideoEmbed](#videoembed)
+47. [Wishlist](#wishlist)
+48. [ZoneBottomSheet](#zonebottomsheet)
+49. [ZoneDrawer](#zonedrawer)
+50. [ZonePopup](#zonepopup)
 
 ---
 
@@ -443,6 +444,126 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
     "buttonVariantMode": "fixed",
     "buttonVariant": "secondary",
     "buttonVariantSize": "sm"
+  }
+}
+```
+
+---
+
+## ButtonGroup
+
+**Label:** مجموعة أزرار  
+**Description:** A segmented control — a row of buttons where exactly one is active at a time. Each button has its own title, value, active/inactive styles, and destination (link, action, or zone — same semantics as `ContentButton`). Selecting a button updates the active state, dispatches `sooq:button-group-select`, then runs that button's destination.
+
+### Properties
+
+| Property | Type | Values / Notes | Default |
+|---|---|---|---|
+| `items` | `ButtonGroupItem[]` | Array of buttons (see below) | two default items |
+| `defaultSelectedValue` | `string` | `value` of the initially active button | `"option-a"` |
+| `gap` | `string` | Space between buttons (`"theme-8"` or px) | `"theme-8"` |
+| `align` | `"left" \| "center" \| "right"` | Horizontal alignment of the group | `"center"` |
+
+**`ButtonGroupItem`**
+
+| Property | Type | Notes |
+|---|---|---|
+| `title` | `string` | Button label |
+| `value` | `string` | Unique identifier; used for selection state and `sooq:button-group-select` event |
+| `inactiveStyle` | `ButtonStyle` | Styles when button is not active |
+| `activeStyle` | `ButtonStyle` | Styles when button is active |
+| `destinationType` | `"link" \| "action" \| "zone"` | Same as `ContentButton` |
+| `link` | `LinkValue` | When `destinationType = "link"` |
+| `buttonAction` | `ButtonAction` | When `destinationType = "action"` |
+| `submitRedirectUrl` | `string` | Redirect after successful action |
+| `zoneKey` | `string` | When `destinationType = "zone"` |
+| `zoneAction` | `"open" \| "close" \| "toggle"` | Zone event action |
+
+**`ButtonStyle`**
+
+| Property | Type | Notes |
+|---|---|---|
+| `bgColor` | `string` | `"theme-primary"` or hex |
+| `textColor` | `string` | Text color token or hex |
+| `radius` | `string` | `"theme-md"` or px |
+| `buttonSize` | `string` | `"theme-sm"` / `"theme-md"` / `"theme-lg"` or pipe string `height\|padX\|padY\|fontSize` |
+| `fontSize` | `string` | Optional override; falls back to `buttonSize` font |
+
+### Behavior
+
+- **Editor:** always shows `defaultSelectedValue` as active; clicks do not change selection or run destinations.
+- **Runtime:** click sets active button, fires `CustomEvent("sooq:button-group-select", { detail: { value, blockId } })`, then navigates / runs action / opens zone.
+- **Accessibility:** container `role="group"`; each button `aria-pressed`.
+
+### JSON Example
+
+```json
+{
+  "type": "ButtonGroup",
+  "props": {
+    "defaultSelectedValue": "option-a",
+    "gap": "theme-8",
+    "align": "center",
+    "items": [
+      {
+        "title": "الخيار أ",
+        "value": "option-a",
+        "inactiveStyle": {
+          "bgColor": "theme-surface",
+          "textColor": "theme-text",
+          "radius": "theme-md",
+          "buttonSize": "theme-sm"
+        },
+        "activeStyle": {
+          "bgColor": "theme-primary",
+          "textColor": "theme-surface",
+          "radius": "theme-md",
+          "buttonSize": "theme-sm"
+        },
+        "destinationType": "link",
+        "link": { "kind": "page", "pageId": "/" }
+      },
+      {
+        "title": "الخيار ب",
+        "value": "option-b",
+        "inactiveStyle": {
+          "bgColor": "theme-surface",
+          "textColor": "theme-text",
+          "radius": "theme-md",
+          "buttonSize": "theme-sm"
+        },
+        "activeStyle": {
+          "bgColor": "theme-primary",
+          "textColor": "theme-surface",
+          "radius": "theme-md",
+          "buttonSize": "theme-sm"
+        },
+        "destinationType": "link",
+        "link": { "kind": "page", "pageId": "/products" }
+      }
+    ]
+  }
+}
+```
+
+### JSON Example (zone action)
+
+```json
+{
+  "type": "ButtonGroup",
+  "props": {
+    "defaultSelectedValue": "login",
+    "items": [
+      {
+        "title": "تسجيل الدخول",
+        "value": "login",
+        "inactiveStyle": { "bgColor": "theme-surface", "textColor": "theme-text", "radius": "theme-md", "buttonSize": "theme-sm" },
+        "activeStyle": { "bgColor": "theme-primary", "textColor": "theme-surface", "radius": "theme-md", "buttonSize": "theme-sm" },
+        "destinationType": "zone",
+        "zoneKey": "popup-main",
+        "zoneAction": "open"
+      }
+    ]
   }
 }
 ```
