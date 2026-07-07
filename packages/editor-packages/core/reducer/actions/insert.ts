@@ -7,6 +7,7 @@ import { walkAppState } from "../../lib/data/walk-app-state";
 import { getIdsForParent } from "../../lib/data/get-ids-for-parent";
 import { AppStore } from "../../store";
 import { populateIds } from "../../lib/data/populate-ids";
+import { isSectionPlacementAllowed } from "../../lib/zone-section-placement";
 
 export function insertAction<UserData extends Data>(
   state: PrivateAppState<UserData>,
@@ -29,6 +30,15 @@ export function insertAction<UserData extends Data>(
     },
     appStore.config
   );
+
+  if (
+    !isSectionPlacementAllowed(
+      emptyComponentData,
+      action.destinationZone
+    )
+  ) {
+    return state;
+  }
 
   const [parentId] = action.destinationZone.split(":");
   const idsInPath = getIdsForParent(action.destinationZone, state);

@@ -25,6 +25,9 @@ describe("apply-zone-preset", () => {
 
     expect(headerItems).toHaveLength(1);
     expect(headerItems[0]?.type).toBe("Section");
+    expect(headerItems[0]?.props?.metadata).toEqual({
+      preset: "zone-header",
+    });
     expect(state.data.content).toHaveLength(0);
     expect(state.indexes.zones[ROOT_ZONE_HEADER]?.contentIds).toHaveLength(1);
     expect(state.indexes.zones[rootDroppableId]?.contentIds ?? []).toHaveLength(

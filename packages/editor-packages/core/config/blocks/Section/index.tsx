@@ -24,6 +24,11 @@ import {
   resolveCartSectionContent,
   SECTION_KIND_CART,
 } from "./cart-section";
+import {
+  isZoneHeaderSection,
+  SECTION_KIND_ZONE_HEADER,
+  ZONE_SHELL_SECTION_PERMISSIONS,
+} from "./zone-section";
 import { CartSectionStorefront } from "./CartSectionStorefront";
 import { CollectionProductsBoundProvider } from "../../binding/CollectionProductsBoundProvider";
 import styles from "./styles.module.css";
@@ -332,6 +337,17 @@ const SectionInner: ComponentConfig<SectionProps> = {
     }
   },
 
+  resolvePermissions: (data, { permissions }) => {
+    if (!isZoneHeaderSection(data.props)) {
+      return permissions;
+    }
+
+    return {
+      ...permissions,
+      ...ZONE_SHELL_SECTION_PERMISSIONS,
+    };
+  },
+
   render: ({
     id,
     name: _name,
@@ -412,6 +428,8 @@ const SectionInner: ComponentConfig<SectionProps> = {
             ? SECTION_KIND_PRODUCTS_GRID
             : isCartSection({ sectionKind, metadata: sectionMetadata })
               ? SECTION_KIND_CART
+              : isZoneHeaderSection({ sectionKind, metadata: sectionMetadata })
+                ? SECTION_KIND_ZONE_HEADER
               : undefined
         }
         className={getClassName({ hidden: isHidden })}

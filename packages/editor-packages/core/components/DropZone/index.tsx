@@ -42,6 +42,7 @@ import { useContentIdsWithPreview } from "./lib/use-content-with-preview";
 import { useDragAxis } from "./lib/use-drag-axis";
 import { useContextStore } from "../../lib/use-context-store";
 import { useShallow } from "zustand/react/shallow";
+import { isSectionPlacementAllowed } from "../../lib/zone-section-placement";
 import { renderContext } from "../Render";
 import { useSlots } from "../../lib/use-slots";
 import { ContextSlotRender, SlotRenderPure } from "../SlotRender";
@@ -426,7 +427,15 @@ export const DropZoneEdit = forwardRef<HTMLDivElement, DropZoneProps>(
 
     const targetAccepted = useContextStore(ZoneStoreContext, (s) => {
       const draggedComponentType = s.draggedItem?.data.componentType;
-      return acceptsTarget(draggedComponentType);
+      if (!acceptsTarget(draggedComponentType)) return false;
+
+      const draggedId = s.draggedItem?.id;
+      if (typeof draggedId !== "string" || !draggedId) return true;
+
+      const draggedNode = appStoreApi.getState().state.indexes.nodes[draggedId]?.data;
+      if (!draggedNode) return true;
+
+      return isSectionPlacementAllowed(draggedNode, zoneCompound);
     });
 
     const hoveringOverArea = inNextDeepestArea || isRootZone;

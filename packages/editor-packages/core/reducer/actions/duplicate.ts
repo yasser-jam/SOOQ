@@ -7,6 +7,11 @@ import { getIdsForParent } from "../../lib/data/get-ids-for-parent";
 import { getItem } from "../../lib/data/get-item";
 import { AppStore } from "../../store";
 import { insert } from "../../lib/data/insert";
+import {
+  getSectionPlacementProps,
+  isSectionPlacementAllowed,
+} from "../../lib/zone-section-placement";
+import { isZoneHeaderSection } from "../../config/blocks/Section/zone-section";
 
 export function duplicateAction<UserData extends Data>(
   state: PrivateAppState<UserData>,
@@ -17,6 +22,15 @@ export function duplicateAction<UserData extends Data>(
     { index: action.sourceIndex, zone: action.sourceZone },
     state
   )!;
+
+  const sectionProps = getSectionPlacementProps(item);
+  if (sectionProps && isZoneHeaderSection(sectionProps)) {
+    return state;
+  }
+
+  if (!isSectionPlacementAllowed(item, action.sourceZone)) {
+    return state;
+  }
 
   const idsInPath = getIdsForParent(action.sourceZone, state);
 

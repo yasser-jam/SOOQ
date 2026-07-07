@@ -1,9 +1,13 @@
 export const SECTION_KIND_PRODUCTS_GRID = "products-grid" as const;
 export const SECTION_KIND_CART = "shopping-cart" as const;
+export const SECTION_KIND_ZONE_HEADER = "zone-header" as const;
 
 /** Persisted on Section.props.metadata — identifies a preset-driven section. */
 export type SectionPresetMetadata = {
-  preset: typeof SECTION_KIND_PRODUCTS_GRID | typeof SECTION_KIND_CART;
+  preset:
+    | typeof SECTION_KIND_PRODUCTS_GRID
+    | typeof SECTION_KIND_CART
+    | typeof SECTION_KIND_ZONE_HEADER;
 };
 
 export const PRODUCTS_GRID_SECTION_METADATA: SectionPresetMetadata = {

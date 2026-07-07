@@ -6,6 +6,7 @@ import {
   createParagraph,
   createSection,
 } from "./shared";
+import { buildZoneHeaderSectionProps } from "../blocks/Section/zone-section";
 
 export const toNavMenuItems = (
   links: ReadonlyArray<{
@@ -164,7 +165,7 @@ export function createHeaderRowSection(
   rowContent: unknown[]
 ): ComponentDataOptionalId {
   return createSection({
-    ...HEADER_SECTION_BASE,
+    ...buildZoneHeaderSectionProps(HEADER_SECTION_BASE),
     ...props,
     content: [
       {

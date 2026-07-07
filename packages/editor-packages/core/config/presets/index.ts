@@ -17,6 +17,11 @@ export type {
   ZonePresetCategory,
   HeaderPresetLayout,
 } from "./types";
+export {
+  isZoneHeaderSection,
+  SECTION_KIND_ZONE_HEADER,
+  ZONE_HEADER_SECTION_METADATA,
+} from "../blocks/Section/zone-section";
 
 export const PRESET_CATEGORY_LABELS: Record<SectionPresetCategory, string> = {
   general: "عام",

@@ -7,6 +7,7 @@ import { AppStore } from "../../store";
 import { PrivateAppState } from "../../types/Internal";
 import { walkAppState } from "../../lib/data/walk-app-state";
 import { getIdsForParent } from "../../lib/data/get-ids-for-parent";
+import { isSectionMoveAllowed } from "../../lib/zone-section-placement";
 
 // Restore unregistered zones when re-registering in same session
 export const zoneCache: Record<string, Content> = {};
@@ -33,6 +34,10 @@ export const moveAction = <UserData extends Data>(
   );
 
   if (!item) return state;
+
+  if (!isSectionMoveAllowed(item, action.sourceZone, action.destinationZone)) {
+    return state;
+  }
 
   const idsInSourcePath = getIdsForParent(action.sourceZone, state);
   const idsInDestinationPath = getIdsForParent(action.destinationZone, state);

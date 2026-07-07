@@ -2,6 +2,7 @@ import { generateId } from "@/core/lib/generate-id";
 import config from "../index";
 import { DEFAULT_ZONE_FOOTER_PRESET } from "../presets/footer";
 import { DEFAULT_ZONE_HEADER_PRESET } from "../presets/header";
+import { isZoneHeaderSection } from "../blocks/Section/zone-section";
 import type { UserData } from "../types";
 import {
   ROOT_SHELL_LEFT_ZONE,
@@ -348,7 +349,11 @@ const ensurePresetZoneContent = (
     })
     .filter((item) => item.type !== "SiteHeader" && item.type !== "SiteFooter");
 
-  const sections = migrated.filter((item) => item.type === "Section");
+  const sections = migrated.filter(
+    (item) =>
+      item.type === "Section" &&
+      (zoneKey !== ROOT_ZONE_HEADER || isZoneHeaderSection(item.props as JsonRecord))
+  );
 
   zones[zoneKey] = (
     sections.length > 0
@@ -406,6 +411,19 @@ const enforceShellPlacement = (
           components
         ),
         "SiteFooter"
+      );
+      return;
+    }
+
+    if (
+      item.type === "Section" &&
+      isZoneHeaderSection(item.props as JsonRecord)
+    ) {
+      pushToZone(
+        nextZones,
+        ROOT_ZONE_HEADER,
+        normalizeComponentNode(item, components),
+        "Section"
       );
       return;
     }

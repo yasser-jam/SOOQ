@@ -6,6 +6,7 @@ import { walkAppState } from "../../lib/data/walk-app-state";
 import { getIdsForParent } from "../../lib/data/get-ids-for-parent";
 import { walkTree } from "../../lib/data/walk-tree";
 import { generateId } from "../../lib/generate-id";
+import { isSectionPlacementAllowed } from "../../lib/zone-section-placement";
 
 export const replaceAction = <UserData extends Data>(
   state: PrivateAppState<UserData>,
@@ -19,6 +20,15 @@ export const replaceAction = <UserData extends Data>(
     state.indexes.zones[action.destinationZone].contentIds[
       action.destinationIndex
     ];
+
+  if (
+    !isSectionPlacementAllowed(
+      { type: action.data.type, props: action.data.props },
+      action.destinationZone
+    )
+  ) {
+    return state;
+  }
 
   const idChanged = originalId !== action.data.props.id;
 
