@@ -354,7 +354,7 @@
                                 "hideOnTablet": false,
                                 "hideOnDesktop": false
                               },
-                              "id": "ContentButton-06363db9-c0fe-4f71-b756-3c6702d88bc9"
+                              "id": "ContentButton-3aa22856-a3e7-4f18-b066-ce5abd2d457a"
                             }
                           }
                         ],
@@ -394,7 +394,7 @@
                           "hideOnTablet": false,
                           "hideOnDesktop": false
                         },
-                        "id": "Group-d0820a8b-ec09-466f-8980-99e392a1c7c0"
+                        "id": "Group-d37e7322-1cb1-4495-9281-ad277e7e30fe"
                       }
                     },
                     {
@@ -471,7 +471,7 @@
                                 "hideOnTablet": false,
                                 "hideOnDesktop": false
                               },
-                              "id": "ContentHeading-6e48ac06-e3eb-43ff-a47e-0a3c8cf2359a"
+                              "id": "ContentHeading-e50d838f-7dab-404f-a4d4-a1ad2cb645f8"
                             }
                           }
                         ],
@@ -511,7 +511,7 @@
                           "hideOnTablet": false,
                           "hideOnDesktop": false
                         },
-                        "id": "Group-99a1868c-2b6a-452b-a038-f5955b9df7ce"
+                        "id": "Group-f3f8ba5e-125b-4cb4-bfa1-107cc809c16d"
                       }
                     },
                     {
@@ -537,7 +537,7 @@
                           {
                             "type": "ContentLink",
                             "props": {
-                              "title": "الصفحة الرئيسية",
+                              "title": "الرئيسية",
                               "link": {
                                 "kind": "page",
                                 "pageId": "/"
@@ -585,7 +585,7 @@
                                 "hideOnTablet": false,
                                 "hideOnDesktop": false
                               },
-                              "id": "ContentLink-5a598d20-4778-41ef-9e8d-9a9859ce9307"
+                              "id": "ContentLink-1445f8e9-af71-4924-91ad-2acf649acd41"
                             }
                           },
                           {
@@ -639,7 +639,7 @@
                                 "hideOnTablet": false,
                                 "hideOnDesktop": false
                               },
-                              "id": "ContentLink-af833c67-5a74-4816-80d6-bd375b27db55"
+                              "id": "ContentLink-aefbae8d-f5dc-49c7-891a-603cad453594"
                             }
                           },
                           {
@@ -693,7 +693,7 @@
                                 "hideOnTablet": false,
                                 "hideOnDesktop": false
                               },
-                              "id": "ContentLink-f716d812-1089-448c-b230-4f3119095cf9"
+                              "id": "ContentLink-b73ddc8b-b469-4d81-af49-5ae0beaad0c7"
                             }
                           },
                           {
@@ -747,7 +747,7 @@
                                 "hideOnTablet": false,
                                 "hideOnDesktop": false
                               },
-                              "id": "ContentLink-e7a637f6-b398-436a-b026-6c1dcde663f5"
+                              "id": "ContentLink-b2ef3986-4fc6-47f5-9f6c-4a5123f62393"
                             }
                           }
                         ],
@@ -787,7 +787,7 @@
                           "hideOnTablet": false,
                           "hideOnDesktop": false
                         },
-                        "id": "Group-71d5d3bb-bf39-4d1e-954d-2de7db371039"
+                        "id": "Group-0593a2d1-f8e4-408b-a200-7d16faa95d5b"
                       }
                     }
                   ],
@@ -827,7 +827,7 @@
                     "hideOnTablet": false,
                     "hideOnDesktop": false
                   },
-                  "id": "RowGroup-439f1eba-38b0-4c44-84cf-a358e1a83214"
+                  "id": "RowGroup-1aed127e-b47d-41e7-848f-92012ca3f58f"
                 }
               }
             ],
@@ -867,7 +867,11 @@
               "hideOnTablet": false,
               "hideOnDesktop": false
             },
-            "id": "Section-db74b38f-02a2-4b99-b83e-cf711443fef0"
+            "sectionKind": "zone-header",
+            "metadata": {
+              "preset": "zone-header"
+            },
+            "id": "Section-b4d3d33b-1ee0-464c-8524-e8ecdacd11c3"
           }
         }
       ],
@@ -6619,6 +6623,511 @@
         "dynamic": false,
         "isCustom": true,
         "content": []
+      },
+      {
+        "path": "/products",
+        "slug": "/products",
+        "name": "صفحة المنتجات",
+        "link": "/products",
+        "title": "صفحة المنتجات",
+        "description": "صفحة مخصصة",
+        "iconName": "FileText",
+        "isCustom": true,
+        "content": [
+          {
+            "type": "Section",
+            "props": {
+              "name": "Summer Sale",
+              "anchorId": "",
+              "visible": true,
+              "paddingTop": "48px",
+              "paddingBottom": "48px",
+              "paddingHorizontal": "24px",
+              "backgroundColor": "#ffffff",
+              "theme": "dark",
+              "maxWidth": "1280px",
+              "columns": 1,
+              "columnsMobile": 1,
+              "gridGap": "24px",
+              "backgroundImage": "",
+              "backgroundOverlayColor": "",
+              "collection": {
+                "id": "0d4de994-9652-42d0-a6aa-090ab099138d",
+                "name": "Summer Sale",
+                "slug": "summer-sale",
+                "productCount": 1
+              },
+              "content": [
+                {
+                  "type": "Group",
+                  "props": {
+                    "product": {
+                      "id": "b53c5ab2-79b0-44bf-a8a2-8efc7b1cf92e",
+                      "titleAr": "testwww",
+                      "titleEn": "ewewewe",
+                      "slug": "testwww"
+                    },
+                    "metadata": {
+                      "type": "product",
+                      "method": "get",
+                      "apiUrl": "https://shopengine-production-c68b.up.railway.app/api/v1/public/products/testwww",
+                      "id": "b53c5ab2-79b0-44bf-a8a2-8efc7b1cf92e"
+                    },
+                    "language": "ar",
+                    "cartLineId": null,
+                    "skipProductDetailFetch": true,
+                    "direction": "column",
+                    "gap": 12,
+                    "alignItems": "stretch",
+                    "justifyContent": "flex-start",
+                    "wrap": "nowrap",
+                    "backgroundColor": "theme-surface",
+                    "backgroundImage": "",
+                    "backgroundOverlayColor": "",
+                    "padding": "16px",
+                    "borderRadius": "theme-md",
+                    "boxShadow": "sm",
+                    "content": [
+                      {
+                        "type": "ContentImage",
+                        "props": {
+                          "src": "https://placehold.co/400x400/e2e8f0/64748b?text=Product",
+                          "alt": "",
+                          "align": "center",
+                          "objectFit": "cover",
+                          "radius": "theme-md",
+                          "maxWidth": "100%",
+                          "layout": {
+                            "spanCol": 1,
+                            "spanRow": 1,
+                            "grow": false,
+                            "marginTop": "0px",
+                            "marginRight": "0px",
+                            "marginBottom": "0px",
+                            "marginLeft": "0px",
+                            "paddingTop": "0px",
+                            "paddingRight": "0px",
+                            "paddingBottom": "0px",
+                            "paddingLeft": "0px",
+                            "padding": "0px",
+                            "positionMode": "static",
+                            "floatUseFixedPosition": true,
+                            "floatPlacementMode": "preset",
+                            "floatPreset": "top-left",
+                            "fixedTop": "auto",
+                            "fixedRight": "auto",
+                            "fixedBottom": "auto",
+                            "fixedLeft": "auto",
+                            "borderWidth": "0px",
+                            "borderStyle": "solid",
+                            "borderColor": "#cbd5e1",
+                            "shadowMode": "none",
+                            "shadowPreset": "md",
+                            "shadowOffsetX": "0px",
+                            "shadowOffsetY": "4px",
+                            "shadowBlur": "6px",
+                            "shadowSpread": "0px",
+                            "shadowColor": "rgba(0, 0, 0, 0.12)",
+                            "displayMode": "block",
+                            "hideOnMobile": false,
+                            "hideOnTablet": false,
+                            "hideOnDesktop": false
+                          },
+                          "id": "ContentImage-706c88ef-9c73-4e49-a1b7-b9f575f9ee1f",
+                          "altValueContext": {
+                            "path": "product.title"
+                          },
+                          "valueContext": {
+                            "path": "images[0].url"
+                          }
+                        }
+                      },
+                      {
+                        "type": "ContentHeading",
+                        "props": {
+                          "text": "عنوان المنتج",
+                          "level": "2",
+                          "textAlign": "right",
+                          "fontFamily": "body",
+                          "fontSize": "theme-lg",
+                          "fontWeight": "theme-semibold",
+                          "lineHeight": "theme-normal",
+                          "fontStyle": "normal",
+                          "textTransform": "none",
+                          "color": "theme-text",
+                          "visibility": {
+                            "showOnMobile": true,
+                            "showOnTablet": true,
+                            "showOnDesktop": true
+                          },
+                          "layout": {
+                            "spanCol": 1,
+                            "spanRow": 1,
+                            "grow": false,
+                            "marginTop": "0px",
+                            "marginRight": "0px",
+                            "marginBottom": "0px",
+                            "marginLeft": "0px",
+                            "paddingTop": "0px",
+                            "paddingRight": "0px",
+                            "paddingBottom": "0px",
+                            "paddingLeft": "0px",
+                            "padding": "0px",
+                            "positionMode": "static",
+                            "floatUseFixedPosition": true,
+                            "floatPlacementMode": "preset",
+                            "floatPreset": "top-left",
+                            "fixedTop": "auto",
+                            "fixedRight": "auto",
+                            "fixedBottom": "auto",
+                            "fixedLeft": "auto",
+                            "borderWidth": "0px",
+                            "borderStyle": "solid",
+                            "borderColor": "#cbd5e1",
+                            "shadowMode": "none",
+                            "shadowPreset": "md",
+                            "shadowOffsetX": "0px",
+                            "shadowOffsetY": "4px",
+                            "shadowBlur": "6px",
+                            "shadowSpread": "0px",
+                            "shadowColor": "rgba(0, 0, 0, 0.12)",
+                            "displayMode": "block",
+                            "hideOnMobile": false,
+                            "hideOnTablet": false,
+                            "hideOnDesktop": false
+                          },
+                          "id": "ContentHeading-f5661a84-d0cf-4f9b-8798-d6d6d909387c",
+                          "valueContext": {
+                            "path": "product.title"
+                          }
+                        }
+                      },
+                      {
+                        "type": "ContentParagraph",
+                        "props": {
+                          "text": "وصف المنتج",
+                          "textAlign": "right",
+                          "fontFamily": "body",
+                          "fontSize": "theme-sm",
+                          "fontWeight": "theme-normal",
+                          "lineHeight": "theme-relaxed",
+                          "fontStyle": "normal",
+                          "textTransform": "none",
+                          "color": "theme-neutral",
+                          "visibility": {
+                            "showOnMobile": true,
+                            "showOnTablet": true,
+                            "showOnDesktop": true
+                          },
+                          "layout": {
+                            "spanCol": 1,
+                            "spanRow": 1,
+                            "grow": false,
+                            "marginTop": "0px",
+                            "marginRight": "0px",
+                            "marginBottom": "0px",
+                            "marginLeft": "0px",
+                            "paddingTop": "0px",
+                            "paddingRight": "0px",
+                            "paddingBottom": "0px",
+                            "paddingLeft": "0px",
+                            "padding": "0px",
+                            "positionMode": "static",
+                            "floatUseFixedPosition": true,
+                            "floatPlacementMode": "preset",
+                            "floatPreset": "top-left",
+                            "fixedTop": "auto",
+                            "fixedRight": "auto",
+                            "fixedBottom": "auto",
+                            "fixedLeft": "auto",
+                            "borderWidth": "0px",
+                            "borderStyle": "solid",
+                            "borderColor": "#cbd5e1",
+                            "shadowMode": "none",
+                            "shadowPreset": "md",
+                            "shadowOffsetX": "0px",
+                            "shadowOffsetY": "4px",
+                            "shadowBlur": "6px",
+                            "shadowSpread": "0px",
+                            "shadowColor": "rgba(0, 0, 0, 0.12)",
+                            "displayMode": "block",
+                            "hideOnMobile": false,
+                            "hideOnTablet": false,
+                            "hideOnDesktop": false
+                          },
+                          "id": "ContentParagraph-605374d9-d901-4cd8-ae44-b37e8f3ffd6e",
+                          "valueContext": {
+                            "path": "product.description"
+                          }
+                        }
+                      },
+                      {
+                        "type": "ContentParagraph",
+                        "props": {
+                          "text": "0.00 SYP",
+                          "textAlign": "right",
+                          "fontFamily": "body",
+                          "fontSize": "theme-md",
+                          "fontWeight": "theme-semibold",
+                          "lineHeight": "theme-relaxed",
+                          "fontStyle": "normal",
+                          "textTransform": "none",
+                          "color": "theme-text",
+                          "visibility": {
+                            "showOnMobile": true,
+                            "showOnTablet": true,
+                            "showOnDesktop": true
+                          },
+                          "layout": {
+                            "spanCol": 1,
+                            "spanRow": 1,
+                            "grow": false,
+                            "marginTop": "0px",
+                            "marginRight": "0px",
+                            "marginBottom": "0px",
+                            "marginLeft": "0px",
+                            "paddingTop": "0px",
+                            "paddingRight": "0px",
+                            "paddingBottom": "0px",
+                            "paddingLeft": "0px",
+                            "padding": "0px",
+                            "positionMode": "static",
+                            "floatUseFixedPosition": true,
+                            "floatPlacementMode": "preset",
+                            "floatPreset": "top-left",
+                            "fixedTop": "auto",
+                            "fixedRight": "auto",
+                            "fixedBottom": "auto",
+                            "fixedLeft": "auto",
+                            "borderWidth": "0px",
+                            "borderStyle": "solid",
+                            "borderColor": "#cbd5e1",
+                            "shadowMode": "none",
+                            "shadowPreset": "md",
+                            "shadowOffsetX": "0px",
+                            "shadowOffsetY": "4px",
+                            "shadowBlur": "6px",
+                            "shadowSpread": "0px",
+                            "shadowColor": "rgba(0, 0, 0, 0.12)",
+                            "displayMode": "block",
+                            "hideOnMobile": false,
+                            "hideOnTablet": false,
+                            "hideOnDesktop": false
+                          },
+                          "id": "ContentParagraph-619dd95e-9491-498b-b4f6-02a03d306863",
+                          "valueContext": {
+                            "path": "pricing.displayPrice"
+                          }
+                        }
+                      },
+                      {
+                        "type": "ContentButton",
+                        "props": {
+                          "label": "إضافة إلى السلة",
+                          "align": "left",
+                          "destinationType": "action",
+                          "buttonAction": "addToCart",
+                          "submitRedirectUrl": "",
+                          "link": {
+                            "kind": "none"
+                          },
+                          "zoneKey": "popup-main",
+                          "zoneAction": "open",
+                          "buttonVariantMode": "variant",
+                          "buttonVariant": "primary",
+                          "buttonVariantSize": "md",
+                          "radius": "theme-md",
+                          "bgColor": "theme-primary",
+                          "textColor": "theme-surface",
+                          "buttonSize": "theme-md",
+                          "layout": {
+                            "spanCol": 1,
+                            "spanRow": 1,
+                            "grow": false,
+                            "marginTop": "0px",
+                            "marginRight": "0px",
+                            "marginBottom": "0px",
+                            "marginLeft": "0px",
+                            "paddingTop": "0px",
+                            "paddingRight": "0px",
+                            "paddingBottom": "0px",
+                            "paddingLeft": "0px",
+                            "padding": "0px",
+                            "positionMode": "static",
+                            "floatUseFixedPosition": true,
+                            "floatPlacementMode": "preset",
+                            "floatPreset": "bottom-right",
+                            "fixedTop": "auto",
+                            "fixedRight": "auto",
+                            "fixedBottom": "auto",
+                            "fixedLeft": "auto",
+                            "borderWidth": "0px",
+                            "borderStyle": "solid",
+                            "borderColor": "#cbd5e1",
+                            "shadowMode": "none",
+                            "shadowPreset": "md",
+                            "shadowOffsetX": "0px",
+                            "shadowOffsetY": "4px",
+                            "shadowBlur": "6px",
+                            "shadowSpread": "0px",
+                            "shadowColor": "rgba(0, 0, 0, 0.12)",
+                            "displayMode": "block",
+                            "hideOnMobile": false,
+                            "hideOnTablet": false,
+                            "hideOnDesktop": false
+                          },
+                          "id": "ContentButton-34b8b68f-9d41-40e4-8e15-e6435a249008"
+                        }
+                      },
+                      {
+                        "type": "ContentButton",
+                        "props": {
+                          "label": "عرض التفاصيل",
+                          "align": "left",
+                          "destinationType": "link",
+                          "buttonAction": "link",
+                          "submitRedirectUrl": "",
+                          "link": {
+                            "kind": "page",
+                            "pageId": "/products/:product-slug",
+                            "dynamicSegment": {
+                              "param": "product-slug",
+                              "valueContext": "product.slug"
+                            }
+                          },
+                          "zoneKey": "popup-main",
+                          "zoneAction": "open",
+                          "buttonVariantMode": "variant",
+                          "buttonVariant": "secondary",
+                          "buttonVariantSize": "md",
+                          "radius": "theme-md",
+                          "bgColor": "theme-primary",
+                          "textColor": "theme-surface",
+                          "buttonSize": "theme-md",
+                          "layout": {
+                            "spanCol": 1,
+                            "spanRow": 1,
+                            "grow": false,
+                            "marginTop": "0px",
+                            "marginRight": "0px",
+                            "marginBottom": "0px",
+                            "marginLeft": "0px",
+                            "paddingTop": "0px",
+                            "paddingRight": "0px",
+                            "paddingBottom": "0px",
+                            "paddingLeft": "0px",
+                            "padding": "0px",
+                            "positionMode": "static",
+                            "floatUseFixedPosition": true,
+                            "floatPlacementMode": "preset",
+                            "floatPreset": "bottom-right",
+                            "fixedTop": "auto",
+                            "fixedRight": "auto",
+                            "fixedBottom": "auto",
+                            "fixedLeft": "auto",
+                            "borderWidth": "0px",
+                            "borderStyle": "solid",
+                            "borderColor": "#cbd5e1",
+                            "shadowMode": "none",
+                            "shadowPreset": "md",
+                            "shadowOffsetX": "0px",
+                            "shadowOffsetY": "4px",
+                            "shadowBlur": "6px",
+                            "shadowSpread": "0px",
+                            "shadowColor": "rgba(0, 0, 0, 0.12)",
+                            "displayMode": "block",
+                            "hideOnMobile": false,
+                            "hideOnTablet": false,
+                            "hideOnDesktop": false
+                          },
+                          "id": "ContentButton-b35f4a5f-ae21-4760-8c5a-b6d44f2e0fd3"
+                        }
+                      }
+                    ],
+                    "layout": {
+                      "spanCol": 1,
+                      "spanRow": 1,
+                      "grow": true,
+                      "marginTop": "0px",
+                      "marginRight": "0px",
+                      "marginBottom": "0px",
+                      "marginLeft": "0px",
+                      "paddingTop": "0px",
+                      "paddingRight": "0px",
+                      "paddingBottom": "0px",
+                      "paddingLeft": "0px",
+                      "padding": "0px",
+                      "positionMode": "static",
+                      "floatUseFixedPosition": true,
+                      "floatPlacementMode": "preset",
+                      "floatPreset": "top-left",
+                      "fixedTop": "auto",
+                      "fixedRight": "auto",
+                      "fixedBottom": "auto",
+                      "fixedLeft": "auto",
+                      "borderWidth": "0px",
+                      "borderStyle": "solid",
+                      "borderColor": "#cbd5e1",
+                      "shadowMode": "none",
+                      "shadowPreset": "md",
+                      "shadowOffsetX": "0px",
+                      "shadowOffsetY": "4px",
+                      "shadowBlur": "6px",
+                      "shadowSpread": "0px",
+                      "shadowColor": "rgba(0, 0, 0, 0.12)",
+                      "displayMode": "block",
+                      "hideOnMobile": false,
+                      "hideOnTablet": false,
+                      "hideOnDesktop": false
+                    },
+                    "id": "Group-15933340-9ce5-4504-bd1b-3a5d1a7328a7"
+                  }
+                }
+              ],
+              "layout": {
+                "spanCol": 1,
+                "spanRow": 1,
+                "grow": false,
+                "marginTop": "0px",
+                "marginRight": "0px",
+                "marginBottom": "0px",
+                "marginLeft": "0px",
+                "paddingTop": "0px",
+                "paddingRight": "0px",
+                "paddingBottom": "0px",
+                "paddingLeft": "0px",
+                "padding": "0px",
+                "positionMode": "static",
+                "floatUseFixedPosition": true,
+                "floatPlacementMode": "preset",
+                "floatPreset": "top-left",
+                "fixedTop": "auto",
+                "fixedRight": "auto",
+                "fixedBottom": "auto",
+                "fixedLeft": "auto",
+                "borderWidth": "0px",
+                "borderStyle": "solid",
+                "borderColor": "#cbd5e1",
+                "shadowMode": "none",
+                "shadowPreset": "md",
+                "shadowOffsetX": "0px",
+                "shadowOffsetY": "4px",
+                "shadowBlur": "6px",
+                "shadowSpread": "0px",
+                "shadowColor": "rgba(0, 0, 0, 0.12)",
+                "displayMode": "block",
+                "hideOnMobile": false,
+                "hideOnTablet": false,
+                "hideOnDesktop": false
+              },
+              "sectionKind": "products-grid",
+              "metadata": {
+                "preset": "products-grid"
+              },
+              "id": "Section-d42b0a69-9755-481c-ae39-622658a965d3"
+            }
+          }
+        ]
       }
     ]
   }

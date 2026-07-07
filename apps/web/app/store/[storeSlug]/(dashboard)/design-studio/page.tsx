@@ -21,17 +21,14 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Skeleton } from "@workspace/ui/components/skeleton"
-import {
-  ATELIER_PRESET,
-  themeDemoEditPath,
-} from "@/modules/design-studio/theme-presets"
 import { useStorePath } from "@/lib/store-path"
 import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 import type { StoreStatus } from "@/modules/auth/store/types"
 
 import ThemeMarketplaceCard from "./_components/theme-marketplace-card"
 import ThemePreviewCard from "./_components/theme-preview-card"
-import { router } from "next/client"
+import { themeCatalog } from "@/modules/design-studio/store-theme"
+import { useSelectedStoreTheme } from "@/modules/design-studio/use-selected-store-theme"
 
 const statusLabels: Record<StoreStatus, string> = {
   ACTIVE: "نشط",
@@ -52,36 +49,13 @@ const statusBadgeVariant: Record<
   CLOSED: "destructive",
 }
 
-const marketplaceThemes = [
-  {
-    id: "atelier",
-    title: "Atelier",
-    description: "تحريري بلمسة دافئة — مثالي للأزياء والمنتجات الحرفية.",
-    previewColor: ATELIER_PRESET.previewColor,
-    isActive: true,
-  },
-  {
-    id: "minimal",
-    title: "Minimal",
-    description: "تصميم نظيف يركز على المنتجات مع مساحات بيضاء واسعة.",
-    previewColor: "#0f172a",
-    badge: "قريباً",
-  },
-  {
-    id: "bazaar",
-    title: "Bazaar",
-    description: "ألوان حيوية وشبكة منتجات كثيفة لمتاجر التجزئة.",
-    previewColor: "#c2410c",
-    badge: "قريباً",
-  },
-]
-
 export default function DesignStudioPage() {
   const storePath = useStorePath()
   const { data: settings, isPending } = useQuery(getStoreSettingsQueryOptions())
+  const { selectedTheme, selectTheme, isReady } = useSelectedStoreTheme()
 
   const editorBase = storePath("/design-studio")
-  const themeEditHref = `${editorBase}${themeDemoEditPath(ATELIER_PRESET.id)}`
+  const themeEditHref = `${editorBase}/`
   const themesGalleryHref = `${editorBase}/themes/edit`
 
   const storeSlug = settings?.slug ?? ""
@@ -207,12 +181,20 @@ export default function DesignStudioPage() {
             <div className="text-xl font-semibold text-gray-800">
               نوع الثيم الحالي
             </div>
-            <div className="leading-tonal mt-4 max-w-3/4 text-gray-500">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit. Adipisci
-              aliquam nemo a vitae eius quisquam mollitia consequuntur, cum
-              velit est ratione, minima facere nesciunt non hic, id enim
-              quibusdam illum?
-            </div>
+            {isReady && selectedTheme ? (
+              <>
+                <div className="mt-2 text-lg font-medium text-gray-800">
+                  {selectedTheme.name}
+                </div>
+                <div className="leading-tonal mt-4 max-w-3/4 text-gray-500">
+                  {selectedTheme.description}
+                </div>
+              </>
+            ) : (
+              <div className="leading-tonal mt-4 max-w-3/4 text-gray-500">
+                اختر أحد قوالب الثيمات أدناه لتطبيقه على متجرك.
+              </div>
+            )}
 
             <div className="mt-12 rounded-lg bg-gray-200 p-3">
               <div className="text-gray-500">الألوان المستخدمة</div>
@@ -233,12 +215,23 @@ export default function DesignStudioPage() {
           </div>
 
           <div className="grid-cols-1">
-            <div className="min-h-[400px] w-full rounded-lg bg-gray-200 p-4"></div>
+            <div className="min-h-[400px] w-full overflow-hidden rounded-lg bg-gray-200 p-4">
+              {selectedTheme?.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={selectedTheme.image}
+                  alt={selectedTheme.name}
+                  className="size-full rounded-md object-cover"
+                />
+              ) : null}
+            </div>
 
             <div className="mt-4 flex w-full gap-2">
-              <Button className="grow">معاينة</Button>
-              <Button className="grow" variant="outline">
-                تعديل
+              <Button className="grow" asChild>
+                <Link href={storePath("/design-studio/")}>معاينة</Link>
+              </Button>
+              <Button className="grow" variant="outline" asChild>
+                <Link href={themeEditHref}>تعديل</Link>
               </Button>
             </div>
           </div>
@@ -272,17 +265,14 @@ export default function DesignStudioPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {marketplaceThemes.map((theme) => (
+          {themeCatalog.map((theme) => (
             <ThemeMarketplaceCard
               key={theme.id}
-              title={theme.title}
+              title={theme.name}
               description={theme.description}
-              previewColor={theme.previewColor}
-              badge={theme.badge}
-              isActive={theme.isActive}
-              href={
-                theme.isActive ? `${editorBase}/themes/${theme.id}` : undefined
-              }
+              previewImage={theme.image}
+              isActive={selectedTheme?.id === theme.id}
+              onSelect={() => selectTheme(theme.id)}
             />
           ))}
         </div>

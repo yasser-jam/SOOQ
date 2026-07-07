@@ -15,19 +15,23 @@ import { cn } from "@workspace/ui/lib/utils"
 type ThemeMarketplaceCardProps = {
   title: string
   description: string
-  previewColor: string
+  previewColor?: string
+  previewImage?: string
   badge?: string
   href?: string
   isActive?: boolean
+  onSelect?: () => void
 }
 
 export default function ThemeMarketplaceCard({
   title,
   description,
-  previewColor,
+  previewColor = "#64748b",
+  previewImage,
   badge,
   href,
   isActive,
+  onSelect,
 }: ThemeMarketplaceCardProps) {
   return (
     <Card
@@ -40,18 +44,33 @@ export default function ThemeMarketplaceCard({
       <CardContent>
         <div
           className="relative h-32 overflow-hidden rounded-xl border border-border/60"
-          style={{
-            background: `linear-gradient(135deg, ${previewColor}22, transparent 60%), linear-gradient(to bottom right, var(--color-muted), var(--color-background))`,
-          }}
+          style={
+            previewImage
+              ? undefined
+              : {
+                  background: `linear-gradient(135deg, ${previewColor}22, transparent 60%), linear-gradient(to bottom right, var(--color-muted), var(--color-background))`,
+                }
+          }
         >
-          <span
-            className="absolute start-4 top-4 size-8 rounded-full border border-border/40 shadow-sm"
-            style={{ backgroundColor: previewColor }}
-          />
-          <div className="absolute inset-x-4 bottom-4 space-y-2">
-            <div className="h-2 w-2/3 rounded-full bg-foreground/10" />
-            <div className="h-2 w-1/2 rounded-full bg-foreground/10" />
-          </div>
+          {previewImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={previewImage}
+              alt=""
+              className="absolute inset-0 size-full object-cover"
+            />
+          ) : (
+            <>
+              <span
+                className="absolute start-4 top-4 size-8 rounded-full border border-border/40 shadow-sm"
+                style={{ backgroundColor: previewColor }}
+              />
+              <div className="absolute inset-x-4 bottom-4 space-y-2">
+                <div className="h-2 w-2/3 rounded-full bg-foreground/10" />
+                <div className="h-2 w-1/2 rounded-full bg-foreground/10" />
+              </div>
+            </>
+          )}
         </div>
       </CardContent>
 
@@ -68,6 +87,26 @@ export default function ThemeMarketplaceCard({
           ) : null}
         </div>
       </CardHeader>
+
+      {(onSelect || href) && (
+        <CardFooter className="gap-2">
+          {onSelect ? (
+            <Button
+              className="w-full"
+              variant={isActive ? "outline" : "primary"}
+              size="sm"
+              onClick={onSelect}
+            >
+              {isActive ? "الثيم المطبّق" : "تطبيق الثيم"}
+            </Button>
+          ) : null}
+          {href ? (
+            <Button className="w-full" variant="outline" size="sm" asChild>
+              <Link href={href}>معاينة</Link>
+            </Button>
+          ) : null}
+        </CardFooter>
+      )}
     </Card>
   )
 }
