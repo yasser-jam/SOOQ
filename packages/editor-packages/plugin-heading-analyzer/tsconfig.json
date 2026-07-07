@@ -5,6 +5,7 @@
   "compilerOptions": {
     "strict": false,
     "noUncheckedIndexedAccess": false,
+    "types": ["node"],
     "paths": {
       "@/core": ["../core"],
       "@/core/*": ["../core/*"]

@@ -3,6 +3,7 @@
   "include": ["."],
   "exclude": ["dist", "build", "node_modules"],
   "compilerOptions": {
+    "types": ["node"],
     "paths": {
       "@/core": ["../core"],
       "@/core/*": ["../core/*"]
