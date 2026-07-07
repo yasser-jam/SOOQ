@@ -28,6 +28,7 @@ import type { StoreStatus } from "@/modules/auth/store/types"
 import ThemeMarketplaceCard from "./_components/theme-marketplace-card"
 import ThemePreviewCard from "./_components/theme-preview-card"
 import { themeCatalog } from "@/modules/design-studio/store-theme"
+import { themeNameToStudioSegment } from "@/lib/design-studio-paths"
 import { useSelectedStoreTheme } from "@/modules/design-studio/use-selected-store-theme"
 
 const statusLabels: Record<StoreStatus, string> = {
@@ -55,8 +56,10 @@ export default function DesignStudioPage() {
   const { selectedTheme, selectTheme, isReady } = useSelectedStoreTheme()
 
   const editorBase = storePath("/design-studio")
-  const themeEditHref = `${editorBase}/`
-  const themesGalleryHref = `${editorBase}/themes/edit`
+  const themeEditHref = selectedTheme
+    ? `${editorBase}/${themeNameToStudioSegment(selectedTheme.name)}/edit`
+    : `${editorBase}/theme-1/edit`
+  const themesGalleryHref = themeEditHref
 
   const storeSlug = settings?.slug ?? ""
   const shopUrl = useMemo(() => {

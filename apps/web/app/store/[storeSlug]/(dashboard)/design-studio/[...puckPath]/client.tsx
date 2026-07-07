@@ -47,9 +47,12 @@ import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell"
 import { PreviewPageShell } from "../_components/preview-page-shell"
 import { PreviewThemeProvider } from "../_components/preview-theme-provider"
 import {
-  buildStudioEditHref,
-  buildStudioPreviewHref,
+  buildStudioEditHrefFromSegment,
+  buildStudioPreviewHrefFromSegment,
+  resolveStudioThemeEditHref,
+  resolveStudioThemePreviewHref,
 } from "@/lib/design-studio-paths"
+import { useSelectedPage } from "@/core/config/lib/use-selected-page"
 
 const hiddenPluginNames = new Set(["themes", "heading-analyzer", "outline"])
 
@@ -180,14 +183,18 @@ function JsonViewerDialog({
 }
 
 export function Client({
-  path,
+  path: pathProp,
+  themeSlug,
   isEdit,
   isPreview = false,
 }: {
-  path: string
+  path?: string
+  themeSlug?: string
   isEdit: boolean
   isPreview?: boolean
 }) {
+  const selectedPagePath = useSelectedPage()
+  const path = themeSlug ? selectedPagePath : (pathProp ?? "/")
   const metadata = {
     example: "Hello, world",
   }
@@ -212,13 +219,19 @@ export function Client({
   }, [pathname])
 
   const previewHref = useMemo(
-    () => buildStudioPreviewHref(designStudioHref, path),
-    [designStudioHref, path]
+    () =>
+      themeSlug
+        ? buildStudioPreviewHrefFromSegment(designStudioHref, themeSlug)
+        : resolveStudioThemePreviewHref(designStudioHref),
+    [designStudioHref, themeSlug]
   )
 
   const editHref = useMemo(
-    () => buildStudioEditHref(designStudioHref, path),
-    [designStudioHref, path]
+    () =>
+      themeSlug
+        ? buildStudioEditHrefFromSegment(designStudioHref, themeSlug)
+        : resolveStudioThemeEditHref(designStudioHref),
+    [designStudioHref, themeSlug]
   )
 
   const exportFileName = "site"
@@ -571,6 +584,7 @@ export function Client({
     return (
       <EditorFullscreenShell>
         <Puck
+          key={path}
           config={config}
           data={data}
           height="100%"

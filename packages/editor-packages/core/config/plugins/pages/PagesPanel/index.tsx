@@ -16,7 +16,6 @@ import {
   PAGES_UPDATED_EVENT,
   getAllPages,
   getEditPath,
-  matchCurrentPage,
   normalizePagePath,
 } from "../../../pages"
 import {
@@ -30,9 +29,14 @@ import {
   DEFAULT_SECTION_NAME,
   createSectionStarterContent,
 } from "../../../blocks/Section/starter-data"
+import { useSelectedPage } from "../../../lib/use-selected-page"
 import {
-  buildStudioEditHref,
+  applySelectedPage,
+} from "../../../lib/selected-page"
+import {
   getStudioBaseFromPathname,
+  parseStudioPathname,
+  resolveStudioThemeEditHref,
 } from "../../../lib/studio-paths"
 import styles from "./styles.module.css"
 import { Input } from "@workspace/ui/components/input"
@@ -113,17 +117,27 @@ function PageCard({
   page,
   isActive,
   editHref,
+  onSelect,
 }: {
   page: PageDefinition
   isActive: boolean
   editHref: string
+  onSelect: (page: PageDefinition) => void
 }) {
   const IconComponent = ICON_MAP[page.iconName]
   const accent = ICON_ACCENT[page.iconName]
   const displayPath = page.dynamic ? page.path : getEditPath(page)
 
+  const handleClick = useCallback(() => {
+    onSelect(page)
+    if (window.location.pathname === new URL(editHref, window.location.origin).pathname) {
+      return
+    }
+    window.location.href = editHref
+  }, [editHref, onSelect, page])
+
   return (
-    <a href={editHref} className="block no-underline">
+    <div onClick={handleClick} className="block no-underline">
       <Card
         size="sm"
         className={cn(
@@ -189,7 +203,7 @@ function PageCard({
           </CardContent>
         ) : null}
       </Card>
-    </a>
+    </div>
   )
 }
 
@@ -199,13 +213,28 @@ export function PagesPanel() {
   const [pathDraft, setPathDraft] = useState("")
   const [formError, setFormError] = useState<string | null>(null)
 
+  const selectedPagePath = useSelectedPage()
+
   const studioBase = useMemo(() => {
     if (typeof window === "undefined") return null
     return getStudioBaseFromPathname(window.location.pathname)
   }, [])
 
+  const themeEditHref = useMemo(() => {
+    if (!studioBase) return null
+    const parsed = parseStudioPathname(window.location.pathname)
+    if (parsed) {
+      return `${studioBase}/${parsed.themeSegment}/edit`
+    }
+    return resolveStudioThemeEditHref(studioBase)
+  }, [studioBase])
+
   const refreshPages = useCallback(() => {
     setPages(getAllPages())
+  }, [])
+
+  const handleSelectPage = useCallback((page: PageDefinition) => {
+    applySelectedPage(getEditPath(page))
   }, [])
 
   useEffect(() => {
@@ -221,11 +250,6 @@ export function PagesPanel() {
       window.removeEventListener("storage", refreshPages)
     }
   }, [refreshPages])
-
-  const currentPage = useMemo(() => {
-    if (typeof window === "undefined") return undefined
-    return matchCurrentPage(window.location.pathname, pages)
-  }, [pages])
 
   const { corePages, customPages } = useMemo(() => {
     const core: PageDefinition[] = []
@@ -309,16 +333,19 @@ export function PagesPanel() {
         <h3 className={getClassName("groupTitle")}>{title}</h3>
         <div className="space-y-2">
           {groupPages.map((page) => {
-            const editHref = studioBase
-              ? buildStudioEditHref(studioBase, getEditPath(page))
-              : `${getEditPath(page)}/edit`
+            const editHref =
+              themeEditHref ??
+              (studioBase
+                ? resolveStudioThemeEditHref(studioBase)
+                : `${getEditPath(page)}/edit`)
 
             return (
               <PageCard
                 key={`${page.path}-${page.isCustom ? "custom" : "core"}`}
                 page={page}
-                isActive={currentPage?.path === page.path}
+                isActive={selectedPagePath === getEditPath(page)}
                 editHref={editHref}
+                onSelect={handleSelectPage}
               />
             )
           })}

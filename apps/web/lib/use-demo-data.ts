@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { resolveAllData, type Metadata } from "@/core";
 import config from "@/core/config";
@@ -26,12 +26,16 @@ export const useDemoData = ({
 }) => {
 	const siteKey = getSiteStorageKey();
 
-	const [data] = useState<Partial<UserData>>(() => {
+	const data = useMemo(() => {
 		const site = readSiteData();
 		return composePuckData(site, path);
-	});
+	}, [path, siteKey]);
 
 	const [resolvedData, setResolvedData] = useState<Partial<UserData>>(data);
+
+	useEffect(() => {
+		setResolvedData(data);
+	}, [data]);
 
 	useEffect(() => {
 		if (data && !isEdit) {
