@@ -3,16 +3,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Plus, X } from "lucide-react";
-import { getClassNameFactory } from "@/core/lib";
-import { insertPresetSection } from "@/core/lib/insert-preset-section";
-import { useAppStoreApi } from "@/core/store";
+import { getClassNameFactory } from "../../lib";
+import { insertPresetSection } from "../../lib/insert-preset-section";
+import { useAppStoreApi } from "../../store";
 import {
   PRESET_CATEGORY_LABELS,
   PRESET_CATEGORY_ORDER,
   SECTION_PRESETS,
   type SectionPreset,
   type SectionPresetCategory,
-} from "@/core/config/presets";
+} from "../../config/presets";
 import styles from "./add-section-dialog.module.css";
 
 const getClassName = getClassNameFactory("AddSectionDialog", styles);
