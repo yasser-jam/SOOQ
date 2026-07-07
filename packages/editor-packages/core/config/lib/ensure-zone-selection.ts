@@ -1,9 +1,9 @@
-import { walkAppState } from "@/core/lib/data/walk-app-state";
-import { getItem, type ItemSelector } from "@/core/lib/data/get-item";
-import { getSelectorForId } from "@/core/lib/get-selector-for-id";
-import { insertComponent } from "@/core/lib/insert-component";
-import type { useAppStoreApi } from "@/core/store";
-import type { PrivateAppState } from "@/core/types/Internal";
+import { walkAppState } from "../../lib/data/walk-app-state";
+import { getItem, type ItemSelector } from "../../lib/data/get-item";
+import { getSelectorForId } from "../../lib/get-selector-for-id";
+import { insertComponent } from "../../lib/insert-component";
+import type { useAppStoreApi } from "../../store";
+import type { PrivateAppState } from "../../types/Internal";
 import type { ZonePreset } from "../presets/types";
 import { applyZonePreset, applyZonePresets } from "./apply-zone-preset";
 import { DEFAULT_ZONE_POPUP_PRESETS } from "../presets/popup";

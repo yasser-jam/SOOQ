@@ -1,9 +1,9 @@
-import { populateIds } from "@/core/lib/data/populate-ids";
-import { walkAppState } from "@/core/lib/data/walk-app-state";
-import { getSelectorForId } from "@/core/lib/get-selector-for-id";
-import type { useAppStoreApi } from "@/core/store";
-import type { Content, Data } from "@/core/types";
-import type { PrivateAppState } from "@/core/types/Internal";
+import { populateIds } from "../../lib/data/populate-ids";
+import { walkAppState } from "../../lib/data/walk-app-state";
+import { getSelectorForId } from "../../lib/get-selector-for-id";
+import type { useAppStoreApi } from "../../store";
+import type { Content, Data } from "../../types";
+import type { PrivateAppState } from "../../types/Internal";
 import { zoneCache } from "../../reducer/actions/register-zone";
 import type { ZonePreset } from "../presets/types";
 import { ROOT_ZONE_FOOTER, ROOT_ZONE_HEADER } from "../shell-zones";
