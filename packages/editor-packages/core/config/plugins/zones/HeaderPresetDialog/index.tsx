@@ -11,21 +11,19 @@ import {
 } from "@workspace/ui/components/dialog";
 import { cn } from "@workspace/ui/lib/utils";
 import { useAppStoreApi } from "@/core/store";
-import { applyZonePreset } from "../../../lib/apply-zone-preset";
-import { ZONE_HEADER_PRESETS } from "../../../presets/header";
+import { applyHeaderZonePreset } from "../../../lib/apply-zone-preset";
+import { ZONE_HEADER_PRESETS } from "../../../presets";
 import type { ZonePreset } from "../../../presets/types";
 import styles from "./header-preset-dialog.module.css";
 
 type HeaderPresetDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  rootZone: string;
 };
 
 export function HeaderPresetDialog({
   open,
   onOpenChange,
-  rootZone,
 }: HeaderPresetDialogProps) {
   const appStoreApi = useAppStoreApi();
   const isApplyingRef = useRef(false);
@@ -42,10 +40,10 @@ export function HeaderPresetDialog({
       if (isApplyingRef.current) return;
       isApplyingRef.current = true;
       onOpenChange(false);
-      applyZonePreset(rootZone, preset, appStoreApi);
+      applyHeaderZonePreset(preset, appStoreApi);
       isApplyingRef.current = false;
     },
-    [appStoreApi, onOpenChange, rootZone]
+    [appStoreApi, onOpenChange]
   );
 
   if (!portalTarget) return null;

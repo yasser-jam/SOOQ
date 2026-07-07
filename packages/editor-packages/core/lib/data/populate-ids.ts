@@ -8,20 +8,40 @@ export const populateIds = (
   override: boolean = false
 ): ComponentData => {
   const id = generateId(data.type);
+  const rootProps = data.props as Record<string, unknown>;
+  const existingRootId = rootProps.id;
 
   return walkTree(
     {
       ...data,
-      props: override ? { ...data.props, id } : { ...data.props },
+      props: override
+        ? { ...data.props, id }
+        : {
+            ...data.props,
+            id:
+              typeof existingRootId === "string" && existingRootId
+                ? existingRootId
+                : id,
+          },
     },
     config,
     (contents) =>
       contents.map((item: ComponentDataOptionalId) => {
-        const id = generateId(item.type);
+        const childId = generateId(item.type);
+        const itemProps = (item.props ?? {}) as Record<string, unknown>;
+        const existingChildId = itemProps.id;
 
         return {
           ...item,
-          props: override ? { ...item.props, id } : { id, ...item.props },
+          props: override
+            ? { ...item.props, id: childId }
+            : {
+                ...item.props,
+                id:
+                  typeof existingChildId === "string" && existingChildId
+                    ? existingChildId
+                    : childId,
+              },
         };
       })
   );

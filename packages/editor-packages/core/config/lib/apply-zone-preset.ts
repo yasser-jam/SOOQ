@@ -2,12 +2,33 @@ import { populateIds } from "@/core/lib/data/populate-ids";
 import { walkAppState } from "@/core/lib/data/walk-app-state";
 import { getSelectorForId } from "@/core/lib/get-selector-for-id";
 import type { useAppStoreApi } from "@/core/store";
-import type { Data } from "@/core/types";
+import type { Content, Data } from "@/core/types";
 import type { PrivateAppState } from "@/core/types/Internal";
 import { zoneCache } from "../../reducer/actions/register-zone";
 import type { ZonePreset } from "../presets/types";
+import { ROOT_ZONE_FOOTER, ROOT_ZONE_HEADER } from "../shell-zones";
 
 type AppStoreApi = ReturnType<typeof useAppStoreApi>;
+
+const LEGACY_ZONE_KEYS: Record<string, readonly string[]> = {
+  [ROOT_ZONE_HEADER]: ["root:zone:header", "zone:header"],
+  [ROOT_ZONE_FOOTER]: ["root:zone:footer", "zone:footer"],
+};
+
+function stripLegacyZoneKeys(
+  zones: Record<string, Content>,
+  rootZone: string
+): Record<string, Content> {
+  const legacyKeys = LEGACY_ZONE_KEYS[rootZone];
+  if (!legacyKeys?.length) return zones;
+
+  const next = { ...zones };
+  legacyKeys.forEach((key) => {
+    delete next[key];
+  });
+
+  return next;
+}
 
 function collectRemovedNodeIds(
   state: PrivateAppState,
@@ -62,9 +83,12 @@ export function applyZonePreset(
 
   const state = appStoreApi.getState().state;
   const removedIds = collectRemovedNodeIds(state, rootZone);
-  const node = populateIds(preset.componentData, config);
+  const node = populateIds(preset.componentData, config, true);
 
-  const nextZones = { ...(state.data.zones ?? {}), [rootZone]: [node] };
+  const nextZones = stripLegacyZoneKeys(
+    { ...(state.data.zones ?? {}), [rootZone]: [node] },
+    rootZone
+  );
 
   Object.keys(nextZones).forEach((zoneCompound) => {
     const parentId = zoneCompound.split(":")[0];
@@ -102,6 +126,14 @@ export function applyZonePreset(
   return selector;
 }
 
+/** Apply a header layout preset into `root:zone-header`. */
+export function applyHeaderZonePreset(
+  preset: ZonePreset,
+  appStoreApi: AppStoreApi
+) {
+  return applyZonePreset(ROOT_ZONE_HEADER, preset, appStoreApi);
+}
+
 /** Insert multiple presets into a zone at once, selecting the first one. */
 export function applyZonePresets(
   rootZone: string,
@@ -119,9 +151,12 @@ export function applyZonePresets(
 
   const state = appStoreApi.getState().state;
   const removedIds = collectRemovedNodeIds(state, rootZone);
-  const nodes = presets.map((p) => populateIds(p.componentData, config));
+  const nodes = presets.map((p) => populateIds(p.componentData, config, true));
 
-  const nextZones = { ...(state.data.zones ?? {}), [rootZone]: nodes };
+  const nextZones = stripLegacyZoneKeys(
+    { ...(state.data.zones ?? {}), [rootZone]: nodes },
+    rootZone
+  );
 
   Object.keys(nextZones).forEach((zoneCompound) => {
     const parentId = zoneCompound.split(":")[0];

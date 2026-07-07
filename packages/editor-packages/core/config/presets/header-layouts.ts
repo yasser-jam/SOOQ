@@ -93,20 +93,21 @@ export function buildHeaderZoneSection(
 
   let rowContent: unknown[];
 
+  // DOM order follows RTL flex (site default): first = visual right, last = visual left.
   switch (layout) {
     case "logo-right-links-left":
-      rowContent = [links, brand];
+      rowContent = [brand, links];
       break;
     case "logo-center-actions":
       rowContent = [
-        links,
+        createHeaderGrowGroup([createHeaderLoginButton()], "flex-start"),
         createHeaderGrowGroup([brand], "center"),
-        createHeaderGrowGroup([createHeaderLoginButton()], "flex-end"),
+        links,
       ];
       break;
     case "logo-left-links-center":
       rowContent = [
-        brand,
+        createHeaderSlotGroup([]),
         createHeaderGrowGroup(
           [
             createHeaderNavLinksGroup("plain", {
@@ -115,7 +116,7 @@ export function buildHeaderZoneSection(
           ],
           "center"
         ),
-        createHeaderSlotGroup([]),
+        brand,
       ];
       break;
   }

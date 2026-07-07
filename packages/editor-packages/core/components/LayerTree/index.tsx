@@ -206,12 +206,14 @@ export const LayerTree = ({
           <div className={getClassName("helper")}>No items</div>
         )}
         {contentIds.map((itemId, i) => {
+          if (!itemId) return null;
+
           return (
             <Layer
+              key={`${zoneCompound}:${itemId}`}
               index={i}
               itemId={itemId}
               zoneCompound={zoneCompound}
-              key={itemId}
             />
           );
         })}

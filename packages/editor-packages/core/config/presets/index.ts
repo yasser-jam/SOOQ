@@ -78,6 +78,12 @@ export function getZonePresetsByCategory(
   return ZONE_PRESETS.filter((preset) => preset.category === category);
 }
 
+export function getHeaderPresetById(id: string): ZonePreset | undefined {
+  return ZONE_HEADER_PRESETS.find((preset) => preset.id === id);
+}
+
+export { applyHeaderZonePreset } from "../lib/apply-zone-preset";
+
 export {
   CART_PRESETS,
   FORMS_PRESETS,
@@ -86,7 +92,6 @@ export {
   HEADER_PRESETS,
   FOOTER_PRESETS,
   ZONE_HEADER_PRESETS,
-  HEADER_LAYOUT_DEFINITIONS,
   ZONE_FOOTER_PRESETS,
   ZONE_DRAWER_PRESETS,
   ZONE_POPUP_PRESETS,

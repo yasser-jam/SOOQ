@@ -330,7 +330,6 @@ export function ZonesPanel() {
           <HeaderPresetDialog
             open={headerDialogOpen}
             onOpenChange={setHeaderDialogOpen}
-            rootZone={selectedZoneDefinition.rootZone}
           />
         </section>
       ) : null}
