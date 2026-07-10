@@ -2,6 +2,7 @@
 
 import { HomeMockDashboard } from "@/components/home-mock-dashboard"
 import { FullPageLoader } from "@/components/full-page-loader"
+import { SeedProductsButton } from "@/modules/product/seed/seed-products-button"
 import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 import { useQuery } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
@@ -25,7 +26,8 @@ export default function HomePage() {
     <>
       <FullPageLoader active={isPending || loading} loopMessages={false} />
 
-      <div className="container py-6">
+      <div className="container space-y-6 py-6">
+        <SeedProductsButton />
         <HomeMockDashboard />
       </div>
     </>
