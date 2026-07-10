@@ -12,9 +12,10 @@ import { collectionQueryKeys } from "@/modules/product/collection/queryKeys"
 
 type Props = {
   collectionId: string
+  embedded?: boolean
 }
 
-export default function PreviewTab({ collectionId }: Props) {
+export default function PreviewTab({ collectionId, embedded = false }: Props) {
   const { data, isPending } = useQuery({
     queryKey: collectionQueryKeys.preview(collectionId),
     queryFn: () => previewCollectionRules(collectionId),
@@ -22,10 +23,12 @@ export default function PreviewTab({ collectionId }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-sm text-muted-foreground">
-        المنتجات التي ستطابق القواعد الحالية (للقراءة فقط — لا تُحفظ في
-        المجموعة).
-      </p>
+      {!embedded ? (
+        <p className="text-sm text-muted-foreground">
+          المنتجات التي ستطابق القواعد الحالية (للقراءة فقط — لا تُحفظ في
+          المجموعة).
+        </p>
+      ) : null}
 
       {isPending ? (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">

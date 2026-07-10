@@ -1,11 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
 
 import FilterMenu from "@/components/system/filter-menu"
 import { useStorePath } from "@/lib/store-path"
-import ProductCollectionTable from "@/modules/product/collection/components/table"
+import CreateCollectionTypeDialog from "@/modules/product/collection/components/create-collection-type-dialog"
+import ProductCollectionGrid from "@/modules/product/collection/components/collection-grid"
 import { Button } from "@workspace/ui/components/button"
 import {
   Field,
@@ -18,6 +20,12 @@ import { Input } from "@workspace/ui/components/input"
 export default function ProductsCollectionsPage() {
   const router = useRouter()
   const storePath = useStorePath()
+  const [typeDialogOpen, setTypeDialogOpen] = useState(false)
+
+  const navigateToCreate = (type: "manual" | "automated") => {
+    setTypeDialogOpen(false)
+    router.push(storePath(`/products/collections/create?type=${type}`))
+  }
 
   return (
     <div className="container">
@@ -43,9 +51,7 @@ export default function ProductsCollectionsPage() {
           <Button
             size="md"
             variant="secondary"
-            onClick={() =>
-              router.push(storePath("/products/collections/create"))
-            }
+            onClick={() => setTypeDialogOpen(true)}
           >
             إضافة مجموعة
             <Plus data-icon="inline-end" />
@@ -53,7 +59,14 @@ export default function ProductsCollectionsPage() {
         </div>
       </div>
 
-      <ProductCollectionTable />
+      <ProductCollectionGrid />
+
+      <CreateCollectionTypeDialog
+        open={typeDialogOpen}
+        onOpenChange={setTypeDialogOpen}
+        onSelectManual={() => navigateToCreate("manual")}
+        onSelectAutomated={() => navigateToCreate("automated")}
+      />
     </div>
   )
 }

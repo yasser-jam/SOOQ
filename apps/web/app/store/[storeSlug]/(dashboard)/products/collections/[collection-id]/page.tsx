@@ -44,13 +44,6 @@ import {
   FieldError,
   FieldLabel,
 } from "@workspace/ui/components/field"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Textarea } from "@workspace/ui/components/textarea"
 
@@ -64,10 +57,18 @@ const collectionFormSchema = productCollectionSchema.omit({
   updatedAt: true,
 })
 
-const VALID_TABS = ["info", "products", "rules", "preview"] as const
+const VALID_TABS = ["info", "products", "rules"] as const
 type TabValue = (typeof VALID_TABS)[number]
 const isValidTab = (v: string | null): v is TabValue =>
   v !== null && (VALID_TABS as readonly string[]).includes(v)
+
+function resolveCreateType(
+  typeParam: string | null
+): ProductCollection["collectionType"] | null {
+  if (typeParam === "manual") return "MANUAL"
+  if (typeParam === "automated" || typeParam === "dynamic") return "AUTOMATED"
+  return null
+}
 
 export default function EditCollectionPage() {
   const router = useRouter()
@@ -77,6 +78,7 @@ export default function EditCollectionPage() {
   const searchParams = useSearchParams()
   const collectionId = params?.["collection-id"]?.toString() ?? ""
   const isEdit = collectionId !== "create"
+  const createType = resolveCreateType(searchParams?.get("type") ?? null)
 
   const tabFromUrl = searchParams?.get("tab") ?? null
   const activeTab: TabValue = isValidTab(tabFromUrl) ? tabFromUrl : "info"
@@ -106,12 +108,21 @@ export default function EditCollectionPage() {
 
   useEffect(() => {
     if (!isEdit) {
-      form.reset(collectionFormDefaultValues)
+      form.reset({
+        ...collectionFormDefaultValues,
+        collectionType: createType ?? collectionFormDefaultValues.collectionType,
+      })
       return
     }
     if (!collection) return
     form.reset(initCollectionFormValues(collection))
-  }, [collection, form, isEdit])
+  }, [collection, createType, form, isEdit])
+
+  useEffect(() => {
+    if (!isEdit && !createType) {
+      router.replace(storePath("/products/collections"))
+    }
+  }, [createType, isEdit, router, storePath])
 
   const { isPending: isUpdating, mutate: updateCollection } = useMutation({
     mutationFn: updateProductCollection,
@@ -161,6 +172,10 @@ export default function EditCollectionPage() {
   const isSubmitting = isUpdating || isCreating
   const isPageLoading = isEdit && isLoading
 
+  if (!isEdit && !createType) {
+    return null
+  }
+
   return (
     <div className="container my-6 flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -168,24 +183,22 @@ export default function EditCollectionPage() {
           <div className="page-title">
             {isEdit ? "تعديل المجموعة" : "إضافة مجموعة"}
           </div>
-          {isEdit && collection ? (
-            isManual ? (
-              <Badge variant="primary" className="gap-1.5">
-                <Hand size={14} />
-                <span>يدوي</span>
-              </Badge>
-            ) : (
-              <Badge variant="secondary" className="gap-1.5">
-                <Bot size={14} />
-                <span>تلقائي</span>
-              </Badge>
-            )
-          ) : null}
+          {isManual ? (
+            <Badge variant="primary" className="gap-1.5">
+              <Hand size={14} />
+              <span>يدوي</span>
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="gap-1.5">
+              <Bot size={14} />
+              <span>تلقائي</span>
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            onClick={() => router.back()}
+            onClick={() => router.push(storePath("/products/collections"))}
             disabled={isSubmitting || isPageLoading}
           >
             إلغاء
@@ -198,7 +211,7 @@ export default function EditCollectionPage() {
             {isSubmitting ? (
               <Loader2 className="size-4 animate-spin" />
             ) : null}
-            حفظ المعلومات
+            {isEdit ? "حفظ التغييرات" : "إنشاء المجموعة"}
           </Button>
         </div>
       </div>
@@ -206,15 +219,15 @@ export default function EditCollectionPage() {
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="self-start">
           <TabsTrigger value="info">المعلومات</TabsTrigger>
-          <TabsTrigger value="products" disabled={!isEdit || !isManual}>
-            منتجات يدوية
-          </TabsTrigger>
-          <TabsTrigger value="rules" disabled={!isEdit || !isAutomated}>
-            القواعد
-          </TabsTrigger>
-          <TabsTrigger value="preview" disabled={!isEdit || !isAutomated}>
-            معاينة
-          </TabsTrigger>
+          {isManual ? (
+            <TabsTrigger value="products" disabled={!isEdit}>
+              المنتجات
+            </TabsTrigger>
+          ) : (
+            <TabsTrigger value="rules" disabled={!isEdit}>
+              القواعد
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="info">
@@ -222,8 +235,7 @@ export default function EditCollectionPage() {
             <CardHeader>
               <CardTitle>معلومات المجموعة</CardTitle>
               <CardDescription>
-                يحدّد النوع كيفية إضافة المنتجات: يدوي (سحب وإفلات) أو تلقائي
-                (قواعد).
+                الاسم والوصف والحالة — مشتركة بين جميع أنواع المجموعات.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -243,40 +255,7 @@ export default function EditCollectionPage() {
                   className="grid gap-4"
                   onSubmit={form.handleSubmit(handleSubmit)}
                 >
-                  {!isEdit ? (
-                    <UiField
-                      data-invalid={Boolean(form.formState.errors.collectionType)}
-                    >
-                      <FieldLabel htmlFor="collectionType">نوع المجموعة</FieldLabel>
-                      <Controller
-                        name="collectionType"
-                        control={form.control}
-                        render={({ field }) => (
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            disabled={isSubmitting}
-                          >
-                            <SelectTrigger id="collectionType">
-                              <SelectValue placeholder="اختر نوع المجموعة" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="MANUAL">
-                                يدوي — إضافة المنتجات يدوياً
-                              </SelectItem>
-                              <SelectItem value="AUTOMATED">
-                                تلقائي — إضافة المنتجات عبر قواعد
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                      <FieldError
-                        errors={[form.formState.errors.collectionType]}
-                      />
-                    </UiField>
-                  ) : null}
-
+                  <input type="hidden" {...form.register("collectionType")} />
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <Field
                       name="collectionName"
@@ -372,9 +351,9 @@ export default function EditCollectionPage() {
           <TabsContent value="products">
             <Card>
               <CardHeader>
-                <CardTitle>المنتجات (يدوياً)</CardTitle>
+                <CardTitle>المنتجات</CardTitle>
                 <CardDescription>
-                  أضِف، احذف، أو أعد ترتيب المنتجات في هذه المجموعة.
+                  أضِف، احذف، أو أعد ترتيب المنتجات في هذه المجموعة يدوياً.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -385,13 +364,13 @@ export default function EditCollectionPage() {
         ) : null}
 
         {isEdit && isAutomated ? (
-          <>
-            <TabsContent value="rules">
+          <TabsContent value="rules">
+            <div className="flex flex-col gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle>قواعد الإضافة التلقائية</CardTitle>
                   <CardDescription>
-                    عرّف شروط مطابقة المنتجات. اضغط "تطبيق" لحفظ المنتجات
+                    عرّف شروط مطابقة المنتجات. اضغط تطبيق لحفظ المنتجات
                     المطابقة في المجموعة.
                   </CardDescription>
                 </CardHeader>
@@ -399,9 +378,7 @@ export default function EditCollectionPage() {
                   <RulesTab collectionId={collectionId} />
                 </CardContent>
               </Card>
-            </TabsContent>
 
-            <TabsContent value="preview">
               <Card>
                 <CardHeader>
                   <CardTitle>معاينة القواعد</CardTitle>
@@ -410,11 +387,11 @@ export default function EditCollectionPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <PreviewTab collectionId={collectionId} />
+                  <PreviewTab collectionId={collectionId} embedded />
                 </CardContent>
               </Card>
-            </TabsContent>
-          </>
+            </div>
+          </TabsContent>
         ) : null}
       </Tabs>
     </div>
