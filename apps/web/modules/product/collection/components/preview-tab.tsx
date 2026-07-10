@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { Eye } from "lucide-react"
 
+import ImgPreview from "@/components/system/img-preview"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
@@ -45,16 +46,14 @@ export default function PreviewTab({ collectionId }: Props) {
           {data.map((p) => (
             <Card key={p.productId}>
               <CardContent className="flex flex-col gap-2 p-3">
-                {p.primaryImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={p.primaryImageUrl}
-                    alt=""
-                    className="aspect-square w-full rounded object-cover"
-                  />
-                ) : (
-                  <div className="aspect-square w-full rounded bg-muted" />
-                )}
+                <ImgPreview
+                  url={p.primaryImageUrl}
+                  alt=""
+                  className="aspect-square w-full rounded object-cover"
+                  fallback={
+                    <div className="aspect-square w-full rounded bg-muted" />
+                  }
+                />
                 <p className="truncate text-sm font-medium">
                   {p.titleAr ?? p.titleEn ?? p.productId}
                 </p>

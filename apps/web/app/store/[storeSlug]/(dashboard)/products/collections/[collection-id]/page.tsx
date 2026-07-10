@@ -1,10 +1,11 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
+import { Bot, Hand, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 import Field from "@/components/system/Field"
@@ -29,6 +30,7 @@ import {
 import { collectionQueryKeys } from "@/modules/product/collection/queryKeys"
 import { productCollectionSchema } from "@/modules/product/collection/schema"
 import { ProductCollection } from "@/modules/product/collection/types"
+import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -42,26 +44,19 @@ import {
   FieldError,
   FieldLabel,
 } from "@workspace/ui/components/field"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Textarea } from "@workspace/ui/components/textarea"
 
 import ManualProductsTab from "@/modules/product/collection/components/manual-products-tab"
 import RulesTab from "@/modules/product/collection/components/rules-tab"
 import PreviewTab from "@/modules/product/collection/components/preview-tab"
-
-// Mock data for development (backend is down)
-const MOCK_COLLECTION: ProductCollection = {
-  id: "mock-collection-1",
-  collectionName: "مجموعة الصيف 2026",
-  collectionSlug: "summer-2026",
-  descriptionAr: "أبرز المنتجات الموسمية بأسعار مخفّضة",
-  descriptionEn: "Highlighted seasonal products on sale",
-  collectionType: "MANUAL",
-  isActive: true,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-}
-
-const MOCK_COLLECTIONS: ProductCollection[] = [MOCK_COLLECTION]
 
 const collectionFormSchema = productCollectionSchema.omit({
   id: true,
@@ -103,17 +98,10 @@ export default function EditCollectionPage() {
     defaultValues: collectionFormDefaultValues,
   })
 
-  // Mock data for development (backend is down)
   const { data: collection, isLoading } = useQuery({
     queryKey: collectionQueryKeys.detail(collectionId),
-    queryFn: async () => {
-      // Return mock data instead of calling backend
-      if (isEdit && collectionId === "mock-collection-1") {
-        return MOCK_COLLECTION
-      }
-      return null
-    },
-    enabled: false, // Disable backend query
+    queryFn: () => getProductCollection(collectionId),
+    enabled: isEdit,
   })
 
   useEffect(() => {
@@ -121,43 +109,24 @@ export default function EditCollectionPage() {
       form.reset(collectionFormDefaultValues)
       return
     }
-    // Use mock data for edit mode
-    if (collectionId === "mock-collection-1") {
-      form.reset(initCollectionFormValues(MOCK_COLLECTION))
-    } else {
-      form.reset(collectionFormDefaultValues)
-    }
-  }, [collectionId, form, isEdit])
+    if (!collection) return
+    form.reset(initCollectionFormValues(collection))
+  }, [collection, form, isEdit])
 
-  // Mock mutations for development (backend is down)
   const { isPending: isUpdating, mutate: updateCollection } = useMutation({
-    mutationFn: async (data: any) => {
-      // Mock update - just return success
-      console.log("Mock update collection:", data)
-      return new Promise((resolve) => setTimeout(resolve, 500))
-    },
+    mutationFn: updateProductCollection,
     onSuccess: () => {
       toast.success("تم حفظ المجموعة")
+      queryClient.invalidateQueries({ queryKey: collectionQueryKeys.all })
       router.push(storePath("/products/collections"))
     },
   })
 
   const { isPending: isCreating, mutate: createCollection } = useMutation({
-    mutationFn: async (data: any) => {
-      // Mock create - just return success with mock ID
-      console.log("Mock create collection:", data)
-      return new Promise((resolve) =>
-        setTimeout(
-          () => resolve({ id: "mock-collection-1", collectionType: "MANUAL" }),
-          500
-        )
-      )
-    },
-    onSuccess: (created: any) => {
+    mutationFn: createProductCollection,
+    onSuccess: (created) => {
       toast.success("تم إنشاء المجموعة")
-      // Create is the first step of a wizard. Once the collection exists,
-      // jump straight to its products / rules tab so the merchant can finish
-      // configuring it without having to come back via the list.
+      queryClient.invalidateQueries({ queryKey: collectionQueryKeys.all })
       if (created?.id) {
         const isAutomatedCreated =
           created.collectionType === "AUTOMATED" ||
@@ -185,32 +154,50 @@ export default function EditCollectionPage() {
     [collectionId, createCollection, isEdit, updateCollection]
   )
 
-  const isSubmitting = isUpdating || isLoading || isCreating
-  // Use mock data for collection type
-  const collectionType =
-    isEdit && collectionId === "mock-collection-1"
-      ? MOCK_COLLECTION.collectionType
-      : "MANUAL"
+  const collectionType = form.watch("collectionType")
   const isManual = collectionType === "MANUAL"
-  // Both AUTOMATED (canonical, per backend) and AUTOMATIC (legacy alias).
   const isAutomated =
     collectionType === "AUTOMATED" || collectionType === "AUTOMATIC"
+  const isSubmitting = isUpdating || isCreating
+  const isPageLoading = isEdit && isLoading
 
   return (
     <div className="container my-6 flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div className="page-title">
-          {isEdit ? "تعديل المجموعة" : "إضافة مجموعة"}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="page-title">
+            {isEdit ? "تعديل المجموعة" : "إضافة مجموعة"}
+          </div>
+          {isEdit && collection ? (
+            isManual ? (
+              <Badge variant="primary" className="gap-1.5">
+                <Hand size={14} />
+                <span>يدوي</span>
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="gap-1.5">
+                <Bot size={14} />
+                <span>تلقائي</span>
+              </Badge>
+            )
+          ) : null}
         </div>
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             onClick={() => router.back()}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isPageLoading}
           >
             إلغاء
           </Button>
-          <Button type="submit" form="collection-form" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            form="collection-form"
+            disabled={isSubmitting || isPageLoading}
+          >
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : null}
             حفظ المعلومات
           </Button>
         </div>
@@ -240,97 +227,143 @@ export default function EditCollectionPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form
-                id="collection-form"
-                className="grid gap-4"
-                onSubmit={form.handleSubmit(handleSubmit)}
-              >
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <Field
-                    name="collectionName"
-                    control={form.control}
-                    label="اسم المجموعة"
-                    placeholder="مثال: مجموعة الصيف 2026"
-                    inputProps={{ disabled: isSubmitting }}
-                  />
-                  <Field
-                    name="collectionSlug"
-                    control={form.control}
-                    label="الرابط"
-                    placeholder="مثال: summer-2026"
-                    inputProps={{ disabled: isSubmitting }}
-                  />
+              {isPageLoading ? (
+                <div className="grid gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-16 w-full" />
                 </div>
-
-                <UiField
-                  data-invalid={Boolean(form.formState.errors.descriptionAr)}
+              ) : (
+                <form
+                  id="collection-form"
+                  className="grid gap-4"
+                  onSubmit={form.handleSubmit(handleSubmit)}
                 >
-                  <FieldLabel htmlFor="descriptionAr">
-                    الوصف بالعربية
-                  </FieldLabel>
-                  <Controller
-                    name="descriptionAr"
-                    control={form.control}
-                    render={({ field }) => (
-                      <Textarea
-                        {...field}
-                        id="descriptionAr"
-                        placeholder="مثال: أبرز المنتجات الموسمية بأسعار مخفّضة"
-                        disabled={isSubmitting}
-                        className="min-h-24"
+                  {!isEdit ? (
+                    <UiField
+                      data-invalid={Boolean(form.formState.errors.collectionType)}
+                    >
+                      <FieldLabel htmlFor="collectionType">نوع المجموعة</FieldLabel>
+                      <Controller
+                        name="collectionType"
+                        control={form.control}
+                        render={({ field }) => (
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            disabled={isSubmitting}
+                          >
+                            <SelectTrigger id="collectionType">
+                              <SelectValue placeholder="اختر نوع المجموعة" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="MANUAL">
+                                يدوي — إضافة المنتجات يدوياً
+                              </SelectItem>
+                              <SelectItem value="AUTOMATED">
+                                تلقائي — إضافة المنتجات عبر قواعد
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
                       />
-                    )}
-                  />
-                  <FieldError errors={[form.formState.errors.descriptionAr]} />
-                </UiField>
-
-                <UiField
-                  data-invalid={Boolean(form.formState.errors.descriptionEn)}
-                >
-                  <FieldLabel htmlFor="descriptionEn">
-                    الوصف بالإنجليزية
-                  </FieldLabel>
-                  <Controller
-                    name="descriptionEn"
-                    control={form.control}
-                    render={({ field }) => (
-                      <Textarea
-                        {...field}
-                        id="descriptionEn"
-                        placeholder="Example: Highlighted seasonal products on sale"
-                        disabled={isSubmitting}
-                        className="min-h-24"
+                      <FieldError
+                        errors={[form.formState.errors.collectionType]}
                       />
-                    )}
-                  />
-                  <FieldError errors={[form.formState.errors.descriptionEn]} />
-                </UiField>
+                    </UiField>
+                  ) : null}
 
-                <UiField
-                  data-invalid={Boolean(form.formState.errors.isActive)}
-                  className="rounded-lg border p-4"
-                >
-                  <FieldLabel
-                    htmlFor="isActive"
-                    className="flex w-full items-center gap-3"
-                  >
-                    <input
-                      id="isActive"
-                      type="checkbox"
-                      {...form.register("isActive")}
-                      disabled={isSubmitting}
-                      className="size-4"
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <Field
+                      name="collectionName"
+                      control={form.control}
+                      label="اسم المجموعة"
+                      placeholder="مثال: مجموعة الصيف 2026"
+                      inputProps={{ disabled: isSubmitting }}
                     />
-                    <div className="flex flex-col gap-1">
-                      <span>المجموعة نشطة</span>
-                      <span className="text-xs text-muted-foreground">
-                        إظهار المجموعة في القوائم
-                      </span>
-                    </div>
-                  </FieldLabel>
-                  <FieldError errors={[form.formState.errors.isActive]} />
-                </UiField>
-              </form>
+                    <Field
+                      name="collectionSlug"
+                      control={form.control}
+                      label="الرابط"
+                      placeholder="مثال: summer-2026"
+                      inputProps={{ disabled: isSubmitting }}
+                    />
+                  </div>
+
+                  <UiField
+                    data-invalid={Boolean(form.formState.errors.descriptionAr)}
+                  >
+                    <FieldLabel htmlFor="descriptionAr">
+                      الوصف بالعربية
+                    </FieldLabel>
+                    <Controller
+                      name="descriptionAr"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Textarea
+                          {...field}
+                          id="descriptionAr"
+                          placeholder="مثال: أبرز المنتجات الموسمية بأسعار مخفّضة"
+                          disabled={isSubmitting}
+                          className="min-h-24"
+                        />
+                      )}
+                    />
+                    <FieldError errors={[form.formState.errors.descriptionAr]} />
+                  </UiField>
+
+                  <UiField
+                    data-invalid={Boolean(form.formState.errors.descriptionEn)}
+                  >
+                    <FieldLabel htmlFor="descriptionEn">
+                      الوصف بالإنجليزية
+                    </FieldLabel>
+                    <Controller
+                      name="descriptionEn"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Textarea
+                          {...field}
+                          id="descriptionEn"
+                          placeholder="Example: Highlighted seasonal products on sale"
+                          disabled={isSubmitting}
+                          className="min-h-24"
+                        />
+                      )}
+                    />
+                    <FieldError errors={[form.formState.errors.descriptionEn]} />
+                  </UiField>
+
+                  <UiField
+                    data-invalid={Boolean(form.formState.errors.isActive)}
+                    className="rounded-lg border p-4"
+                  >
+                    <FieldLabel
+                      htmlFor="isActive"
+                      className="flex w-full items-center gap-3"
+                    >
+                      <input
+                        id="isActive"
+                        type="checkbox"
+                        {...form.register("isActive")}
+                        disabled={isSubmitting}
+                        className="size-4"
+                      />
+                      <div className="flex flex-col gap-1">
+                        <span>المجموعة نشطة</span>
+                        <span className="text-xs text-muted-foreground">
+                          إظهار المجموعة في القوائم
+                        </span>
+                      </div>
+                    </FieldLabel>
+                    <FieldError errors={[form.formState.errors.isActive]} />
+                  </UiField>
+                </form>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
