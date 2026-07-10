@@ -453,13 +453,15 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 ## ButtonGroup
 
 **Label:** مجموعة أزرار  
-**Description:** A segmented control — a row of buttons where exactly one is active at a time. Each button has its own title, value, active/inactive styles, and destination (link, action, or zone — same semantics as `ContentButton`). Selecting a button updates the active state, dispatches `sooq:button-group-select`, then runs that button's destination.
+**Description:** A segmented control — a row of buttons where exactly one is active at a time. Active/inactive styles are shared by the whole group. Each button has its own title, value, and destination (link, action, or zone — same semantics as `ContentButton`). Selecting a button updates the active state, dispatches `sooq:button-group-select`, then runs that button's destination.
 
 ### Properties
 
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
 | `items` | `ButtonGroupItem[]` | Array of buttons (see below) | two default items |
+| `inactiveStyle` | `ButtonStyle` | Shared style for non-active buttons | surface / text defaults |
+| `activeStyle` | `ButtonStyle` | Shared style for the active button | primary / surface defaults |
 | `defaultSelectedValue` | `string` | `value` of the initially active button | `"option-a"` |
 | `gap` | `string` | Space between buttons (`"theme-8"` or px) | `"theme-8"` |
 | `align` | `"left" \| "center" \| "right"` | Horizontal alignment of the group | `"center"` |
@@ -470,8 +472,6 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 |---|---|---|
 | `title` | `string` | Button label |
 | `value` | `string` | Unique identifier; used for selection state and `sooq:button-group-select` event |
-| `inactiveStyle` | `ButtonStyle` | Styles when button is not active |
-| `activeStyle` | `ButtonStyle` | Styles when button is active |
 | `destinationType` | `"link" \| "action" \| "zone"` | Same as `ContentButton` |
 | `link` | `LinkValue` | When `destinationType = "link"` |
 | `buttonAction` | `ButtonAction` | When `destinationType = "action"` |
@@ -504,40 +504,28 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
     "defaultSelectedValue": "option-a",
     "gap": "theme-8",
     "align": "center",
+    "inactiveStyle": {
+      "bgColor": "theme-surface",
+      "textColor": "theme-text",
+      "radius": "theme-md",
+      "buttonSize": "theme-sm"
+    },
+    "activeStyle": {
+      "bgColor": "theme-primary",
+      "textColor": "theme-surface",
+      "radius": "theme-md",
+      "buttonSize": "theme-sm"
+    },
     "items": [
       {
         "title": "الخيار أ",
         "value": "option-a",
-        "inactiveStyle": {
-          "bgColor": "theme-surface",
-          "textColor": "theme-text",
-          "radius": "theme-md",
-          "buttonSize": "theme-sm"
-        },
-        "activeStyle": {
-          "bgColor": "theme-primary",
-          "textColor": "theme-surface",
-          "radius": "theme-md",
-          "buttonSize": "theme-sm"
-        },
         "destinationType": "link",
         "link": { "kind": "page", "pageId": "/" }
       },
       {
         "title": "الخيار ب",
         "value": "option-b",
-        "inactiveStyle": {
-          "bgColor": "theme-surface",
-          "textColor": "theme-text",
-          "radius": "theme-md",
-          "buttonSize": "theme-sm"
-        },
-        "activeStyle": {
-          "bgColor": "theme-primary",
-          "textColor": "theme-surface",
-          "radius": "theme-md",
-          "buttonSize": "theme-sm"
-        },
         "destinationType": "link",
         "link": { "kind": "page", "pageId": "/products" }
       }
@@ -553,12 +541,22 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
   "type": "ButtonGroup",
   "props": {
     "defaultSelectedValue": "login",
+    "inactiveStyle": {
+      "bgColor": "theme-surface",
+      "textColor": "theme-text",
+      "radius": "theme-md",
+      "buttonSize": "theme-sm"
+    },
+    "activeStyle": {
+      "bgColor": "theme-primary",
+      "textColor": "theme-surface",
+      "radius": "theme-md",
+      "buttonSize": "theme-sm"
+    },
     "items": [
       {
         "title": "تسجيل الدخول",
         "value": "login",
-        "inactiveStyle": { "bgColor": "theme-surface", "textColor": "theme-text", "radius": "theme-md", "buttonSize": "theme-sm" },
-        "activeStyle": { "bgColor": "theme-primary", "textColor": "theme-surface", "radius": "theme-md", "buttonSize": "theme-sm" },
         "destinationType": "zone",
         "zoneKey": "popup-main",
         "zoneAction": "open"
@@ -567,7 +565,6 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
   }
 }
 ```
-
 ---
 
 ## ContentDivider

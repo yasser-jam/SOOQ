@@ -47,8 +47,6 @@ type ButtonStyle = {
 export type ButtonGroupItem = {
   title: string;
   value: string;
-  inactiveStyle: ButtonStyle;
-  activeStyle: ButtonStyle;
   destinationType: "link" | "action" | "zone";
   link: LinkValue;
   buttonAction: ButtonAction;
@@ -59,6 +57,8 @@ export type ButtonGroupItem = {
 
 export type ButtonGroupProps = WithLayout<{
   items: ButtonGroupItem[];
+  inactiveStyle: ButtonStyle;
+  activeStyle: ButtonStyle;
   defaultSelectedValue: string;
   gap: string;
   align: "left" | "center" | "right";
@@ -237,8 +237,6 @@ function createDefaultItem(
   return {
     title,
     value,
-    inactiveStyle: { ...DEFAULT_BUTTON_STYLE },
-    activeStyle: { ...DEFAULT_ACTIVE_STYLE },
     destinationType: "link",
     link: EMPTY_LINK,
     buttonAction: "link",
@@ -247,6 +245,14 @@ function createDefaultItem(
     zoneAction: "open",
     ...overrides,
   };
+}
+
+/** Strip legacy per-item styles after migrating them to group-level props. */
+function stripLegacyItemStyles(
+  item: ButtonGroupItem & { inactiveStyle?: ButtonStyle; activeStyle?: ButtonStyle }
+): ButtonGroupItem {
+  const { inactiveStyle: _inactive, activeStyle: _active, ...rest } = item;
+  return rest;
 }
 
 const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
@@ -258,16 +264,6 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
       arrayFields: {
         title: { type: "text", label: "العنوان" },
         value: { type: "text", label: "القيمة" },
-        inactiveStyle: {
-          type: "object",
-          label: "نمط غير نشط",
-          objectFields: buttonStyleObjectFields,
-        },
-        activeStyle: {
-          type: "object",
-          label: "نمط نشط",
-          objectFields: buttonStyleObjectFields,
-        },
         destinationType: {
           type: "radio",
           label: "الوجهة",
@@ -306,6 +302,16 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
       defaultItemProps: createDefaultItem("زر", "value"),
       getItemSummary: (item: ButtonGroupItem) => item.title || item.value || "زر",
     },
+    inactiveStyle: {
+      type: "object",
+      label: "نمط غير نشط",
+      objectFields: buttonStyleObjectFields,
+    },
+    activeStyle: {
+      type: "object",
+      label: "نمط نشط",
+      objectFields: buttonStyleObjectFields,
+    },
     defaultSelectedValue: {
       type: "text",
       label: "القيمة النشطة الافتراضية",
@@ -322,13 +328,13 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
     defaultSelectedValue: "option-a",
     gap: "theme-8",
     align: "center",
+    inactiveStyle: { ...DEFAULT_BUTTON_STYLE },
+    activeStyle: { ...DEFAULT_ACTIVE_STYLE },
     items: [
       createDefaultItem("الخيار أ", "option-a", {
         link: { kind: "page", pageId: "/" },
       }),
       createDefaultItem("الخيار ب", "option-b", {
-        inactiveStyle: { ...DEFAULT_BUTTON_STYLE },
-        activeStyle: { ...DEFAULT_ACTIVE_STYLE },
         link: { kind: "page", pageId: "/products" },
       }),
     ],
@@ -340,7 +346,17 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
       gap = GAP_OPTIONS.some((o) => o.value === n) ? `theme-${n}` : n;
     }
 
-    const values = (props.items ?? []).map((item) => item.value);
+    const rawItems = (props.items ?? []) as Array<
+      ButtonGroupItem & { inactiveStyle?: ButtonStyle; activeStyle?: ButtonStyle }
+    >;
+    const legacy = rawItems[0];
+    const inactiveStyle =
+      props.inactiveStyle ?? legacy?.inactiveStyle ?? { ...DEFAULT_BUTTON_STYLE };
+    const activeStyle =
+      props.activeStyle ?? legacy?.activeStyle ?? { ...DEFAULT_ACTIVE_STYLE };
+    const items = rawItems.map(stripLegacyItemStyles);
+
+    const values = items.map((item) => item.value);
     const defaultSelectedValue = values.includes(props.defaultSelectedValue ?? "")
       ? props.defaultSelectedValue
       : values[0] ?? "";
@@ -349,6 +365,9 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
       props: {
         gap: gap ?? "theme-8",
         align: props.align ?? "center",
+        inactiveStyle,
+        activeStyle,
+        items,
         defaultSelectedValue,
       },
     };
@@ -356,6 +375,8 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
   render: (props) => {
     const {
       items = [],
+      inactiveStyle,
+      activeStyle,
       defaultSelectedValue,
       gap,
       align,
@@ -546,7 +567,7 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
         {items.map((item) => {
           const isActive = item.value === activeValue;
           const style = resolveButtonStyle(
-            isActive ? item.activeStyle : item.inactiveStyle,
+            isActive ? activeStyle : inactiveStyle,
             puck.isEditing
           );
           const destType = item.destinationType ?? "link";
