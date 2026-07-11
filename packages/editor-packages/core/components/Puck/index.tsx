@@ -52,6 +52,7 @@ import { PrivateAppState } from "../../types/Internal";
 import { deepEqual } from "fast-equals";
 import { FieldTransforms } from "../../types/API/FieldTransforms";
 import { populateIds } from "../../lib/data/populate-ids";
+import { cache as resolveDataCache } from "../../lib/resolve-component-data";
 import { toComponent } from "../../lib/data/to-component";
 import { Layout } from "./components/Layout";
 import { useSafeId } from "../../lib/use-safe-id";
@@ -339,6 +340,15 @@ function PuckProvider<
     const { resolveAndCommitData } = appStore.getState();
 
     resolveAndCommitData();
+
+    return () => {
+      // The resolveData cache is a module-level singleton keyed by component
+      // id. Without this reset it grows unbounded across page switches and
+      // HMR reloads (each <Puck key={...}> remount leaks the previous page's
+      // entries) — one of the dev-memory bloat causes documented in
+      // docs/editor-study-and-enhancement-plan.md §2.4.
+      resolveDataCache.lastChange = {};
+    };
   }, []);
 
   return (

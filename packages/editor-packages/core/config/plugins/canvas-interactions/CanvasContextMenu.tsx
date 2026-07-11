@@ -484,11 +484,16 @@ export function CanvasInteractions({
       attachIframeDoc();
     };
     tryBindIframe();
-    const pollId = window.setInterval(tryBindIframe, 500);
+    // Watch for the iframe element being remounted (rare — e.g. a Puck-internal
+    // remount). A MutationObserver only fires on actual host-DOM changes,
+    // unlike the previous 500 ms polling interval that kept the main thread
+    // busy for the editor's whole lifetime.
+    const remountObserver = new MutationObserver(() => tryBindIframe());
+    remountObserver.observe(document.body, { childList: true, subtree: true });
 
     return () => {
       disposed = true;
-      window.clearInterval(pollId);
+      remountObserver.disconnect();
       document.removeEventListener("contextmenu", outerHandler, true);
       if (attachedIframe) {
         attachedIframe.removeEventListener("load", onIframeLoad);

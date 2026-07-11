@@ -56,7 +56,6 @@ import { ZoneBottomSheet } from "./blocks/ZoneBottomSheet";
 
 import Root from "./root";
 import { UserConfig } from "./types";
-import { initialData } from "./initial-data";
 
 // Categories follow SRS § 4.2 taxonomy:
 //   - Sections   → DSN-003 page-level bands
@@ -220,8 +219,12 @@ export const conf: UserConfig = {
   },
 };
 
-export const componentKey = Buffer.from(
-  `${Object.keys(conf.components).join("-")}-${JSON.stringify(initialData)}`
-).toString("base64");
+// Version tag for the localStorage payload key (`puck-demo:<componentKey>:site`).
+// Bump manually when a registry change must invalidate saved sites.
+// Was previously a ~50 KB base64 of the whole initialData computed with Node's
+// `Buffer` at module load — which dragged the Buffer polyfill into every client
+// bundle and made every localStorage lookup hash a 50 KB key.
+// `site-data.ts` migrates payloads saved under the old key on first read.
+export const componentKey = "v1";
 
 export default conf;

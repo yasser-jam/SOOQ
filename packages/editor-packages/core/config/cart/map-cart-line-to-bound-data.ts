@@ -1,4 +1,4 @@
-import { resolveMediaUrl } from "@/core/lib/media";
+import { resolveMediaUrl } from "../../lib/media";
 import {
   formatCartMoney,
   getLineTotal,

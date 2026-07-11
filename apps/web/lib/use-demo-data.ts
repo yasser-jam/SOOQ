@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { resolveAllData, type Metadata } from "@/core";
 import config from "@/core/config";
@@ -15,10 +15,14 @@ import type { Components } from "@/core/config/types";
 
 const isBrowser = typeof window !== "undefined";
 
+// Stable default: `metadata = {}` inline would create a fresh object per
+// render and re-trigger the resolveAllData effect below on every render.
+const EMPTY_METADATA: Metadata = {};
+
 export const useDemoData = ({
 	path,
 	isEdit,
-	metadata = {},
+	metadata = EMPTY_METADATA,
 }: {
 	path: string;
 	isEdit: boolean;
@@ -59,13 +63,16 @@ export const useDemoData = ({
 		}
 	}, [path, isEdit]);
 
-	const savePageData = (puckData: UserData) => {
-		if (!isBrowser) return;
+	const savePageData = useCallback(
+		(puckData: UserData) => {
+			if (!isBrowser) return;
 
-		const site = readSiteData();
-		const nextSite = applyPuckSave(site, path, puckData);
-		writeSiteData(nextSite);
-	};
+			const site = readSiteData();
+			const nextSite = applyPuckSave(site, path, puckData);
+			writeSiteData(nextSite);
+		},
+		[path],
+	);
 
 	return { data, resolvedData, key: siteKey, savePageData, readSiteData };
 };

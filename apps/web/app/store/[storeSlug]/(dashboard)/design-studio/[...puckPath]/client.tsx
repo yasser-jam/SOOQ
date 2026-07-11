@@ -58,6 +58,20 @@ const hiddenPluginNames = new Set(["themes", "heading-analyzer", "outline"])
 
 const EDITOR_HINT_DISMISSED_KEY = "puck-demo-editor-hint-dismissed-v1"
 
+// Must be referentially stable: <Puck metadata={...}> is a dependency of
+// PuckProvider's store-rebuild effect — a fresh object per render used to
+// re-initialize the entire editor store on every Client re-render.
+const EDITOR_METADATA = {
+  example: "Hello, world",
+}
+
+// Stable for the same reason — feeds PuckProvider's loadedFieldTransforms.
+const fieldTransforms = {
+  userField: ({ value }: any) => value, // Included to check types
+}
+
+const usePuck = createUsePuck()
+
 const isTypingTarget = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false
   if (target.isContentEditable) return true
@@ -89,8 +103,9 @@ function JsonViewerDialog({
   onClose: () => void
   getSiteSnapshot: () => SiteData
 }) {
-  const usePuck = createUsePuck()
-  const puckData = usePuck((s) => s.appState.data)
+  // Only subscribe to editor data while the dialog is open — otherwise every
+  // keystroke in the canvas re-renders this (closed) dialog.
+  const puckData = usePuck((s) => (open ? s.appState.data : null))
   const [copied, setCopied] = useState(false)
 
   const jsonString = useMemo(() => {
@@ -182,6 +197,221 @@ function JsonViewerDialog({
   )
 }
 
+/**
+ * Floating helpers rendered inside the Puck tree (needs Puck context for the
+ * JSON viewer). Owns the hint-pill + shortcut/JSON dialog state and the
+ * related keyboard shortcuts. This state used to live in `Client`, where each
+ * toggle recreated the `overrides` object and re-initialized the whole editor
+ * store (docs/editor-study-and-enhancement-plan.md §2.3).
+ */
+function EditorFloatingTools({
+  getSiteSnapshot,
+  modKeyLabel,
+}: {
+  getSiteSnapshot: () => SiteData
+  modKeyLabel: string
+}) {
+  const [isShortcutDialogOpen, setShortcutDialogOpen] = useState(false)
+  const [isJsonDialogOpen, setJsonDialogOpen] = useState(false)
+  const [showHintPill, setShowHintPill] = useState(false)
+
+  useEffect(() => {
+    const isDismissed =
+      window.localStorage.getItem(EDITOR_HINT_DISMISSED_KEY) === "1"
+
+    setShowHintPill(!isDismissed)
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShortcutDialogOpen(false)
+        setJsonDialogOpen(false)
+        return
+      }
+
+      if (isTypingTarget(event.target)) return
+
+      const isQuestionShortcut =
+        event.key === "?" || (event.key === "/" && event.shiftKey)
+
+      if (!isQuestionShortcut) return
+
+      event.preventDefault()
+      setShortcutDialogOpen((previous) => !previous)
+    }
+
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [])
+
+  const dismissHintPill = useCallback(() => {
+    setShowHintPill(false)
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(EDITOR_HINT_DISMISSED_KEY, "1")
+    }
+  }, [])
+
+  return (
+    <>
+      {showHintPill && !isShortcutDialogOpen ? (
+        <button
+          type="button"
+          className="EditorHintPill"
+          onClick={() => setShortcutDialogOpen(true)}
+          aria-label="Open Puck editor shortcuts and tips"
+        >
+          <CircleHelp size={16} />
+          مساعدة سريعة
+          <span className="EditorHintPill-key">?</span>
+        </button>
+      ) : null}
+
+      <JsonViewerFloatingButton onOpen={() => setJsonDialogOpen(true)} />
+
+      <JsonViewerDialog
+        open={isJsonDialogOpen}
+        onClose={() => setJsonDialogOpen(false)}
+        getSiteSnapshot={getSiteSnapshot}
+      />
+
+      {isShortcutDialogOpen ? (
+        <div
+          className="EditorShortcutOverlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Puck editor shortcuts"
+          data-puck-no-shortcuts="true"
+        >
+          <button
+            type="button"
+            className="EditorShortcutOverlayBackdrop"
+            onClick={() => setShortcutDialogOpen(false)}
+            aria-label="Close shortcuts panel"
+          />
+
+          <div className="EditorShortcutDialog" data-puck-no-shortcuts="true">
+            <div className="EditorShortcutDialogHeader">
+              <div>
+                <p className="EditorShortcutEyebrow">Editor guide</p>
+                <h2 className="EditorShortcutTitle">
+                  Build faster with shortcuts
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                className="EditorShortcutClose"
+                onClick={() => setShortcutDialogOpen(false)}
+                aria-label="Close editor guide"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="EditorShortcutSections">
+              <section className="EditorShortcutSection">
+                <h3>
+                  <Keyboard size={16} />
+                  Core actions
+                </h3>
+                <ul>
+                  <li>
+                    <span>Add section</span>
+                    <kbd>A</kbd>
+                  </li>
+                  <li>
+                    <span>Insert Hero on an empty page</span>
+                    <span className="EditorShortcutKeys">
+                      <kbd>Shift</kbd>
+                      <kbd>A</kbd>
+                    </span>
+                  </li>
+                  <li>
+                    <span>Open this guide</span>
+                    <kbd>?</kbd>
+                  </li>
+                  <li>
+                    <span>Close dialogs</span>
+                    <kbd>Esc</kbd>
+                  </li>
+                </ul>
+              </section>
+
+              <section className="EditorShortcutSection">
+                <h3>
+                  <MousePointer2 size={16} />
+                  Canvas editing
+                </h3>
+                <ul>
+                  <li>
+                    <span>Duplicate selected block</span>
+                    <span className="EditorShortcutKeys">
+                      <kbd>{modKeyLabel}</kbd>
+                      <kbd>D</kbd>
+                    </span>
+                  </li>
+                  <li>
+                    <span>Copy or paste block</span>
+                    <span className="EditorShortcutKeys">
+                      <kbd>{modKeyLabel}</kbd>
+                      <kbd>C</kbd>
+                      <kbd>{modKeyLabel}</kbd>
+                      <kbd>V</kbd>
+                    </span>
+                  </li>
+                  <li>
+                    <span>Move block up or down</span>
+                    <span className="EditorShortcutKeys">
+                      <kbd>{modKeyLabel}</kbd>
+                      <kbd>↑</kbd>
+                      <kbd>{modKeyLabel}</kbd>
+                      <kbd>↓</kbd>
+                    </span>
+                  </li>
+                  <li>
+                    <span>Hide or show selected block</span>
+                    <kbd>H</kbd>
+                  </li>
+                  <li>
+                    <span>Delete selected block</span>
+                    <kbd>Del</kbd>
+                  </li>
+                </ul>
+              </section>
+            </div>
+
+            <p className="EditorShortcutFooter">
+              Tip: Right-click any block on the canvas to open the quick action
+              menu.
+            </p>
+
+            <div className="EditorShortcutActions">
+              <button
+                type="button"
+                className="EditorShortcutGhostButton"
+                onClick={() => {
+                  dismissHintPill()
+                  setShortcutDialogOpen(false)
+                }}
+              >
+                Hide floating tip
+              </button>
+
+              <button
+                type="button"
+                className="EditorShortcutPrimaryButton"
+                onClick={() => setShortcutDialogOpen(false)}
+              >
+                Continue editing
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  )
+}
+
 export function Client({
   path: pathProp,
   themeSlug,
@@ -195,14 +425,11 @@ export function Client({
 }) {
   const selectedPagePath = useSelectedPage()
   const path = themeSlug ? selectedPagePath : (pathProp ?? "/")
-  const metadata = {
-    example: "Hello, world",
-  }
 
   const { data, resolvedData, savePageData } = useDemoData({
     path,
     isEdit,
-    metadata,
+    metadata: EDITOR_METADATA,
   })
 
   const previewPageTitle = useMemo(() => {
@@ -237,11 +464,15 @@ export function Client({
   const exportFileName = "site"
 
   const [isClient, setIsClient] = useState(false)
-  const [isShortcutDialogOpen, setShortcutDialogOpen] = useState(false)
-  const [isJsonDialogOpen, setJsonDialogOpen] = useState(false)
-  const [showHintPill, setShowHintPill] = useState(false)
   const exportDataRef = useRef<UserData | null>(null)
   const siteDataRef = useRef<SiteData | null>(null)
+  // Lets handleOpenPreview read the latest data without depending on it —
+  // keeps the callback (and therefore `overrides`) referentially stable.
+  const latestDataRef = useRef(data)
+
+  useEffect(() => {
+    latestDataRef.current = data
+  }, [data])
 
   const getSiteSnapshot = useCallback(() => {
     const base = siteDataRef.current ?? readSiteData()
@@ -268,52 +499,14 @@ export function Client({
     exportDataRef.current = null
   }, [path])
 
-  useEffect(() => {
-    if (!isClient || !isEdit) return
-
-    const isDismissed =
-      window.localStorage.getItem(EDITOR_HINT_DISMISSED_KEY) === "1"
-
-    setShowHintPill(!isDismissed)
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setShortcutDialogOpen(false)
-        setJsonDialogOpen(false)
-        return
-      }
-
-      if (isTypingTarget(event.target)) return
-
-      const isQuestionShortcut =
-        event.key === "?" || (event.key === "/" && event.shiftKey)
-
-      if (!isQuestionShortcut) return
-
-      event.preventDefault()
-      setShortcutDialogOpen((previous) => !previous)
-    }
-
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [isClient, isEdit])
-
-  const dismissHintPill = useCallback(() => {
-    setShowHintPill(false)
-
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(EDITOR_HINT_DISMISSED_KEY, "1")
-    }
-  }, [])
-
   const handleOpenPreview = useCallback(() => {
-    const puckData = exportDataRef.current ?? data
+    const puckData = exportDataRef.current ?? latestDataRef.current
     if (puckData) {
       savePageData(puckData as UserData)
       siteDataRef.current = readSiteData()
     }
     router.push(previewHref)
-  }, [data, previewHref, router, savePageData])
+  }, [previewHref, router, savePageData])
   const handleExportJson = () => {
     if (typeof window === "undefined") return
     const blob = new Blob(
@@ -358,165 +551,12 @@ export function Client({
         <>
           <HtmlBlockPaletteSync />
           {children}
-
-          {showHintPill && !isShortcutDialogOpen ? (
-            <button
-              type="button"
-              className="EditorHintPill"
-              onClick={() => setShortcutDialogOpen(true)}
-              aria-label="Open Puck editor shortcuts and tips"
-            >
-              <CircleHelp size={16} />
-              مساعدة سريعة
-              <span className="EditorHintPill-key">?</span>
-            </button>
-          ) : null}
-
-          <JsonViewerFloatingButton onOpen={() => setJsonDialogOpen(true)} />
-
-          <JsonViewerDialog
-            open={isJsonDialogOpen}
-            onClose={() => setJsonDialogOpen(false)}
+          {/* Owns its own dialog/hint state so toggling it never recreates
+              `overrides` (which would reset the whole Puck store). */}
+          <EditorFloatingTools
             getSiteSnapshot={getSiteSnapshot}
+            modKeyLabel={modKeyLabel}
           />
-
-          {isShortcutDialogOpen ? (
-            <div
-              className="EditorShortcutOverlay"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Puck editor shortcuts"
-              data-puck-no-shortcuts="true"
-            >
-              <button
-                type="button"
-                className="EditorShortcutOverlayBackdrop"
-                onClick={() => setShortcutDialogOpen(false)}
-                aria-label="Close shortcuts panel"
-              />
-
-              <div
-                className="EditorShortcutDialog"
-                data-puck-no-shortcuts="true"
-              >
-                <div className="EditorShortcutDialogHeader">
-                  <div>
-                    <p className="EditorShortcutEyebrow">Editor guide</p>
-                    <h2 className="EditorShortcutTitle">
-                      Build faster with shortcuts
-                    </h2>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="EditorShortcutClose"
-                    onClick={() => setShortcutDialogOpen(false)}
-                    aria-label="Close editor guide"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-
-                <div className="EditorShortcutSections">
-                  <section className="EditorShortcutSection">
-                    <h3>
-                      <Keyboard size={16} />
-                      Core actions
-                    </h3>
-                    <ul>
-                      <li>
-                        <span>Add section</span>
-                        <kbd>A</kbd>
-                      </li>
-                      <li>
-                        <span>Insert Hero on an empty page</span>
-                        <span className="EditorShortcutKeys">
-                          <kbd>Shift</kbd>
-                          <kbd>A</kbd>
-                        </span>
-                      </li>
-                      <li>
-                        <span>Open this guide</span>
-                        <kbd>?</kbd>
-                      </li>
-                      <li>
-                        <span>Close dialogs</span>
-                        <kbd>Esc</kbd>
-                      </li>
-                    </ul>
-                  </section>
-
-                  <section className="EditorShortcutSection">
-                    <h3>
-                      <MousePointer2 size={16} />
-                      Canvas editing
-                    </h3>
-                    <ul>
-                      <li>
-                        <span>Duplicate selected block</span>
-                        <span className="EditorShortcutKeys">
-                          <kbd>{modKeyLabel}</kbd>
-                          <kbd>D</kbd>
-                        </span>
-                      </li>
-                      <li>
-                        <span>Copy or paste block</span>
-                        <span className="EditorShortcutKeys">
-                          <kbd>{modKeyLabel}</kbd>
-                          <kbd>C</kbd>
-                          <kbd>{modKeyLabel}</kbd>
-                          <kbd>V</kbd>
-                        </span>
-                      </li>
-                      <li>
-                        <span>Move block up or down</span>
-                        <span className="EditorShortcutKeys">
-                          <kbd>{modKeyLabel}</kbd>
-                          <kbd>↑</kbd>
-                          <kbd>{modKeyLabel}</kbd>
-                          <kbd>↓</kbd>
-                        </span>
-                      </li>
-                      <li>
-                        <span>Hide or show selected block</span>
-                        <kbd>H</kbd>
-                      </li>
-                      <li>
-                        <span>Delete selected block</span>
-                        <kbd>Del</kbd>
-                      </li>
-                    </ul>
-                  </section>
-                </div>
-
-                <p className="EditorShortcutFooter">
-                  Tip: Right-click any block on the canvas to open the quick
-                  action menu.
-                </p>
-
-                <div className="EditorShortcutActions">
-                  <button
-                    type="button"
-                    className="EditorShortcutGhostButton"
-                    onClick={() => {
-                      dismissHintPill()
-                      setShortcutDialogOpen(false)
-                    }}
-                  >
-                    Hide floating tip
-                  </button>
-
-                  <button
-                    type="button"
-                    className="EditorShortcutPrimaryButton"
-                    onClick={() => setShortcutDialogOpen(false)}
-                  >
-                    Continue editing
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : null}
         </>
       ),
       // Inject theme CSS custom properties + Google Fonts into the preview iframe
@@ -556,16 +596,7 @@ export function Client({
         </div>
       ),
     }),
-    [
-      designStudioHref,
-      dismissHintPill,
-      getSiteSnapshot,
-      handleOpenPreview,
-      isJsonDialogOpen,
-      isShortcutDialogOpen,
-      modKeyLabel,
-      showHintPill,
-    ]
+    [designStudioHref, getSiteSnapshot, handleOpenPreview, modKeyLabel]
   )
 
   const previewRootProps = useMemo(() => {
@@ -574,9 +605,13 @@ export function Client({
     return ("props" in root ? root.props : root) as Partial<FullThemeProps>
   }, [resolvedData])
 
-  const params = isClient
-    ? new URL(window.location.href).searchParams
-    : new URLSearchParams()
+  // Referentially stable for the same reason as EDITOR_METADATA — the query
+  // param can only change with a full navigation, which remounts this tree.
+  const iframeConfig = useMemo(() => {
+    if (typeof window === "undefined") return { enabled: true }
+    const params = new URL(window.location.href).searchParams
+    return { enabled: params.get("disableIframe") !== "true" }
+  }, [])
 
   if (!isClient) return null
 
@@ -603,15 +638,11 @@ export function Client({
           // shown as-is without being overridden.
           builtinPlugins={["blocks", "outline"]}
           headerPath={path}
-          iframe={{
-            enabled: params.get("disableIframe") === "true" ? false : true,
-          }}
-          fieldTransforms={{
-            userField: ({ value }) => value, // Included to check types
-          }}
+          iframe={iframeConfig}
+          fieldTransforms={fieldTransforms}
           _experimentalFullScreenCanvas
           overrides={overrides}
-          metadata={metadata}
+          metadata={EDITOR_METADATA}
         />
       </EditorFullscreenShell>
     )
@@ -632,14 +663,20 @@ export function Client({
     return (
       <PreviewPageShell pageTitle={previewPageTitle} editHref={editHref}>
         <PreviewThemeProvider rootProps={previewRootProps}>
-          <Render config={config} data={resolvedData} metadata={metadata} />
+          <Render
+            config={config}
+            data={resolvedData}
+            metadata={EDITOR_METADATA}
+          />
         </PreviewThemeProvider>
       </PreviewPageShell>
     )
   }
 
   if (data.content) {
-    return <Render config={config} data={resolvedData} metadata={metadata} />
+    return (
+      <Render config={config} data={resolvedData} metadata={EDITOR_METADATA} />
+    )
   }
 
   return (

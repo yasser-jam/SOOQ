@@ -1,4 +1,4 @@
-import { resolveMediaUrl } from "@/core/lib/media";
+import { resolveMediaUrl } from "../../lib/media";
 
 function extractRawUrl(item: unknown): string | undefined {
   if (typeof item === "string") {

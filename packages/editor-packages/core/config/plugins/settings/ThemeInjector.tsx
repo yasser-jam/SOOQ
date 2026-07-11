@@ -97,11 +97,13 @@ export function ThemeInjector({ children, document: iframeDoc }: ThemeInjectorPr
   const bpMobile = bp.breakpointMobileMax;
   const bpTablet = bp.breakpointTabletMax;
 
+  // ── Static rules: written once per iframe document. Theme *values* are
+  // applied as inline custom properties on <html> (see next effect), so this
+  // sheet never needs re-parsing when the merchant tweaks a color.
   useLayoutEffect(() => {
     const doc = iframeDoc;
     if (!doc) return;
 
-    // ── Inject / update theme CSS custom properties ──
     let styleEl = doc.getElementById("puck-theme-vars") as HTMLStyleElement | null;
     if (!styleEl) {
       styleEl = doc.createElement("style");
@@ -109,36 +111,7 @@ export function ThemeInjector({ children, document: iframeDoc }: ThemeInjectorPr
       doc.head.appendChild(styleEl);
     }
 
-    const colorVarLines = COLOR_KEYS.map(
-      ({ key }) => `        ${colorVar(key)}: ${colors[key]};`
-    ).join("\n");
-
     styleEl.textContent = `
-      :root {
-        /* ── Fonts ── */
-        --theme-body-font: ${bodyFontCss};
-        --theme-font-1: ${font1Css};
-        --theme-font-2: ${font2Css};
-
-        /* ── Colors ── */
-${colorVarLines}
-
-        /* ── Derived color semantics ── */
-      ${derivedColorVarLines}
-
-        /* ── Badges (discount / stock) ── */
-${badgeVarLines}
-
-        /* ── Typography / radius / button scales ── */
-${scaleVarLines}
-
-        /* ── Button variants ── */
-${buttonVariantVarLines}
-
-        /* ── Responsive layout (visibility) ── */
-        --theme-bp-mobile-max: ${bpMobile}px;
-        --theme-bp-tablet-max: ${bpTablet}px;
-      }
       /*
        * Preview-iframe scroll fix.
        * Tailwind v4 preflight (copied into the iframe via CopyHostStyles) can set
@@ -164,6 +137,38 @@ ${buttonVariantVarLines}
         margin: 0;
       }
     `;
+  }, [iframeDoc]);
+
+  useLayoutEffect(() => {
+    const doc = iframeDoc;
+    if (!doc) return;
+
+    // ── Update CSS custom properties in place ──
+    // setProperty on the root element avoids rewriting (and re-parsing) a
+    // whole <style> sheet on every color/scale tweak — the previous approach
+    // re-parsed a ~120-line sheet per keystroke in the settings panel.
+    const rootStyle = doc.documentElement.style;
+    const setVars = (vars: Record<string, string>) => {
+      for (const [key, value] of Object.entries(vars)) {
+        rootStyle.setProperty(key, value);
+      }
+    };
+
+    rootStyle.setProperty("--theme-body-font", bodyFontCss);
+    rootStyle.setProperty("--theme-font-1", font1Css);
+    rootStyle.setProperty("--theme-font-2", font2Css);
+
+    COLOR_KEYS.forEach(({ key }) => {
+      rootStyle.setProperty(colorVar(key), colors[key]);
+    });
+
+    setVars(derivedColorVars);
+    setVars(badgeVars);
+    setVars(scaleVars);
+    setVars(buttonVariantVars);
+
+    rootStyle.setProperty("--theme-bp-mobile-max", `${bpMobile}px`);
+    rootStyle.setProperty("--theme-bp-tablet-max", `${bpTablet}px`);
 
     // ── Inject / update Google Fonts link ──
     let linkEl = doc.getElementById("puck-theme-fonts") as HTMLLinkElement | null;

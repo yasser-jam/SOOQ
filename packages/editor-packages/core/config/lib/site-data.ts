@@ -72,6 +72,32 @@ export function getSiteStorageKey() {
   return `puck-demo:${componentKey}:site`;
 }
 
+/**
+ * `componentKey` used to be a huge base64 hash of the block registry +
+ * initialData; it is now a small constant ("v1"). Sites saved under the old
+ * key would otherwise silently disappear, so on first read we adopt any
+ * `puck-demo:<anything>:site` payload into the new key.
+ */
+function migrateLegacySiteStorageKey(): void {
+  if (!isBrowser) return;
+
+  const currentKey = getSiteStorageKey();
+  if (window.localStorage.getItem(currentKey) !== null) return;
+
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i);
+    if (!key || key === currentKey) continue;
+    if (!key.startsWith("puck-demo:") || !key.endsWith(":site")) continue;
+
+    const payload = window.localStorage.getItem(key);
+    if (!payload) continue;
+
+    window.localStorage.setItem(currentKey, payload);
+    window.localStorage.removeItem(key);
+    return;
+  }
+}
+
 export function getLegacyPageStorageKey(path: string) {
   return `puck-demo:${componentKey}:${path}`;
 }
@@ -383,6 +409,9 @@ export function normalizeSiteData(value: Partial<SiteData> | null | undefined): 
 
   const pages = (Array.isArray(input.pages) ? input.pages : []).map((page) => {
     const definition = sitePageToDefinition(page as SitePage);
+    // Only `composed.content` is used below — passing the (already normalized)
+    // site zones here would re-normalize the same zone tree once per page for
+    // a result that gets discarded.
     const composed = normalizeEditorData({
       root: {
         props: {
@@ -391,7 +420,7 @@ export function normalizeSiteData(value: Partial<SiteData> | null | undefined): 
         },
       },
       content: page.content ?? [],
-      zones: rootNormalized.zones ?? {},
+      zones: {},
     });
 
     return {
@@ -419,15 +448,32 @@ export function normalizeSiteData(value: Partial<SiteData> | null | undefined): 
   };
 }
 
+/**
+ * readSiteData used to re-parse + fully re-normalize the whole site on every
+ * call — and it is called from render-adjacent code (snapshots, page panels,
+ * storefront hooks), so during editing this ran thousands of deep clones per
+ * keystroke. Cache the normalized result keyed by the raw localStorage string:
+ * same string → same (treat-as-immutable) SiteData instance.
+ */
+let siteReadCache: { raw: string; site: SiteData } | null = null;
+
 export function readSiteData(): SiteData {
   if (!isBrowser) {
     return buildInitialSiteData();
   }
 
+  migrateLegacySiteStorageKey();
+
   const raw = window.localStorage.getItem(getSiteStorageKey());
   if (raw) {
+    if (siteReadCache && siteReadCache.raw === raw) {
+      return siteReadCache.site;
+    }
+
     try {
-      return normalizeSiteData(JSON.parse(raw) as SiteData);
+      const site = normalizeSiteData(JSON.parse(raw) as SiteData);
+      siteReadCache = { raw, site };
+      return site;
     } catch {
       // Fall through to migration.
     }
@@ -442,7 +488,9 @@ export function writeSiteData(site: SiteData) {
   if (!isBrowser) return;
 
   const normalized = normalizeSiteData(site);
-  window.localStorage.setItem(getSiteStorageKey(), JSON.stringify(normalized));
+  const serialized = JSON.stringify(normalized);
+  window.localStorage.setItem(getSiteStorageKey(), serialized);
+  siteReadCache = { raw: serialized, site: normalized };
   window.dispatchEvent(new CustomEvent(PAGES_UPDATED_EVENT));
 }
 
