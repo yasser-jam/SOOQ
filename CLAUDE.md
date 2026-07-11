@@ -15,11 +15,10 @@ and visually building the storefront with a Puck-based editor. Currency default:
 | `packages/{eslint-config,typescript-config}` | Shared tooling configs (`@workspace/*`). |
 | `docs/` | Living docs — read before big changes (see below). |
 
-Dead weight (do not build on, candidates for deletion): `app/` at repo root (empty stray),
-`packages/core`, `packages/create-puck-app`, `packages/field-contentful`, `packages/plugin-*`,
-`packages/tsup-config`, `packages/tsconfig`, `packages/eslint-config-custom` at top level
-(leftovers from the Puck repo import — the live copies are inside `packages/editor-packages/`),
-and `apps/demo`, `apps/editor` (only node_modules remain).
+(Historical note: leftover husks from the Puck repo import — top-level `packages/core`,
+`create-puck-app`, `field-contentful`, `plugin-*`, `tsup-config`, `tsconfig`,
+`eslint-config-custom`, plus `apps/demo`, `apps/editor` and the root `app/` dir — were
+purged on 2026-07-12. The only live copies are inside `packages/editor-packages/`.)
 
 ## The two main flows
 

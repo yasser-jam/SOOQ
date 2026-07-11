@@ -19,7 +19,7 @@
 
 | Phase | Day | Theme | Status | Steps done |
 |---|---|---|:---:|:---:|
-| **A** — Stabilize + safety net | Day 1 | RAM/crash fixes, dead code purge, test harness | 🟡 | 11 / 12 — [checkpoint A-1](./checkpoints/phase-a-checkpoint-1.md) awaiting user test; A3-1 purge next |
+| **A** — Stabilize + safety net | Day 1 | RAM/crash fixes, dead code purge, test harness | ✅ | 12 / 12 — [checkpoint A-1](./checkpoints/phase-a-checkpoint-1.md) tested ✓, [checkpoint A-2](./checkpoints/phase-a-checkpoint-2.md) awaiting user test |
 | **B** — Consolidation | Day 2 | Single registry, legacy blocks, redundancy | ⬜ | 0 / 8 |
 | **C** — Interaction quality | Day 3 | DnD, selection outline, binding perf | ⬜ | 0 / 9 |
 | **D** — Builder UX overhaul | Day 4 | Add-section flow, properties sidebar, settings | ⬜ | 0 / 8 |
@@ -64,12 +64,14 @@ backend, mobile-app JSON builder instance, Puck ≥0.22 rebase.
   `--max-old-space-size=3072` — **not** the doc's 8192, the machine has 7.6 GB total. §3.3
 
 ## A3. Dead weight purge (big dev-graph win)
-- [ ] **A3-1** Delete unused workspace leftovers: root `app/`, `packages/core`,
-  `packages/create-puck-app`, `packages/field-contentful`, `packages/plugin-emotion-cache`
-  (top-level), `packages/plugin-heading-analyzer` (top-level), `packages/tsup-config`,
-  `packages/tsconfig`, `packages/eslint-config-custom`, `apps/demo`, `apps/editor`,
-  `apps/web/app/shop/[storeSlug]/(storefront)` placeholder, legacy `apps/web/app/(dashboard)/products`.
-  Verify nothing imports them (`pnpm -r typecheck` + grep), then `pnpm install` to reprune.
+- [x] **A3-1** Deleted (2026-07-12): root `app/`, `packages/core`,
+  `packages/create-puck-app`, `packages/field-contentful`, top-level
+  `packages/plugin-emotion-cache` + `packages/plugin-heading-analyzer`,
+  `packages/tsup-config`, `packages/tsconfig`, `packages/eslint-config-custom`,
+  `apps/demo`, `apps/editor` (all were package.json-less husks of gitignored
+  dist/node_modules), the empty legacy `apps/web/app/(dashboard)/` group, and the
+  `/shop/[storeSlug]/(storefront)` placeholder (customer-auth pages kept). Verified: no
+  references, `pnpm install` + full jest green, home/editor/shop-auth routes all 200.
 
 ## A4. Test harness (before any Phase B refactor)
 - [x] **A4-1** Harness was actually broken (ts-node missing → the TS jest config never

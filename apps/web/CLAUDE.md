@@ -6,13 +6,13 @@ Next.js 16 App Router app. Three audiences, split at the URL/layout/middleware l
 | Audience | URL prefix | Location in `app/` |
 |---|---|---|
 | Merchant (store admin) | `/store/[storeSlug]/...` | `app/store/[storeSlug]/(dashboard)/...` |
-| Customer (storefront) | `/shop/[storeSlug]/...` | `app/shop/[storeSlug]/...` — placeholder; the real storefront is `apps/store` |
+| Customer (storefront) | `/shop/[storeSlug]/...` | `app/shop/[storeSlug]/(customer-auth)/...` — OTP auth only; the storefront itself is `apps/store` |
 | Platform owner | `/platform/...` | `app/(platform)/platform/...` |
 | Merchant auth | `/request-otp`, `/verify-otp` | `app/(auth)/...` (OTP-based) |
 | Onboarding | `/onboarding/create-store` | `app/onboarding/...` |
 
-`app/(dashboard)/products/...` is a legacy remnant of the pre-slug routing — new dashboard
-routes always go under `app/store/[storeSlug]/(dashboard)/`.
+All dashboard routes live under `app/store/[storeSlug]/(dashboard)/` (the pre-slug
+`app/(dashboard)/` group was removed 2026-07-12).
 
 ## Dashboard sections (routes ↔ modules)
 
