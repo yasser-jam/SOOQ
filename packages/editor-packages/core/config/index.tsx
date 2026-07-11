@@ -219,12 +219,10 @@ export const conf: UserConfig = {
   },
 };
 
-// Version tag for the localStorage payload key (`puck-demo:<componentKey>:site`).
-// Bump manually when a registry change must invalidate saved sites.
 // Was previously a ~50 KB base64 of the whole initialData computed with Node's
 // `Buffer` at module load — which dragged the Buffer polyfill into every client
 // bundle and made every localStorage lookup hash a 50 KB key.
 // `site-data.ts` migrates payloads saved under the old key on first read.
-export const componentKey = "v1";
+export { componentKey } from "./component-key";
 
 export default conf;

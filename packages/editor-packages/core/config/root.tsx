@@ -45,7 +45,6 @@ import {
   type BadgeShape,
   type BadgeStyle,
 } from "./theme";
-// import { SHELL_LEFT_ZONE, SHELL_RIGHT_ZONE } from "./shell-zones";
 import {
   ZONE_HEADER,
   ZONE_FOOTER,
@@ -284,29 +283,6 @@ export const Root: RootConfig<{
     });
 
     const rootClass = getThemeRootClassNames(bStyle, shape);
-    // const shellRailStyle: CSSProperties = isEditing
-    //   ? {
-    //       width: "56px",
-    //       minWidth: "56px",
-    //       flexShrink: 0,
-    //     }
-    //   : {
-    //       width: 0,
-    //       minWidth: 0,
-    //       flexShrink: 0,
-    //       overflow: "hidden",
-    //     };
-
-    // const shellDropStyle: CSSProperties = isEditing
-    //   ? {
-    //       minHeight: "100%",
-    //       background: "rgba(37, 99, 235, 0.06)",
-    //       borderInline: "1px dashed rgba(37, 99, 235, 0.35)",
-    //     }
-    //   : {
-    //       minHeight: 0,
-    //     };
-
     return (
       <>
         <style

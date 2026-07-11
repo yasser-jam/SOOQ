@@ -5,22 +5,40 @@ import { AutoField, Button, createUsePuck, FieldLabel, walkTree } from "@/core";
 import { ComponentConfig, ComponentDataOptionalId, Slot } from "@/core/types";
 import { withLayout } from "../../components/Layout";
 import { generateId } from "@/core/lib/generate-id";
-import { componentKey } from "../../index";
+import { componentKey } from "../../component-key";
 import { type Components } from "../../types";
 import TemplateComponent, { TemplateProps } from "./Template";
+// Direct sibling imports instead of `await import("../../index")` — the
+// registry imports this block, so importing the registry back was a circular
+// (dynamic) import. Only the block types used by the demo templates are needed.
+import { Heading as HeadingBlock } from "../Heading";
+import { Text as TextBlock } from "../Text";
+import { Grid as GridBlock } from "../Grid";
+import { Card as CardBlock } from "../Card";
+import { Flex as FlexBlock } from "../Flex";
+import { Space as SpaceBlock } from "../Space";
+import { Button as ButtonBlock } from "../Button";
 
 const usePuck = createUsePuck();
 
-async function createComponent<T extends keyof Components>(
+const TEMPLATE_BLOCKS = {
+  Heading: HeadingBlock,
+  Text: TextBlock,
+  Grid: GridBlock,
+  Card: CardBlock,
+  Flex: FlexBlock,
+  Space: SpaceBlock,
+  Button: ButtonBlock,
+} as const;
+
+function createComponent<T extends keyof typeof TEMPLATE_BLOCKS>(
   component: T,
   props?: Partial<Components[T]>
-): Promise<ComponentDataOptionalId<Components[T]>> {
-  const { conf: config } = await import("../../index");
-
+): ComponentDataOptionalId<Components[T]> {
   return {
     type: component,
     props: {
-      ...config.components[component].defaultProps,
+      ...TEMPLATE_BLOCKS[component].defaultProps,
       ...props,
     },
   } as ComponentDataOptionalId<Components[T]>;
@@ -38,6 +56,7 @@ export const TemplateInternal: ComponentConfig<TemplateProps> = {
         const props = usePuck((s) => s.selectedItem?.props) as
           | TemplateProps
           | undefined;
+        const config = usePuck((s) => s.config);
 
         const [templates, setTemplates] = useState<TemplateData>(
           JSON.parse(localStorage.getItem(templateKey) ?? "{}")
@@ -70,8 +89,6 @@ export const TemplateInternal: ComponentConfig<TemplateProps> = {
                   }
 
                   const templateId = generateId();
-
-                  const { conf: config } = await import("../../index");
 
                   const data = props.children.map((child) =>
                     walkTree(
@@ -135,11 +152,11 @@ export const TemplateInternal: ComponentConfig<TemplateProps> = {
       example_1: {
         label: "Example 1",
         data: [
-          await createComponent("Heading", {
+          createComponent("Heading", {
             text: "Template example.",
             size: "xl",
           }),
-          await createComponent("Text", {
+          createComponent("Text", {
             text: "This component uses the slots API. Try changing template, or saving a new one via the template field.",
           }),
         ],
@@ -147,32 +164,32 @@ export const TemplateInternal: ComponentConfig<TemplateProps> = {
       example_2: {
         label: "Example 2",
         data: [
-          await createComponent("Grid", {
+          createComponent("Grid", {
             numColumns: 2,
             items: [
-              await createComponent("Card", { title: "A card", mode: "card" }),
-              await createComponent("Flex", {
+              createComponent("Card", { title: "A card", mode: "card" }),
+              createComponent("Flex", {
                 direction: "column",
                 gap: 0,
                 items: [
-                  await createComponent("Space", {
+                  createComponent("Space", {
                     size: "32px",
                   }),
-                  await createComponent("Heading", {
+                  createComponent("Heading", {
                     text: "Template example",
                     size: "xl",
                   }),
-                  await createComponent("Text", {
+                  createComponent("Text", {
                     text: "Dynamically create components using the new slots API.",
                   }),
-                  await createComponent("Space", {
+                  createComponent("Space", {
                     size: "16px",
                   }),
-                  await createComponent("Button", {
+                  createComponent("Button", {
                     variant: "secondary",
                     label: "Learn more",
                   }),
-                  await createComponent("Space", {
+                  createComponent("Space", {
                     size: "32px",
                   }),
                 ],

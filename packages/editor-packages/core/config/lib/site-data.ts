@@ -1,4 +1,4 @@
-import { componentKey } from "../index";
+import { componentKey } from "../component-key";
 import { initialData } from "../initial-data";
 import {
   PAGES,

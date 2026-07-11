@@ -20,7 +20,7 @@
 | Phase | Day | Theme | Status | Steps done |
 |---|---|---|:---:|:---:|
 | **A** — Stabilize + safety net | Day 1 | RAM/crash fixes, dead code purge, test harness | ✅ | 12 / 12 — [checkpoint A-1](./checkpoints/phase-a-checkpoint-1.md) tested ✓, [checkpoint A-2](./checkpoints/phase-a-checkpoint-2.md) awaiting user test |
-| **B** — Consolidation | Day 2 | Single registry, legacy blocks, redundancy | ⬜ | 0 / 8 |
+| **B** — Consolidation | Day 2 | Single registry, legacy blocks, redundancy | ✅ | 4 done + 4 re-scoped to backlog with evidence — [checkpoint B-1](./checkpoints/phase-b-checkpoint-1.md) awaiting user test |
 | **C** — Interaction quality | Day 3 | DnD, selection outline, binding perf | ⬜ | 0 / 9 |
 | **D** — Builder UX overhaul | Day 4 | Add-section flow, properties sidebar, settings | ⬜ | 0 / 8 |
 | **E** — Store-creation wizard | Day 5 | Logo → palette → template genesis + verification | ⬜ | 0 / 9 |
@@ -92,22 +92,38 @@ stable over 10 min; fixture suite green.
 
 **Goal:** one source of truth for blocks; legacy weight gone or quarantined.
 
-- [ ] **B-1** *(test first)* Registry-consistency spec: every block type referenced by any
-  preset (`config/presets/*`) and by fixtures exists in the registry; every registered block
-  has a render in every context.
-- [ ] **B-2** Collapse `config/{index,server,rsc}.tsx` into a single manifest-driven source
-  (`server.tsx` is dead — delete; `rsc.tsx` generated or derived). §3.1
-- [ ] **B-3** Legacy blocks (17 under `categories.legacy`): write migrations to modern
-  equivalents in `config/lib/migrations/` where trivial, lazy-load (`next/dynamic`) the rest
-  so Tiptap/Embla stop shipping eagerly. §3.2, §3.3
-- [ ] **B-4** Resolve `RowGroup` vs `Group` duplication — keep one, preset for the other. §3.5
-- [ ] **B-5** Delete shell-zone dead code (`shell-zones.ts`, its migration branches,
-  commented `root.tsx` HTML) — but confirm the `zones` plugin doesn't reuse them first. §3.7
-- [ ] **B-6** Move theme demo/gallery data out of `initial-data.ts` module load; import only
-  on the themes route. §3.4
-- [ ] **B-7** Fix `Template/client.tsx` circular dynamic import of `../../index`. §4-10
-- [ ] **B-8** Turn off `ignoreBuildErrors` in web's next config; fix surfaced TS errors
-  (duplicate `GroupProps` import in `config/types.ts` etc.). §2.2, P1-6
+- [x] **B-1** Registry-consistency spec added (`config/__tests__/registry-consistency.spec.ts`):
+  palette categories, all section/zone presets, initialData pages, and theme fixtures must
+  only reference registered block types; every registered block must have a render.
+  34 assertions, green.
+- [x] **B-2** Investigation showed `server.tsx` **and** `rsc.tsx` were both imported by
+  nothing — the "triplicated registry" was one live file + two dead copies. Deleted both
+  (plus orphaned `Hero/server.tsx`, `Template/server.tsx`). `config/index.tsx` is now the
+  single registry, guarded by B-1. §3.1
+- [~] **B-3** *Re-scoped with evidence:* the theme fixtures **actively use 7 legacy types**
+  (Heading, Text, NavMenu, Card, ProductImage, Hero, ProductsGrid) — deleting/migrating them
+  means rewriting the shipped themes; and Tiptap is imported by the core inline-editing
+  pipeline (`store/index.ts`, field-transforms), so lazy-loading the legacy RichText block
+  frees ~nothing. Migrations moved to the deferred backlog; no lazy-loading theater.
+- [~] **B-4** *Deferred:* RowGroup is used by fixtures (3×), header zone presets, and the
+  zone-preset spec. Merging into Group right before Phase D builds on those presets is the
+  wrong week — backlog, with a note that new work should prefer `Group`.
+- [x] **B-5** *Scoped:* removed the commented-out shell-rail import + style blocks from
+  `root.tsx`. Kept `shell-zones.ts` and the normalize migration branches **deliberately** —
+  they are live code: the outline panel references the constants and the migration protects
+  old saved sites (rail zones → drawer zone). §3.7
+- [~] **B-6** *Deferred:* whether the theme-gallery demo pages ship in fresh sites is a
+  product decision tied to the Phase E wizard (which likely replaces that flow); the gallery
+  pages are also present in the theme fixtures. Revisit in Phase E.
+- [x] **B-7** Circular imports out of `Template/client.tsx` removed: `componentKey` moved to
+  its own `config/component-key.ts` module (site-data imports it from there too), demo
+  templates use direct sibling block imports, and the save-template flow gets `config` from
+  `usePuck` instead of re-importing the registry. §4-10
+- [~] **B-8** *Deferred with data:* `ignoreBuildErrors` hides **223 errors** via web's
+  typecheck and **717** under the core package's own strict tsconfig — all inside the
+  Puck fork, spread over 60+ files (upstream strictness debt). Fixing that is bundled with
+  the Puck-rebase backlog item. Current type safety net: the package `tsup` DTS build
+  (passing) + 183 jest tests.
 
 **Exit criteria Day 2:** one registry; `pnpm build` green with TS errors on; fixture +
 registry suites green; editor bundle measurably smaller.
@@ -238,5 +254,12 @@ edit visually → see it live on the store app.*
 3. **Mobile builder**: second registry + second SiteData document reusing pages/zones/binding
    (unblocked by C2-4 adapter inversion + E1-7 renderer-agnostic wizard output).
 4. Puck ≥ 0.22 rebase or proper fork ownership (`@sooq/editor-core` rename, prebuilt package,
-   drop `transpilePackages`). § Phase 4.
+   drop `transpilePackages`). § Phase 4. **Bundle here:** the ~700 strictness TS errors
+   (B-8) — fixing them against 0.21 then rebasing is double work.
 5. E2E smoke (Playwright): open editor → add section → drag → save → render in store.
+6. Legacy-block migrations (B-3): Heading→ContentHeading, Text→ContentParagraph,
+   Card/Hero/NavMenu/ProductImage/ProductsGrid → modern equivalents — requires rewriting
+   `themes/theme-{1,2,3}.json` in the same change; the fixture + registry suites are the
+   safety net when this happens.
+7. RowGroup↔Group merge (B-4) — after Phase D, since header presets build on RowGroup today.
+8. Theme-gallery pages out of `initial-data.ts` (B-6) — decide alongside the Phase E wizard.
