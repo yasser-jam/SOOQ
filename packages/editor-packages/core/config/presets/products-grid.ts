@@ -100,6 +100,63 @@ export function createProductCardBlock(
   };
 }
 
+/** Storefront product card — no add-to-cart; full-width details CTA. */
+export function createStorefrontProductCardBlock(
+  overrides: Record<string, unknown> = {}
+): ComponentDataOptionalId {
+  return createProductCardBlock({
+    direction: "column",
+    gap: 14,
+    alignItems: "stretch",
+    backgroundColor: "theme-surface",
+    padding: "18px",
+    borderRadius: "theme-lg",
+    boxShadow: "md",
+    content: [
+      {
+        type: "ContentImage",
+        props: {
+          src: "https://placehold.co/400x400/e2e8f0/64748b?text=Product",
+          alt: "",
+          altValueContext: { path: "product.title" },
+          valueContext: { path: "images[0].url" },
+          align: "center",
+          objectFit: "cover",
+          radius: "theme-lg",
+          maxWidth: "100%",
+        },
+      },
+      createHeading("عنوان المنتج", {
+        valueContext: { path: "product.title" },
+        fontSize: "theme-md",
+        fontWeight: "theme-semibold",
+        textAlign: "right",
+      }),
+      createParagraph("0.00 SYP", {
+        valueContext: { path: "pricing.displayPrice" },
+        fontSize: "theme-lg",
+        fontWeight: "theme-bold",
+        color: "theme-primary",
+        textAlign: "right",
+      }),
+      createPrimaryButton("عرض التفاصيل", {
+        destinationType: "link",
+        buttonVariant: "primary",
+        fullWidth: true,
+        link: {
+          kind: "page",
+          pageId: "/products/:product-slug",
+          dynamicSegment: {
+            param: "product-slug",
+            valueContext: "product.slug",
+          },
+        },
+      }),
+    ],
+    ...overrides,
+  });
+}
+
 export function createProductsGridBlock(
   overrides: Record<string, unknown> = {}
 ): ComponentDataOptionalId {

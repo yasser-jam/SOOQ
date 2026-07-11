@@ -1,3 +1,4 @@
+import { resolveMediaUrl } from "@/core/lib/media";
 import {
   formatCartMoney,
   getLineTotal,
@@ -9,7 +10,10 @@ import {
 
 /** Bound payload shape for cart line valueContext paths (mirrors product card API). */
 export function mapCartLineToBoundData(line: StoreCartLine) {
-  const imageUrl = getProductImageUrl(line);
+  const rawImageUrl = getProductImageUrl(line);
+  const imageUrl = rawImageUrl
+    ? resolveMediaUrl(rawImageUrl) ?? rawImageUrl
+    : null;
   const unitPrice = line.pricing.price;
   const lineTotal = getLineTotal(line);
   const currency = line.product.currencyCode || "SYP";

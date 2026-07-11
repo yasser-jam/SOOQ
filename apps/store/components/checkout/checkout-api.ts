@@ -244,6 +244,7 @@ export async function submitCheckoutOrder(
 				addressLabel: values.addressLabel,
 			},
 			paymentMethod: "COD",
+			checkoutToken: 'a26fa499-66a0-4d34-b9a7-18dca9a1e817',
 			guestEmail: DEFAULT_GUEST_EMAIL,
 		},
 		{ headers },

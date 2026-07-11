@@ -5,6 +5,7 @@ import { ComponentConfig } from "@/core/types";
 import { RADIUS_OPTIONS, resolveRadius } from "../../content/typography-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import { useBoundData } from "../../binding";
+import { resolveBoundImageUrls } from "../../binding/resolve-bound-images";
 
 export type ProductImageCarouselProps = {
   placeholderSrc: string;
@@ -21,22 +22,7 @@ const ASPECT_RATIO_MAP: Record<ProductImageCarouselProps["aspectRatio"], string>
 
 function resolveImageUrls(data: Record<string, unknown> | null): string[] {
   if (!data) return [];
-
-  const images = data.images;
-  if (!Array.isArray(images)) return [];
-
-  return images
-    .map((item) => {
-      if (typeof item === "string") return item.trim();
-      if (item && typeof item === "object") {
-        const record = item as Record<string, unknown>;
-        return String(
-          record.url ?? record.imageUrl ?? record.thumbnailUrl ?? ""
-        ).trim();
-      }
-      return "";
-    })
-    .filter(Boolean);
+  return resolveBoundImageUrls(data);
 }
 
 export const ProductImageCarousel: ComponentConfig<ProductImageCarouselProps> = {

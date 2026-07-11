@@ -1,6 +1,7 @@
 import type { ExternalField } from "@/core/types/Fields"
 import api, { toFullApiUrl } from "@/lib/api"
 import publicApi from "@/lib/public-api"
+import { resolveMediaUrl } from "@/lib/media"
 import { getEditorTenantId } from "@/lib/tenant-context"
 import type { ApiResponse, PagedApiResponse } from "@/lib/types"
 
@@ -302,12 +303,18 @@ function mapAdminDetailToProductCardData(
 
 	const media = (product.media ?? []) as Array<Record<string, unknown>>
 	const mediaUrls = media
-		.map((item) => String(item.url ?? item.thumbnailUrl ?? ""))
+		.map((item) => {
+			const raw = String(item.url ?? item.thumbnailUrl ?? "").trim()
+			return raw ? resolveMediaUrl(raw) ?? raw : ""
+		})
 		.filter(Boolean)
 
 	if (mediaUrls.length === 0) {
 		const primaryImage = product.primaryImageUrl ?? product.primaryThumbnailUrl
-		if (primaryImage) mediaUrls.push(String(primaryImage))
+		if (primaryImage) {
+			const raw = String(primaryImage)
+			mediaUrls.push(resolveMediaUrl(raw) ?? raw)
+		}
 	}
 
 	const categories = ((payload.categories ?? []) as Array<Record<string, unknown>>).map(

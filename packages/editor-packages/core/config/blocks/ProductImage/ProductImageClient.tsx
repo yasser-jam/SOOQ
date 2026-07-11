@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { resolveMediaUrl } from "@/lib/media";
 import {
   getProductForCard,
   productPickerKeys,
@@ -46,7 +47,10 @@ export function ProductImageClient({
     return <div className={getClassName("empty")}>المنتج غير متوفر</div>;
   }
 
-  const imageUrl = data.mediaUrls[0] ?? "";
+  const rawImageUrl = data.mediaUrls[0] ?? "";
+  const imageUrl = rawImageUrl
+    ? resolveMediaUrl(rawImageUrl) ?? rawImageUrl
+    : "";
   const hasDiscount = data.compareAtPrice > data.basePrice;
   const discountPercent = hasDiscount
     ? Math.round(((data.compareAtPrice - data.basePrice) / data.compareAtPrice) * 100)

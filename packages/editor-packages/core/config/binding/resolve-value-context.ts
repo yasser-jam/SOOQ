@@ -1,3 +1,5 @@
+import { resolveBoundImageUrl } from "./resolve-bound-images";
+
 type ResolveOptions = {
   locale?: "ar" | "en";
 };
@@ -56,32 +58,7 @@ function resolveShorthandPath(path: string, locale: "ar" | "en"): string {
 }
 
 function resolveImageUrl(data: Record<string, unknown>): string | undefined {
-  const images = data.images;
-  if (Array.isArray(images) && images.length > 0) {
-    const first = images[0];
-    if (typeof first === "string" && first.trim()) return first.trim();
-    if (first && typeof first === "object") {
-      const record = first as Record<string, unknown>;
-      const url = String(
-        record.url ?? record.imageUrl ?? record.thumbnailUrl ?? ""
-      ).trim();
-      if (url) return url;
-    }
-  }
-
-  const gallery = data.gallery;
-  if (Array.isArray(gallery) && gallery.length > 0) {
-    const first = gallery[0] as Record<string, unknown> | string;
-    if (typeof first === "string") return first;
-    const url = String(first.url ?? first.imageUrl ?? "").trim();
-    if (url) return url;
-  }
-
-  const product = (data.product ?? {}) as Record<string, unknown>;
-  const primary = product.primaryImageUrl ?? product.primaryThumbnailUrl;
-  if (primary) return String(primary);
-
-  return undefined;
+  return resolveBoundImageUrl(data);
 }
 
 /**

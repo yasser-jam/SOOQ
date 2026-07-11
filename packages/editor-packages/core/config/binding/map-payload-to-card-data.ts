@@ -3,6 +3,7 @@ import type {
   ProductResourceMetadata,
 } from "@/modules/product/product/data-store";
 import type { ProductCardActionEventDetail } from "./product-actions";
+import { resolveBoundImageUrls } from "./resolve-bound-images";
 
 /**
  * Build a ProductCardData view-model from a bound API payload for cart events.
@@ -18,15 +19,7 @@ export function mapPayloadToProductCardData(
 
   if (!id) return null;
 
-  const images = (payload.images ?? []) as Array<Record<string, unknown>>;
-  const mediaUrls = images
-    .map((item) => String(item.url ?? item.imageUrl ?? ""))
-    .filter(Boolean);
-
-  if (mediaUrls.length === 0) {
-    const primary = product.primaryImageUrl ?? product.primaryThumbnailUrl;
-    if (primary) mediaUrls.push(String(primary));
-  }
+  const mediaUrls = resolveBoundImageUrls(payload);
 
   const rawVariants = Array.isArray(
     (payload.variantMatrix as { variants?: unknown[] })?.variants

@@ -20,6 +20,10 @@ export {
   getBoundProductId,
 } from "./map-collection-product-to-bound-data";
 export {
+  resolveBoundImageUrl,
+  resolveBoundImageUrls,
+} from "./resolve-bound-images";
+export {
   CollectionProductsBoundProvider,
   useCollectionProductBoundData,
   useCollectionProductsBoundLoading,

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { getClassNameFactory } from "@/core/lib";
+import { resolveMediaUrl } from "@/lib/media";
 import {
   formatCartMoney,
   getLineTotal,
@@ -33,7 +34,10 @@ export function CartRowGroupUI({
 }: CartRowGroupUIProps) {
   const title = getProductTitle(line);
   const description = getProductDescription(line);
-  const imageUrl = getProductImageUrl(line);
+  const rawImageUrl = getProductImageUrl(line);
+  const imageUrl = rawImageUrl
+    ? resolveMediaUrl(rawImageUrl) ?? rawImageUrl
+    : null;
   const href = getProductHref(line);
   const lineTotal = getLineTotal(line);
   const currency = line.product.currencyCode || "SYP";

@@ -1,4 +1,5 @@
 import type { CollectionProductRef } from "@/modules/product/collection/data-store";
+import { resolveBoundImageUrls } from "./resolve-bound-images";
 
 /** Bound payload shape for collection list items (mirrors product detail API paths). */
 export function mapCollectionProductToBoundData(
@@ -8,6 +9,15 @@ export function mapCollectionProductToBoundData(
   const displayPrice =
     product.displayPrice ??
     (product.basePrice != null ? `${product.basePrice} ${currency}` : "");
+
+  const imageUrls = resolveBoundImageUrls({
+    product: {
+      primaryImageUrl: product.primaryImageUrl,
+    },
+    images: product.primaryImageUrl
+      ? [{ url: product.primaryImageUrl }]
+      : [],
+  });
 
   return {
     product: {
@@ -20,7 +30,7 @@ export function mapCollectionProductToBoundData(
       primaryImageUrl: product.primaryImageUrl,
       status: product.status,
     },
-    images: product.primaryImageUrl ? [{ url: product.primaryImageUrl }] : [],
+    images: imageUrls.map((url) => ({ url })),
     pricing: {
       basePrice: product.basePrice,
       compareAtPrice: product.compareAtPrice,
