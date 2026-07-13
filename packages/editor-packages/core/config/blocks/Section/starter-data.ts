@@ -1,9 +1,9 @@
 import { Slot } from "@/core/types";
 
-export const DEFAULT_SECTION_NAME = "New Section";
+export const DEFAULT_SECTION_NAME = "قسم جديد";
 
 export const createStarterTextBlock = (
-  text = "Use this space to introduce your offer, explain the benefit, and guide shoppers to the next step."
+  text = "استخدم هذه المساحة لتقديم عرضك وشرح فائدته وتوجيه المتسوقين إلى الخطوة التالية."
 ) => ({
   type: "ContentParagraph",
   props: {
@@ -13,7 +13,7 @@ export const createStarterTextBlock = (
 });
 
 export const createStarterHeadingBlock = (
-  text = "Fresh arrivals for your store"
+  text = "وصل حديثاً إلى متجرك"
 ) => ({
   type: "ContentHeading",
   props: {
@@ -23,7 +23,7 @@ export const createStarterHeadingBlock = (
   },
 });
 
-export const createStarterButtonBlock = (label = "Shop now") => ({
+export const createStarterButtonBlock = (label = "تسوق الآن") => ({
   type: "ContentButton",
   props: {
     label,
@@ -32,16 +32,16 @@ export const createStarterButtonBlock = (label = "Shop now") => ({
 });
 
 export const createSectionStarterContent = (): Slot => [
-  createStarterHeadingBlock("Fresh arrivals for your store"),
+  createStarterHeadingBlock("وصل حديثاً إلى متجرك"),
   createStarterTextBlock(
-    "Add supporting text here to describe this section and guide visitors toward the next action."
+    "أضف نصاً داعماً هنا لوصف هذا القسم وتوجيه الزوار نحو الإجراء التالي."
   ),
-  createStarterButtonBlock("Call to action"),
+  createStarterButtonBlock("اطلب الآن"),
 ];
 
 export const createLayoutStarterContent = (): Slot => [
-  createStarterHeadingBlock("Promote a key offer"),
-  createStarterTextBlock("Pair this block with product cards, images, or links."),
+  createStarterHeadingBlock("روّج لعرض مميز"),
+  createStarterTextBlock("اجمع هذا العنصر مع بطاقات المنتجات أو الصور أو الروابط."),
 ];
 
 export const createSidebarStarterContent = (): Slot => [

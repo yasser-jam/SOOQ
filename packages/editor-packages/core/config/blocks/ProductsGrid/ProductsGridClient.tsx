@@ -3,12 +3,13 @@
 import React, { CSSProperties } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  collectionPickerKeys,
-  fetchCollectionProductsFromUrl,
-  getCollectionProductsApiUrl,
+  BOUND_QUERY_POLICY,
+  boundQueryKeys,
+  getEditorDataAdapter,
+  useSampleDataInEditor,
   type CollectionPickerRef,
   type ProductsGridResourceMetadata,
-} from "@/modules/product/collection/data-store";
+} from "../../data-adapter";
 import { ProductCardGroupCell } from "../../components/ProductCardGroupCell";
 import styles from "./styles.module.css";
 import { getClassNameFactory } from "@/core/lib";
@@ -32,6 +33,14 @@ export type ProductsGridClientProps = {
   isEditing?: boolean;
 };
 
+const SkeletonCard = () => (
+  <div className={getClassName("skeletonCard")} aria-hidden>
+    <div className={getClassName("skeletonImage")} />
+    <div className={getClassName("skeletonLine")} />
+    <div className={getClassName("skeletonLine")} />
+  </div>
+);
+
 export function ProductsGridClient({
   collection,
   metadata,
@@ -41,16 +50,27 @@ export function ProductsGridClient({
   useCollection,
   isEditing = false,
 }: ProductsGridClientProps) {
+  const adapter = getEditorDataAdapter();
+  const sampleMode = isEditing && useSampleDataInEditor();
+
   const apiUrl =
     metadata?.apiUrl ??
-    (collection?.slug ? getCollectionProductsApiUrl(collection.slug) : null);
+    (collection?.slug
+      ? adapter.getCollectionProductsApiUrl(collection.slug)
+      : null);
 
-  const { data: products = [], isLoading, isError } = useQuery({
-    queryKey: collectionPickerKeys.products(apiUrl ?? ""),
-    queryFn: () => fetchCollectionProductsFromUrl(apiUrl!),
-    enabled: Boolean(useCollection && apiUrl),
-    staleTime: 60_000,
+  const {
+    data: fetched = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: boundQueryKeys.collectionProducts(apiUrl ?? ""),
+    queryFn: () => adapter.fetchCollectionProducts(apiUrl!),
+    enabled: Boolean(useCollection && apiUrl) && !sampleMode,
+    ...BOUND_QUERY_POLICY,
   });
+
+  const products = sampleMode ? adapter.getSampleCollectionProducts() : fetched;
 
   const colCount = Math.min(
     6,
@@ -75,15 +95,21 @@ export function ProductsGridClient({
     );
   }
 
-  if (isLoading) {
+  if (!sampleMode && isLoading) {
     return (
       <div className={getClassName()}>
-        <div className={getClassName("empty")}>جاري تحميل المنتجات…</div>
+        <div className={getClassName("grid")} style={gridStyle}>
+          {Array.from({ length: colCount }, (_, i) => (
+            <div key={i} className={getClassName("cell")}>
+              <SkeletonCard />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (isError) {
+  if (!sampleMode && isError) {
     return (
       <div className={getClassName()}>
         <div className={getClassName("empty")}>تعذّر تحميل منتجات المجموعة.</div>

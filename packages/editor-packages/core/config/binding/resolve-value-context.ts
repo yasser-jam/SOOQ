@@ -18,7 +18,7 @@ function tokenizePath(path: string): string[] {
   let match: RegExpExecArray | null;
 
   while ((match = re.exec(path)) !== null) {
-    tokens.push(match[1] ?? match[2]);
+    tokens.push(match[1] ?? match[2] ?? "");
   }
 
   return tokens;

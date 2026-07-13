@@ -16,6 +16,50 @@
   min-width: 0;
 }
 
+.ProductsGrid-skeletonCard {
+  border: 1px solid var(--theme-color-border, #e3e8f0);
+  border-radius: var(--theme-radius-lg, 18px);
+  overflow: hidden;
+  background: var(--theme-color-surface, #f6f8fc);
+  padding-bottom: 14px;
+}
+
+.ProductsGrid-skeletonImage {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+}
+
+.ProductsGrid-skeletonLine {
+  height: 12px;
+  border-radius: 6px;
+  margin: 10px 12px 0;
+}
+
+.ProductsGrid-skeletonLine:last-child {
+  width: 40%;
+}
+
+.ProductsGrid-skeletonImage,
+.ProductsGrid-skeletonLine {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--theme-color-border, #dde3ec) 55%, transparent),
+    color-mix(in srgb, var(--theme-color-border, #dde3ec) 25%, transparent),
+    color-mix(in srgb, var(--theme-color-border, #dde3ec) 55%, transparent)
+  );
+  background-size: 200% 100%;
+  animation: ProductsGrid-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes ProductsGrid-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 .ProductsGrid-empty {
   background:
     linear-gradient(

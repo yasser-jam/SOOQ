@@ -412,7 +412,10 @@ const SectionInner: ComponentConfig<SectionProps> = {
     const wrappedSectionGridContent =
       isProductsGridSection({ sectionKind, metadata: sectionMetadata }) &&
       collection?.slug ? (
-        <CollectionProductsBoundProvider collectionSlug={collection.slug}>
+        <CollectionProductsBoundProvider
+          collectionSlug={collection.slug}
+          isEditing={puck.isEditing === true}
+        >
           {sectionGridContent}
         </CollectionProductsBoundProvider>
       ) : (

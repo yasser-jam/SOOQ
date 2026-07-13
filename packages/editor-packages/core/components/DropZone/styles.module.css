@@ -102,8 +102,64 @@
   }
 }
 
-.DropZone > *:not([data-puck-component]) {
+.DropZone > *:not([data-puck-component]):not(.DropZone-emptyState) {
   opacity: 0;
+}
+
+/* ── Empty-zone CTA (D-2) ─────────────────────────────────────────────────
+   Replaces the old :empty ::before hint (the CTA child defeats :empty), so
+   the dashed "this is a slot" look lives on the --isEmpty modifier now. */
+.DropZone--isEmpty {
+  background: color-mix(in srgb, var(--puck-color-azure-09) 30%, transparent);
+  outline: 2px dashed var(--puck-color-azure-08);
+  border-radius: 10px;
+}
+
+.DropZone-emptyState {
+  position: absolute;
+  inset: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  text-align: center;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.DropZone-emptyStateHint {
+  color: var(--puck-color-azure-04);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.DropZone-emptyStateCta {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--puck-color-azure-06) 60%, white);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--puck-color-white) 92%, transparent);
+  color: var(--puck-color-azure-03);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 120ms ease-out, color 120ms ease-out,
+    border-color 120ms ease-out;
+}
+
+.DropZone-emptyStateCta:hover {
+  background: var(--puck-color-azure-03);
+  border-color: var(--puck-color-azure-03);
+  color: var(--puck-color-white);
+}
+
+/* While dragging, the CTA yields to the drop affordance entirely. */
+[data-puck-dragging] .DropZone-emptyState {
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 /* Hide overlays if DropZone is animating, which happens during a resize */

@@ -6,6 +6,7 @@ import {
   type CartSectionResourceMetadata,
 } from "../../cart/store-cart";
 import { CartSectionClient } from "./CartSectionClient";
+import { resolveMetadataProp } from "../../lib/resolve-metadata-prop";
 import type { CartSectionProps } from "./types";
 
 export type { CartSectionProps };
@@ -59,16 +60,8 @@ const CartSectionInner: ComponentConfig<CartSectionProps> = {
     metadata: DEFAULT_METADATA,
   },
 
-  resolveData: ({ props }) => {
-    const current = props.metadata;
-    if (
-      current?.dataSource === DEFAULT_METADATA.dataSource &&
-      current?.storageKey === DEFAULT_METADATA.storageKey
-    ) {
-      return {};
-    }
-    return { props: { metadata: DEFAULT_METADATA } };
-  },
+  resolveData: ({ props }) =>
+    resolveMetadataProp(props.metadata, DEFAULT_METADATA),
 
   render: (props) => <CartSectionClient {...props} />,
 };

@@ -51,14 +51,26 @@ const getClassName = getClassNameFactory("DraggableComponent", styles);
 const DEBUG = false;
 
 function getOffsetWithinBody(el: HTMLElement) {
+  const body = el.ownerDocument.body;
   let left = 0;
   let top = 0;
   let node: HTMLElement | null = el;
 
-  while (node && node !== el.ownerDocument.body) {
+  while (node && node !== body) {
     left += node.offsetLeft;
     top += node.offsetTop;
     node = node.offsetParent as HTMLElement | null;
+  }
+
+  // offsetLeft/offsetTop are layout positions and ignore how far intermediate
+  // containers are scrolled — and RTL scrollers start scrolled away from 0,
+  // which shifted the selection overlay horizontally off the element. Subtract
+  // ancestor scroll so the overlay lands on the element's visual position.
+  let scrollNode: HTMLElement | null = el.parentElement;
+  while (scrollNode && scrollNode !== body) {
+    left -= scrollNode.scrollLeft;
+    top -= scrollNode.scrollTop;
+    scrollNode = scrollNode.parentElement;
   }
 
   return { left, top };
@@ -362,6 +374,40 @@ export const DraggableComponent = ({
     }
   }, [ref.current]);
 
+  // The ResizeObserver above only fires when THIS element resizes. If a
+  // sibling reflows, a container scrolls, or a transform settles, the element
+  // moves without resizing and the overlay outline is left floating next to
+  // it. While the overlay is visible, watch the element's document-space
+  // position each frame (document-space so plain page scroll — where the
+  // absolutely-positioned overlay already moves with the content — doesn't
+  // trigger useless re-syncs) and re-sync when it actually moves.
+  const watchPosition = useCallback(() => {
+    const el = ref.current;
+
+    if (!el) return () => {};
+
+    const win = el.ownerDocument.defaultView;
+    let frame: number;
+    let last: { left: number; top: number } | null = null;
+
+    const check = () => {
+      const rect = el.getBoundingClientRect();
+      const left = rect.left + (win?.scrollX ?? 0);
+      const top = rect.top + (win?.scrollY ?? 0);
+
+      if (last && (last.left !== left || last.top !== top)) {
+        sync();
+      }
+
+      last = { left, top };
+      frame = win?.requestAnimationFrame(check) ?? 0;
+    };
+
+    frame = win?.requestAnimationFrame(check) ?? 0;
+
+    return () => win?.cancelAnimationFrame(frame);
+  }, [sync]);
+
   const registerNode = useAppStore((s) => s.nodes.registerNode);
 
   const hideOverlay = useCallback(() => {
@@ -617,6 +663,12 @@ export const DraggableComponent = ({
     });
   }, [hover, indicativeHover, isSelected, iframe]);
 
+  useEffect(() => {
+    if (isVisible && dragFinished) {
+      return watchPosition();
+    }
+  }, [isVisible, dragFinished, watchPosition]);
+
   const [thisWasDragging, setThisWasDragging] = useState(false);
 
   const onDragFinished = useOnDragFinished((finished) => {
@@ -652,11 +704,18 @@ export const DraggableComponent = ({
           const exceedsBoundsLeft = diffLeft < 0;
           const diffTop = rect.y;
           const exceedsBoundsTop = diffTop < 0;
+          // The bar is anchored `right: 0` of the block — in RTL the block's
+          // right edge is routinely at/past the frame edge, pushing the bar
+          // out of view. Clamp it back in like the left/top cases.
+          const overflowRight = rect.right - view.innerWidth;
+          const exceedsBoundsRight = overflowRight > 0;
 
           // Modify position if it spills over frame
           if (exceedsBoundsLeft) {
             el.style.transformOrigin = "left top";
             el.style.left = "0px";
+          } else if (exceedsBoundsRight) {
+            el.style.right = `${overflowRight + space}px`;
           }
 
           if (exceedsBoundsTop) {

@@ -15,9 +15,16 @@ import LocaleBlock from "./LocaleBlock"
 import FontsBlock from "./FontsBlock"
 import ColorsBlock from "./ColorsBlock"
 import ButtonVariantsBlock from "./ButtonVariantsBlock"
-// import LookBlock from "./LookBlock"
+import LookBlock from "./LookBlock"
 // import EditorBlock from "./EditorBlock"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, RotateCcw } from "lucide-react"
+import {
+  DEFAULT_BADGE,
+  DEFAULT_BREAKPOINTS,
+  DEFAULT_COLORS,
+  DEFAULT_SHELL,
+  DEFAULT_THEME,
+} from "../../../theme"
 
 const getClassName = getClassNameFactory("SettingsPanel", styles)
 
@@ -54,6 +61,35 @@ export function SettingsPanel() {
       root: {
         props: { ...(rootProps ?? {}), ...patch } as any,
       },
+    })
+  }
+
+  // D-5: one-click return to the stock theme values (colors, fonts, badges,
+  // shell variants, breakpoints). Locale settings are deliberately kept.
+  // Recorded in history, so Ctrl+Z undoes it.
+  const resetToThemeDefaults = () => {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        "إعادة تعيين الألوان والخطوط والمظهر إلى الإعدادات الافتراضية؟ يمكنك التراجع بـ Ctrl+Z."
+      )
+    ) {
+      return
+    }
+
+    dispatch({
+      type: "replaceRoot",
+      root: {
+        props: {
+          ...(rootProps ?? {}),
+          ...DEFAULT_THEME,
+          ...DEFAULT_COLORS,
+          ...DEFAULT_BADGE,
+          ...DEFAULT_SHELL,
+          ...DEFAULT_BREAKPOINTS,
+        } as any,
+      },
+      recordHistory: true,
     })
   }
 
@@ -109,8 +145,8 @@ export function SettingsPanel() {
           </div>
         </Collapsible>
 
-        {/* LOOK — hidden, keep code */}
-        {/* <Collapsible>
+        {/* LOOK — badges, header/footer variants, breakpoints (D-5) */}
+        <Collapsible>
           <div className={getClassName("collapsibleItem")}>
             <CollapsibleTrigger className={collapsibleTriggerClassName}>
               <div>المظهر</div>
@@ -121,7 +157,7 @@ export function SettingsPanel() {
               <LookBlock rootProps={rootProps} updateProps={updateProps} />
             </CollapsibleContent>
           </div>
-        </Collapsible> */}
+        </Collapsible>
 
         {/* BUTTON VARIANTS */}
         <Collapsible>
@@ -151,6 +187,18 @@ export function SettingsPanel() {
           </div>
         </Collapsible> */}
       </div>
+
+      <button
+        type="button"
+        onClick={resetToThemeDefaults}
+        className={cn(
+          "mx-4 my-4 flex items-center justify-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm text-foreground transition-colors hover:bg-red-50 hover:text-red-700 hover:border-red-200",
+          getClassName("resetAll")
+        )}
+      >
+        <RotateCcw size={14} />
+        إعادة التعيين إلى إعدادات الثيم الافتراضية
+      </button>
     </div>
   )
 }

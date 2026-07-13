@@ -10,6 +10,7 @@ import { Render } from "../../../Render";
 import { BubbledPointerEvent } from "../../../../lib/bubble-pointer-event";
 import { useSlots } from "../../../../lib/use-slots";
 import { useRichtextProps } from "../../../RichTextEditor/lib/use-richtext-props";
+import { BlockErrorBoundary } from "../../../BlockErrorBoundary";
 
 const getClassName = getClassNameFactory("PuckPreview", styles);
 
@@ -114,7 +115,46 @@ export const Preview = ({ id = "puck-preview" }: { id?: string }) => {
 
   useBubbleIframeEvents(ref);
 
-  const inner = !renderData ? (
+  // Last line of defense: block-level boundaries live in DropZone, but a
+  // crash in root render / zone plumbing outside any block used to white-
+  // screen the whole editor. Recover in place instead.
+  const canvasFallback = (error: Error, reset: () => void) => (
+    <div
+      dir="rtl"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 12,
+        minHeight: "50vh",
+        padding: 32,
+        textAlign: "center",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <strong style={{ fontSize: 16 }}>حدث خطأ أثناء عرض الصفحة</strong>
+      <code dir="ltr" style={{ fontSize: 12, opacity: 0.7 }}>
+        {error.message}
+      </code>
+      <button
+        type="button"
+        onClick={reset}
+        style={{
+          border: "1px solid currentColor",
+          borderRadius: 6,
+          background: "transparent",
+          padding: "6px 16px",
+          cursor: "pointer",
+          fontSize: 14,
+        }}
+      >
+        إعادة تحميل الكانفس
+      </button>
+    </div>
+  );
+
+  const innerContent = !renderData ? (
     <Page
       {...rootProps}
       puck={{
@@ -129,6 +169,17 @@ export const Preview = ({ id = "puck-preview" }: { id?: string }) => {
     </Page>
   ) : (
     <Render data={renderData} config={config} metadata={metadata} />
+  );
+
+  const inner = (
+    <BlockErrorBoundary
+      fallback={canvasFallback}
+      onError={(error) => {
+        console.error("[puck] Canvas failed to render:", error);
+      }}
+    >
+      {innerContent}
+    </BlockErrorBoundary>
   );
 
   useEffect(() => {

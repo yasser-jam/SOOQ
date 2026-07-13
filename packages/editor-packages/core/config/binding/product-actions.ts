@@ -1,7 +1,7 @@
 import type {
   ProductCardData,
   ProductResourceMetadata,
-} from "@/modules/product/product/data-store";
+} from "../data-adapter/types";
 
 export const PRODUCT_CARD_ACTION_KEYS = {
   addToCart: "add-product",

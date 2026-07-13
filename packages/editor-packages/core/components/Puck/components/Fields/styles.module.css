@@ -33,6 +33,103 @@
   box-sizing: border-box;
 }
 
+/* ── D-3: sticky header + breadcrumb ────────────────────────────────────── */
+.PuckFields-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--puck-color-white);
+  border-bottom: 1px solid var(--puck-color-grey-09);
+  padding: 10px 16px 8px;
+}
+
+.PuckFields-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.PuckFields-breadcrumb {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: var(--puck-color-azure-04);
+  font-size: 11px;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.PuckFields-breadcrumb:hover {
+  text-decoration: underline;
+}
+
+.PuckFields-breadcrumb::after {
+  content: "‹";
+  color: var(--puck-color-grey-06);
+  margin-inline-start: 4px;
+}
+
+.PuckFields-headerTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--puck-color-grey-02);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── D-3: content / style / advanced tabs ───────────────────────────────── */
+.PuckFields-tabs {
+  position: sticky;
+  top: 49px;
+  z-index: 2;
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--puck-color-white);
+  border-bottom: 1px solid var(--puck-color-grey-09);
+}
+
+.PuckFields-tab {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--puck-color-grey-04);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 120ms ease-out, color 120ms ease-out;
+}
+
+.PuckFields-tab:hover {
+  background: var(--puck-color-grey-11);
+}
+
+.PuckFields-tab--active {
+  background: var(--puck-color-azure-11);
+  border-color: var(--puck-color-azure-09);
+  color: var(--puck-color-azure-03);
+}
+
+.PuckFields-tabCount {
+  font-size: 10px;
+  font-weight: 700;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
 .PuckFields--wrapFields .PuckFields-field {
   color: var(--puck-color-grey-04);
   padding: 16px;

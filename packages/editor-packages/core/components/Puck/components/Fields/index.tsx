@@ -16,10 +16,17 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useState,
 } from "react";
 import { useRegisterFieldsSlice } from "../../../../store/slices/fields";
 import { useShallow } from "zustand/react/shallow";
 import { StoreApi } from "zustand";
+import {
+  FIELD_GROUP_LABELS,
+  FIELD_GROUP_ORDER,
+  groupFieldNames,
+  type FieldGroup,
+} from "./field-groups";
 
 const getClassName = getClassNameFactory("PuckFields", styles);
 
@@ -179,6 +186,91 @@ const FieldsChild = ({ fieldName }: { fieldName: string }) => {
 
 const FieldsChildMemo = memo(FieldsChild);
 
+/**
+ * D-3: sticky panel header — the selected block's label plus a clickable
+ * breadcrumb of its parents, so deep selections stop being disorienting.
+ * Subscribes via a JSON snapshot so unrelated store changes don't re-render it.
+ */
+const FieldsHeader = () => {
+  const appStore = useAppStoreApi();
+
+  const snapshot = useAppStore((s) => {
+    const item = s.selectedItem;
+    if (!item) return "";
+
+    const nodes = s.state.indexes.nodes;
+    const labelOf = (type: string, props: unknown) => {
+      const custom = (props as { name?: string } | undefined)?.name?.trim();
+      return (
+        custom ||
+        (s.config.components[type] as { label?: string } | undefined)?.label ||
+        type
+      );
+    };
+
+    const crumbs: Array<{ id: string; label: string }> = [];
+    let parentId = nodes[item.props.id]?.parentId;
+    while (parentId && parentId !== "root") {
+      const parent = nodes[parentId];
+      if (!parent) break;
+      crumbs.unshift({
+        id: parentId,
+        label: labelOf(parent.data.type, parent.data.props),
+      });
+      parentId = parent.parentId;
+    }
+
+    return JSON.stringify({
+      label: labelOf(item.type, item.props),
+      crumbs,
+    });
+  });
+
+  const parsed = useMemo(
+    () =>
+      snapshot
+        ? (JSON.parse(snapshot) as {
+            label: string;
+            crumbs: Array<{ id: string; label: string }>;
+          })
+        : null,
+    [snapshot]
+  );
+
+  const selectCrumb = useCallback(
+    (crumbId: string) => {
+      const { state, dispatch } = appStore.getState();
+      const selector = getSelectorForId(state, crumbId);
+      if (!selector) return;
+      dispatch({ type: "setUi", ui: { itemSelector: selector } });
+    },
+    [appStore]
+  );
+
+  if (!parsed) return null;
+
+  return (
+    <div className={getClassName("header")} dir="rtl">
+      {parsed.crumbs.length > 0 && (
+        <div className={getClassName("breadcrumbs")}>
+          {parsed.crumbs.map((crumb) => (
+            <button
+              key={crumb.id}
+              type="button"
+              className={getClassName("breadcrumb")}
+              onClick={() => selectCrumb(crumb.id)}
+              title={crumb.label}
+            >
+              {crumb.label}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className={getClassName("headerTitle")}>{parsed.label}</div>
+    </div>
+  );
+};
+
 const FieldsInternal = ({ wrapFields = true }: { wrapFields?: boolean }) => {
   const overrides = useAppStore((s) => s.overrides);
   const selectedItem = useAppStore((s) => s.selectedItem);
@@ -195,15 +287,37 @@ const FieldsInternal = ({ wrapFields = true }: { wrapFields?: boolean }) => {
   useRegisterFieldsSlice(appStore, id);
 
   const fieldsLoading = useAppStore((s) => s.fields.loading);
-  const fieldNames = useAppStore(
-    useShallow((s) => {
-      if (s.fields.id === id) {
-        return Object.keys(s.fields.fields);
-      }
-
-      return [];
-    })
+  // Object identity of the fields slice is stable per registration, so the
+  // grouping memo below only recomputes when the selection's fields change.
+  const fieldsMap = useAppStore((s) =>
+    s.fields.id === id ? s.fields.fields : null
   );
+
+  const grouped = useMemo(
+    () => groupFieldNames(fieldsMap ?? {}),
+    [fieldsMap]
+  );
+
+  const nonEmptyGroups = useMemo(
+    () => FIELD_GROUP_ORDER.filter((group) => grouped[group].length > 0),
+    [grouped]
+  );
+
+  const [activeGroup, setActiveGroup] = useState<FieldGroup>("content");
+
+  // Reset the tab when the selection changes — land on the first tab that
+  // actually has fields.
+  useEffect(() => {
+    setActiveGroup(
+      grouped.content.length > 0 ? "content" : nonEmptyGroups[0] ?? "content"
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const showTabs = nonEmptyGroups.length > 1;
+  const visibleNames = showTabs
+    ? grouped[nonEmptyGroups.includes(activeGroup) ? activeGroup : nonEmptyGroups[0] ?? "content"]
+    : nonEmptyGroups.flatMap((group) => grouped[group]);
 
   const isLoading = fieldsLoading || componentResolving;
 
@@ -220,8 +334,30 @@ const FieldsInternal = ({ wrapFields = true }: { wrapFields?: boolean }) => {
         e.preventDefault();
       }}
     >
+      <FieldsHeader />
+      {showTabs && (
+        <div className={getClassName("tabs")} role="tablist" dir="rtl">
+          {nonEmptyGroups.map((group) => (
+            <button
+              key={group}
+              type="button"
+              role="tab"
+              aria-selected={group === activeGroup}
+              className={`${getClassName("tab")} ${
+                group === activeGroup ? getClassName("tab--active") : ""
+              }`.trim()}
+              onClick={() => setActiveGroup(group)}
+            >
+              {FIELD_GROUP_LABELS[group]}
+              <span className={getClassName("tabCount")}>
+                {grouped[group].length}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
       <Wrapper isLoading={isLoading} itemSelector={itemSelector}>
-        {fieldNames.map((fieldName) => (
+        {visibleNames.map((fieldName) => (
           <FieldsChildMemo key={fieldName} fieldName={fieldName} />
         ))}
       </Wrapper>

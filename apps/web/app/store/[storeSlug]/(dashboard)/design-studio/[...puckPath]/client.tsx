@@ -39,6 +39,11 @@ import {
   readSiteData,
   type SiteData,
 } from "@/core/config/lib/site-data"
+import {
+  clearPageDraft,
+  readPageDraft,
+  writePageDraft,
+} from "@/core/config/lib/page-draft"
 import { ThemeInjector } from "@/core/config/plugins/settings/ThemeInjector"
 import type { UserData } from "@/core/config/types"
 import type { FullThemeProps } from "@/core/config/theme"
@@ -54,7 +59,12 @@ import {
 } from "@/lib/design-studio-paths"
 import { useSelectedPage } from "@/core/config/lib/use-selected-page"
 
-const hiddenPluginNames = new Set(["themes", "heading-analyzer", "outline"])
+// "outline" is NOT hidden: shopifyOutlinePlugin registers under that name so
+// it replaces Puck's built-in outline tab with the Shopify-style section
+// panel (quick-start presets + AddSectionModal — the "A" shortcut lives
+// there). Hiding it would silently revert the add-section flow to bare
+// empty-Section inserts (Phase D-1).
+const hiddenPluginNames = new Set(["themes", "heading-analyzer"])
 
 const EDITOR_HINT_DISMISSED_KEY = "puck-demo-editor-hint-dismissed-v1"
 
@@ -466,13 +476,114 @@ export function Client({
   const [isClient, setIsClient] = useState(false)
   const exportDataRef = useRef<UserData | null>(null)
   const siteDataRef = useRef<SiteData | null>(null)
+
+  // --- Draft autosave (crash safety) -------------------------------------
+  // Edits are debounce-written to a per-page draft key; publish stays
+  // explicit. On mount, an unpublished draft (if it differs from the saved
+  // page) is restored into the editor with a notice offering to discard it.
+  const [draftEpoch, setDraftEpoch] = useState(0)
+  const initialDraft = useMemo(() => {
+    if (!isEdit) return null
+    const draft = readPageDraft(path)
+    if (!draft) return null
+    if (JSON.stringify(draft.data) === JSON.stringify(data)) return null
+    return draft
+    // draftEpoch: bumped when the user discards the draft, forcing a re-read.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, path, data, draftEpoch])
+
+  const editorData = initialDraft?.data ?? data
+
+  const [draftNoticeVisible, setDraftNoticeVisible] = useState(false)
+  useEffect(() => {
+    setDraftNoticeVisible(Boolean(initialDraft))
+  }, [initialDraft])
+
+  const draftTimerRef = useRef<number | null>(null)
+  // First debounced snapshot after mount becomes the baseline instead of a
+  // draft: Puck fires onChange during mount-time resolveData, and treating
+  // that as a user edit would leave phantom "unsaved draft" notices behind.
+  const draftBaselineRef = useRef<string | null>(null)
+
+  const scheduleDraftWrite = useCallback(
+    (nextData: UserData) => {
+      if (typeof window === "undefined") return
+      if (draftTimerRef.current) window.clearTimeout(draftTimerRef.current)
+
+      draftTimerRef.current = window.setTimeout(() => {
+        draftTimerRef.current = null
+        const json = JSON.stringify(nextData)
+
+        if (draftBaselineRef.current === null) {
+          draftBaselineRef.current = json
+          return
+        }
+
+        if (json === draftBaselineRef.current) {
+          // User edited back to the baseline — no unsaved work left.
+          clearPageDraft(path)
+          return
+        }
+
+        writePageDraft(path, nextData)
+      }, 1000)
+    },
+    [path]
+  )
+
+  // On page switch / unmount: flush any pending edit into the draft so fast
+  // page-hopping can't drop the last second of work.
+  useEffect(() => {
+    draftBaselineRef.current = null
+
+    return () => {
+      if (draftTimerRef.current) {
+        window.clearTimeout(draftTimerRef.current)
+        draftTimerRef.current = null
+        const pending = exportDataRef.current
+        if (pending && draftBaselineRef.current !== null) {
+          writePageDraft(path, pending)
+        }
+      }
+    }
+  }, [path])
+
+  const handleDiscardDraft = useCallback(() => {
+    if (draftTimerRef.current) {
+      window.clearTimeout(draftTimerRef.current)
+      draftTimerRef.current = null
+    }
+    clearPageDraft(path)
+    draftBaselineRef.current = null
+    exportDataRef.current = null
+    // Remounts <Puck> with the saved page data.
+    setDraftEpoch((epoch) => epoch + 1)
+  }, [path])
+
+  // After an explicit save (publish / preview), the crash-safety draft is
+  // obsolete: cancel any pending debounced write so it can't resurrect a
+  // stale draft, and treat the saved payload as the new baseline.
+  const markPageSaved = useCallback(
+    (savedData: UserData) => {
+      if (draftTimerRef.current) {
+        window.clearTimeout(draftTimerRef.current)
+        draftTimerRef.current = null
+      }
+      clearPageDraft(path)
+      draftBaselineRef.current = JSON.stringify(savedData)
+      setDraftNoticeVisible(false)
+    },
+    [path]
+  )
+  // ------------------------------------------------------------------------
+
   // Lets handleOpenPreview read the latest data without depending on it —
   // keeps the callback (and therefore `overrides`) referentially stable.
-  const latestDataRef = useRef(data)
+  const latestDataRef = useRef(editorData)
 
   useEffect(() => {
-    latestDataRef.current = data
-  }, [data])
+    latestDataRef.current = editorData
+  }, [editorData])
 
   const getSiteSnapshot = useCallback(() => {
     const base = siteDataRef.current ?? readSiteData()
@@ -504,9 +615,10 @@ export function Client({
     if (puckData) {
       savePageData(puckData as UserData)
       siteDataRef.current = readSiteData()
+      markPageSaved(puckData as UserData)
     }
     router.push(previewHref)
-  }, [previewHref, router, savePageData])
+  }, [previewHref, router, savePageData, markPageSaved])
   const handleExportJson = () => {
     if (typeof window === "undefined") return
     const blob = new Blob(
@@ -618,24 +730,87 @@ export function Client({
   if (isEdit) {
     return (
       <EditorFullscreenShell>
+        {draftNoticeVisible && initialDraft ? (
+          <div
+            dir="rtl"
+            role="status"
+            style={{
+              position: "fixed",
+              top: 64,
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 60,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "8px 16px",
+              borderRadius: 999,
+              border: "1px solid #e0b252",
+              background: "#fdf6e3",
+              color: "#7a5a10",
+              fontSize: 13,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+            }}
+          >
+            <span>
+              تمت استعادة مسودة غير منشورة (
+              {new Date(initialDraft.savedAt).toLocaleTimeString("ar", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+              )
+            </span>
+            <button
+              type="button"
+              onClick={() => setDraftNoticeVisible(false)}
+              style={{
+                border: "none",
+                background: "#7a5a10",
+                color: "#fff",
+                borderRadius: 999,
+                padding: "4px 12px",
+                cursor: "pointer",
+                fontSize: 12,
+              }}
+            >
+              متابعة التحرير
+            </button>
+            <button
+              type="button"
+              onClick={handleDiscardDraft}
+              style={{
+                border: "1px solid currentColor",
+                background: "transparent",
+                color: "inherit",
+                borderRadius: 999,
+                padding: "4px 12px",
+                cursor: "pointer",
+                fontSize: 12,
+              }}
+            >
+              تجاهل المسودة
+            </button>
+          </div>
+        ) : null}
         <Puck
-          key={path}
+          key={`${path}:${draftEpoch}`}
           config={config}
-          data={data}
+          data={editorData}
           height="100%"
           ui={{ rightSideBarVisible: false, leftSideBarVisible: true }}
           onChange={(nextData) => {
             exportDataRef.current = nextData
+            scheduleDraftWrite(nextData)
           }}
           onPublish={async (data) => {
             savePageData(data as UserData)
             siteDataRef.current = readSiteData()
+            markPageSaved(data as UserData)
           }}
           plugins={plugins}
-          // Keep both built-in plugins: "blocks" for the drag-and-drop palette
-          // and "outline" for the block hierarchy tree view. shopifyOutlinePlugin
-          // is filtered out via hiddenPluginNames so the built-in outline is
-          // shown as-is without being overridden.
+          // "blocks" = drag-and-drop palette tab; "outline" = the sections
+          // tab, which shopifyOutlinePlugin (name: "outline") OVERRIDES with
+          // the Shopify-style section panel + AddSectionModal.
           builtinPlugins={["blocks", "outline"]}
           headerPath={path}
           iframe={iframeConfig}

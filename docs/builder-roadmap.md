@@ -21,8 +21,8 @@
 |---|---|---|:---:|:---:|
 | **A** — Stabilize + safety net | Day 1 | RAM/crash fixes, dead code purge, test harness | ✅ | 12 / 12 — [checkpoint A-1](./checkpoints/phase-a-checkpoint-1.md) tested ✓, [checkpoint A-2](./checkpoints/phase-a-checkpoint-2.md) awaiting user test |
 | **B** — Consolidation | Day 2 | Single registry, legacy blocks, redundancy | ✅ | 4 done + 4 re-scoped to backlog with evidence — [checkpoint B-1](./checkpoints/phase-b-checkpoint-1.md) awaiting user test |
-| **C** — Interaction quality | Day 3 | DnD, selection outline, binding perf | ⬜ | 0 / 9 |
-| **D** — Builder UX overhaul | Day 4 | Add-section flow, properties sidebar, settings | ⬜ | 0 / 8 |
+| **C** — Interaction quality | Day 3 | DnD, selection outline, binding perf | ✅ | 9 / 9 — [checkpoint C-1](./checkpoints/phase-c-checkpoint-1.md) tested ✓, [checkpoint C-2](./checkpoints/phase-c-checkpoint-2.md) tested ✓ |
+| **D** — Builder UX overhaul | Day 4 | Add-section flow, properties sidebar, settings | ✅ | 8 / 8 — [checkpoint D-1](./checkpoints/phase-d-checkpoint-1.md) tested ✓, [checkpoint D-2](./checkpoints/phase-d-checkpoint-2.md) awaiting user test |
 | **E** — Store-creation wizard | Day 5 | Logo → palette → template genesis + verification | ⬜ | 0 / 9 |
 
 **Deferred (post-deadline):** backend Site JSON persistence/publish, template gallery from
@@ -136,34 +136,53 @@ registry suites green; editor bundle measurably smaller.
 blocks fetch once and render fast.
 
 ## C1. Drag & drop + selection
-- [ ] **C1-1** Re-test DnD lag *after* Phase A (most jank came from the store re-init +
-  style mirroring). Profile what remains (`DragDropContext`, `DraggableComponent`,
-  `DropZone`).
-- [ ] **C1-2** Selection-outline misalignment: audit for **RTL**. The app is `dir="rtl"` and
-  upstream Puck assumes LTR — check `getBoundingClientRect` / `left:` positioning in
-  `DraggableComponent` overlay and the shopify-editor outline; use logical properties or
-  mirror offsets when `dir==="rtl"`.
-- [ ] **C1-3** DnD crash repro: add an error boundary around each block render inside the
-  canvas (one bad block must not kill the editor) + a top-level canvas boundary with
-  "reload canvas" action.
-- [ ] **C1-4** Draft autosave: debounce-write current page to localStorage during editing so
-  a crash never loses work (publish stays explicit).
+- [x] **C1-1** Re-test DnD lag *after* Phase A (most jank came from the store re-init +
+  style mirroring). Audit result: drop-finalization dispatch (walkAppState +
+  resolveComponentData for bound blocks) is the main remaining cost → addressed by C2-3;
+  collision direction was already RTL-aware upstream (`getDeepDir` in DragDropContext);
+  live smoothness measured at user checkpoint (headless pane can't measure frames).
+- [x] **C1-2** Selection-outline misalignment fixed — root cause was NOT collision logic
+  but overlay positioning: `getOffsetWithinBody` ignored ancestor scroll (RTL scrollers
+  start scrolled → horizontal offset) and the overlay never re-synced when the element
+  *moved* without resizing. Added scroll compensation + a position watcher while the
+  overlay is visible + RTL right-edge clamp for the action bar. Verified in-browser:
+  sub-pixel deltas incl. scrolled-container + negative RTL scrollLeft cases.
+- [x] **C1-3** Error boundaries: `BlockErrorBoundary` per block in edit canvas (Arabic
+  fallback card + retry, dragRef preserved for inline blocks), null-fallback in render
+  mode (DropZoneRenderItem + SlotRender — storefront never crashes from one block), and
+  a top-level canvas boundary with "إعادة تحميل الكانفس" action in Preview.
+- [x] **C1-4** Draft autosave: 1s-debounced per-page draft key
+  (`puck-demo:<key>:draft:<path>`, `config/lib/page-draft.ts`), baseline guard against
+  mount-time resolveData churn, restore notice with continue/discard, cleared on
+  publish/preview-save. Full lifecycle verified in-browser.
 
 ## C2. Data binding (ProductCard / ProductsGrid / contextValue)
-- [ ] **C2-1** *(test first)* Unit specs for `binding/`: `map-collection-product-to-bound-data`,
-  `map-payload-to-card-data`, `resolve-value-context`, `use-bound-value` fallback order.
-- [ ] **C2-2** ProductsGrid: guarantee **one** fetch per grid (via
-  `CollectionProductsBoundProvider` + react-query, already close) — verify no per-card
-  `resolveData` fetches remain; add `staleTime`/`gcTime` policy; skeleton cards while loading.
-- [ ] **C2-3** Stabilize `resolveData` metadata references across `Group`, `ProductCard`,
-  `ProductsGrid`, `CartSection` (shared `metadataResolver` helper) so dispatches stop
-  cascading re-resolves. §2.6, §4-11
-- [ ] **C2-4** **Invert the dependency**: `binding/product-actions.ts` and
-  `CollectionProductsBoundProvider` import from `apps/web` (`@/modules/...`). Define a
-  `DataAdapter` interface in core, injected via Puck `metadata`/config from each app —
-  prerequisite for the mobile builder reusing the binding layer.
-- [ ] **C2-5** Editor-mode behavior: bound blocks render sample/demo data instantly in the
-  canvas and only hit the real API in preview/store (flag via metadata), so editing stays fast.
+- [x] **C2-1** *(test first)* Unit specs for `binding/` — 33 tests across 5 suites:
+  `resolve-value-context` (paths, locale shorthands, coercion), `resolve-bound-images`
+  (collection order, dedupe), `map-collection-product-to-bound-data`,
+  `map-payload-to-card-data` (+ `buildProductActionDetail` pricing/stock branches),
+  `use-bound-value` fallback order.
+- [x] **C2-2** One fetch per grid verified (both grid architectures were already
+  single-fetch: legacy ProductsGrid block + Section preset via
+  `CollectionProductsBoundProvider`; per-card queries disabled via
+  `skipProductDetailFetch`). Added shared `BOUND_QUERY_POLICY`
+  (staleTime 60s / gcTime 5min / no focus-refetch / retry 1) + shimmer skeleton cards
+  while loading.
+- [x] **C2-3** Shared `resolveMetadataProp` helper (config/lib/resolve-metadata-prop.ts)
+  used by Group, ProductsGrid, CartSection (ProductCard inherits Group's) — guarded by a
+  10-test idempotence spec: resolveData fed its own output returns `{}`. §2.6, §4-11
+- [x] **C2-4** Dependency inverted: new `config/data-adapter/` (core-owned types +
+  `EditorDataAdapter` interface + register/get + sample fallback adapter). The binding
+  layer + grid/group clients now import ZERO from `@/modules` (enforced by an
+  architecture-guard test). Real adapter: `apps/web/lib/editor-data-adapter.ts`,
+  registered by web `Providers.tsx` + store `storefront-renderer.tsx`. Residual coupling
+  (documented): picker FIELDS (editor-only UI) + legacy hidden blocks
+  (ProductImage/ProductInfo/CategoryListMenu).
+- [x] **C2-5** Edit canvas renders instant sample data (4-product Arabic sample catalog,
+  inline-SVG images, `data-adapter/sample-data.ts`) — zero network; preview/storefront
+  fetch live (verified: preview fires `/public/collections/<slug>/products`). Picked
+  products keep their identity (title/slug) over sample pricing/images. Escape hatch:
+  `liveDataInEditor` on the adapter.
 
 **Exit criteria Day 3:** DnD smooth on a 30-block page; outline correct in RTL; a grid of 12
 products = 1 network request; crash in one block leaves the editor alive.
@@ -175,26 +194,44 @@ products = 1 network request; crash in one block leaves the editor alive.
 **Goal:** adding a section is delightful, not an empty-slot puzzle; the properties sidebar is
 organized; settings plugin is first-class.
 
-- [ ] **D-1** **Add-section flow**: replace "insert empty Section → hunt for blocks" with the
-  section catalog inserting **prefilled presets** (`config/presets/*` + shopify-editor
-  `AddSectionModal`/`section-catalog`): visual preview cards, categories (hero, products,
-  content, footer…), one click = fully populated section.
-- [ ] **D-2** Empty-slot affordance: any empty slot/zone renders a friendly placeholder with
-  a "+ إضافة عنصر" CTA opening the palette scoped to that slot (no more dead gray boxes).
-- [ ] **D-3** **Properties sidebar redesign**: group fields into collapsible sections with
-  tabs — *المحتوى / التصميم / متقدم* (Content/Style/Advanced); consistent field widths;
-  color/typography fields get previews; sticky block title + breadcrumb at top.
-- [ ] **D-4** Field-level polish: reuse `fields/` primitives (BilingualText, ColorField,
-  LinkField) everywhere; kill one-off inline field styles in blocks.
-- [ ] **D-5** **Settings plugin** (priority): reorganize `SettingsPanel` around the theme
-  model (colors / typography / layout / buttons / badges per `theme.ts` sections); live
-  preview via the (now cheap) per-variable ThemeInjector; "reset to theme preset" action.
-- [ ] **D-6** Outline (shopify-editor panel): selection sync canvas↔outline both directions,
-  hover highlight, drag-reorder within outline kept working after C1 changes.
-- [ ] **D-7** Split `CanvasContextMenu.tsx` (798 lines) into the 4 hooks + portal component —
-  makes D-work reviewable. §4-4
-- [ ] **D-8** *(tests)* Specs for preset insertion (D-1/D-2): applying each catalog preset
-  produces valid normalized data (extends B-1 suite).
+- [x] **D-1** **Add-section flow** — key finding: the full Shopify-style panel +
+  AddSectionModal (17 prefilled preset cards, categories, configure step for the products
+  grid) already existed but was **disabled** (client.tsx filtered the plugin name
+  "outline"). Re-enabled it, arabized the whole surface (catalog labels/descriptions,
+  category tabs, panel chrome, section-list actions, starter content «قسم جديد» etc.),
+  and verified the flow live: empty page → CTA → modal → one click → populated hero
+  section. Section rows list with hide/duplicate/delete/search + inline "إضافة هنا".
+- [x] **D-2** Empty-slot CTA: empty zones render «لا توجد عناصر هنا بعد — + إضافة عنصر»
+  (click selects the parent + flips the sidebar to the blocks palette); the empty page
+  root zone renders «+ إضافة قسم (A)» which opens the AddSectionModal (window event to
+  the panel). Shell zones (drawer/popup/bottom-sheet, areaId "root") correctly get the
+  generic variant. Replaces the English `:empty ::before` hint.
+- [x] **D-3** **Properties sidebar redesign**: fields grouped into tabs — *المحتوى /
+  التصميم / متقدم* via shared `field-groups.ts` (`metadata.group` override + name-based
+  classification, one map covers all ~55 blocks); sticky header with block title +
+  clickable parent breadcrumb (`FieldsHeader`); tab bar only renders when >1 non-empty
+  group. Verified live (Page root: المحتوى 1 / التصميم 12 / متقدم 2).
+- [x] **D-4** Field-level polish *(scoped)*: the 6 copy-pasted alignment icon-toggles
+  (ContentHeading/Paragraph/Button/ButtonGroup/Link/Image) consolidated into
+  `fields/AlignField` (`createAlignField` factory, `metadata: { group: "style" }`).
+  Broader primitive sweep folded into the deferred field-audit backlog.
+- [x] **D-5** **Settings plugin** (priority): «المظهر» (LookBlock — badges, header/footer
+  variants, breakpoints) re-enabled as a collapsible; «إعادة التعيين إلى إعدادات الثيم
+  الافتراضية» reset action (confirm-gated, keeps locale props, recordHistory so Ctrl+Z
+  undoes). Live preview already worked via per-variable ThemeInjector (C-phase). Verified
+  live: change badge shape → reset → default restored.
+- [x] **D-6** Outline (shopify-editor panel): outline-row hover → canvas hover overlay
+  (`hoveringComponent`), select → canvas `scrollIntoView`, HTML5 drag-reorder with
+  before/after drop indicators (dispatches Puck `reorder`, verified E2E in DOM — the
+  drop-side pixel math needs a real-browser sanity check since the hidden test pane
+  reports zero-height rects), selected row auto-scrolls into view in the list.
+- [x] **D-7** Split `CanvasContextMenu.tsx` (803 lines → ~60-line root):
+  `lib/use-component-actions` + `lib/use-context-menu-target` + `lib/use-menu-dismissal`
+  + `lib/use-canvas-shortcuts` + `ContextMenuPortal` (+ `lib/clipboard`). Menu labels
+  arabized (تحديد/نسخ/لصق أسفله/تكرار/نقل/إخفاء/حذف). §4-4
+- [x] **D-8** *(tests)* `section-catalog.spec.tsx` — 71 tests: per-preset serializability,
+  Section wrapper contract, only-registered-types, normalize-pipeline idempotence, Arabic
+  labels, unique ids.
 
 **Exit criteria Day 4:** a non-technical user can build a homepage from presets alone; sidebar
 sections collapse/expand; settings edits reflect live.

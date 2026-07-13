@@ -6,10 +6,9 @@ import { SlotRenderPure } from "@/core/components/SlotRender/server";
 import { assignComponentIds } from "@/core/lib/assign-component-ids";
 import { createProductCardBlock } from "../presets/products-grid";
 import {
-  buildPublicProductResourceMetadata,
-  buildProductResourceMetadata,
-} from "@/modules/product/product/data-store";
-import type { CollectionProductRef } from "@/modules/product/collection/data-store";
+  getEditorDataAdapter,
+  type CollectionProductRef,
+} from "../data-adapter";
 import { BoundDataProvider } from "../binding";
 import { mapCollectionProductToBoundData } from "../binding/map-collection-product-to-bound-data";
 
@@ -27,13 +26,12 @@ export function ProductCardGroupCell({
     [product]
   );
 
-  const metadata = useMemo(
-    () =>
-      product.slug
-        ? buildPublicProductResourceMetadata(product.slug, product.id)
-        : buildProductResourceMetadata(product.id),
-    [product.id, product.slug]
-  );
+  const metadata = useMemo(() => {
+    const adapter = getEditorDataAdapter();
+    return product.slug
+      ? adapter.buildPublicProductResourceMetadata(product.slug, product.id)
+      : adapter.buildProductResourceMetadata(product.id);
+  }, [product.id, product.slug]);
 
   const content = useMemo(() => {
     const card = createProductCardBlock({

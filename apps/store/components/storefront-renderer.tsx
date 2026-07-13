@@ -1,5 +1,8 @@
 "use client"
 
+// Side effect: registers the axios-backed editor data adapter (shared from
+// apps/web via the @/lib alias) so bound blocks fetch live data (C2-4).
+import "@/lib/editor-data-adapter"
 import { useMemo } from "react"
 import { Render } from "@/core"
 import config from "@/core/config"

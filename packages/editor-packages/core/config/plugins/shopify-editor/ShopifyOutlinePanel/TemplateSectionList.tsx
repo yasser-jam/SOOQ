@@ -1,5 +1,11 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Eye,
   EyeOff,
@@ -14,11 +20,26 @@ import type { ComponentData } from "@/core/types";
 import { useAppStore, useAppStoreApi } from "@/core/store";
 import { rootDroppableId } from "@/core/lib/root-droppable-id";
 import { getClassNameFactory } from "@/core/lib";
+import { getFrame } from "@/core/lib/get-frame";
+import { ZoneStoreContext } from "@/core/components/DropZone/context";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("ShopifyOutlinePanel", styles);
 
 // ─── Row ────────────────────────────────────────────────────────────────────
+
+/** Scroll the canvas so the section is visible — Shopify's outline does this. */
+const scrollCanvasToComponent = (id: string) => {
+  const frameDoc = getFrame();
+  if (!frameDoc) return;
+  const safeId =
+    typeof CSS !== "undefined" && typeof CSS.escape === "function"
+      ? CSS.escape(id)
+      : id;
+  frameDoc
+    .querySelector(`[data-puck-component="${safeId}"]`)
+    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+};
 
 type SectionRowProps = {
   index: number;
@@ -27,6 +48,7 @@ type SectionRowProps = {
   hidden: boolean;
   selected: boolean;
   rowCount: number;
+  onReorder: (from: number, to: number) => void;
 };
 
 const SectionRow = React.memo(function SectionRow({
@@ -36,15 +58,19 @@ const SectionRow = React.memo(function SectionRow({
   hidden,
   selected,
   rowCount,
+  onReorder,
 }: SectionRowProps) {
   const dispatch = useAppStore((s) => s.dispatch);
   const storeApi = useAppStoreApi();
+  const zoneStore = useContext(ZoneStoreContext);
+  const [dropSide, setDropSide] = useState<"before" | "after" | null>(null);
 
   const select = () => {
     dispatch({
       type: "setUi",
       ui: { itemSelector: { index, zone: rootDroppableId } },
     });
+    scrollCanvasToComponent(id);
   };
 
   const selectAt = (nextIndex: number) => {
@@ -111,6 +137,7 @@ const SectionRow = React.memo(function SectionRow({
     getClassName("sectionRow"),
     selected ? getClassName("sectionRow--selected") : "",
     hidden ? getClassName("sectionRow--hidden") : "",
+    dropSide ? getClassName(`sectionRow--drop-${dropSide}`) : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -122,6 +149,39 @@ const SectionRow = React.memo(function SectionRow({
       role="button"
       tabIndex={0}
       aria-keyshortcuts="ArrowUp ArrowDown Delete Control+D Meta+D H"
+      // Hovering an outline row lights up the block on the canvas — same
+      // mechanism the built-in LayerTree uses (D-6).
+      onMouseEnter={() => zoneStore.setState({ hoveringComponent: id })}
+      onMouseLeave={() => zoneStore.setState({ hoveringComponent: null })}
+      // Drag-reorder within the outline (D-6): native HTML5 drag on the row,
+      // dispatched as a Puck `reorder` on drop.
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/plain", String(index));
+        e.dataTransfer.effectAllowed = "move";
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        const rect = e.currentTarget.getBoundingClientRect();
+        setDropSide(
+          e.clientY < rect.top + rect.height / 2 ? "before" : "after"
+        );
+      }}
+      onDragLeave={() => setDropSide(null)}
+      onDrop={(e) => {
+        e.preventDefault();
+        const from = Number(e.dataTransfer.getData("text/plain"));
+        setDropSide(null);
+        if (!Number.isInteger(from) || from === index) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const before = e.clientY < rect.top + rect.height / 2;
+        let to = before ? index : index + 1;
+        if (from < to) to -= 1;
+        if (to === from) return;
+        onReorder(from, to);
+      }}
+      onDragEnd={() => setDropSide(null)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -129,13 +189,15 @@ const SectionRow = React.memo(function SectionRow({
           return;
         }
 
-        if (e.key === "ArrowUp") {
+        // Plain arrows move the SELECTION; Ctrl/Cmd+arrows are the global
+        // "move block" shortcut (use-canvas-shortcuts) — let those through.
+        if (e.key === "ArrowUp" && !e.metaKey && !e.ctrlKey) {
           e.preventDefault();
           selectAt(Math.max(0, index - 1));
           return;
         }
 
-        if (e.key === "ArrowDown") {
+        if (e.key === "ArrowDown" && !e.metaKey && !e.ctrlKey) {
           e.preventDefault();
           selectAt(Math.min(rowCount - 1, index + 1));
           return;
@@ -178,8 +240,8 @@ const SectionRow = React.memo(function SectionRow({
           type="button"
           className={getClassName("actionBtn")}
           onClick={toggleHidden}
-          title={hidden ? "Show section" : "Hide section"}
-          aria-label={hidden ? "Show section" : "Hide section"}
+          title={hidden ? "إظهار القسم" : "إخفاء القسم"}
+          aria-label={hidden ? "إظهار القسم" : "إخفاء القسم"}
         >
           {hidden ? <EyeOff size={13} /> : <Eye size={13} />}
         </button>
@@ -187,8 +249,8 @@ const SectionRow = React.memo(function SectionRow({
           type="button"
           className={getClassName("actionBtn")}
           onClick={duplicate}
-          title="Duplicate section"
-          aria-label="Duplicate section"
+          title="تكرار القسم"
+          aria-label="تكرار القسم"
         >
           <Copy size={13} />
         </button>
@@ -198,8 +260,8 @@ const SectionRow = React.memo(function SectionRow({
             "actionBtn--danger"
           )}`}
           onClick={remove}
-          title="Delete section"
-          aria-label="Delete section"
+          title="حذف القسم"
+          aria-label="حذف القسم"
         >
           <Trash2 size={13} />
         </button>
@@ -224,9 +286,28 @@ type Props = {
  */
 export function TemplateSectionList({ onAddSection }: Props) {
   const storeApi = useAppStoreApi();
+  const dispatch = useAppStore((s) => s.dispatch);
+  const listRef = useRef<HTMLDivElement | null>(null);
   const [search, setSearch] = useState("");
   const normalizedSearch = search.trim().toLowerCase();
   const hasActiveSearch = normalizedSearch.length > 0;
+
+  const onReorder = React.useCallback(
+    (from: number, to: number) => {
+      dispatch({
+        type: "reorder",
+        sourceIndex: from,
+        destinationIndex: to,
+        destinationZone: rootDroppableId,
+        recordHistory: true,
+      });
+      dispatch({
+        type: "setUi",
+        ui: { itemSelector: { index: to, zone: rootDroppableId } },
+      });
+    },
+    [dispatch]
+  );
 
   const selectedIndex = useAppStore((s) => {
     const sel = s.state.ui.itemSelector;
@@ -289,6 +370,22 @@ export function TemplateSectionList({ onAddSection }: Props) {
     });
   }, [rows, hasActiveSearch, normalizedSearch]);
 
+  // Canvas → outline: when the selection changes (e.g. by clicking a block
+  // on the canvas), keep the matching row visible in the panel.
+  useEffect(() => {
+    if (selectedIndex < 0) return;
+    const id = rows[selectedIndex]?.id;
+    if (!id) return;
+    const safeId =
+      typeof CSS !== "undefined" && typeof CSS.escape === "function"
+        ? CSS.escape(id)
+        : id;
+    listRef.current
+      ?.querySelector(`[data-section-id="${safeId}"]`)
+      ?.scrollIntoView({ block: "nearest" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIndex]);
+
   const list = useMemo(
     () =>
       filteredRows.map(({ row, index }) => (
@@ -300,6 +397,7 @@ export function TemplateSectionList({ onAddSection }: Props) {
             hidden={!row.visible}
             selected={index === selectedIndex}
             rowCount={rows.length}
+            onReorder={onReorder}
           />
           {/* Inline "add section" gap between rows. Visible on list hover. */}
           {!hasActiveSearch && index < rows.length - 1 && (
@@ -307,25 +405,34 @@ export function TemplateSectionList({ onAddSection }: Props) {
               type="button"
               className={getClassName("inlineAdd")}
               onClick={() => onAddSection(index + 1)}
-              title="Add section here"
-              aria-label={`Add section after position ${index + 1}`}
+              title="إضافة قسم هنا"
+              aria-label={`إضافة قسم بعد الموضع ${index + 1}`}
             >
               <Plus size={10} />
-              Add here
+              إضافة هنا
             </button>
           )}
         </React.Fragment>
       )),
-    [filteredRows, hasActiveSearch, rows.length, selectedIndex, onAddSection]
+    [
+      filteredRows,
+      hasActiveSearch,
+      rows.length,
+      selectedIndex,
+      onAddSection,
+      onReorder,
+    ]
   );
 
   return (
-    <div className={getClassName("sectionsList")}>
+    <div className={getClassName("sectionsList")} ref={listRef}>
       <div className={getClassName("sectionsToolbar")}>
         <div className={getClassName("sectionsStats")}>
-          <span className={getClassName("sectionsStat")}>{rows.length} total</span>
           <span className={getClassName("sectionsStat")}>
-            {visibleRowsCount} visible
+            {rows.length} قسم
+          </span>
+          <span className={getClassName("sectionsStat")}>
+            {visibleRowsCount} ظاهر
           </span>
         </div>
 
@@ -335,8 +442,8 @@ export function TemplateSectionList({ onAddSection }: Props) {
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Find component"
-            aria-label="Find component in page"
+            placeholder="ابحث عن قسم"
+            aria-label="ابحث عن قسم في الصفحة"
           />
         </label>
       </div>
@@ -346,14 +453,14 @@ export function TemplateSectionList({ onAddSection }: Props) {
       ) : hasActiveSearch ? (
         <div className={getClassName("sectionsNoResults")}>
           <p className={getClassName("sectionsNoResultsTitle")}>
-            No components match "{search.trim()}"
+            لا توجد أقسام تطابق "{search.trim()}"
           </p>
           <button
             type="button"
             className={getClassName("sectionsNoResultsClear")}
             onClick={() => setSearch("")}
           >
-            Clear search
+            مسح البحث
           </button>
         </div>
       ) : null}

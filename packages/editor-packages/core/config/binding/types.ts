@@ -1,4 +1,4 @@
-import type { ProductResourceMetadata } from "@/modules/product/product/data-store";
+import type { ProductResourceMetadata } from "../data-adapter/types";
 
 /** Path-based binding for a block field value. */
 export type ValueContext = {

@@ -3,11 +3,12 @@ import { ComponentConfig } from "@/core/types";
 import { WithLayout, withLayout } from "../../components/Layout";
 import { sectionCollectionPickerField } from "../../fields/CollectionPickerField";
 import {
-  buildProductsGridResourceMetadata,
+  getEditorDataAdapter,
   type CollectionPickerRef,
   type ProductsGridResourceMetadata,
-} from "@/modules/product/collection/data-store";
+} from "../../data-adapter";
 import { ProductsGridClient } from "./ProductsGridClient";
+import { resolveMetadataProp } from "../../lib/resolve-metadata-prop";
 
 const columnOptions = [1, 2, 3, 4, 5, 6].map((n) => ({
   label: n === 1 ? "1 column" : `${n} columns`,
@@ -80,28 +81,11 @@ const ProductsGridInner: ComponentConfig<ProductsGridProps> = {
     }
 
     const collection = props.collection;
-    if (!collection?.slug) {
-      if (props.metadata != null) {
-        return { props: { metadata: null } };
-      }
-      return {};
-    }
+    const metadata = collection?.slug
+      ? getEditorDataAdapter().buildProductsGridResourceMetadata(collection)
+      : null;
 
-    const metadata = buildProductsGridResourceMetadata(collection);
-    const current = props.metadata;
-
-    if (
-      current?.collectionId === metadata.collectionId &&
-      current?.collectionSlug === metadata.collectionSlug &&
-      current?.productCount === metadata.productCount &&
-      current?.type === metadata.type &&
-      current?.method === metadata.method &&
-      current?.apiUrl === metadata.apiUrl
-    ) {
-      return {};
-    }
-
-    return { props: { metadata } };
+    return resolveMetadataProp(props.metadata, metadata);
   },
 
   render: (props) => {

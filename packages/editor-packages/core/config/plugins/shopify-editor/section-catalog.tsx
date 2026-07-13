@@ -195,8 +195,8 @@ export const sectionCatalog: SectionPreset[] = [
   // ── Hero / Opener ────────────────────────────────────────────────────────
   {
     id: "empty-section",
-    label: "Starter Section",
-    description: "Starter section with heading, paragraph and CTA.",
+    label: "قسم أساسي",
+    description: "قسم جاهز بعنوان وفقرة وزر.",
     category: "layout",
     icon: <LayoutTemplate size={20} />,
     gradient: "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)",
@@ -204,8 +204,8 @@ export const sectionCatalog: SectionPreset[] = [
   },
   {
     id: "hero-band",
-    label: "Hero Band",
-    description: "Full-width hero with dark background, generous padding.",
+    label: "قسم هيرو",
+    description: "قسم افتتاحي بعرض كامل وخلفية داكنة.",
     category: "hero",
     icon: <Sparkles size={20} />,
     gradient: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #334155 100%)",
@@ -220,8 +220,8 @@ export const sectionCatalog: SectionPreset[] = [
   },
   {
     id: "narrow-content",
-    label: "Narrow Content",
-    description: "Centred column for prose — good for About, Policy pages.",
+    label: "محتوى ضيق",
+    description: "عمود مركزي للنصوص — مناسب لصفحات من نحن والسياسات.",
     category: "content",
     icon: <Rows2 size={20} />,
     gradient: "linear-gradient(135deg, #fafafa 0%, #f3f4f6 100%)",
@@ -234,8 +234,8 @@ export const sectionCatalog: SectionPreset[] = [
   },
   {
     id: "two-column",
-    label: "Two-column Layout",
-    description: "Split content into two equal columns.",
+    label: "تخطيط عمودين",
+    description: "تقسيم المحتوى إلى عمودين متساويين.",
     category: "layout",
     icon: <Columns2 size={20} />,
     gradient:
@@ -244,9 +244,9 @@ export const sectionCatalog: SectionPreset[] = [
   },
   {
     id: "content-with-sidebar",
-    label: "Content with Sidebar",
+    label: "محتوى مع قائمة جانبية",
     description:
-      "Two-column layout: main content on one side, a Sidebar for filters or nav on the other.",
+      "عمودان: محتوى رئيسي في جهة وقائمة جانبية للفلاتر أو التنقل في الأخرى.",
     category: "layout",
     icon: <PanelLeft size={20} />,
     gradient:
@@ -293,16 +293,16 @@ export const sectionCatalog: SectionPreset[] = [
               ],
             },
           },
-          createStarterHeadingBlock("Sidebar content area"),
+          createStarterHeadingBlock("منطقة المحتوى الرئيسي"),
         ],
       },
     }),
   },
   {
     id: "site-nav-header",
-    label: "Site Navigation",
+    label: "قائمة تنقل",
     description:
-      "Horizontal NavMenu — ideal for a header band. Links to registered pages.",
+      "قائمة تنقل أفقية — مثالية لشريط الرأس، تربط بصفحات الموقع.",
     category: "layout",
     icon: <MenuIcon size={20} />,
     gradient: "linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)",
@@ -343,9 +343,9 @@ export const sectionCatalog: SectionPreset[] = [
   // ── Commerce (DSN-005 a-f) ──────────────────────────────────────────────
   {
     id: "products-grid",
-    label: "Products Grid",
+    label: "شبكة المنتجات",
     description:
-      "Choose a collection — products are fetched and each one becomes a bound, editable product card.",
+      "اختر مجموعة — تُجلب منتجاتها ويصبح كل منتج بطاقة قابلة للتحرير.",
     category: "commerce",
     icon: <Grid3x3 size={20} />,
     gradient: "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)",
@@ -382,9 +382,9 @@ export const sectionCatalog: SectionPreset[] = [
   },
   {
     id: "shopping-cart",
-    label: "Shopping Cart",
+    label: "سلة التسوق",
     description:
-      "Cart rows from localStorage (store-cart) with quantity controls and order button.",
+      "صفوف السلة مع أزرار الكمية وزر إتمام الطلب.",
     category: "commerce",
     icon: <ShoppingCart size={20} />,
     gradient: "linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)",
@@ -392,8 +392,8 @@ export const sectionCatalog: SectionPreset[] = [
   },
   {
     id: "category-list",
-    label: "Category Menu",
-    description: "Clickable list of top-level product categories.",
+    label: "قائمة التصنيفات",
+    description: "قائمة قابلة للنقر بتصنيفات المنتجات الرئيسية.",
     category: "commerce",
     icon: <ShoppingBag size={20} />,
     gradient: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
@@ -411,8 +411,8 @@ export const sectionCatalog: SectionPreset[] = [
   // ── Customer (DSN-005 g-j) ──────────────────────────────────────────────
   {
     id: "order-history",
-    label: "Order History",
-    description: "Customer account — recent orders with status.",
+    label: "سجل الطلبات",
+    description: "حساب العميل — أحدث الطلبات مع حالتها.",
     category: "customer",
     icon: <UserRound size={20} />,
     gradient: "linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)",
@@ -429,8 +429,8 @@ export const sectionCatalog: SectionPreset[] = [
   },
   {
     id: "wishlist",
-    label: "Wishlist",
-    description: "Customer's saved products in a responsive grid.",
+    label: "المفضلة",
+    description: "منتجات العميل المحفوظة في شبكة متجاوبة.",
     category: "customer",
     icon: <Heart size={20} />,
     gradient: "linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)",
@@ -446,8 +446,8 @@ export const sectionCatalog: SectionPreset[] = [
   },
   {
     id: "testimonials",
-    label: "Testimonials",
-    description: "Customer reviews — bilingual AR / EN supported.",
+    label: "آراء العملاء",
+    description: "تقييمات العملاء — تدعم العربية والإنجليزية.",
     category: "customer",
     icon: <Star size={20} />,
     gradient: "linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)",
@@ -477,8 +477,8 @@ export const sectionCatalog: SectionPreset[] = [
   },
   {
     id: "contact-form",
-    label: "Contact Form",
-    description: "Collect inquiries. Submits to tenant endpoint.",
+    label: "نموذج تواصل",
+    description: "استقبال استفسارات الزوار وإرسالها إلى المتجر.",
     category: "customer",
     icon: <Mail size={20} />,
     gradient: "linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)",
@@ -497,8 +497,8 @@ export const sectionCatalog: SectionPreset[] = [
   // ── Content (DSN-004) ────────────────────────────────────────────────────
   {
     id: "rich-text",
-    label: "Rich Text",
-    description: "Headline + paragraph, centred.",
+    label: "نص منسق",
+    description: "عنوان وفقرة في المنتصف.",
     category: "content",
     icon: <TypeIcon size={20} />,
     gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
@@ -520,9 +520,9 @@ export const sectionCatalog: SectionPreset[] = [
   },
   {
     id: "faq-accordion",
-    label: "FAQ Accordion",
+    label: "أسئلة شائعة",
     description:
-      "Expandable questions and answers for shipping, returns, and payments.",
+      "أسئلة وأجوبة قابلة للطي حول الشحن والإرجاع والدفع.",
     category: "content",
     icon: <MessageSquareText size={20} />,
     gradient: "linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%)",
@@ -559,8 +559,8 @@ export const sectionCatalog: SectionPreset[] = [
   },
   {
     id: "image-gallery",
-    label: "Image Gallery",
-    description: "Grid of images — great for lookbooks.",
+    label: "معرض صور",
+    description: "شبكة صور — مثالية لعرض الإطلالات والمنتجات.",
     category: "content",
     icon: <Images size={20} />,
     gradient: "linear-gradient(135deg, #fce7f3 0%, #fbcfe8 50%, #ddd6fe 100%)",
@@ -597,8 +597,8 @@ export const sectionCatalog: SectionPreset[] = [
   },
   {
     id: "testimonial-quote",
-    label: "Quote",
-    description: "Single large testimonial / pull-quote.",
+    label: "اقتباس",
+    description: "رأي عميل واحد بارز / اقتباس كبير.",
     category: "content",
     icon: <MessageSquareText size={20} />,
     gradient: "linear-gradient(135deg, #fefce8 0%, #fef9c3 100%)",
@@ -625,11 +625,11 @@ export const sectionCatalog: SectionPreset[] = [
 ];
 
 export const CATEGORY_LABELS: Record<SectionCategory, string> = {
-  hero: "Hero & Openers",
-  commerce: "Commerce",
-  customer: "Customer",
-  content: "Content",
-  layout: "Layout",
+  hero: "افتتاحية",
+  commerce: "المتجر",
+  customer: "العميل",
+  content: "المحتوى",
+  layout: "تخطيط",
 };
 
 export const CATEGORY_ORDER: SectionCategory[] = [

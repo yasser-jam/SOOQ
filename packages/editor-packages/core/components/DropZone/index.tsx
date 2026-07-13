@@ -3,6 +3,7 @@ import {
   CSSProperties,
   forwardRef,
   memo,
+  SyntheticEvent,
   useCallback,
   useContext,
   useEffect,
@@ -54,6 +55,8 @@ import { getRichTextTransform } from "../../lib/field-transforms/default-transfo
 import { FieldTransforms } from "../../types/API/FieldTransforms";
 import { useRichtextProps } from "../RichTextEditor/lib/use-richtext-props";
 import { MemoizeComponent } from "../MemoizeComponent";
+import { BlockErrorBoundary, BlockErrorCard } from "../BlockErrorBoundary";
+import { getSelectorForId } from "../../lib/get-selector-for-id";
 
 const getClassName = getClassNameFactory("DropZone", styles);
 
@@ -93,6 +96,73 @@ const InsertPreview = ({
 export const DropZoneEditPure = (props: DropZoneProps) => (
   <DropZoneEdit {...props} />
 );
+
+/**
+ * Fired at the parent window when the canvas asks for the Add Section modal
+ * (empty-page CTA). The shopify-editor outline panel listens for it.
+ */
+export const OPEN_ADD_SECTION_EVENT = "sooq:open-add-section";
+
+/**
+ * D-2: empty zones used to be dead gray boxes the merchant had to decode.
+ * This CTA gives them the next step: on the root zone it opens the section
+ * library; inside a block it selects that block and flips the left sidebar
+ * to the blocks palette so a drag target is one glance away.
+ */
+const EmptyZoneCta = ({
+  areaId,
+  isRootZone,
+}: {
+  areaId?: string | null;
+  isRootZone: boolean;
+}) => {
+  const dispatch = useAppStore((s) => s.dispatch);
+  const appStoreApi = useAppStoreApi();
+
+  const onClick = useCallback(
+    (e: SyntheticEvent) => {
+      // Keep Preview's outside-click handler from clearing the selection.
+      e.stopPropagation();
+
+      if (isRootZone) {
+        // React runs in the parent document even though this button renders
+        // inside the canvas iframe — `window` here IS the editor window.
+        window.dispatchEvent(new CustomEvent(OPEN_ADD_SECTION_EVENT));
+        return;
+      }
+
+      const { state } = appStoreApi.getState();
+      const selector = areaId ? getSelectorForId(state, areaId) : null;
+
+      dispatch({
+        type: "setUi",
+        ui: {
+          ...(selector ? { itemSelector: selector } : {}),
+          leftSideBarVisible: true,
+          plugin: { current: "blocks" },
+        },
+      });
+    },
+    [dispatch, appStoreApi, areaId, isRootZone]
+  );
+
+  return (
+    <div className={getClassName("emptyState")} dir="rtl">
+      <span className={getClassName("emptyStateHint")}>
+        {isRootZone
+          ? "ابدأ ببناء صفحتك من أقسام جاهزة"
+          : "لا توجد عناصر هنا بعد — اسحب عنصراً أو"}
+      </span>
+      <button
+        type="button"
+        className={getClassName("emptyStateCta")}
+        onClick={onClick}
+      >
+        {isRootZone ? "+ إضافة قسم (A)" : "+ إضافة عنصر"}
+      </button>
+    </div>
+  );
+};
 
 const DropZoneChild = ({
   zoneCompound,
@@ -259,15 +329,38 @@ const DropZoneChild = ({
       inDroppableZone={inDroppableZone}
     >
       {(dragRef) => {
+        const logBlockError = (error: Error) => {
+          console.error(
+            `[puck] Block "${componentType}" (${componentId}) failed to render:`,
+            error
+          );
+        };
+
         if (componentConfig?.inline && !isInserting) {
           return (
-            <MemoizeComponent
-              Component={Render}
-              componentProps={{
-                ...transformedProps,
-                puck: { ...transformedProps.puck, dragRef },
-              }}
-            />
+            <BlockErrorBoundary
+              onError={logBlockError}
+              // Inline components carry the dragRef themselves — when one
+              // crashes, the fallback must still attach it or dnd-kit loses
+              // this sortable and dragging around the broken block breaks.
+              fallback={(error, reset) => (
+                <div ref={dragRef}>
+                  <BlockErrorCard
+                    componentType={componentType}
+                    error={error}
+                    onRetry={reset}
+                  />
+                </div>
+              )}
+            >
+              <MemoizeComponent
+                Component={Render}
+                componentProps={{
+                  ...transformedProps,
+                  puck: { ...transformedProps.puck, dragRef },
+                }}
+              />
+            </BlockErrorBoundary>
           );
         }
 
@@ -301,10 +394,21 @@ const DropZoneChild = ({
                 : undefined
             }
           >
-            <MemoizeComponent
-              Component={Render}
-              componentProps={transformedProps}
-            />
+            <BlockErrorBoundary
+              onError={logBlockError}
+              fallback={(error, reset) => (
+                <BlockErrorCard
+                  componentType={componentType}
+                  error={error}
+                  onRetry={reset}
+                />
+              )}
+            >
+              <MemoizeComponent
+                Component={Render}
+                componentProps={transformedProps}
+              />
+            </BlockErrorBoundary>
           </div>
         );
       }}
@@ -531,6 +635,7 @@ export const DropZoneEdit = forwardRef<HTMLDivElement, DropZoneProps>(
           isAreaSelected,
           hasChildren: contentIds.length > 0,
           isAnimating,
+          isEmpty: contentIdsWithPreview.length === 0,
         })}${className ? ` ${className}` : ""}`}
         ref={setRefs}
         data-testid={`dropzone:${zoneCompound}`}
@@ -558,6 +663,15 @@ export const DropZoneEdit = forwardRef<HTMLDivElement, DropZoneProps>(
             />
           );
         })}
+        {contentIdsWithPreview.length === 0 ? (
+          <EmptyZoneCta
+            areaId={areaId}
+            // Only the actual page-content zone gets the "add section" CTA;
+            // shell zones (header/footer/drawer/popup — areaId "root" too)
+            // get the generic block CTA.
+            isRootZone={zoneCompound === rootDroppableId}
+          />
+        ) : null}
       </El>
     );
   }
@@ -590,15 +704,27 @@ const DropZoneRenderItem = ({
 
   return (
     <DropZoneProvider key={props.id} value={nextContextValue}>
-      <Component.render
-        {...props}
-        {...richtextProps}
-        puck={{
-          ...props.puck,
-          renderDropZone: DropZoneRenderPure,
-          metadata: { ...metadata, ...Component.metadata },
+      {/* Render mode (storefront/preview): a broken block disappears
+          silently instead of crashing the whole page. */}
+      <BlockErrorBoundary
+        fallback={() => null}
+        onError={(error) => {
+          console.error(
+            `[puck] Block "${item.type}" (${props.id}) failed to render:`,
+            error
+          );
         }}
-      />
+      >
+        <Component.render
+          {...props}
+          {...richtextProps}
+          puck={{
+            ...props.puck,
+            renderDropZone: DropZoneRenderPure,
+            metadata: { ...metadata, ...Component.metadata },
+          }}
+        />
+      </BlockErrorBoundary>
     </DropZoneProvider>
   );
 };

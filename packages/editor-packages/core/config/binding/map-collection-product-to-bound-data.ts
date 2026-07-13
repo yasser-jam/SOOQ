@@ -1,4 +1,4 @@
-import type { CollectionProductRef } from "@/modules/product/collection/data-store";
+import type { CollectionProductRef } from "../data-adapter/types";
 import { resolveBoundImageUrls } from "./resolve-bound-images";
 
 /** Bound payload shape for collection list items (mirrors product detail API paths). */

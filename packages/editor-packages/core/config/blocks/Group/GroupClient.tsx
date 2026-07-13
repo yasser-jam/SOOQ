@@ -4,12 +4,13 @@ import React, { CSSProperties, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Slot } from "@/core/types";
 import {
-  fetchProductDetailPayloadFromUrl,
-  getProductCardApiUrl,
-  productPickerKeys,
+  BOUND_QUERY_POLICY,
+  boundQueryKeys,
+  getEditorDataAdapter,
+  useSampleDataInEditor,
   type ProductPickerRef,
   type ProductResourceMetadata,
-} from "@/modules/product/product/data-store";
+} from "../../data-adapter";
 import { BoundDataProvider, useBoundData } from "../../binding";
 import { getBoundProductId } from "../../binding/map-collection-product-to-bound-data";
 import {
@@ -68,9 +69,12 @@ export function GroupClient({
 }: GroupClientProps) {
   const parentBound = useBoundData();
   const { cart } = useStoreCart();
+  const adapter = getEditorDataAdapter();
+  const sampleMode = isEditing && useSampleDataInEditor();
   const productId = product?.id;
   const productApiUrl =
-    metadata?.apiUrl ?? (productId ? getProductCardApiUrl(productId) : null);
+    metadata?.apiUrl ??
+    (productId ? adapter.getProductCardApiUrl(productId) : null);
 
   const parentBoundProductId = getBoundProductId(
     parentBound.data as Record<string, unknown> | null
@@ -87,18 +91,23 @@ export function GroupClient({
     ? (parentBound.data as Record<string, unknown>)
     : collectionBoundData;
 
+  // Edit canvas never hits the product API — sample data renders instantly
+  // (C2-5); preview and the published storefront fetch live.
   const shouldFetchProductDetail =
-    Boolean(productApiUrl) && !cartLineId && !skipProductDetailFetch;
+    Boolean(productApiUrl) &&
+    !cartLineId &&
+    !skipProductDetailFetch &&
+    !sampleMode;
 
   const [selectedVariantId, setSelectedVariantId] = React.useState<string | null>(
     null
   );
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: productPickerKeys.detail(productId ?? "", productApiUrl ?? ""),
-    queryFn: () => fetchProductDetailPayloadFromUrl(productApiUrl!),
+    queryKey: boundQueryKeys.productDetail(productId ?? "", productApiUrl ?? ""),
+    queryFn: () => adapter.fetchProductDetailPayload(productApiUrl!),
     enabled: shouldFetchProductDetail,
-    staleTime: 60_000,
+    ...BOUND_QUERY_POLICY,
   });
 
   React.useEffect(() => {
@@ -118,6 +127,11 @@ export function GroupClient({
     }
 
     if (prefetchedBoundData) return prefetchedBoundData;
+    // Edit canvas: sample payload keeps the picked product's identity but
+    // fills pricing/images without a network call (C2-5).
+    if (sampleMode && product?.id) {
+      return adapter.getSampleProductPayload(product);
+    }
     if (data) return data;
     if (!product?.id) return parentBound.data;
 
@@ -134,6 +148,8 @@ export function GroupClient({
     cartLineId,
     data,
     isEditing,
+    sampleMode,
+    adapter,
     parentBound.data,
     prefetchedBoundData,
     product,

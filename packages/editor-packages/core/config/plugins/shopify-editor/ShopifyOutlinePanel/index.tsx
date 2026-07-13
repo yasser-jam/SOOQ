@@ -4,6 +4,7 @@ import { PanelLeft, PanelRight, Plus } from "lucide-react";
 import { useAppStore } from "@/core/store";
 import { getClassNameFactory } from "@/core/lib";
 import { rootDroppableId } from "@/core/lib/root-droppable-id";
+import { OPEN_ADD_SECTION_EVENT } from "@/core/components/DropZone";
 import {
   ROOT_SHELL_LEFT_ZONE,
   ROOT_SHELL_RIGHT_ZONE,
@@ -338,20 +339,27 @@ export function ShopifyOutlinePanel() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [openModal, insertPresetNow, contentCount]);
 
+  // Canvas empty-page CTA (D-2) asks for the section library via this event.
+  useEffect(() => {
+    const onOpenRequest = () => openModal();
+    window.addEventListener(OPEN_ADD_SECTION_EVENT, onOpenRequest);
+    return () => window.removeEventListener(OPEN_ADD_SECTION_EVENT, onOpenRequest);
+  }, [openModal]);
+
   return (
     <div className={getClassName()}>
       <div className={getClassName("scroll")}>
         <div className={getClassName("guide")}>
-          <strong>Build your page in sections</strong>
+          <strong>ابنِ صفحتك من أقسام</strong>
           <span>
-            Add a section, then drag content or store blocks inside it. Select
-            any row below to edit its settings.
+            أضف قسماً ثم اسحب عناصر المحتوى أو عناصر المتجر داخله. اختر أي صف
+            بالأسفل لتعديل إعداداته.
           </span>
         </div>
 
         {(leftDrawerIndex >= 0 || rightDrawerIndex >= 0) && (
           <div className={getClassName("group")}>
-            <div className={getClassName("groupHeader")}>Side Rails</div>
+            <div className={getClassName("groupHeader")}>الأشرطة الجانبية</div>
             <div className={getClassName("groupBody")}>
               <div
                 className={`${getClassName("shellRow")} ${
@@ -386,12 +394,12 @@ export function ShopifyOutlinePanel() {
                 </span>
                 <div className={getClassName("fixedMeta")}>
                   <span className={getClassName("fixedLabel")}>
-                    Side drawer (left rail)
+                    درج جانبي (يسار)
                   </span>
                   <span className={getClassName("fixedHint")}>
                     {leftDrawerIndex >= 0
-                      ? "Select to edit settings"
-                      : "Click to move drawer here"}
+                      ? "اختر لتعديل الإعدادات"
+                      : "انقر لنقل الدرج إلى هنا"}
                   </span>
                 </div>
               </div>
@@ -429,12 +437,12 @@ export function ShopifyOutlinePanel() {
                 </span>
                 <div className={getClassName("fixedMeta")}>
                   <span className={getClassName("fixedLabel")}>
-                    Side drawer (right rail)
+                    درج جانبي (يمين)
                   </span>
                   <span className={getClassName("fixedHint")}>
                     {rightDrawerIndex >= 0
-                      ? "Select to edit settings"
-                      : "Click to move drawer here"}
+                      ? "اختر لتعديل الإعدادات"
+                      : "انقر لنقل الدرج إلى هنا"}
                   </span>
                 </div>
               </div>
@@ -443,19 +451,16 @@ export function ShopifyOutlinePanel() {
         )}
 
         <div className={getClassName("group")}>
-          <div className={getClassName("groupHeader")}>Components</div>
+          <div className={getClassName("groupHeader")}>أقسام الصفحة</div>
           <div className={getClassName("groupBody")}>
             {contentCount === 0 ? (
               <div className={getClassName("emptyTemplate")}>
                 <p className={getClassName("emptyTemplateTitle")}>
-                  No components yet.
+                  لا توجد أقسام بعد.
                 </p>
                 <p className={getClassName("emptyTemplateHint")}>
-                  Start with a preset to build your page faster, or press A to
-                  open the section library.
-                </p>
-                <p className={getClassName("shortcutHint")}>
-                  Side Drawer can only be dropped on the left or right shell rails.
+                  ابدأ بقالب جاهز لبناء صفحتك أسرع، أو اضغط A لفتح مكتبة
+                  الأقسام.
                 </p>
                 <div className={getClassName("quickStart")}>
                   {quickStartPresets.map((preset) => (
@@ -470,7 +475,7 @@ export function ShopifyOutlinePanel() {
                   ))}
                 </div>
                 <p className={getClassName("shortcutHint")}>
-                  Tip: press Shift+A to insert Hero instantly.
+                  تلميح: اضغط Shift+A لإدراج قسم هيرو فوراً.
                 </p>
               </div>
             ) : (
@@ -483,11 +488,11 @@ export function ShopifyOutlinePanel() {
                 contentCount === 0 ? getClassName("addSection--primary") : ""
               }`.trim()}
               onClick={() => openModal()}
-              title="Add section (A)"
+              title="إضافة قسم (A)"
               aria-keyshortcuts="A"
             >
               <Plus size={14} />
-              Add section
+              إضافة قسم
             </button>
           </div>
         </div>

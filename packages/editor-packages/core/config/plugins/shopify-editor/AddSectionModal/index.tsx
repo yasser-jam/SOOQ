@@ -418,10 +418,9 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
             {/* Header */}
             <div className={getClassName("header")}>
               <div className={getClassName("titleGroup")}>
-                <h2 className={getClassName("title")}>Add section</h2>
+                <h2 className={getClassName("title")}>إضافة قسم</h2>
                 <p className={getClassName("subtitle")}>
-                  Pick a pre-built section. You can customize every block
-                  afterward.
+                  اختر قسماً جاهزاً — يمكنك تخصيص كل عنصر فيه لاحقاً.
                 </p>
               </div>
               <button
@@ -442,7 +441,7 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
                   ref={searchInputRef}
                   type="text"
                   className={getClassName("search")}
-                  placeholder="Search sections…"
+                  placeholder="ابحث في الأقسام…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => {
@@ -465,7 +464,7 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
                     }`.trim()}
                     onClick={() => setTab(t)}
                   >
-                    {t === "all" ? "All" : CATEGORY_LABELS[t]}
+                    {t === "all" ? "الكل" : CATEGORY_LABELS[t]}
                   </button>
                 ))}
               </div>
@@ -495,7 +494,7 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
             <div className={getClassName("grid")}>
               {filtered.length === 0 ? (
                 <div className={getClassName("empty")}>
-                  No sections match "{search}". Try a different search term.
+                  لا توجد أقسام تطابق "{search}". جرّب كلمة بحث أخرى.
                   <div className={getClassName("emptyActions")}>
                     <button
                       type="button"
@@ -506,7 +505,7 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
                         searchInputRef.current?.focus();
                       }}
                     >
-                      Clear filters
+                      مسح عوامل التصفية
                     </button>
                   </div>
                 </div>

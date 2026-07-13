@@ -17,7 +17,7 @@ import {
 } from "../../content/typography-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import { useBoundValue } from "../../binding";
-import { AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import { createAlignField } from "../../fields/AlignField";
 
 export type ContentHeadingProps = WithLayout<{
   text: string;
@@ -34,60 +34,7 @@ export type ContentHeadingProps = WithLayout<{
 
 const Tag = ["h1", "h2", "h3", "h4", "h5", "h6"] as const;
 
-const alignField = {
-  type: "custom" as const,
-  label: "المحاذاة",
-  render: ({
-    value,
-    onChange,
-    Label,
-    label,
-    readOnly,
-  }: {
-    value: string;
-    onChange: (v: string) => void;
-    Label: React.FC<{ label?: string; readOnly?: boolean; children?: React.ReactNode }>;
-    label?: string;
-    readOnly?: boolean;
-  }) => {
-    const current = value ?? "left";
-    const options = [
-      { value: "right", icon: <AlignRight size={18} />, label: "يمين" },
-      { value: "center", icon: <AlignCenter size={18} />, label: "وسط" },
-      { value: "left", icon: <AlignLeft size={18} />, label: "يسار" },
-    ];
-    return (
-      <Label label={label} readOnly={readOnly}>
-        <div style={{ display: "flex", gap: 6 }}>
-          {options.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => onChange(opt.value)}
-              title={opt.label}
-              disabled={readOnly}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 36,
-                height: 32,
-                border: current === opt.value ? "2px solid #3b82f6" : "1px solid #d1d5db",
-                borderRadius: 6,
-                background: current === opt.value ? "#eff6ff" : "#fff",
-                cursor: readOnly ? "not-allowed" : "pointer",
-                opacity: readOnly ? 0.5 : 1,
-                color: current === opt.value ? "#3b82f6" : "#6b7280",
-              }}
-            >
-              {opt.icon}
-            </button>
-          ))}
-        </div>
-      </Label>
-    );
-  },
-};
+const alignField = createAlignField({ defaultValue: "left" });
 
 const ContentHeadingInner: ComponentConfig<ContentHeadingProps> = {
   label: "عنوان",

@@ -9,14 +9,17 @@ import {
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import { WithLayout, withLayout } from "../../components/Layout";
 import { ZONE_BLOCK_TYPES } from "../../shell-zones";
+// Residual editor-chrome coupling: the product picker field (search UI) still
+// comes from apps/web — the editor only runs there. The DATA layer below goes
+// through the core data-adapter instead (C2-4).
+import { productExternalField } from "@/modules/product/product/data-store";
 import {
-  productExternalField,
-  buildProductResourceMetadata,
-  buildPublicProductResourceMetadata,
+  getEditorDataAdapter,
   type ProductPickerRef,
   type ProductResourceMetadata,
-} from "@/modules/product/product/data-store";
+} from "../../data-adapter";
 import { GroupClient } from "./GroupClient";
+import { resolveMetadataProp } from "../../lib/resolve-metadata-prop";
 
 const BOX_SHADOW_PRESETS: Record<string, string> = {
   none: "none",
@@ -220,28 +223,14 @@ const GroupInternal: ComponentConfig<GroupProps> = {
     const product = props.product;
     const productId = product?.id;
 
-    if (!productId) {
-      if (props.metadata != null) {
-        return { props: { metadata: null } };
-      }
-      return {};
-    }
+    const adapter = getEditorDataAdapter();
+    const metadata = productId
+      ? product.slug
+        ? adapter.buildPublicProductResourceMetadata(product.slug, productId)
+        : adapter.buildProductResourceMetadata(productId)
+      : null;
 
-    const metadata = product.slug
-      ? buildPublicProductResourceMetadata(product.slug, productId)
-      : buildProductResourceMetadata(productId);
-    const current = props.metadata;
-
-    if (
-      current?.id === metadata.id &&
-      current?.type === metadata.type &&
-      current?.method === metadata.method &&
-      current?.apiUrl === metadata.apiUrl
-    ) {
-      return {};
-    }
-
-    return { props: { metadata } };
+    return resolveMetadataProp(props.metadata, metadata);
   },
 
   render: ({

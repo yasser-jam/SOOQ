@@ -9,7 +9,9 @@ export function resolveMediaUrl(url?: string | null): string | null {
   if (!url?.trim()) return null;
 
   const trimmed = url.trim();
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  // data:/blob: URIs (e.g. the sample catalog's inline SVGs) are already
+  // display-ready — prefixing them with the media host would corrupt them.
+  if (/^(https?:\/\/|data:|blob:)/i.test(trimmed)) return trimmed;
 
   if (!MEDIA_BASE) return trimmed;
 

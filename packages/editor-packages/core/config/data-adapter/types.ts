@@ -1,0 +1,86 @@
+/**
+ * Core-owned data contracts for the binding layer (C2-4 dependency inversion).
+ *
+ * These used to live in `apps/web/modules/product/{product,collection}/data-store`
+ * and were imported INTO the editor core — inverting the intended dependency
+ * direction and blocking reuse (e.g. the future mobile builder). The shapes are
+ * verbatim copies, so TypeScript's structural typing keeps the two sides
+ * interchangeable while apps migrate their imports.
+ */
+
+export type ProductPickerRef = {
+  id: string;
+  titleAr?: string;
+  titleEn?: string;
+  slug?: string;
+};
+
+export type ProductResourceMetadata = {
+  type: "product";
+  method: "get";
+  apiUrl: string;
+  id: string;
+};
+
+export type CollectionPickerRef = {
+  id: string;
+  name: string;
+  slug: string;
+  productCount?: number;
+};
+
+export type ProductsGridResourceMetadata = {
+  type: "collection";
+  method: "get";
+  collectionId: string;
+  collectionSlug: string;
+  productCount: number;
+  apiUrl: string;
+};
+
+export type CollectionProductRef = {
+  id: string;
+  titleAr?: string;
+  titleEn?: string;
+  slug?: string;
+  displayPrice?: string;
+  basePrice?: number;
+  compareAtPrice?: number;
+  currencyCode?: string;
+  status?: string;
+  primaryImageUrl?: string;
+  descriptionAr?: string;
+  descriptionEn?: string;
+};
+
+export type ProductCardVariant = {
+  variantId?: string;
+  attributes: Record<string, string>;
+  price: number;
+  compareAtPrice: number;
+  stockQty: number | null;
+  lowStockThreshold?: number | null;
+  isActive?: boolean;
+};
+
+export type ProductCardData = {
+  id: string;
+  titleAr: string;
+  titleEn: string;
+  descriptionAr: string;
+  descriptionEn: string;
+  slug: string;
+  basePrice: number;
+  compareAtPrice: number;
+  currencyCode: string;
+  status: string;
+  allowOversell: boolean;
+  categories: Array<{ id: string; name?: string }>;
+  tags: Array<{ id: string; name?: string }>;
+  mediaUrls: string[];
+  options: unknown[];
+  variants: ProductCardVariant[];
+};
+
+/** Raw API payload used by editor valueContext path resolution. */
+export type ProductDetailPayload = Record<string, unknown>;

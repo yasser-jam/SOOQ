@@ -1,4 +1,7 @@
 "use client"
+// Side effect: plugs the axios-backed data adapter into the editor core's
+// binding layer before any bound block renders (C2-4 inversion).
+import "@/lib/editor-data-adapter"
 import { DirectionProvider } from "@radix-ui/react-direction"
 import { AppSidebar } from "./app-sidebar"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"

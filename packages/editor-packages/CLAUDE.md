@@ -14,14 +14,22 @@ non-trivial change here** — it maps the architecture and known bottlenecks fil
   - `config/blocks/*` — ~55 block definitions (Section, Grid, Hero, ProductCard, ProductsGrid,
     CartSection, CheckoutForm, SiteHeader/Footer, Zone* overlays…). See `blocks/BLOCKS.md`
     and `blocks/ZONES.md`. Each block = folder with the Puck `ComponentConfig`.
-  - `config/index.tsx` — the client block registry (the palette). ⚠️ Duplicated ~95% in
-    `config/server.tsx` and `config/rsc.tsx` — **keep all three in sync** when adding a block.
+  - `config/index.tsx` — the **single** block registry (the palette). The old
+    `server.tsx`/`rsc.tsx` duplicates were dead code, deleted 2026-07-12 (Phase B);
+    `config/__tests__/registry-consistency.spec.ts` guards presets/palette/fixtures
+    against unregistered types.
   - `config/plugins/*` — first-party plugins: `pages` (page manager), `zones` (shell zones:
     drawers/popups/bottom-sheets), `themes` (theme presets/marketplace), `settings`
     (root/theme fields + ThemeInjector), `shopify-editor` (Shopify-style outline UI),
     `canvas-interactions`, `html-block-palette`, `json-viewer`.
   - `config/binding/` — `useBoundData` / `useBoundValue`: binds block props to live product
-    data at render time.
+    data at render time. Fully spec-covered; imports **nothing from apps/web** (guarded
+    by a test).
+  - `config/data-adapter/` — `EditorDataAdapter` interface + core-owned data types +
+    sample catalog. Apps register the axios-backed implementation
+    (`apps/web/lib/editor-data-adapter.ts`) at startup; without one, the sample adapter
+    serves demo data. The **edit canvas always renders instant sample data**
+    (no network); preview/storefront fetch live.
   - `config/lib/site-data.ts` — **the Site JSON contract** (most important file):
     `SiteData = { root (theme/shell), zones, pages: SitePage[] }`; each `SitePage` has a route
     pattern (`/products/:product-slug`), slug, and Puck `content`. Read/write via
@@ -57,7 +65,7 @@ config/registry, reusing this same SiteData/pages machinery.
 
 ## Conventions
 
-- New block: create `config/blocks/<Name>/`, register in **index.tsx + server.tsx + rsc.tsx**,
+- New block: create `config/blocks/<Name>/`, register in **config/index.tsx** (single registry),
   add to the palette category in `config/options.ts`/plugin palettes, document in `BLOCKS.md`.
 - Blocks must render safely in three contexts: editor iframe, client `<Render>`, RSC.
 - Anything user-visible: Arabic labels, RTL-safe styles.

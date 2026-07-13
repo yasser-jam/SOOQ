@@ -9,6 +9,7 @@ import {
 } from "../../types";
 import { useSlots } from "../../lib/use-slots";
 import { useRichtextProps } from "../RichTextEditor/lib/use-richtext-props";
+import { BlockErrorBoundary } from "../BlockErrorBoundary";
 
 type SlotRenderProps = DropZoneProps & {
   content: Content;
@@ -43,17 +44,27 @@ const Item = ({
       : undefined;
 
   return (
-    <Component.render
-      {...props}
-      {...richtextProps}
-      puck={{
-        dragRef: null,
-        isEditing: false,
-        ...puckFromMetadata,
-        ...props.puck,
-        metadata: metadata || {},
+    <BlockErrorBoundary
+      fallback={() => null}
+      onError={(error) => {
+        console.error(
+          `[puck] Block "${item.type}" (${props.id}) failed to render:`,
+          error
+        );
       }}
-    />
+    >
+      <Component.render
+        {...props}
+        {...richtextProps}
+        puck={{
+          dragRef: null,
+          isEditing: false,
+          ...puckFromMetadata,
+          ...props.puck,
+          metadata: metadata || {},
+        }}
+      />
+    </BlockErrorBoundary>
   );
 };
 

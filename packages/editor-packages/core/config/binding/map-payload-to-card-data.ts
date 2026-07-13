@@ -1,7 +1,7 @@
 import type {
   ProductCardData,
   ProductResourceMetadata,
-} from "@/modules/product/product/data-store";
+} from "../data-adapter/types";
 import type { ProductCardActionEventDetail } from "./product-actions";
 import { resolveBoundImageUrls } from "./resolve-bound-images";
 
