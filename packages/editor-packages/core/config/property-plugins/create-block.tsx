@@ -1,8 +1,13 @@
 import type { ComponentConfig, DefaultComponentProps, Field } from "@/core/types";
 import type { LeftOrExactRight } from "@/core/types/Internal";
 import type { ComponentConfigParams } from "@/core/types";
-import type { BlockConfig, PropertyPlugin } from "./types";
+import type { BlockConfig } from "./types";
 
+/**
+ * Register a block through property plugins instead of a flat `fields` map.
+ * Each plugin contributes fields (tagged with its group), defaults, optional
+ * resolveFields, and optional render wrappers (e.g. layoutPlugin's Layout shell).
+ */
 export function createBlock<
   Props extends LeftOrExactRight<Props, DefaultComponentProps, ComponentConfigParams>
 >(config: BlockConfig<Props>): ComponentConfig<Props> {

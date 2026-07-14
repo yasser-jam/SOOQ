@@ -22,28 +22,39 @@ import { useRegisterFieldsSlice } from "../../../../store/slices/fields";
 import { useShallow } from "zustand/react/shallow";
 import { StoreApi } from "zustand";
 import {
-  AlignRight,
-  LayoutPanelTop,
-  Palette,
-  Settings2,
-  SquareDashed,
-  Type,
-} from "lucide-react";
-import {
-  FIELD_GROUP_COLORS,
-  FIELD_GROUP_LABELS,
-  FIELD_GROUP_ORDER,
-  groupFieldNames,
-  type FieldGroup,
-} from "./field-groups";
+  PLUGIN_GROUP_COLORS,
+  PLUGIN_GROUP_ICONS,
+  PLUGIN_GROUP_LABELS,
+  resolvePropertyTabs,
+  type PropertyPlugin,
+} from "../../../../config/property-plugins";
+import type { PluginTab } from "../../../../config/property-plugins/group-fields";
+import type { PropertyPluginGroup } from "../../../../config/property-plugins/registry";
 
-const FIELD_GROUP_ICONS: Record<FieldGroup, ReactNode> = {
-  content: <AlignRight size={15} />,
-  layout: <LayoutPanelTop size={15} />,
-  background: <Palette size={15} />,
-  typography: <Type size={15} />,
-  border: <SquareDashed size={15} />,
-  advanced: <Settings2 size={15} />,
+const getTabColor = (tab: PluginTab, plugins?: PropertyPlugin[]) => {
+  const plugin = plugins?.find(
+    (p) => p.id === tab.pluginId || p.group === tab.group
+  );
+  return plugin?.color ?? PLUGIN_GROUP_COLORS[tab.group as PropertyPluginGroup];
+};
+
+const getTabIcon = (tab: PluginTab, plugins?: PropertyPlugin[]) => {
+  const plugin = plugins?.find(
+    (p) => p.id === tab.pluginId || p.group === tab.group
+  );
+  if (plugin) {
+    const Icon = plugin.icon;
+    return <Icon size={15} />;
+  }
+  const Fallback = PLUGIN_GROUP_ICONS[tab.group as PropertyPluginGroup];
+  return <Fallback size={15} />;
+};
+
+const getTabLabel = (tab: PluginTab, plugins?: PropertyPlugin[]) => {
+  const plugin = plugins?.find(
+    (p) => p.id === tab.pluginId || p.group === tab.group
+  );
+  return plugin?.label ?? PLUGIN_GROUP_LABELS[tab.group as PropertyPluginGroup];
 };
 
 const getClassName = getClassNameFactory("PuckFields", styles);
@@ -304,41 +315,38 @@ const FieldsInternal = ({ wrapFields = true }: { wrapFields?: boolean }) => {
   const appStore = useAppStoreApi();
   useRegisterFieldsSlice(appStore, id);
 
+  const propertyPlugins = useAppStore((s) => {
+    if (!s.selectedItem) return undefined;
+    const config = s.config.components[s.selectedItem.type] as
+      | { metadata?: { propertyPlugins?: PropertyPlugin[] } }
+      | undefined;
+    return config?.metadata?.propertyPlugins;
+  });
+
   const fieldsLoading = useAppStore((s) => s.fields.loading);
-  // Object identity of the fields slice is stable per registration, so the
-  // grouping memo below only recomputes when the selection's fields change.
   const fieldsMap = useAppStore((s) =>
     s.fields.id === id ? s.fields.fields : null
   );
 
-  const grouped = useMemo(
-    () => groupFieldNames(fieldsMap ?? {}),
-    [fieldsMap]
+  const tabs = useMemo(
+    () => resolvePropertyTabs(fieldsMap ?? {}, propertyPlugins),
+    [fieldsMap, propertyPlugins]
   );
 
-  const nonEmptyGroups = useMemo(
-    () => FIELD_GROUP_ORDER.filter((group) => grouped[group].length > 0),
-    [grouped]
-  );
+  const [activeTabId, setActiveTabId] = useState<string>("content");
 
-  const [activeGroup, setActiveGroup] = useState<FieldGroup>("content");
-
-  // Reset the tab when the selection changes — land on the first tab that
-  // actually has fields.
   useEffect(() => {
-    setActiveGroup(
-      grouped.content.length > 0 ? "content" : nonEmptyGroups[0] ?? "content"
-    );
+    const contentTab = tabs.find((t) => t.group === "content");
+    setActiveTabId(contentTab?.pluginId ?? tabs[0]?.pluginId ?? "content");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const showTabs = nonEmptyGroups.length > 1;
-  const resolvedGroup = nonEmptyGroups.includes(activeGroup)
-    ? activeGroup
-    : nonEmptyGroups[0] ?? "content";
+  const showTabs = tabs.length > 1;
+  const activeTab =
+    tabs.find((t) => t.pluginId === activeTabId) ?? tabs[0] ?? null;
   const visibleNames = showTabs
-    ? grouped[resolvedGroup]
-    : nonEmptyGroups.flatMap((group) => grouped[group]);
+    ? (activeTab?.fieldNames ?? [])
+    : tabs.flatMap((tab) => tab.fieldNames);
 
   const isLoading = fieldsLoading || componentResolving;
 
@@ -358,49 +366,49 @@ const FieldsInternal = ({ wrapFields = true }: { wrapFields?: boolean }) => {
       <FieldsHeader />
       {showTabs && (
         <div className={getClassName("tabs")} role="tablist" dir="rtl">
-          {nonEmptyGroups.map((group) => (
+          {tabs.map((tab) => (
             <button
-              key={group}
+              key={tab.pluginId}
               type="button"
               role="tab"
-              aria-selected={group === activeGroup}
-              title={FIELD_GROUP_LABELS[group]}
+              aria-selected={tab.pluginId === activeTabId}
+              title={getTabLabel(tab, propertyPlugins)}
               className={`${getClassName("tab")} ${
-                group === activeGroup ? getClassName("tab--active") : ""
+                tab.pluginId === activeTabId ? getClassName("tab--active") : ""
               }`.trim()}
               style={
                 {
-                  "--tab-color": FIELD_GROUP_COLORS[group].color,
+                  "--tab-color": getTabColor(tab, propertyPlugins).color,
                 } as React.CSSProperties
               }
-              onClick={() => setActiveGroup(group)}
+              onClick={() => setActiveTabId(tab.pluginId)}
             >
               <span className={getClassName("tabIcon")}>
-                {FIELD_GROUP_ICONS[group]}
+                {getTabIcon(tab, propertyPlugins)}
               </span>
               <span className={getClassName("tabLabel")}>
-                {FIELD_GROUP_LABELS[group]}
+                {getTabLabel(tab, propertyPlugins)}
               </span>
             </button>
           ))}
         </div>
       )}
-      {showTabs && (
+      {showTabs && activeTab && (
         <div
           className={getClassName("paneHead")}
           dir="rtl"
           style={
             {
-              "--pane-tint": FIELD_GROUP_COLORS[resolvedGroup].tint,
-              "--pane-color": FIELD_GROUP_COLORS[resolvedGroup].color,
+              "--pane-tint": getTabColor(activeTab, propertyPlugins).tint,
+              "--pane-color": getTabColor(activeTab, propertyPlugins).color,
             } as React.CSSProperties
           }
         >
           <span className={getClassName("paneHeadIcon")}>
-            {FIELD_GROUP_ICONS[resolvedGroup]}
+            {getTabIcon(activeTab, propertyPlugins)}
           </span>
           <span className={getClassName("paneHeadLabel")}>
-            {FIELD_GROUP_LABELS[resolvedGroup]}
+            {getTabLabel(activeTab, propertyPlugins)}
           </span>
         </div>
       )}

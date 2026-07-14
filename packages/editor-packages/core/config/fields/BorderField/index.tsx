@@ -1,8 +1,5 @@
 "use client";
-import React, { useCallback } from "react";
-import { useAppStore, useAppStoreApi } from "@/core/store";
-import { getSelectorForId } from "@/core/lib/get-selector-for-id";
-import { rootDroppableId } from "@/core/lib/root-droppable-id";
+import React from "react";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   normalizeLayout,
@@ -12,6 +9,7 @@ import {
   type LayoutFieldProps,
   type ShadowPresetKey,
 } from "../../components/Layout/layout-shared";
+import { useLayout, useLayoutPatch } from "../../property-plugins/hooks";
 import { ThemeColorPicker } from "../ThemeColorField";
 
 /**
@@ -26,52 +24,6 @@ import { ThemeColorPicker } from "../ThemeColorField";
  * writes go straight to the sibling `layout` prop through the same
  * resolve-and-replace pipeline the regular fields panel uses.
  */
-
-const useLayoutValue = (): Required<LayoutFieldProps> => {
-  const layout = useAppStore(
-    (s) => (s.selectedItem?.props as { layout?: LayoutFieldProps })?.layout
-  );
-  return normalizeLayout(layout);
-};
-
-const useLayoutPatch = () => {
-  const appStore = useAppStoreApi();
-
-  return useCallback(
-    async (patch: Partial<LayoutFieldProps>) => {
-      const { dispatch, selectedItem, resolveComponentData } =
-        appStore.getState();
-      if (!selectedItem) return;
-
-      const currentLayout =
-        ((selectedItem.props as { layout?: LayoutFieldProps }).layout ??
-          {}) as LayoutFieldProps;
-      const newProps = {
-        ...selectedItem.props,
-        layout: { ...currentLayout, ...patch },
-      };
-
-      const resolved = await resolveComponentData(
-        { ...selectedItem, props: newProps },
-        "replace"
-      );
-
-      const selector = getSelectorForId(
-        appStore.getState().state,
-        selectedItem.props.id
-      );
-      if (!selector) return;
-
-      dispatch({
-        type: "replace",
-        destinationIndex: selector.index,
-        destinationZone: selector.zone || rootDroppableId,
-        data: resolved.node,
-      });
-    },
-    [appStore]
-  );
-};
 
 const STYLE_OPTIONS: Array<{
   value: LayoutFieldProps["borderStyle"];
@@ -141,7 +93,7 @@ const FieldRow = ({
 );
 
 function BorderDesigner({ readOnly }: { readOnly?: boolean }) {
-  const layout = useLayoutValue();
+  const layout = useLayout();
   const patch = useLayoutPatch();
 
   const width = parsePx(layout.borderWidth);

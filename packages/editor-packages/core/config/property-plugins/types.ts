@@ -9,10 +9,11 @@ import type {
   AppState,
 } from "@/core/types";
 import type { ComponentMetadata } from "@/core/types";
+import type { PropertyPluginGroup } from "./registry";
 
 export type PropertyPlugin = {
   id: string;
-  group: string;
+  group: PropertyPluginGroup;
   label: string;
   icon: LucideIcon;
   color: { color: string; tint: string };

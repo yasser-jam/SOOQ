@@ -1,12 +1,12 @@
 import React, { MouseEvent } from "react";
-import { ComponentConfig, Fields } from "@/core/types";
+import { Fields } from "@/core/types";
 import { Button as _Button } from "@/core/components/Button";
 import {
   type ButtonAction,
   BUTTON_ACTION_OPTIONS,
   buttonActionLabel,
 } from "../../content/button-actions";
-import { WithLayout, withLayout } from "../../components/Layout";
+import type { WithLayout } from "../../components/Layout";
 import {
   linkField,
   resolveHrefLegacy,
@@ -14,6 +14,10 @@ import {
   EMPTY_LINK,
   type LinkValue,
 } from "../../fields/LinkField";
+import {
+  buttonBlockPlugins,
+  createBlock,
+} from "../../property-plugins";
 
 export type ButtonProps = WithLayout<{
   label: string;
@@ -29,7 +33,7 @@ export type ButtonProps = WithLayout<{
   variant: "primary" | "secondary";
 }>;
 
-const buttonFields = {
+const buttonContentFields = {
   label: {
     type: "text" as const,
     placeholder: "Lorem ipsum...",
@@ -56,21 +60,21 @@ function filterButtonHrefFields(
 ): Fields<ButtonProps> {
   const action = data.props?.buttonAction ?? "link";
   if (action === "link") return fields;
-  // Hide the link field when the button performs an in-app action rather
-  // than navigation — the action handler runs instead of an href.
   const { link: _l, ...rest } = fields as Record<string, unknown>;
   return rest as Fields<ButtonProps>;
 }
 
-const ButtonInner: ComponentConfig<ButtonProps> = {
+export const Button = createBlock<ButtonProps>({
   label: "الزر",
-  fields: buttonFields,
+  propertyPlugins: buttonBlockPlugins(buttonContentFields),
   defaultProps: {
     label: "الزر",
     buttonAction: "link",
     link: EMPTY_LINK,
     variant: "primary",
   },
+  resolveFields: (data, params) =>
+    filterButtonHrefFields(params.fields as Fields<ButtonProps>, data),
   render: ({
     link,
     href: legacyHref,
@@ -104,7 +108,6 @@ const ButtonInner: ComponentConfig<ButtonProps> = {
       );
     }
 
-    // Prefer the new structured `link` prop; fall back to legacy string href.
     const resolvedHref = resolveHrefLegacy(link, legacyHref) ?? "#";
     const newTab = resolveLinkTarget(link) === "_blank";
 
@@ -122,27 +125,4 @@ const ButtonInner: ComponentConfig<ButtonProps> = {
       </div>
     );
   },
-};
-
-const WithLayoutButton = withLayout(ButtonInner);
-
-export const Button: typeof WithLayoutButton = {
-  ...WithLayoutButton,
-  resolveFields: (data, params) => {
-    const base = (
-      WithLayoutButton as { resolveFields?: (typeof WithLayoutButton)["resolveFields"] }
-    ).resolveFields?.(data, params);
-    if (base != null && typeof (base as Promise<unknown>).then === "function") {
-      return (base as Promise<Fields<ButtonProps>>).then((f) =>
-        filterButtonHrefFields(f, data)
-      );
-    }
-    if (base == null) {
-      return filterButtonHrefFields(
-        ButtonInner.fields as Fields<ButtonProps>,
-        data
-      );
-    }
-    return filterButtonHrefFields(base as Fields<ButtonProps>, data);
-  },
-};
+});

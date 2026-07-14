@@ -1,13 +1,16 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import React from "react";
-import { ComponentConfig, Fields } from "@/core/types";
-import { WithLayout, withLayout, hideLayoutPosition } from "../../components/Layout";
+import type { WithLayout } from "../../components/Layout";
 import { RADIUS_OPTIONS, resolveRadius } from "../../content/typography-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import type { ValueContext } from "../../binding";
 import { useBoundValue } from "../../binding";
 import { createAlignField } from "../../fields/AlignField";
+import {
+  createBlock,
+  imageBlockPlugins,
+} from "../../property-plugins";
 
 export type ContentImageProps = WithLayout<{
   src: string;
@@ -40,31 +43,33 @@ function resolveImageRadius(
   return resolveRadius("theme-md");
 }
 
-const ContentImageInner: ComponentConfig<ContentImageProps> = {
-  label: "صورة",
-  fields: {
-    src: { type: "text", label: "رابط الصورة" },
-    alt: { type: "text", label: "نص بديل" },
-    align: alignField,
-    objectFit: {
-      type: "select",
-      label: "طريقة الملاءمة",
-      options: [
-        { label: "تغطية", value: "cover" },
-        { label: "احتواء", value: "contain" },
-        { label: "ملء", value: "fill" },
-        { label: "بدون", value: "none" },
-        { label: "تصغير", value: "scale-down" },
-      ],
-    },
-    radius: themeFixedSelectField({
-      label: "زاوية الحدود",
-      themeOptions: RADIUS_OPTIONS,
-      type: "number",
-      placeholder: "القيمة بالبكسل",
-    }),
-    maxWidth: { type: "text", label: "العرض الأقصى" },
+const imageFields = {
+  src: { type: "text" as const, label: "رابط الصورة" },
+  alt: { type: "text" as const, label: "نص بديل" },
+  align: alignField,
+  objectFit: {
+    type: "select" as const,
+    label: "طريقة الملاءمة",
+    options: [
+      { label: "تغطية", value: "cover" },
+      { label: "احتواء", value: "contain" },
+      { label: "ملء", value: "fill" },
+      { label: "بدون", value: "none" },
+      { label: "تصغير", value: "scale-down" },
+    ],
   },
+  radius: themeFixedSelectField({
+    label: "زاوية الحدود",
+    themeOptions: RADIUS_OPTIONS,
+    type: "number",
+    placeholder: "القيمة بالبكسل",
+  }),
+  maxWidth: { type: "text" as const, label: "العرض الأقصى" },
+};
+
+export const ContentImage = createBlock<ContentImageProps>({
+  label: "صورة",
+  propertyPlugins: imageBlockPlugins(imageFields),
   defaultProps: {
     src: "https://placehold.co/800x450/e2e8f0/64748b?text=%D8%B5%D9%88%D8%B1%D8%A9",
     alt: "",
@@ -137,27 +142,4 @@ const ContentImageInner: ComponentConfig<ContentImageProps> = {
       </div>
     );
   },
-};
-
-const WithLayoutImage = withLayout(ContentImageInner);
-
-export const ContentImage: typeof WithLayoutImage = {
-  ...WithLayoutImage,
-  resolveFields: (data, params) => {
-    const resolver = (
-      WithLayoutImage as { resolveFields?: (typeof WithLayoutImage)["resolveFields"] }
-    ).resolveFields;
-    const base = resolver?.(data, params);
-    if (base != null && typeof (base as Promise<unknown>).then === "function") {
-      return (base as Promise<Fields<ContentImageProps>>).then((f) =>
-        hideLayoutPosition(f)
-      );
-    }
-    if (base == null) {
-      return hideLayoutPosition(
-        ContentImageInner.fields as Fields<ContentImageProps>
-      );
-    }
-    return hideLayoutPosition(base as Fields<ContentImageProps>);
-  },
-};
+});
