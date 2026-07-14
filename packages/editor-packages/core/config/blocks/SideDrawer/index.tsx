@@ -27,6 +27,7 @@ import {
   type LinkValue,
 } from "../../fields/LinkField";
 import { createStarterTextBlock } from "../Section/starter-data";
+import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
 import styles from "./styles.module.css";
 const getClassName = getClassNameFactory("SideDrawer", styles);
 
@@ -343,6 +344,8 @@ const SideDrawerInternal: ComponentConfig<SideDrawerProps> = {
       ),
     ],
   },
+  resolveFields: (_data, params) =>
+    applyMobileEditorFieldGroups(params.fields, params.metadata),
   render: ({
     name,
     title,

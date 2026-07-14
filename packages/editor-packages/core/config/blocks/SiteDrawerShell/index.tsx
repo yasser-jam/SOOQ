@@ -12,6 +12,7 @@ import {
   type SiteDrawerTrigger,
 } from "../../components/SiteDrawer";
 import { ZONE_BLOCK_PERMISSIONS } from "../../shell-zones";
+import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
 
 export type SiteDrawerShellProps = {
   name: string;
@@ -274,6 +275,8 @@ export const SiteDrawerShell: ComponentConfig<SiteDrawerShellProps> = {
     openOnEdgeHover: true,
     language: "ar",
   },
+  resolveFields: (_data, params) =>
+    applyMobileEditorFieldGroups(params.fields, params.metadata),
   render: ({ puck, ...props }) => {
     return <></>
     // return <SiteDrawer {...props} editMode={!!puck.isEditing} />;

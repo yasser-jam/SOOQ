@@ -4,6 +4,7 @@ import type { Slot } from "@/core/types";
 import { colorField } from "../../fields/ColorField";
 import { ZonePopup as ZonePopupComponent } from "../../components/ZonePopup";
 import { ZONE_BLOCK_PERMISSIONS, ZONE_BLOCK_TYPES } from "../../shell-zones";
+import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
 
 export type ZonePopupProps = {
   is_active: boolean;
@@ -89,6 +90,8 @@ export const ZonePopup: ComponentConfig<ZonePopupProps> = {
     showCloseButton: true,
     slot: [],
   },
+  resolveFields: (_data, params) =>
+    applyMobileEditorFieldGroups(params.fields, params.metadata),
   render: ({
     is_active,
     is_mobile_only,

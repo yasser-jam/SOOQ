@@ -16,6 +16,7 @@ import {
   type LayoutVisibility,
 } from "./layout-shared";
 import type { Fields } from "@/core/types";
+import { isMobileEditorMetadata } from "../../lib/editor-mode";
 
 export type { FloatPresetKey, WithLayout } from "./layout-shared";
 export { getFloatInsetStyleFromPreset } from "./layout-shared";
@@ -57,6 +58,12 @@ const createLayoutField = (
   ),
 });
 
+function mobileLayoutExtras(
+  metadata?: { editorMode?: string }
+): LayoutVisibility {
+  return isMobileEditorMetadata(metadata) ? { showVisibility: true } : {};
+}
+
 export function withLayout<
   Props extends LeftOrExactRight<
     Props,
@@ -90,6 +97,8 @@ export function withLayout<
         layoutBorder: borderDesignField,
       };
 
+      const mobileExtras = mobileLayoutExtras(params.metadata);
+
       if (params.parent?.type === "Grid") {
         return {
           ...withBorderDesigner,
@@ -98,6 +107,7 @@ export function withLayout<
             showSpanRow: true,
             showGrow: false,
             maxSpanCol: 12,
+            ...mobileExtras,
           }),
         };
       }
@@ -109,6 +119,7 @@ export function withLayout<
             showSpanRow: true,
             showGrow: false,
             maxSpanCol: 6,
+            ...mobileExtras,
           }),
         };
       }
@@ -119,6 +130,7 @@ export function withLayout<
             showSpanCol: false,
             showSpanRow: false,
             showGrow: true,
+            ...mobileExtras,
           }),
         };
       }
@@ -129,6 +141,7 @@ export function withLayout<
           showSpanCol: false,
           showSpanRow: false,
           showGrow: false,
+          ...mobileExtras,
         }),
       };
     },

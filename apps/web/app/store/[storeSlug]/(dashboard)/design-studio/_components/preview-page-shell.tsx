@@ -7,14 +7,25 @@ import { Button } from "@workspace/ui/components/button";
 type PreviewPageShellProps = {
   pageTitle?: string;
   editHref: string;
+  variant?: "desktop" | "mobile";
   children: React.ReactNode;
 };
 
 export function PreviewPageShell({
   pageTitle,
   editHref,
+  variant = "desktop",
   children,
 }: PreviewPageShellProps) {
+  const previewLabel =
+    variant === "mobile"
+      ? pageTitle
+        ? `معاينة الجوال: ${pageTitle}`
+        : "معاينة الجوال"
+      : pageTitle
+        ? `معاينة: ${pageTitle}`
+        : "معاينة الصفحة";
+
   return (
     <div data-design-studio-preview className="PreviewPageShell">
       <header className="PreviewPageShell-header">
@@ -29,7 +40,7 @@ export function PreviewPageShell({
 
         <div className="PreviewPageShell-headerCenter">
           <Eye size={16} aria-hidden />
-          <span>{pageTitle ? `معاينة: ${pageTitle}` : "معاينة الصفحة"}</span>
+          <span>{previewLabel}</span>
         </div>
 
         <div className="PreviewPageShell-headerEnd" aria-hidden />

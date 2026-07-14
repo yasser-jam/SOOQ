@@ -4,6 +4,7 @@ import type { Slot } from "@/core/types";
 import { colorField } from "../../fields/ColorField";
 import { ZoneDrawer as ZoneDrawerComponent } from "../../components/ZoneDrawer";
 import { ZONE_BLOCK_PERMISSIONS, ZONE_BLOCK_TYPES } from "../../shell-zones";
+import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
 
 export type ZoneDrawerProps = {
   is_active: boolean;
@@ -86,6 +87,8 @@ export const ZoneDrawer: ComponentConfig<ZoneDrawerProps> = {
     showCloseButton: true,
     slot: [],
   },
+  resolveFields: (_data, params) =>
+    applyMobileEditorFieldGroups(params.fields, params.metadata),
   render: ({
     is_active,
     is_mobile_only,

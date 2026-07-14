@@ -11,6 +11,7 @@ import {
 } from "../../components/Footer";
 import type { ShellVariant } from "../../theme";
 import { ZONE_BLOCK_PERMISSIONS } from "../../shell-zones";
+import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
 
 export type SiteFooterProps = {
   title: string;
@@ -168,6 +169,8 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
     backgroundColor: "",
     textColor: "",
   },
+  resolveFields: (_data, params) =>
+    applyMobileEditorFieldGroups(params.fields, params.metadata),
   render: ({
     title,
     variant,

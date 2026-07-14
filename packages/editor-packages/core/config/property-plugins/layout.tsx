@@ -14,6 +14,7 @@ import {
   PLUGIN_GROUP_COLORS,
   PLUGIN_GROUP_LABELS,
 } from "./registry";
+import { isMobileEditorMetadata } from "../lib/editor-mode";
 import type { PropertyPlugin } from "./types";
 
 const getClassName = getClassNameFactory("Layout", layoutStyles);
@@ -56,13 +57,18 @@ export type LayoutPluginOptions = LayoutVisibility & {
 
 function resolveLayoutFieldForParent(
   parent: ComponentData | null,
-  options: LayoutPluginOptions
+  options: LayoutPluginOptions,
+  metadata?: { editorMode?: string }
 ): LayoutCustomField {
   const showPosition = options.showPosition !== false;
+  const mobileExtras = isMobileEditorMetadata(metadata)
+    ? { showVisibility: true }
+    : {};
 
   if (parent?.type === "Grid") {
     return createLayoutField({
       ...options,
+      ...mobileExtras,
       showSpanCol: true,
       showSpanRow: true,
       showGrow: false,
@@ -73,6 +79,7 @@ function resolveLayoutFieldForParent(
   if (parent?.type === "Section") {
     return createLayoutField({
       ...options,
+      ...mobileExtras,
       showSpanCol: true,
       showSpanRow: true,
       showGrow: false,
@@ -83,6 +90,7 @@ function resolveLayoutFieldForParent(
   if (parent?.type === "Flex") {
     return createLayoutField({
       ...options,
+      ...mobileExtras,
       showSpanCol: false,
       showSpanRow: false,
       showGrow: true,
@@ -92,6 +100,7 @@ function resolveLayoutFieldForParent(
 
   return createLayoutField({
     ...options,
+    ...mobileExtras,
     showSpanCol: false,
     showSpanRow: false,
     showGrow: false,
@@ -119,7 +128,11 @@ export function layoutPlugin(
       layout: defaultLayoutValue,
     },
     resolveFields: async (fields, _data, params) => {
-      const layoutField = resolveLayoutFieldForParent(params.parent, options);
+      const layoutField = resolveLayoutFieldForParent(
+        params.parent,
+        options,
+        params.metadata
+      );
       return {
         ...fields,
         layout: layoutField,

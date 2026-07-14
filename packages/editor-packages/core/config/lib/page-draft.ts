@@ -1,4 +1,6 @@
 import { componentKey } from "../component-key";
+import type { EditorMode } from "./editor-mode";
+import { getActiveEditorMode } from "./editor-mode";
 import type { UserData } from "../types";
 
 /**
@@ -16,14 +18,18 @@ export type PageDraft = {
 
 const isBrowser = typeof window !== "undefined";
 
-export const getDraftStorageKey = (path: string) =>
-  `puck-demo:${componentKey}:draft:${path}`;
+export const getDraftStorageKey = (path: string, mode?: EditorMode) => {
+  const resolvedMode = mode ?? getActiveEditorMode();
+  return resolvedMode === "mobile"
+    ? `puck-demo:${componentKey}:draft:mobile:${path}`
+    : `puck-demo:${componentKey}:draft:${path}`;
+};
 
-export function readPageDraft(path: string): PageDraft | null {
+export function readPageDraft(path: string, mode?: EditorMode): PageDraft | null {
   if (!isBrowser) return null;
 
   try {
-    const raw = window.localStorage.getItem(getDraftStorageKey(path));
+    const raw = window.localStorage.getItem(getDraftStorageKey(path, mode));
     if (!raw) return null;
 
     const parsed = JSON.parse(raw) as PageDraft;
@@ -37,12 +43,16 @@ export function readPageDraft(path: string): PageDraft | null {
   }
 }
 
-export function writePageDraft(path: string, data: UserData): void {
+export function writePageDraft(
+  path: string,
+  data: UserData,
+  mode?: EditorMode
+): void {
   if (!isBrowser) return;
 
   try {
     window.localStorage.setItem(
-      getDraftStorageKey(path),
+      getDraftStorageKey(path, mode),
       JSON.stringify({ savedAt: Date.now(), data } satisfies PageDraft)
     );
   } catch {
@@ -50,11 +60,11 @@ export function writePageDraft(path: string, data: UserData): void {
   }
 }
 
-export function clearPageDraft(path: string): void {
+export function clearPageDraft(path: string, mode?: EditorMode): void {
   if (!isBrowser) return;
 
   try {
-    window.localStorage.removeItem(getDraftStorageKey(path));
+    window.localStorage.removeItem(getDraftStorageKey(path, mode));
   } catch {
     // ignore
   }

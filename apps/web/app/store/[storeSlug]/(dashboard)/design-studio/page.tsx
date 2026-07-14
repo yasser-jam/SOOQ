@@ -10,6 +10,7 @@ import {
   Link2Icon,
   Pencil,
   Sparkles,
+  Smartphone,
 } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
@@ -28,7 +29,10 @@ import type { StoreStatus } from "@/modules/auth/store/types"
 import ThemeMarketplaceCard from "./_components/theme-marketplace-card"
 import ThemePreviewCard from "./_components/theme-preview-card"
 import { themeCatalog } from "@/modules/design-studio/store-theme"
-import { themeNameToStudioSegment } from "@/lib/design-studio-paths"
+import {
+  buildStudioMobileEditHref,
+  themeNameToStudioSegment,
+} from "@/lib/design-studio-paths"
 import { useSelectedStoreTheme } from "@/modules/design-studio/use-selected-store-theme"
 
 const statusLabels: Record<StoreStatus, string> = {
@@ -56,9 +60,14 @@ export default function DesignStudioPage() {
   const { selectedTheme, selectTheme, isReady } = useSelectedStoreTheme()
 
   const editorBase = storePath("/design-studio")
-  const themeEditHref = selectedTheme
-    ? `${editorBase}/${themeNameToStudioSegment(selectedTheme.name)}/edit`
-    : `${editorBase}/theme-1/edit`
+  const themeSegment = selectedTheme
+    ? themeNameToStudioSegment(selectedTheme.name)
+    : "theme-1"
+  const themeEditHref = `${editorBase}/${themeSegment}/edit`
+  const themeMobileEditHref = buildStudioMobileEditHref(
+    editorBase,
+    selectedTheme?.name ?? "Theme 1"
+  )
   const themesGalleryHref = themeEditHref
 
   const storeSlug = settings?.slug ?? ""
@@ -229,12 +238,20 @@ export default function DesignStudioPage() {
               ) : null}
             </div>
 
-            <div className="mt-4 flex w-full gap-2">
-              <Button className="grow" asChild>
-                <Link href={storePath("/design-studio/")}>معاينة</Link>
-              </Button>
-              <Button className="grow" variant="outline" asChild>
-                <Link href={themeEditHref}>تعديل</Link>
+            <div className="mt-4 flex w-full flex-col gap-2">
+              <div className="flex w-full gap-2">
+                <Button className="grow" asChild>
+                  <Link href={storePath("/design-studio/")}>معاينة</Link>
+                </Button>
+                <Button className="grow" variant="outline" asChild>
+                  <Link href={themeEditHref}>تعديل</Link>
+                </Button>
+              </div>
+              <Button className="w-full" variant="secondary" asChild>
+                <Link href={themeMobileEditHref}>
+                  <Smartphone data-icon="inline-start" className="size-4" />
+                  محرر الجوال
+                </Link>
               </Button>
             </div>
           </div>

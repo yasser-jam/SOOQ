@@ -9,6 +9,7 @@ import { createColumnsField } from "../../fields/ColumnsField";
 import { createOverlayField } from "../../fields/OverlayField";
 import { WithLayout, withLayout } from "../../components/Layout";
 import { ZONE_BLOCK_TYPES } from "../../shell-zones";
+import { isMobileEditorMetadata } from "../../lib/editor-mode";
 import { sectionCollectionPickerField } from "../../fields/CollectionPickerField";
 import type { CollectionPickerRef } from "@/modules/product/collection/data-store";
 import {
@@ -34,6 +35,7 @@ import {
 } from "./zone-section";
 import { CartSectionStorefront } from "./CartSectionStorefront";
 import { CollectionProductsBoundProvider } from "../../binding/CollectionProductsBoundProvider";
+import { readMobileBreakpointPx } from "../../theme";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("Section", styles);
@@ -223,15 +225,24 @@ const SectionInner: ComponentConfig<SectionProps> = {
     content: createSectionStarterContent(),
   },
 
-  resolveFields: (data, { fields }) => {
-    if (!isProductsGridSection(data.props)) {
-      return fields;
+  resolveFields: (data, params) => {
+    let fields = params.fields;
+
+    if (isProductsGridSection(data.props)) {
+      fields = {
+        collection: sectionCollectionPickerField,
+        ...fields,
+      } as typeof fields;
     }
 
-    return {
-      collection: sectionCollectionPickerField,
-      ...fields,
-    } as typeof fields;
+    if (isMobileEditorMetadata(params.metadata)) {
+      fields = {
+        ...fields,
+        columnsMobile: createColumnsField({ label: "أعمدة الجوال" }),
+      } as typeof fields;
+    }
+
+    return fields;
   },
 
   resolveData: async ({ props }, { changed, trigger }) => {
@@ -418,7 +429,7 @@ const SectionInner: ComponentConfig<SectionProps> = {
         )}
         {sectionScopeId && colsMobile !== cols && (
           <style>{`
-            @media (max-width: 768px) {
+            @media (max-width: ${readMobileBreakpointPx()}px) {
               [data-section-id="${sectionScopeId}"] .${gridClassName} {
                 grid-template-columns: repeat(${colsMobile}, minmax(0, 1fr)) !important;
               }

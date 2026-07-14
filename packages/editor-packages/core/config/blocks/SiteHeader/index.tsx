@@ -10,6 +10,7 @@ import {
   type HeaderLink,
 } from "../../components/Header";
 import { ZONE_BLOCK_PERMISSIONS, ZONE_BLOCK_TYPES } from "../../shell-zones";
+import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
 
 export type SiteHeaderProps = {
   title: string;
@@ -176,6 +177,8 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
     drawerName: "site-drawer",
     rightSlot: [],
   },
+  resolveFields: (_data, params) =>
+    applyMobileEditorFieldGroups(params.fields, params.metadata),
   render: ({
     title,
     variant,

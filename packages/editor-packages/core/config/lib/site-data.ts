@@ -10,7 +10,21 @@ import {
   type PageDefinition,
 } from "../page-registry";
 import { normalizeEditorData } from "./normalize-editor-data";
+import {
+  type EditorMode,
+  getActiveEditorMode,
+  isMobileEditorMetadata,
+} from "./editor-mode";
 import type { UserData } from "../types";
+
+export type { EditorMode } from "./editor-mode";
+export {
+  getActiveEditorMode,
+  isMobileEditorMetadata,
+  isMobileEditorMode,
+  parseEditorMode,
+  setActiveEditorMode,
+} from "./editor-mode";
 
 type JsonRecord = Record<string, unknown>;
 type ZoneMap = NonNullable<UserData["zones"]>;
@@ -68,8 +82,10 @@ export type SiteData = {
   pages: SitePage[];
 };
 
-export function getSiteStorageKey() {
-  return `puck-demo:${componentKey}:site`;
+export function getSiteStorageKey(mode: EditorMode = "desktop") {
+  return mode === "mobile"
+    ? `puck-demo:${componentKey}:site:mobile`
+    : `puck-demo:${componentKey}:site`;
 }
 
 /**
@@ -81,13 +97,14 @@ export function getSiteStorageKey() {
 function migrateLegacySiteStorageKey(): void {
   if (!isBrowser) return;
 
-  const currentKey = getSiteStorageKey();
+  const currentKey = getSiteStorageKey("desktop");
   if (window.localStorage.getItem(currentKey) !== null) return;
 
   for (let i = 0; i < window.localStorage.length; i += 1) {
     const key = window.localStorage.key(i);
     if (!key || key === currentKey) continue;
     if (!key.startsWith("puck-demo:") || !key.endsWith(":site")) continue;
+    if (key.endsWith(":site:mobile")) continue;
 
     const payload = window.localStorage.getItem(key);
     if (!payload) continue;
@@ -455,24 +472,24 @@ export function normalizeSiteData(value: Partial<SiteData> | null | undefined): 
  * keystroke. Cache the normalized result keyed by the raw localStorage string:
  * same string → same (treat-as-immutable) SiteData instance.
  */
-let siteReadCache: { raw: string; site: SiteData } | null = null;
+let siteReadCache: Partial<
+  Record<EditorMode, { raw: string; site: SiteData }>
+> = {};
 
-export function readSiteData(): SiteData {
-  if (!isBrowser) {
-    return buildInitialSiteData();
-  }
-
+function readDesktopSiteFromStorage(): SiteData {
   migrateLegacySiteStorageKey();
 
-  const raw = window.localStorage.getItem(getSiteStorageKey());
+  const storageKey = getSiteStorageKey("desktop");
+  const raw = window.localStorage.getItem(storageKey);
   if (raw) {
-    if (siteReadCache && siteReadCache.raw === raw) {
-      return siteReadCache.site;
+    const cached = siteReadCache.desktop;
+    if (cached && cached.raw === raw) {
+      return cached.site;
     }
 
     try {
       const site = normalizeSiteData(JSON.parse(raw) as SiteData);
-      siteReadCache = { raw, site };
+      siteReadCache.desktop = { raw, site };
       return site;
     } catch {
       // Fall through to migration.
@@ -480,19 +497,108 @@ export function readSiteData(): SiteData {
   }
 
   const migrated = migrateLegacyPerPageStorage(buildInitialSiteData());
-  writeSiteData(migrated);
+  writeSiteData(migrated, "desktop");
   return migrated;
 }
 
-export function writeSiteData(site: SiteData) {
+/** Copy the desktop site into the mobile storage key on first mobile edit. */
+export function seedMobileSiteFromDesktop(): SiteData {
+  const desktop = readDesktopSiteFromStorage();
+  const seeded = normalizeSiteData(
+    JSON.parse(JSON.stringify(desktop)) as SiteData
+  );
+  writeSiteData(seeded, "mobile");
+  return seeded;
+}
+
+export function readSiteData(mode?: EditorMode): SiteData {
+  if (!isBrowser) {
+    return buildInitialSiteData();
+  }
+
+  const resolvedMode = mode ?? getActiveEditorMode();
+
+  if (resolvedMode === "desktop") {
+    return readDesktopSiteFromStorage();
+  }
+
+  const storageKey = getSiteStorageKey("mobile");
+  const raw = window.localStorage.getItem(storageKey);
+  if (!raw) {
+    return seedMobileSiteFromDesktop();
+  }
+
+  const cached = siteReadCache.mobile;
+  if (cached && cached.raw === raw) {
+    return cached.site;
+  }
+
+  try {
+    const site = normalizeSiteData(JSON.parse(raw) as SiteData);
+    siteReadCache.mobile = { raw, site };
+    return site;
+  } catch {
+    return seedMobileSiteFromDesktop();
+  }
+}
+
+export function writeSiteData(site: SiteData, mode?: EditorMode) {
   if (!isBrowser) return;
 
+  const resolvedMode = mode ?? getActiveEditorMode();
   const normalized = normalizeSiteData(site);
   const serialized = JSON.stringify(normalized);
-  window.localStorage.setItem(getSiteStorageKey(), serialized);
-  siteReadCache = { raw: serialized, site: normalized };
+  window.localStorage.setItem(getSiteStorageKey(resolvedMode), serialized);
+  siteReadCache[resolvedMode] = { raw: serialized, site: normalized };
   window.dispatchEvent(new CustomEvent(PAGES_UPDATED_EVENT));
 }
+
+/** Whether a persisted mobile site blob exists (not just seeded in-memory). */
+export function hasMobileSiteData(): boolean {
+  if (!isBrowser) return false;
+  return window.localStorage.getItem(getSiteStorageKey("mobile")) !== null;
+}
+
+/**
+ * Pick desktop vs mobile site for the published storefront.
+ * Honors `?mode=mobile`, then viewport width when a mobile site exists.
+ */
+export function resolveStorefrontMode(): EditorMode {
+  if (!isBrowser) return "desktop";
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("mode") === "mobile" && hasMobileSiteData()) {
+    return "mobile";
+  }
+
+  if (!hasMobileSiteData()) {
+    return "desktop";
+  }
+
+  const desktop = readSiteData("desktop");
+  const bp =
+    (desktop.root?.props as { breakpointMobileMax?: number } | undefined)
+      ?.breakpointMobileMax ?? 767;
+
+  if (window.matchMedia(`(max-width: ${bp}px)`).matches) {
+    return "mobile";
+  }
+
+  return "desktop";
+}
+
+export function readStorefrontSiteData(): SiteData {
+  const mode = resolveStorefrontMode();
+  return readSiteData(mode);
+}
+
+export {
+  syncMobilePageFromDesktop,
+  syncMobileThemeFromDesktop,
+  resetMobileSiteFromDesktop,
+} from "./mobile-sync";
+
+export { applyMobileEditorFieldGroups } from "./mobile-field-groups";
 
 export function composePuckData(site: SiteData, editPath: string): UserData {
   const page = findSitePage(site, editPath);

@@ -8,6 +8,7 @@ import {
   type BilingualString,
 } from "../../fields/BilingualText";
 import { createSidebarStarterContent } from "../Section/starter-data";
+import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("Sidebar", styles);
@@ -164,6 +165,8 @@ const SidebarInternal: ComponentConfig<SidebarProps> = {
     },
     items: createSidebarStarterContent(),
   },
+  resolveFields: (_data, params) =>
+    applyMobileEditorFieldGroups(params.fields, params.metadata),
   render: ({
     title,
     showTitle,

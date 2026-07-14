@@ -10,6 +10,8 @@ import {
 	findSitePage,
 	getSiteStorageKey,
 	readSiteData,
+	readStorefrontSiteData,
+	resolveStorefrontMode,
 	type SitePage,
 } from "@/core/config/lib/site-data"
 import type { UserData } from "@/core/config/types"
@@ -25,7 +27,10 @@ export function useStorefrontData({
 	path?: string
 	metadata?: Metadata
 } = {}) {
-	const siteKey = getSiteStorageKey()
+	const [storefrontMode, setStorefrontMode] = useState(() =>
+		typeof window === "undefined" ? "desktop" : resolveStorefrontMode()
+	)
+	const siteKey = getSiteStorageKey(storefrontMode)
 	const [siteRevision, setSiteRevision] = useState(0)
 
 	useEffect(() => {
@@ -35,7 +40,29 @@ export function useStorefrontData({
 		return () => window.removeEventListener(PAGES_UPDATED_EVENT, refresh)
 	}, [])
 
-	const site = useMemo(() => readSiteData(), [siteRevision])
+	useEffect(() => {
+		const syncMode = () => setStorefrontMode(resolveStorefrontMode())
+
+		syncMode()
+
+		const desktop = readSiteData("desktop")
+		const bp =
+			(desktop.root?.props as { breakpointMobileMax?: number } | undefined)
+				?.breakpointMobileMax ?? 767
+		const mq = window.matchMedia(`(max-width: ${bp}px)`)
+		mq.addEventListener("change", syncMode)
+		window.addEventListener("popstate", syncMode)
+
+		return () => {
+			mq.removeEventListener("change", syncMode)
+			window.removeEventListener("popstate", syncMode)
+		}
+	}, [siteRevision])
+
+	const site = useMemo(
+		() => readStorefrontSiteData(),
+		[siteRevision, storefrontMode]
+	)
 	const matchedPage = useMemo<SitePage | undefined>(
 		() => findSitePage(site, path),
 		[site, path],
@@ -78,6 +105,7 @@ export function useStorefrontData({
 		pageFound: Boolean(matchedPage),
 		matchedPage,
 		siteKey,
-		readSiteData,
+		storefrontMode,
+		readStorefrontSiteData,
 	}
 }

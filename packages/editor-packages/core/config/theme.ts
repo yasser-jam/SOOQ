@@ -378,6 +378,17 @@ export function buildResponsiveLayoutCss(bp: BreakpointThemeProps): string {
 `;
 }
 
+/** Parse `--theme-bp-mobile-max` from the document (set by ThemeInjector). */
+export function readMobileBreakpointPx(fallback = 767): number {
+  if (typeof document === "undefined") return fallback;
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue("--theme-bp-mobile-max")
+    .trim()
+    .replace(/px$/, "");
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 /** Parse Puck canvas viewport width (number, "360px", or "100%") to a pixel width for bucket checks. */
 export function parseViewportWidthForBucket(
   w: string | number | undefined

@@ -12,7 +12,7 @@ import {
 import config from "@/core/config"
 import { useDemoData } from "@/lib/use-demo-data"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
   CircleHelp,
   Copy,
@@ -23,6 +23,11 @@ import {
   MousePointer2,
   Type,
   X,
+  Smartphone,
+  Monitor,
+  RefreshCw,
+  Palette,
+  ChevronDown,
 } from "lucide-react"
 import { settingsPlugin } from "@/core/config/plugins/settings"
 import { HtmlBlockPaletteSync } from "@/core/config/plugins/html-block-palette"
@@ -36,7 +41,13 @@ import {
   applyPuckSave,
   findSitePage,
   normalizeSiteData,
+  parseEditorMode,
   readSiteData,
+  resetMobileSiteFromDesktop,
+  setActiveEditorMode,
+  syncMobilePageFromDesktop,
+  syncMobileThemeFromDesktop,
+  type EditorMode,
   type SiteData,
 } from "@/core/config/lib/site-data"
 import {
@@ -48,6 +59,13 @@ import { ThemeInjector } from "@/core/config/plugins/settings/ThemeInjector"
 import type { UserData } from "@/core/config/types"
 import type { FullThemeProps } from "@/core/config/theme"
 import { Button } from "@workspace/ui/components/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell"
 import { PreviewPageShell } from "../_components/preview-page-shell"
 import { PreviewThemeProvider } from "../_components/preview-theme-provider"
@@ -56,6 +74,7 @@ import {
   buildStudioPreviewHrefFromSegment,
   resolveStudioThemeEditHref,
   resolveStudioThemePreviewHref,
+  withEditorMode,
 } from "@/lib/design-studio-paths"
 import { useSelectedPage } from "@/core/config/lib/use-selected-page"
 
@@ -68,11 +87,27 @@ const hiddenPluginNames = new Set(["themes", "heading-analyzer"])
 
 const EDITOR_HINT_DISMISSED_KEY = "puck-demo-editor-hint-dismissed-v1"
 
-// Must be referentially stable: <Puck metadata={...}> is a dependency of
-// PuckProvider's store-rebuild effect — a fresh object per render used to
-// re-initialize the entire editor store on every Client re-render.
-const EDITOR_METADATA = {
+// Must be referentially stable per editor mode — PuckProvider rebuilds when
+// metadata identity changes.
+const EDITOR_METADATA_DESKTOP = {
   example: "Hello, world",
+  editorMode: "desktop" as const,
+}
+
+const EDITOR_METADATA_MOBILE = {
+  example: "Hello, world",
+  editorMode: "mobile" as const,
+}
+
+const MOBILE_VIEWPORTS = [
+  { width: 360, height: "auto" as const, icon: "Smartphone" as const, label: "جوال" },
+]
+
+const MOBILE_PUCK_UI = {
+  viewports: {
+    current: { width: 360, height: "auto" as const },
+    controlsVisible: false,
+  },
 }
 
 // Stable for the same reason — feeds PuckProvider's loadedFieldTransforms.
@@ -108,10 +143,12 @@ function JsonViewerDialog({
   open,
   onClose,
   getSiteSnapshot,
+  editorMode = "desktop",
 }: {
   open: boolean
   onClose: () => void
   getSiteSnapshot: () => SiteData
+  editorMode?: EditorMode
 }) {
   // Only subscribe to editor data while the dialog is open — otherwise every
   // keystroke in the canvas re-renders this (closed) dialog.
@@ -171,8 +208,12 @@ function JsonViewerDialog({
       <div className="EditorShortcutDialog EditorJsonDialog" data-puck-no-shortcuts="true">
         <div className="EditorShortcutDialogHeader">
           <div>
-            <p className="EditorShortcutEyebrow">Site data</p>
-            <h2 className="EditorShortcutTitle">JSON</h2>
+            <p className="EditorShortcutEyebrow">
+              {editorMode === "mobile" ? "Mobile site data" : "Site data"}
+            </p>
+            <h2 className="EditorShortcutTitle">
+              {editorMode === "mobile" ? "JSON (الجوال)" : "JSON"}
+            </h2>
           </div>
 
           <div className="EditorJsonDialog-actions">
@@ -217,9 +258,11 @@ function JsonViewerDialog({
 function EditorFloatingTools({
   getSiteSnapshot,
   modKeyLabel,
+  editorMode = "desktop",
 }: {
   getSiteSnapshot: () => SiteData
   modKeyLabel: string
+  editorMode?: EditorMode
 }) {
   const [isShortcutDialogOpen, setShortcutDialogOpen] = useState(false)
   const [isJsonDialogOpen, setJsonDialogOpen] = useState(false)
@@ -282,6 +325,7 @@ function EditorFloatingTools({
         open={isJsonDialogOpen}
         onClose={() => setJsonDialogOpen(false)}
         getSiteSnapshot={getSiteSnapshot}
+        editorMode={editorMode}
       />
 
       {isShortcutDialogOpen ? (
@@ -436,17 +480,31 @@ export function Client({
   const selectedPagePath = useSelectedPage()
   const path = themeSlug ? selectedPagePath : (pathProp ?? "/")
 
+  const searchParams = useSearchParams()
+  const editorMode: EditorMode = parseEditorMode(searchParams.get("mode"))
+  const isMobileEditor = editorMode === "mobile"
+
+  setActiveEditorMode(editorMode)
+
+  const editorMetadata = isMobileEditor
+    ? EDITOR_METADATA_MOBILE
+    : EDITOR_METADATA_DESKTOP
+
+  const [siteRevision, setSiteRevision] = useState(0)
+
   const { data, resolvedData, savePageData } = useDemoData({
     path,
     isEdit,
-    metadata: EDITOR_METADATA,
+    mode: editorMode,
+    metadata: editorMetadata,
+    revision: siteRevision,
   })
 
   const previewPageTitle = useMemo(() => {
-    const site = readSiteData()
+    const site = readSiteData(editorMode)
     const page = findSitePage(site, path)
     return page?.title ?? page?.name ?? path
-  }, [path])
+  }, [path, editorMode])
 
   const pathname = usePathname()
   const router = useRouter()
@@ -457,13 +515,27 @@ export function Client({
 
   const previewHref = useMemo(
     () =>
-      themeSlug
-        ? buildStudioPreviewHrefFromSegment(designStudioHref, themeSlug)
-        : resolveStudioThemePreviewHref(designStudioHref),
-    [designStudioHref, themeSlug]
+      withEditorMode(
+        themeSlug
+          ? buildStudioPreviewHrefFromSegment(designStudioHref, themeSlug)
+          : resolveStudioThemePreviewHref(designStudioHref),
+        editorMode
+      ),
+    [designStudioHref, themeSlug, editorMode]
   )
 
   const editHref = useMemo(
+    () =>
+      withEditorMode(
+        themeSlug
+          ? buildStudioEditHrefFromSegment(designStudioHref, themeSlug)
+          : resolveStudioThemeEditHref(designStudioHref),
+        editorMode
+      ),
+    [designStudioHref, themeSlug, editorMode]
+  )
+
+  const desktopEditHref = useMemo(
     () =>
       themeSlug
         ? buildStudioEditHrefFromSegment(designStudioHref, themeSlug)
@@ -471,7 +543,12 @@ export function Client({
     [designStudioHref, themeSlug]
   )
 
-  const exportFileName = "site"
+  const mobileEditHref = useMemo(
+    () => withEditorMode(desktopEditHref, "mobile"),
+    [desktopEditHref]
+  )
+
+  const exportFileName = isMobileEditor ? "site-mobile" : "site"
 
   const [isClient, setIsClient] = useState(false)
   const exportDataRef = useRef<UserData | null>(null)
@@ -484,13 +561,13 @@ export function Client({
   const [draftEpoch, setDraftEpoch] = useState(0)
   const initialDraft = useMemo(() => {
     if (!isEdit) return null
-    const draft = readPageDraft(path)
+    const draft = readPageDraft(path, editorMode)
     if (!draft) return null
     if (JSON.stringify(draft.data) === JSON.stringify(data)) return null
     return draft
     // draftEpoch: bumped when the user discards the draft, forcing a re-read.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEdit, path, data, draftEpoch])
+  }, [isEdit, path, data, draftEpoch, editorMode])
 
   const editorData = initialDraft?.data ?? data
 
@@ -521,14 +598,14 @@ export function Client({
 
         if (json === draftBaselineRef.current) {
           // User edited back to the baseline — no unsaved work left.
-          clearPageDraft(path)
+          clearPageDraft(path, editorMode)
           return
         }
 
-        writePageDraft(path, nextData)
+        writePageDraft(path, nextData, editorMode)
       }, 1000)
     },
-    [path]
+    [path, editorMode]
   )
 
   // On page switch / unmount: flush any pending edit into the draft so fast
@@ -542,23 +619,75 @@ export function Client({
         draftTimerRef.current = null
         const pending = exportDataRef.current
         if (pending && draftBaselineRef.current !== null) {
-          writePageDraft(path, pending)
+          writePageDraft(path, pending, editorMode)
         }
       }
     }
-  }, [path])
+  }, [path, editorMode])
 
   const handleDiscardDraft = useCallback(() => {
     if (draftTimerRef.current) {
       window.clearTimeout(draftTimerRef.current)
       draftTimerRef.current = null
     }
-    clearPageDraft(path)
+    clearPageDraft(path, editorMode)
     draftBaselineRef.current = null
     exportDataRef.current = null
     // Remounts <Puck> with the saved page data.
     setDraftEpoch((epoch) => epoch + 1)
-  }, [path])
+  }, [path, editorMode])
+
+  const reloadMobileSite = useCallback(() => {
+    if (draftTimerRef.current) {
+      window.clearTimeout(draftTimerRef.current)
+      draftTimerRef.current = null
+    }
+    clearPageDraft(path, editorMode)
+    draftBaselineRef.current = null
+    exportDataRef.current = null
+    siteDataRef.current = readSiteData(editorMode)
+    setSiteRevision((revision) => revision + 1)
+    setDraftEpoch((epoch) => epoch + 1)
+  }, [path, editorMode])
+
+  const handleSyncPageFromDesktop = useCallback(() => {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        "سيتم استبدال محتوى هذه الصفحة في نسخة الجوال بنسخة سطح المكتب. هل تريد المتابعة؟"
+      )
+    ) {
+      return
+    }
+    syncMobilePageFromDesktop(path)
+    reloadMobileSite()
+  }, [path, reloadMobileSite])
+
+  const handleSyncThemeFromDesktop = useCallback(() => {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        "سيتم نسخ إعدادات المظهر من سطح المكتب إلى نسخة الجوال. محتوى الصفحات لن يتغير. هل تريد المتابعة؟"
+      )
+    ) {
+      return
+    }
+    syncMobileThemeFromDesktop()
+    reloadMobileSite()
+  }, [reloadMobileSite])
+
+  const handleResetMobileSite = useCallback(() => {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        "سيتم إعادة تعيين موقع الجوال بالكامل من نسخة سطح المكتب. ستفقد جميع تخصيصات الجوال. هل تريد المتابعة؟"
+      )
+    ) {
+      return
+    }
+    resetMobileSiteFromDesktop()
+    reloadMobileSite()
+  }, [reloadMobileSite])
 
   // After an explicit save (publish / preview), the crash-safety draft is
   // obsolete: cancel any pending debounced write so it can't resurrect a
@@ -569,11 +698,11 @@ export function Client({
         window.clearTimeout(draftTimerRef.current)
         draftTimerRef.current = null
       }
-      clearPageDraft(path)
+      clearPageDraft(path, editorMode)
       draftBaselineRef.current = JSON.stringify(savedData)
       setDraftNoticeVisible(false)
     },
-    [path]
+    [path, editorMode]
   )
   // ------------------------------------------------------------------------
 
@@ -586,7 +715,7 @@ export function Client({
   }, [editorData])
 
   const getSiteSnapshot = useCallback(() => {
-    const base = siteDataRef.current ?? readSiteData()
+    const base = siteDataRef.current ?? readSiteData(editorMode)
     const puckData = exportDataRef.current
 
     if (puckData) {
@@ -594,7 +723,7 @@ export function Client({
     }
 
     return base
-  }, [path])
+  }, [path, editorMode])
 
   const modKeyLabel = useMemo(() => {
     if (typeof navigator === "undefined") return "Ctrl"
@@ -606,19 +735,19 @@ export function Client({
   }, [])
 
   useEffect(() => {
-    siteDataRef.current = readSiteData()
+    siteDataRef.current = readSiteData(editorMode)
     exportDataRef.current = null
-  }, [path])
+  }, [path, editorMode])
 
   const handleOpenPreview = useCallback(() => {
     const puckData = exportDataRef.current ?? latestDataRef.current
     if (puckData) {
       savePageData(puckData as UserData)
-      siteDataRef.current = readSiteData()
+      siteDataRef.current = readSiteData(editorMode)
       markPageSaved(puckData as UserData)
     }
     router.push(previewHref)
-  }, [previewHref, router, savePageData, markPageSaved])
+  }, [previewHref, router, savePageData, markPageSaved, editorMode])
   const handleExportJson = () => {
     if (typeof window === "undefined") return
     const blob = new Blob(
@@ -668,6 +797,7 @@ export function Client({
           <EditorFloatingTools
             getSiteSnapshot={getSiteSnapshot}
             modKeyLabel={modKeyLabel}
+            editorMode={editorMode}
           />
         </>
       ),
@@ -697,6 +827,57 @@ export function Client({
       },
       headerActions: ({ children }) => (
         <div className="EditorHeaderActions">
+          <div className="EditorModeToggle" dir="rtl">
+            <Button
+              variant={isMobileEditor ? "outline" : "default"}
+              size="sm"
+              asChild
+            >
+              <Link href={desktopEditHref}>
+                <Monitor size={16} />
+                سطح المكتب
+              </Link>
+            </Button>
+            <Button
+              variant={isMobileEditor ? "default" : "outline"}
+              size="sm"
+              asChild
+            >
+              <Link href={mobileEditHref}>
+                <Smartphone size={16} />
+                الجوال
+              </Link>
+            </Button>
+          </div>
+          {isMobileEditor ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <RefreshCw size={16} />
+                  مزامنة
+                  <ChevronDown size={14} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" dir="rtl">
+                <DropdownMenuItem onClick={handleSyncPageFromDesktop}>
+                  <Copy size={14} />
+                  نسخ الصفحة من سطح المكتب
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSyncThemeFromDesktop}>
+                  <Palette size={14} />
+                  مزامنة المظهر من سطح المكتب
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={handleResetMobileSite}
+                >
+                  <RefreshCw size={14} />
+                  إعادة تعيين موقع الجوال
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
           <Button variant="outline" size="sm" asChild>
             <Link href={designStudioHref}>إغلاق المحرر</Link>
           </Button>
@@ -708,7 +889,18 @@ export function Client({
         </div>
       ),
     }),
-    [designStudioHref, getSiteSnapshot, handleOpenPreview, modKeyLabel]
+    [
+      designStudioHref,
+      desktopEditHref,
+      getSiteSnapshot,
+      handleOpenPreview,
+      handleResetMobileSite,
+      handleSyncPageFromDesktop,
+      handleSyncThemeFromDesktop,
+      isMobileEditor,
+      mobileEditHref,
+      modKeyLabel,
+    ]
   )
 
   const previewRootProps = useMemo(() => {
@@ -793,18 +985,23 @@ export function Client({
           </div>
         ) : null}
         <Puck
-          key={`${path}:${draftEpoch}`}
+          key={`${path}:${editorMode}:${draftEpoch}`}
           config={config}
           data={editorData}
           height="100%"
-          ui={{ rightSideBarVisible: false, leftSideBarVisible: true }}
+          ui={{
+            rightSideBarVisible: false,
+            leftSideBarVisible: true,
+            ...(isMobileEditor ? MOBILE_PUCK_UI : {}),
+          }}
+          viewports={isMobileEditor ? MOBILE_VIEWPORTS : undefined}
           onChange={(nextData) => {
             exportDataRef.current = nextData
             scheduleDraftWrite(nextData)
           }}
           onPublish={async (data) => {
             savePageData(data as UserData)
-            siteDataRef.current = readSiteData()
+            siteDataRef.current = readSiteData(editorMode)
             markPageSaved(data as UserData)
           }}
           plugins={plugins}
@@ -813,11 +1010,12 @@ export function Client({
           // the Shopify-style section panel + AddSectionModal.
           builtinPlugins={["blocks", "outline"]}
           headerPath={path}
+          headerTitle={isMobileEditor ? "محرر الجوال" : undefined}
           iframe={iframeConfig}
           fieldTransforms={fieldTransforms}
           _experimentalFullScreenCanvas
           overrides={overrides}
-          metadata={EDITOR_METADATA}
+          metadata={editorMetadata}
         />
       </EditorFullscreenShell>
     )
@@ -826,7 +1024,11 @@ export function Client({
   if (isPreview) {
     if (!data?.content) {
       return (
-        <PreviewPageShell pageTitle={previewPageTitle} editHref={editHref}>
+        <PreviewPageShell
+          pageTitle={previewPageTitle}
+          editHref={editHref}
+          variant={isMobileEditor ? "mobile" : "desktop"}
+        >
           <div className="PreviewPageShell-empty">
             <h1>404</h1>
             <p>Page does not exist in site data</p>
@@ -841,7 +1043,7 @@ export function Client({
           <Render
             config={config}
             data={resolvedData}
-            metadata={EDITOR_METADATA}
+            metadata={editorMetadata}
           />
         </PreviewThemeProvider>
       </PreviewPageShell>
@@ -850,7 +1052,7 @@ export function Client({
 
   if (data.content) {
     return (
-      <Render config={config} data={resolvedData} metadata={EDITOR_METADATA} />
+      <Render config={config} data={resolvedData} metadata={editorMetadata} />
     )
   }
 

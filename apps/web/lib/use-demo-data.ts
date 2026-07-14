@@ -8,6 +8,7 @@ import {
 	getSiteStorageKey,
 	readSiteData,
 	writeSiteData,
+	type EditorMode,
 } from "@/core/config/lib/site-data";
 import type { UserData } from "@/core/config/types";
 import type { RootProps } from "@/core/config/root";
@@ -15,25 +16,28 @@ import type { Components } from "@/core/config/types";
 
 const isBrowser = typeof window !== "undefined";
 
-// Stable default: `metadata = {}` inline would create a fresh object per
-// render and re-trigger the resolveAllData effect below on every render.
 const EMPTY_METADATA: Metadata = {};
 
 export const useDemoData = ({
 	path,
 	isEdit,
+	mode = "desktop",
 	metadata = EMPTY_METADATA,
+	revision = 0,
 }: {
 	path: string;
 	isEdit: boolean;
+	mode?: EditorMode;
 	metadata?: Metadata;
+	/** Bump after external site mutations (e.g. mobile sync) to re-read storage. */
+	revision?: number;
 }) => {
-	const siteKey = getSiteStorageKey();
+	const siteKey = getSiteStorageKey(mode);
 
 	const data = useMemo(() => {
-		const site = readSiteData();
+		const site = readSiteData(mode);
 		return composePuckData(site, path);
-	}, [path, siteKey]);
+	}, [path, siteKey, mode, revision]);
 
 	const [resolvedData, setResolvedData] = useState<Partial<UserData>>(data);
 
@@ -51,7 +55,7 @@ export const useDemoData = ({
 
 	useEffect(() => {
 		if (!isEdit) {
-			const site = readSiteData();
+			const site = readSiteData(mode);
 			const page = site.pages.find(
 				(entry) =>
 					entry.link === path ||
@@ -61,18 +65,25 @@ export const useDemoData = ({
 			);
 			document.title = page?.title ?? page?.name ?? "";
 		}
-	}, [path, isEdit]);
+	}, [path, isEdit, mode]);
 
 	const savePageData = useCallback(
 		(puckData: UserData) => {
 			if (!isBrowser) return;
 
-			const site = readSiteData();
+			const site = readSiteData(mode);
 			const nextSite = applyPuckSave(site, path, puckData);
-			writeSiteData(nextSite);
+			writeSiteData(nextSite, mode);
 		},
-		[path],
+		[path, mode],
 	);
 
-	return { data, resolvedData, key: siteKey, savePageData, readSiteData };
+	return {
+		data,
+		resolvedData,
+		key: siteKey,
+		mode,
+		savePageData,
+		readSiteData: () => readSiteData(mode),
+	};
 };
