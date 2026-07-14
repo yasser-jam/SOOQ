@@ -2,7 +2,14 @@
 
 import { getClassNameFactory } from "@/core/lib"
 import styles from "./styles.module.css"
-import { DEFAULT_BADGE, DEFAULT_SHELL, DEFAULT_BREAKPOINTS, FullThemeProps } from "../../../theme"
+import {
+  DEFAULT_BADGE,
+  DEFAULT_SHELL,
+  DEFAULT_BREAKPOINTS,
+  DEFAULT_SPACING_SCALE,
+  FullThemeProps,
+  SpacingScaleProps,
+} from "../../../theme"
 import type { SettingsRootProps } from "./index"
 import OptionTabs from "./OptionTabs"
 
@@ -75,6 +82,38 @@ export default function LookBlock({ rootProps, updateProps }: { rootProps?: Sett
       <div className={getClassName("field")}>
         <OptionTabs label="تخطيط التذييل" value={footerVariant} options={SHELL_VARIANT_OPTIONS} onValueChange={(v) => updateProps({ footerVariant: v as any })} />
       </div>
+
+      <div className={getClassName("sectionTitle")}>سلّم المسافات</div>
+      <p className={getClassName("sectionHint")}>
+        قيم الدرجات (ضيقة/متوسطة/واسعة) التي تظهر في حقول المسافات لكل الأقسام —
+        غيّرها هنا مرة واحدة لينعكس الإيقاع على المتجر كله.
+      </p>
+      {(
+        [
+          { key: "spacingVerticalNarrow", label: "عمودية — ضيقة (px)" },
+          { key: "spacingVerticalMedium", label: "عمودية — متوسطة (px)" },
+          { key: "spacingVerticalWide", label: "عمودية — واسعة (px)" },
+          { key: "spacingSideNarrow", label: "جانبية — ضيقة (px)" },
+          { key: "spacingSideMedium", label: "جانبية — متوسطة (px)" },
+          { key: "spacingSideWide", label: "جانبية — واسعة (px)" },
+        ] as { key: keyof SpacingScaleProps; label: string }[]
+      ).map(({ key, label }) => {
+        const raw = rootProps?.[key] ?? DEFAULT_SPACING_SCALE[key]
+        const current = parseInt(String(raw), 10) || 0
+        return (
+          <div key={key} className={getClassName("field")}>
+            <NumberField
+              label={label}
+              value={current}
+              min={0}
+              max={200}
+              onChange={(nextValue) =>
+                updateProps({ [key]: `${nextValue}px` } as Partial<SettingsRootProps>)
+              }
+            />
+          </div>
+        )
+      })}
 
       <div className={getClassName("sectionTitle")}>نقاط التوقف</div>
       <p className={getClassName("sectionHint")}>

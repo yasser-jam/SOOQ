@@ -6,6 +6,10 @@
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../../../components/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
+/* The editor fork's SOOQ config (fields panel, settings plugin, block fields)
+   styles its controls with Tailwind utilities — without this line only the
+   class names that happen to also appear in the apps get generated. */
+@source "../../../editor-packages/core/config/**/*.{ts,tsx}";
 
 @theme inline {
     --font-heading: var(--font-sans);

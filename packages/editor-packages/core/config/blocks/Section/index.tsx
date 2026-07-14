@@ -2,8 +2,11 @@ import React from "react";
 import { ComponentConfig, Slot } from "@/core/types";
 import type { ComponentDataOptionalId } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";
-import { spacingOptions } from "../../options";
 import { resolveColor } from "../../content/color-fields";
+import { createThemeColorField } from "../../fields/ThemeColorField";
+import { createSpacingField } from "../../fields/SpacingField";
+import { createColumnsField } from "../../fields/ColumnsField";
+import { createOverlayField } from "../../fields/OverlayField";
 import { WithLayout, withLayout } from "../../components/Layout";
 import { ZONE_BLOCK_TYPES } from "../../shell-zones";
 import { sectionCollectionPickerField } from "../../fields/CollectionPickerField";
@@ -51,17 +54,12 @@ export const backgroundOptions = [
 ];
 
 const maxWidthOptions = [
-  { label: "Full width", value: "100%" },
-  { label: "Wide (1536px)", value: "1536px" },
-  { label: "Standard (1280px)", value: "1280px" },
-  { label: "Medium (1024px)", value: "1024px" },
-  { label: "Narrow (768px)", value: "768px" },
+  { label: "كامل العرض", value: "100%" },
+  { label: "عريض (1536px)", value: "1536px" },
+  { label: "قياسي (1280px)", value: "1280px" },
+  { label: "متوسط (1024px)", value: "1024px" },
+  { label: "ضيق (768px)", value: "768px" },
 ];
-
-const columnOptions = [1, 2, 3, 4, 5, 6].map((n) => ({
-  label: n === 1 ? "1 (full width)" : String(n),
-  value: String(n),
-}));
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -148,99 +146,56 @@ const SectionInner: ComponentConfig<SectionProps> = {
           "Hide a section when you want to keep working on it without publishing it.",
       },
       options: [
-        { label: "Visible", value: true },
-        { label: "Hidden", value: false },
+        { label: "ظاهر", value: true },
+        { label: "مخفي", value: false },
       ],
     },
 
-    // ── Spacing ──────────────────────────────────────────────────────────
-    paddingTop: {
-      type: "select",
-      label: "مسافة من الأعلى",
-      metadata: {
-        helpText: "Controls the breathing room at the top of this section.",
-      },
-      options: [{ label: "0px", value: "0px" }, ...spacingOptions],
-    },
-    paddingBottom: {
-      type: "select",
-      label: "مسافة من الأسفل",
-      metadata: {
-        helpText: "Controls the breathing room below this section.",
-      },
-      options: [{ label: "0px", value: "0px" }, ...spacingOptions],
-    },
-    paddingHorizontal: {
-      type: "select",
-      label: "مسافة جانبية",
-      metadata: {
-        helpText: "Adds room on the left and right, useful on mobile screens.",
-      },
-      options: [{ label: "0px", value: "0px" }, ...spacingOptions],
-    },
+    // ── Spacing (التخطيط tab — named levels from the theme scale) ────────
+    paddingTop: createSpacingField({ label: "المسافة من الأعلى", axis: "vertical" }),
+    paddingBottom: createSpacingField({ label: "المسافة من الأسفل", axis: "vertical" }),
+    paddingHorizontal: createSpacingField({ label: "المسافة من الجانبين", axis: "side" }),
 
-    // ── Appearance ───────────────────────────────────────────────────────
-    backgroundColor: {
-      type: "select",
+    // ── Background (الخلفية tab) ─────────────────────────────────────────
+    backgroundColor: createThemeColorField({
       label: "لون الخلفية",
-      options: backgroundOptions,
-    },
+      context: "background",
+      allowTransparent: true,
+    }),
     backgroundImage: {
       type: "text",
       label: "صورة الخلفية (رابط)",
       placeholder: "https://example.com/image.jpg",
       metadata: {
+        group: "background",
         helpText:
           "Optional background image URL. Shown as cover behind section content.",
       },
     },
-    backgroundOverlayColor: {
-      type: "text",
-      label: "لون التغطية فوق الصورة",
-      placeholder: "rgba(0, 0, 0, 0.45)",
-      metadata: {
-        helpText:
-          "Semi-transparent color over the background image. Use rgba for transparency.",
-        example: "rgba(0, 0, 0, 0.45)",
-      },
-    },
+    backgroundOverlayColor: createOverlayField({
+      label: "التغطية فوق الصورة",
+    }),
     theme: {
       type: "radio",
       label: "لون النص",
+      metadata: { group: "typography" },
       options: [
-        { label: "Dark", value: "dark" },
-        { label: "Light (white)", value: "light" },
+        { label: "داكن", value: "dark" },
+        { label: "فاتح (أبيض)", value: "light" },
       ],
     },
 
-    // ── Container ────────────────────────────────────────────────────────
+    // ── Container (التخطيط tab) ──────────────────────────────────────────
     maxWidth: {
       type: "select",
-      label: "العرض الأقصى",
+      label: "عرض المحتوى",
       options: maxWidthOptions,
     },
 
-    columns: {
-      type: "select",
-      label: "أعمدة الشبكة",
-      metadata: {
-        helpText: "Split section content into simple columns.",
-      },
-      options: columnOptions,
-    },
-    columnsMobile: {
-      type: "select",
-      label: "أعمدة الشبكة (جوال)",
-      metadata: {
-        helpText: "Column count on screens 768px wide or smaller.",
-      },
-      options: columnOptions,
-    },
-    gridGap: {
-      type: "select",
-      label: "فجوة الشبكة",
-      options: [{ label: "0px", value: "0px" }, ...spacingOptions],
-    },
+    columns: createColumnsField({ label: "أعمدة المحتوى" }),
+    // columnsMobile deliberately has no field — the stored value still
+    // renders, and gets its own control in the mobile builder instance.
+    gridGap: createSpacingField({ label: "فجوة الشبكة", axis: "side" }),
 
     // ── Content slot ─────────────────────────────────────────────────────
     content: {

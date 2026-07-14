@@ -23,6 +23,7 @@ import {
   DEFAULT_BREAKPOINTS,
   DEFAULT_COLORS,
   DEFAULT_SHELL,
+  DEFAULT_SPACING_SCALE,
   DEFAULT_THEME,
 } from "../../../theme"
 
@@ -87,6 +88,7 @@ export function SettingsPanel() {
           ...DEFAULT_BADGE,
           ...DEFAULT_SHELL,
           ...DEFAULT_BREAKPOINTS,
+          ...DEFAULT_SPACING_SCALE,
         } as any,
       },
       recordHistory: true,

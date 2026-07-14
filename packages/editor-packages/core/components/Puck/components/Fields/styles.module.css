@@ -84,50 +84,78 @@
   white-space: nowrap;
 }
 
-/* ── D-3: content / style / advanced tabs ───────────────────────────────── */
+/* ── Six function tabs (icon over label, fixed color per group) ─────────── */
 .PuckFields-tabs {
   position: sticky;
   top: 49px;
   z-index: 2;
   display: flex;
-  gap: 4px;
-  padding: 8px 12px;
+  padding: 0 6px;
   background: var(--puck-color-white);
   border-bottom: 1px solid var(--puck-color-grey-09);
 }
 
 .PuckFields-tab {
   appearance: none;
-  border: 1px solid transparent;
+  border: none;
   background: transparent;
-  border-radius: 999px;
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--puck-color-grey-04);
+  flex: 1;
+  min-width: 0;
+  padding: 7px 2px 8px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--puck-color-grey-05);
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  transition: background 120ms ease-out, color 120ms ease-out;
+  gap: 3px;
+  border-bottom: 2.5px solid transparent;
+  transition: color 120ms ease-out, border-color 120ms ease-out;
 }
 
 .PuckFields-tab:hover {
-  background: var(--puck-color-grey-11);
+  color: var(--tab-color, var(--puck-color-azure-04));
 }
 
 .PuckFields-tab--active {
-  background: var(--puck-color-azure-11);
-  border-color: var(--puck-color-azure-09);
-  color: var(--puck-color-azure-03);
+  color: var(--tab-color, var(--puck-color-azure-04));
+  border-bottom-color: var(--tab-color, var(--puck-color-azure-04));
 }
 
-.PuckFields-tabCount {
-  font-size: 10px;
+.PuckFields-tabIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.PuckFields-tabLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Tinted strip carrying the active tab's color into the pane */
+.PuckFields-paneHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 12px 0;
+  padding: 7px 11px;
+  border-radius: 10px;
+  background: var(--pane-tint, var(--puck-color-grey-11));
+  color: var(--pane-color, var(--puck-color-grey-04));
+}
+
+.PuckFields-paneHeadIcon {
+  display: flex;
+  align-items: center;
+}
+
+.PuckFields-paneHeadLabel {
+  font-size: 12px;
   font-weight: 700;
-  background: color-mix(in srgb, currentColor 12%, transparent);
-  border-radius: 999px;
-  padding: 1px 6px;
 }
 
 .PuckFields--wrapFields .PuckFields-field {

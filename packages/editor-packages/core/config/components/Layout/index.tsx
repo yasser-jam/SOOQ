@@ -7,6 +7,7 @@ import type { LeftOrExactRight } from "@/core/types/Internal";
 import { getClassNameFactory } from "@/core/lib";
 import { Layout } from "./Layout.client";
 import { LayoutBoxField } from "./LayoutField";
+import { borderDesignField } from "../../fields/BorderField";
 import styles from "./styles.module.css";
 import {
   defaultLayoutValue,
@@ -24,10 +25,15 @@ const getClassName = getClassNameFactory("Layout", styles);
 export const layoutField: LayoutCustomField = {
   type: "custom",
   label: "Layout",
+  metadata: { group: "layout" },
   showSpanCol: true,
   showSpanRow: true,
   showGrow: false,
   maxSpanCol: 12,
+  // Border + shadow moved out of this box field into the dedicated
+  // «الحدود» tab (the `layoutBorder` designer registered by withLayout).
+  showBorder: false,
+  showShadow: false,
   render: (props) => (
     <LayoutBoxField
       {...props}
@@ -77,9 +83,16 @@ export function withLayout<
           ? await componentConfig.resolveFields(data, params)
           : params.fields) ?? params.fields;
 
+      // Border + shadow live in their own «الحدود» tab via this designer;
+      // blocks opt out with hideLayoutBorder (which removes it again).
+      const withBorderDesigner = {
+        ...resolvedFromConfig,
+        layoutBorder: borderDesignField,
+      };
+
       if (params.parent?.type === "Grid") {
         return {
-          ...resolvedFromConfig,
+          ...withBorderDesigner,
           layout: createLayoutField({
             showSpanCol: true,
             showSpanRow: true,
@@ -90,7 +103,7 @@ export function withLayout<
       }
       if (params.parent?.type === "Section") {
         return {
-          ...resolvedFromConfig,
+          ...withBorderDesigner,
           layout: createLayoutField({
             showSpanCol: true,
             showSpanRow: true,
@@ -101,7 +114,7 @@ export function withLayout<
       }
       if (params.parent?.type === "Flex") {
         return {
-          ...resolvedFromConfig,
+          ...withBorderDesigner,
           layout: createLayoutField({
             showSpanCol: false,
             showSpanRow: false,
@@ -111,7 +124,7 @@ export function withLayout<
       }
 
       return {
-        ...resolvedFromConfig,
+        ...withBorderDesigner,
         layout: createLayoutField({
           showSpanCol: false,
           showSpanRow: false,
@@ -147,11 +160,14 @@ export function hideLayoutPosition<Props extends DefaultComponentProps>(fields: 
 }
 
 export function hideLayoutBorder<Props extends DefaultComponentProps>(fields: Fields<Props>): Fields<Props> {
+  const next = { ...fields } as Record<string, unknown>;
+  // The border designer is its own field now — opting out means removing it.
+  delete next.layoutBorder;
   const f = fields.layout;
   if (f && typeof f === "object" && "render" in f) {
-    return { ...fields, layout: { ...f, showBorder: false } } as Fields<Props>;
+    next.layout = { ...f, showBorder: false };
   }
-  return fields;
+  return next as Fields<Props>;
 }
 
 export function omitLayoutField<Props extends DefaultComponentProps>(

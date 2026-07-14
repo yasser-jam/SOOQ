@@ -42,6 +42,8 @@ export type LayoutFieldProps = {
   /** `none` hides the border regardless of width. */
   borderStyle?: "solid" | "dashed" | "none";
   borderColor?: string;
+  /** Corner rounding (e.g. `10px`). Applied even when the border is hidden. */
+  borderRadius?: string;
   shadowMode?: "none" | "preset" | "custom";
   shadowPreset?: "sm" | "md" | "lg" | "xl";
   shadowOffsetX?: string;
@@ -116,6 +118,7 @@ export const defaultLayoutValue: Required<
     | "borderWidth"
     | "borderStyle"
     | "borderColor"
+    | "borderRadius"
     | "shadowMode"
     | "shadowPreset"
     | "shadowOffsetX"
@@ -152,6 +155,7 @@ export const defaultLayoutValue: Required<
   borderWidth: "0px",
   borderStyle: "solid",
   borderColor: "#cbd5e1",
+  borderRadius: "0px",
   shadowMode: "none",
   shadowPreset: "md",
   shadowOffsetX: "0px",
@@ -206,6 +210,10 @@ export function resolveLayoutAppearanceStyles(
     appearance.borderWidth = layout.borderWidth;
     appearance.borderStyle = layout.borderStyle;
     appearance.borderColor = layout.borderColor;
+  }
+
+  if (layout.borderRadius && layout.borderRadius !== "0px") {
+    appearance.borderRadius = layout.borderRadius;
   }
 
   if (layout.shadowMode === "none") {

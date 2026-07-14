@@ -288,6 +288,34 @@ export const DEFAULT_SHELL: ShellThemeProps = {
   footerVariant: "commerce",
 };
 
+// ─── Spacing scale (named spacing levels used by SpacingField) ────────────────
+//
+// Merchants pick a named level (ضيقة/متوسطة/واسعة) per section side instead of a
+// raw px value; the level→px mapping is defined once here (and editable from the
+// settings panel) so the whole store keeps one consistent spacing rhythm.
+// Values are stored in block props as plain px strings — changing the scale only
+// affects how the SpacingField labels an existing value, never saved data.
+
+export type SpacingScaleProps = {
+  /** Vertical rhythm (section top/bottom padding) */
+  spacingVerticalNarrow: string;
+  spacingVerticalMedium: string;
+  spacingVerticalWide: string;
+  /** Horizontal rhythm (side padding, grid gaps) */
+  spacingSideNarrow: string;
+  spacingSideMedium: string;
+  spacingSideWide: string;
+};
+
+export const DEFAULT_SPACING_SCALE: SpacingScaleProps = {
+  spacingVerticalNarrow: "24px",
+  spacingVerticalMedium: "48px",
+  spacingVerticalWide: "80px",
+  spacingSideNarrow: "12px",
+  spacingSideMedium: "24px",
+  spacingSideWide: "48px",
+};
+
 // ─── Responsive breakpoints (layout visibility per viewport) ─────────────────
 
 export type BreakpointThemeProps = {
@@ -715,4 +743,5 @@ export type FullThemeProps = ThemeProps &
   Partial<ShellThemeProps> &
   Partial<ScaleThemeProps> &
   Partial<BreakpointThemeProps> &
+  Partial<SpacingScaleProps> &
   Partial<ButtonVariantThemeProps>;

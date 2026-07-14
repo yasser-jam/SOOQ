@@ -1,38 +1,62 @@
 import type { Field } from "../../../../types";
 
 /**
- * D-3: the properties sidebar groups a block's fields into three tabs —
- * المحتوى (what it says/shows) / التصميم (how it looks) / متقدم (rarely
- * touched). Blocks can pin a field explicitly via `metadata: { group }`;
- * otherwise the field NAME is classified below, defaulting to content.
- * One shared map instead of per-block wiring so all ~55 blocks get the
- * organized sidebar at once.
+ * The properties sidebar groups a block's fields into six function tabs —
+ * المحتوى (what it says/shows) / التخطيط (spacing, width, columns) /
+ * الخلفية (background color/image/overlay) / الخط (typography) /
+ * الحدود (border + shadow) / متقدم (rarely touched). Blocks can pin a field
+ * explicitly via `metadata: { group }`; otherwise the field NAME is
+ * classified below, defaulting to content. One shared map instead of
+ * per-block wiring so all ~55 blocks get the organized sidebar at once.
+ *
+ * Tabs whose group has no fields for the selected block are hidden, so a
+ * simple block may show only two or three tabs.
  */
 
-export type FieldGroup = "content" | "style" | "advanced";
+export type FieldGroup =
+  | "content"
+  | "layout"
+  | "background"
+  | "typography"
+  | "border"
+  | "advanced";
 
 export const FIELD_GROUP_LABELS: Record<FieldGroup, string> = {
   content: "المحتوى",
-  style: "التصميم",
+  layout: "التخطيط",
+  background: "الخلفية",
+  typography: "الخط",
+  border: "الحدود",
   advanced: "متقدم",
 };
 
 export const FIELD_GROUP_ORDER: FieldGroup[] = [
   "content",
-  "style",
+  "layout",
+  "background",
+  "typography",
+  "border",
   "advanced",
 ];
 
-const STYLE_FIELD_NAMES = new Set([
-  // surface
-  "backgroundColor",
-  "backgroundImage",
-  "backgroundOverlayColor",
-  "theme",
-  "color",
-  "textColor",
-  "colorFixed",
-  // box
+/**
+ * Fixed accent per tab — the same color family used by the blocks palette
+ * avatars, so the two panels share one visual language.
+ */
+export const FIELD_GROUP_COLORS: Record<
+  FieldGroup,
+  { color: string; tint: string }
+> = {
+  content: { color: "#3563e9", tint: "#e8eefc" },
+  layout: { color: "#0284c7", tint: "#eaf5fd" },
+  background: { color: "#7c3aed", tint: "#f3eefe" },
+  typography: { color: "#0d9488", tint: "#e7f7f4" },
+  border: { color: "#be185d", tint: "#fdeef4" },
+  advanced: { color: "#64748b", tint: "#eef1f6" },
+};
+
+const LAYOUT_FIELD_NAMES = new Set([
+  // box spacing
   "padding",
   "paddingTop",
   "paddingBottom",
@@ -40,11 +64,7 @@ const STYLE_FIELD_NAMES = new Set([
   "margin",
   "marginTop",
   "marginBottom",
-  "borderRadius",
-  "radius",
-  "boxShadow",
-  "borderStyle",
-  "thickness",
+  // sizing
   "size",
   "width",
   "height",
@@ -52,7 +72,7 @@ const STYLE_FIELD_NAMES = new Set([
   "maxWidth",
   "aspectRatio",
   "objectFit",
-  // layout
+  // arrangement
   "layout",
   "layoutStyle",
   "layoutVariant",
@@ -69,21 +89,43 @@ const STYLE_FIELD_NAMES = new Set([
   "alignItems",
   "justifyContent",
   "wrap",
-  "align",
-  "textAlign",
   "stickyTop",
   "showOnMobile",
-  // typography-ish
+  "submitWidth",
+]);
+
+const BACKGROUND_FIELD_NAMES = new Set([
+  "backgroundColor",
+  "backgroundImage",
+  "backgroundOverlayColor",
+  "variant",
+]);
+
+const TYPOGRAPHY_FIELD_NAMES = new Set([
+  "align",
+  "textAlign",
+  "color",
+  "textColor",
+  "colorFixed",
+  "colorMode",
+  "colorTheme",
+  // Section's "theme" radio is the light/dark text choice
+  "theme",
   "fontSize",
   "fontWeight",
-  "variant",
-  // toggles that are about looks
-  "showDividerLines",
-  "showThumbnails",
-  "showAvatars",
-  "showRating",
-  "showTitle",
-  "submitWidth",
+]);
+
+const BORDER_FIELD_NAMES = new Set([
+  "border",
+  "borderRadius",
+  "radius",
+  "borderStyle",
+  "borderWidth",
+  "borderColor",
+  "thickness",
+  "boxShadow",
+  // withLayout's border designer portal field
+  "layoutBorder",
 ]);
 
 const ADVANCED_FIELD_NAMES = new Set([
@@ -106,12 +148,25 @@ export function resolveFieldGroup(
   field?: Pick<Field, "metadata"> | null
 ): FieldGroup {
   const explicit = (field?.metadata as { group?: unknown } | undefined)?.group;
-  if (explicit === "content" || explicit === "style" || explicit === "advanced") {
+  if (
+    explicit === "content" ||
+    explicit === "layout" ||
+    explicit === "background" ||
+    explicit === "typography" ||
+    explicit === "border" ||
+    explicit === "advanced"
+  ) {
     return explicit;
   }
+  // Legacy alias from the 3-group era — style fields were mostly visual;
+  // map them to background so old metadata keeps working.
+  if (explicit === "style") return "background";
 
   if (ADVANCED_FIELD_NAMES.has(fieldName)) return "advanced";
-  if (STYLE_FIELD_NAMES.has(fieldName)) return "style";
+  if (BORDER_FIELD_NAMES.has(fieldName)) return "border";
+  if (TYPOGRAPHY_FIELD_NAMES.has(fieldName)) return "typography";
+  if (BACKGROUND_FIELD_NAMES.has(fieldName)) return "background";
+  if (LAYOUT_FIELD_NAMES.has(fieldName)) return "layout";
   return "content";
 }
 
@@ -120,7 +175,10 @@ export function groupFieldNames(
 ): Record<FieldGroup, string[]> {
   const grouped: Record<FieldGroup, string[]> = {
     content: [],
-    style: [],
+    layout: [],
+    background: [],
+    typography: [],
+    border: [],
     advanced: [],
   };
 

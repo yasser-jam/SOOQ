@@ -31,8 +31,9 @@
 .DrawerItem-draggable {
   background: linear-gradient(180deg, var(--puck-color-white), #fbfdff);
   cursor: grab;
-  padding: 12px;
+  padding: 8px 12px;
   display: flex;
+  gap: 10px;
   border: 1px var(--puck-color-grey-09) solid;
   border-radius: 10px;
   font-size: var(--puck-font-size-xxs);
@@ -81,6 +82,10 @@
 }
 
 .DrawerItem-name {
+  flex: 1;
+  min-width: 0;
+  text-align: start;
+  font-weight: 600;
   overflow-x: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

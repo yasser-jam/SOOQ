@@ -37,7 +37,7 @@ export const createAlignField = ({
 } = {}) => ({
   type: "custom" as const,
   label,
-  metadata: { group: "style" },
+  metadata: { group: "typography" },
   // The fork's AutoField passes `Label` to custom renders at runtime, but
   // upstream's CustomFieldRender type doesn't declare it — same `props: any`
   // escape hatch the other field factories (ThemeFixedSelect) use.

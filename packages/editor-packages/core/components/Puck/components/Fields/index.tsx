@@ -22,11 +22,29 @@ import { useRegisterFieldsSlice } from "../../../../store/slices/fields";
 import { useShallow } from "zustand/react/shallow";
 import { StoreApi } from "zustand";
 import {
+  AlignRight,
+  LayoutPanelTop,
+  Palette,
+  Settings2,
+  SquareDashed,
+  Type,
+} from "lucide-react";
+import {
+  FIELD_GROUP_COLORS,
   FIELD_GROUP_LABELS,
   FIELD_GROUP_ORDER,
   groupFieldNames,
   type FieldGroup,
 } from "./field-groups";
+
+const FIELD_GROUP_ICONS: Record<FieldGroup, ReactNode> = {
+  content: <AlignRight size={15} />,
+  layout: <LayoutPanelTop size={15} />,
+  background: <Palette size={15} />,
+  typography: <Type size={15} />,
+  border: <SquareDashed size={15} />,
+  advanced: <Settings2 size={15} />,
+};
 
 const getClassName = getClassNameFactory("PuckFields", styles);
 
@@ -315,8 +333,11 @@ const FieldsInternal = ({ wrapFields = true }: { wrapFields?: boolean }) => {
   }, [id]);
 
   const showTabs = nonEmptyGroups.length > 1;
+  const resolvedGroup = nonEmptyGroups.includes(activeGroup)
+    ? activeGroup
+    : nonEmptyGroups[0] ?? "content";
   const visibleNames = showTabs
-    ? grouped[nonEmptyGroups.includes(activeGroup) ? activeGroup : nonEmptyGroups[0] ?? "content"]
+    ? grouped[resolvedGroup]
     : nonEmptyGroups.flatMap((group) => grouped[group]);
 
   const isLoading = fieldsLoading || componentResolving;
@@ -343,17 +364,44 @@ const FieldsInternal = ({ wrapFields = true }: { wrapFields?: boolean }) => {
               type="button"
               role="tab"
               aria-selected={group === activeGroup}
+              title={FIELD_GROUP_LABELS[group]}
               className={`${getClassName("tab")} ${
                 group === activeGroup ? getClassName("tab--active") : ""
               }`.trim()}
+              style={
+                {
+                  "--tab-color": FIELD_GROUP_COLORS[group].color,
+                } as React.CSSProperties
+              }
               onClick={() => setActiveGroup(group)}
             >
-              {FIELD_GROUP_LABELS[group]}
-              <span className={getClassName("tabCount")}>
-                {grouped[group].length}
+              <span className={getClassName("tabIcon")}>
+                {FIELD_GROUP_ICONS[group]}
+              </span>
+              <span className={getClassName("tabLabel")}>
+                {FIELD_GROUP_LABELS[group]}
               </span>
             </button>
           ))}
+        </div>
+      )}
+      {showTabs && (
+        <div
+          className={getClassName("paneHead")}
+          dir="rtl"
+          style={
+            {
+              "--pane-tint": FIELD_GROUP_COLORS[resolvedGroup].tint,
+              "--pane-color": FIELD_GROUP_COLORS[resolvedGroup].color,
+            } as React.CSSProperties
+          }
+        >
+          <span className={getClassName("paneHeadIcon")}>
+            {FIELD_GROUP_ICONS[resolvedGroup]}
+          </span>
+          <span className={getClassName("paneHeadLabel")}>
+            {FIELD_GROUP_LABELS[resolvedGroup]}
+          </span>
         </div>
       )}
       <Wrapper isLoading={isLoading} itemSelector={itemSelector}>

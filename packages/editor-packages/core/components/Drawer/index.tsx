@@ -19,6 +19,7 @@ import { useSafeId } from "../../lib/use-safe-id";
 import { useDraggable, useDroppable } from "@dnd-kit/react";
 import { useAppStore } from "../../store";
 import type { Field, PuckContext } from "../../types";
+import { BlockAvatar } from "./block-icons";
 const getClassName = getClassNameFactory("Drawer", styles);
 const getClassNameItem = getClassNameFactory("DrawerItem", styles);
 
@@ -860,6 +861,7 @@ export const DrawerItemInner = ({
       <CustomInner name={name}>
         <div className={getClassNameItem("draggableWrapper")}>
           <div className={getClassNameItem("draggable")}>
+            <BlockAvatar name={name} />
             <div className={getClassNameItem("name")}>{label ?? name}</div>
             <div className={getClassNameItem("icon")}>
               <DragIcon />
