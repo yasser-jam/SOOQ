@@ -87,11 +87,11 @@ export function useLayout(): Required<LayoutFieldProps> {
  * designer and other layout-aware custom fields.
  */
 export function useLayoutPatch() {
+  const appStore = useAppStoreApi();
   const patchBlock = useBlockPatch();
 
   return useCallback(
     async (patch: Partial<LayoutFieldProps>) => {
-      const appStore = useAppStoreApi();
       const selectedItem = appStore.getState().selectedItem;
       if (!selectedItem) return;
 
@@ -103,6 +103,6 @@ export function useLayoutPatch() {
         layout: { ...currentLayout, ...patch },
       });
     },
-    [patchBlock]
+    [appStore, patchBlock]
   );
 }
