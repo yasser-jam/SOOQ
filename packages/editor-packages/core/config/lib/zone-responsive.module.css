@@ -5,13 +5,13 @@
 .hideOnMobile {
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .hideOnMobile {
     display: none !important;
   }
 }
 
-@media (min-width: 641px) {
+@media (min-width: 1024px) {
   .hideOnDesktop {
     display: none !important;
   }

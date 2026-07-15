@@ -1,5 +1,6 @@
 import { generateId } from "@/core/lib/generate-id";
 import config from "../index";
+import { DEFAULT_ZONE_DRAWER_PRESET } from "../presets/drawer";
 import { DEFAULT_ZONE_FOOTER_PRESET } from "../presets/footer";
 import { DEFAULT_ZONE_HEADER_PRESET } from "../presets/header";
 import { isZoneHeaderSection } from "../blocks/Section/zone-section";
@@ -476,6 +477,18 @@ const enforceShellPlacement = (
     });
     delete nextZones[legacyZone];
   });
+
+  // Seed the drawer zone when still empty after migration so the burger button
+  // in the default header has something to open out of the box.
+  const drawerItems = (nextZones[ROOT_ZONE_DRAWER] ?? []) as ComponentLike[];
+  if (drawerItems.length === 0) {
+    nextZones[ROOT_ZONE_DRAWER] = [
+      normalizeComponentNode(
+        DEFAULT_ZONE_DRAWER_PRESET.componentData,
+        components
+      ),
+    ] as UserData["content"];
+  }
 
   return { content: nextContent, zones: nextZones };
 };

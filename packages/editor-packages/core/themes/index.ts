@@ -2,6 +2,7 @@ import type { SiteData } from "../config/lib/site-data";
 import theme1Data from "./theme-1.json";
 import theme2Data from "./theme-2.json";
 import theme3Data from "./theme-3.json";
+import themeWahaData from "./theme-waha.json";
 
 export type ThemeCatalogItem = {
   id: number;
@@ -15,6 +16,7 @@ const themeDataByFile = {
   "theme-1.json": theme1Data as SiteData,
   "theme-2.json": theme2Data as SiteData,
   "theme-3.json": theme3Data as SiteData,
+  "theme-waha.json": themeWahaData as SiteData,
 } as const;
 
 const catalogEntries = [
@@ -38,6 +40,13 @@ const catalogEntries = [
     description: "Theme 3 description",
     image: "https://via.placeholder.com/150",
     theme: "theme-3.json",
+  },
+  {
+    id: 4,
+    name: "واحة",
+    description: "ثيم عربي متجاوب — لوحة ألوان دافئة، خطوط Nunito و Poppins، رأس متجاوب بزر قائمة جوال ودرج تنقل جانبي.",
+    image: "https://placehold.co/400x250/1b6b8a/f5f3ef?text=%D9%88%D8%A7%D8%AD%D8%A9",
+    theme: "theme-waha.json",
   },
 ] as const;
 

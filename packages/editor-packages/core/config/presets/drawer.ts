@@ -99,3 +99,6 @@ export const ZONE_DRAWER_PRESETS: ZonePreset[] = [
   drawerMobileNav,
   drawerMobileCommerce,
 ];
+
+/** Default drawer preset paired with the responsive commerce header. */
+export const DEFAULT_ZONE_DRAWER_PRESET: ZonePreset = drawerMobileNav;

@@ -172,5 +172,8 @@ export function headerLayoutOptionToPreset(
 }
 
 export function getDefaultHeaderLayoutOption(): HeaderLayoutOption {
-  return HEADER_LAYOUT_OPTIONS[0]!;
+  return (
+    HEADER_LAYOUT_OPTIONS.find((o) => o.layout === "logo-right-burger-left") ??
+    HEADER_LAYOUT_OPTIONS[0]!
+  );
 }
