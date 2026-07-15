@@ -27,7 +27,8 @@ export type ZonePresetCategory =
 export type HeaderPresetLayout =
   | "logo-right-links-left"
   | "logo-center-actions"
-  | "logo-left-links-center";
+  | "logo-left-links-center"
+  | "logo-right-burger-left";
 
 export type ZonePreset = {
   id: string;

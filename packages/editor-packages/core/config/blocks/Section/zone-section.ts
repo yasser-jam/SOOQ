@@ -9,12 +9,14 @@ export const ZONE_HEADER_SECTION_METADATA: SectionPresetMetadata = {
   preset: SECTION_KIND_ZONE_HEADER,
 };
 
-/** Puck permissions for site zone shell sections (header). */
+/** Puck permissions for site zone shell sections (header/footer).
+ *  drag/duplicate/delete locked so the zone's root section can't be removed
+ *  or moved out; insert stays open so content can be added freely inside. */
 export const ZONE_SHELL_SECTION_PERMISSIONS = {
   drag: false,
   duplicate: false,
   delete: false,
-  insert: false,
+  insert: true,
 } as const;
 
 type ZoneSectionProps = {

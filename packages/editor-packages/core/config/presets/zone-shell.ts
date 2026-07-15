@@ -105,6 +105,43 @@ export const CART_ICON_BUTTON = {
   },
 };
 
+/**
+ * A ContentButton wired to toggle a zone, styled as a compact icon-only
+ * trigger. Hides on desktop by default so it appears only on mobile.
+ */
+export function createBurgerButton(
+  zoneKey = "site-drawer",
+  overrides: Record<string, unknown> = {}
+) {
+  return {
+    type: "ContentButton" as const,
+    props: {
+      label: "☰",
+      align: "center",
+      destinationType: "zone",
+      buttonAction: "link",
+      link: { kind: "none" },
+      zoneKey,
+      zoneAction: "toggle",
+      buttonVariantMode: "variant",
+      buttonVariant: "secondary",
+      buttonVariantSize: "sm",
+      radius: "theme-md",
+      bgColor: "theme-surface",
+      textColor: "theme-text",
+      buttonSize: "theme-sm",
+      submitRedirectUrl: "",
+      layout: {
+        positionMode: "static",
+        hideOnMobile: false,
+        hideOnTablet: false,
+        hideOnDesktop: true,
+      },
+      ...overrides,
+    },
+  };
+}
+
 const HEADER_SECTION_BASE = {
   name: "رأس الموقع",
   anchorId: "",

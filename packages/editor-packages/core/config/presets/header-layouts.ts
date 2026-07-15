@@ -2,6 +2,8 @@ import type { ComponentDataOptionalId } from "@/core/types";
 import type { HeaderPresetLayout, ZonePreset } from "./types";
 import { createPrimaryButton } from "./shared";
 import {
+  CART_ICON_BUTTON,
+  createBurgerButton,
   createHeaderBrandTitle,
   createHeaderNavLinksGroup,
   createHeaderRowSection,
@@ -43,6 +45,15 @@ export const HEADER_LAYOUT_OPTIONS: HeaderLayoutOption[] = [
     description: "الشعار على اليسار والروابط في الوسط",
     previewImage:
       "https://placehold.co/800x240/f8fafc/64748b?text=Logo+Left+%7C+Links+Center",
+  },
+  {
+    id: "header-responsive-commerce",
+    layout: "logo-right-burger-left",
+    title: "رأس متجاوب — قائمة جوال",
+    description:
+      "سطح المكتب: شعار + روابط تنقل. الجوال: شعار + زر قائمة يفتح الدرج الجانبي",
+    previewImage:
+      "https://placehold.co/800x240/f0f9ff/0284c7?text=Responsive+Header",
   },
 ];
 
@@ -119,6 +130,23 @@ export function buildHeaderZoneSection(
         brand,
       ];
       break;
+    case "logo-right-burger-left": {
+      // On desktop: brand + nav links (hidden on mobile) + cart icon.
+      // On mobile: brand + cart icon + burger button (hidden on desktop).
+      // Nav links Group carries layout.hideOnMobile so it disappears on small screens.
+      // Burger button carries layout.hideOnDesktop so it disappears on large screens.
+      const desktopLinks = createHeaderNavLinksGroup("plain", {
+        justifyContent: "flex-start",
+        layout: { hideOnMobile: true, hideOnDesktop: false, hideOnTablet: false },
+      });
+      const burger = createBurgerButton("site-drawer");
+      rowContent = [
+        brand,
+        desktopLinks,
+        createHeaderSlotGroup([CART_ICON_BUTTON, burger]),
+      ];
+      break;
+    }
   }
 
   return createHeaderRowSection(

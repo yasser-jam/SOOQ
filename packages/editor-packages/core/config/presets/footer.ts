@@ -1,5 +1,5 @@
 import type { ZonePreset } from "./types";
-import { createHeading } from "./shared";
+import { createHeading, createParagraph } from "./shared";
 import {
   DEFAULT_FOOTER_BOTTOM,
   DEFAULT_FOOTER_BOTTOM_LINKS_NAV,
@@ -20,17 +20,11 @@ const footerCommerceFull: ZonePreset = {
       theme: "light",
     },
     [
-      createHeading("متجري", {
-        fontSize: "theme-2xl",
-        fontWeight: "theme-bold",
-        color: "theme-surface",
-      }),
-      DEFAULT_FOOTER_TAGLINE,
       {
         type: "Group",
         props: {
           direction: "row",
-          gap: 32,
+          gap: 24,
           alignItems: "flex-start",
           justifyContent: "space-between",
           wrap: "wrap",
@@ -38,7 +32,35 @@ const footerCommerceFull: ZonePreset = {
           padding: "0px",
           borderRadius: "theme-none",
           boxShadow: "none",
-          content: createDefaultFooterColumns(),
+          content: [
+            {
+              type: "Group",
+              props: {
+                direction: "column",
+                gap: 8,
+                alignItems: "flex-start",
+                justifyContent: "flex-start",
+                wrap: "nowrap",
+                backgroundColor: "",
+                padding: "0px",
+                borderRadius: "theme-none",
+                boxShadow: "none",
+                content: [
+                  createHeading("متجري", {
+                    fontSize: "theme-xl",
+                    fontWeight: "theme-bold",
+                    color: "theme-surface",
+                  }),
+                  createParagraph("متجرك الشامل للسلع المختارة بعناية.", {
+                    color: "theme-muted",
+                    fontSize: "theme-sm",
+                    textAlign: "right",
+                  }),
+                ],
+              },
+            },
+            ...createDefaultFooterColumns(),
+          ],
         },
       },
       DEFAULT_FOOTER_BOTTOM_LINKS_NAV,
