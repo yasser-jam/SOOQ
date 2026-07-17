@@ -9,7 +9,6 @@ import type {
 } from "./types"
 import api from "@/lib/api"
 import { ApiResponse } from "@/lib/types"
-import { devAuthEnabled } from "@/modules/auth/auth/init"
 import { ProductCategory } from "../category/types"
 import { ProductTag } from "../tag/types"
 
@@ -26,65 +25,6 @@ const normalizeProduct = (data: any): Product => {
     // server-known IDs in their current order. null = unchanged on update; we hydrate with current list so the editor can manipulate it.
     mediaAssetIds: media.map((m) => m.mediaAssetId ?? m.assetId ?? m.id).filter(Boolean),
   }
-}
-
-const DEV_PRODUCTS_KEY = "sooq-dev-products"
-
-const makeDevProductId = (): string =>
-  `dev-product-${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 8)}`
-
-const readDevProducts = (): Product[] => {
-  if (!devAuthEnabled || typeof window === "undefined") return []
-  const raw = window.localStorage.getItem(DEV_PRODUCTS_KEY)
-  if (!raw) return []
-  try {
-    return JSON.parse(raw) as Product[]
-  } catch {
-    return []
-  }
-}
-
-const writeDevProducts = (products: Product[]): Product[] => {
-  if (devAuthEnabled && typeof window !== "undefined") {
-    window.localStorage.setItem(DEV_PRODUCTS_KEY, JSON.stringify(products))
-  }
-  return products
-}
-
-const makeDevProduct = (
-  data: CreateProductInput,
-  id: string = makeDevProductId()
-): Product => {
-  const now = new Date().toISOString()
-
-  return {
-    id,
-    titleAr: data.titleAr,
-    titleEn: data.titleEn,
-    descriptionAr: data.descriptionAr ?? "",
-    descriptionEn: data.descriptionEn ?? "",
-    slug: data.slug,
-    basePrice: Number(data.basePrice ?? 0),
-    compareAtPrice: Number(data.compareAtPrice ?? 0),
-    currencyCode: data.currencyCode,
-    status: data.status,
-    seoTitle: data.seoTitle ?? data.titleAr,
-    seoDescription: data.seoDescription ?? data.descriptionAr ?? "",
-    allowOversell: Boolean(data.allowOversell),
-    defaultCategoryId: data.defaultCategoryId ?? "",
-    categories: data.categories ?? [],
-    tags: data.tags ?? [],
-    mediaAssetIds: data.mediaAssetIds ?? null,
-    mediaFiles: [],
-    mediaUrls: [],
-    options: data.options ?? [],
-    variants: data.variants ?? [],
-    attributes: [],
-    createdAt: now,
-    updatedAt: now,
-  } as Product
 }
 
 const normalizeGetProduct = (data: any): Product => {
@@ -223,14 +163,6 @@ type ProductGetResponse = ApiResponse<{
 }>
 
 export const getProduct = async (id: string): Promise<Product> => {
-  if (devAuthEnabled) {
-    const product = readDevProducts().find((item) => item.id === id)
-    if (!product) {
-      throw new Error(`Product ${id} not found`)
-    }
-    return product
-  }
-
   const response = await api<ProductGetResponse>(`/admin/products/${id}`)
 
   return normalizeGetProduct(response.data)
@@ -336,18 +268,6 @@ export const updateProduct = async ({
   id,
   data,
 }: UpdateProductInput): Promise<void> => {
-  if (devAuthEnabled) {
-    const products = readDevProducts()
-    const index = products.findIndex((item) => item.id === id)
-    const next = makeDevProduct(data as CreateProductInput, id)
-    writeDevProducts(
-      index >= 0
-        ? products.map((item) => (item.id === id ? { ...item, ...next } : item))
-        : [next, ...products]
-    )
-    return
-  }
-
   await api(`/admin/products/${id}`, {
     method: "PUT",
     body: buildProductFormData(data),
@@ -357,12 +277,6 @@ export const updateProduct = async ({
 export const createProduct = async (
   data: CreateProductInput
 ): Promise<void> => {
-  // if (devAuthEnabled) {
-  //   const products = readDevProducts()
-  //   const product = makeDevProduct(data)
-  //   writeDevProducts([product, ...products])
-  //   return
-  // }
   await api("/admin/products", {
     method: "POST",
     body: buildProductFormData(data),
@@ -370,11 +284,6 @@ export const createProduct = async (
 }
 
 export const deleteProduct = async (id: string): Promise<void> => {
-  if (devAuthEnabled) {
-    writeDevProducts(readDevProducts().filter((product) => product.id !== id))
-    return
-  }
-
   await api(`/admin/products/${id}`, {
     method: "DELETE",
   })

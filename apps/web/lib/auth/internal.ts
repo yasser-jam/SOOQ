@@ -46,6 +46,20 @@ export const setSessionTokens = async (
 }
 
 export const refreshSession = async (): Promise<RefreshResult | null> => {
+  // Mock mode: rebuild tokens from the in-browser mock DB (picks up the
+  // post-onboarding slug) instead of calling Spring via the Next proxy.
+  if (
+    process.env.NEXT_PUBLIC_USE_MOCK_API === "true" &&
+    typeof window !== "undefined"
+  ) {
+    const { mockRefreshSession, shouldUseMockRefresh } = await import(
+      "@/lib/mock/session"
+    )
+    if (shouldUseMockRefresh()) {
+      return mockRefreshSession()
+    }
+  }
+
   const { ok, data } = await postJson<RefreshResult>("/api/auth/refresh")
   if (!ok || !data) return null
   return data

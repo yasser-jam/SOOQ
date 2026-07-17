@@ -44,8 +44,9 @@ domain module in `modules/` (see `modules/CLAUDE.md`). Route-private helpers go 
 - `lib/auth/` + `app/api/auth/{session,refresh,logout}` — Next route handlers proxying
   session/refresh; `middleware.ts` guards routing; `config/cookies-config.ts` names cookies.
 - `lib/tenant-context.ts` — tenant (store) context; requests carry `X-Tenant-ID`.
-- Dev mode: `devAuthEnabled` (`modules/auth/auth/init.ts`) lets modules fall back to
-  localStorage-backed fake data (`sooq-dev-*` keys) when no backend is available.
+- Mock API: set `NEXT_PUBLIC_USE_MOCK_API=true` to serve auth, onboarding store
+  settings, and products from in-browser seeders via `lib/mock` (intercepted in
+  `lib/api.ts`). Other endpoints still hit the real backend.
 
 ## Conventions
 

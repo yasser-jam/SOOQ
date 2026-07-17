@@ -2,10 +2,9 @@ import type {
   AuthTokenResponse,
   GoogleOAuthInput,
   RequestOtpInput,
-  Role,
   VerifyOtpInput,
 } from "./types"
-import { REGISTRATION_HUB_SLUG } from "./types"
+import { createMockAuthTokens } from "@/lib/mock/jwt"
 
 export const requestOtpDefaultValues: RequestOtpInput = {
   phone: "+963999000111",
@@ -27,7 +26,8 @@ export const googleOAuthDefaultValues: GoogleOAuthInput = {
   tenantSlug: "",
 }
 
-export const devAuthEnabled = true
+/** @deprecated Use `isMockApiEnabled()` from `@/lib/mock`. Kept as a sync alias for older call sites. */
+export const devAuthEnabled = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
 
 const normalizePhone = (phone: string): string => phone.replace(/\s+/g, "")
 
@@ -44,58 +44,6 @@ export const isDevVerifyOtp = (
   (!input.totpCode ||
     input.totpCode.trim() === verifyOtpDefaultValues.totpCode)
 
-const base64UrlEncode = (value: unknown): string => {
-  const json = JSON.stringify(value)
-  const base64 =
-    typeof btoa === "function"
-      ? btoa(unescape(encodeURIComponent(json)))
-      : Buffer.from(json, "utf8").toString("base64")
-
-  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "")
-}
-
-const makeUnsignedJwt = (payload: Record<string, unknown>): string =>
-  [
-    base64UrlEncode({ alg: "none", typ: "JWT" }),
-    base64UrlEncode(payload),
-    "dev-signature",
-  ].join(".")
-
-export const createDevAuthResponse = (): AuthTokenResponse => {
-  const nowSec = Math.floor(Date.now() / 1000)
-  const expiresIn = 60 * 60 * 24 * 365
-  const expiresAt = new Date((nowSec + expiresIn) * 1000).toISOString()
-  const roles: Role[] = ["OWNER"]
-  const phone = normalizePhone(verifyOtpDefaultValues.phone)
-  const userId = "dev-owner-user"
-  const tenantId = "dev-registration-tenant"
-
-  return {
-    accessToken: makeUnsignedJwt({
-      sub: userId,
-      userId,
-      username: phone,
-      phone,
-      tenantId,
-      tenantSlug: REGISTRATION_HUB_SLUG,
-      roles,
-      iat: nowSec,
-      exp: nowSec + expiresIn,
-      jti: "dev-auth-token",
-    }),
-    refreshToken: "dev-refresh-token",
-    tokenType: "Bearer",
-    expiresIn,
-    issuedAt: new Date(nowSec * 1000).toISOString(),
-    expiresAt,
-    username: phone,
-    userId,
-    tenantId,
-    tenantSlug: REGISTRATION_HUB_SLUG,
-    roles,
-  }
-}
-
 export const cleanRequestOtpPayload = (input: RequestOtpInput): RequestOtpInput => ({
   phone: input.phone.trim(),
   fullName: input.fullName?.trim() || undefined,
@@ -107,3 +55,9 @@ export const cleanVerifyOtpPayload = (input: VerifyOtpInput): VerifyOtpInput => 
   totpCode: input.totpCode?.trim() || undefined,
   backupCode: input.backupCode?.trim() || undefined,
 })
+
+/** @deprecated Prefer `createMockAuthTokens` from `@/lib/mock/jwt`. */
+export const createDevAuthResponse = (): AuthTokenResponse =>
+  createMockAuthTokens({
+    phone: normalizePhone(verifyOtpDefaultValues.phone),
+  })

@@ -9,7 +9,8 @@ export async function POST() {
   const accessToken = store.get(cookiesConfig.accessToken)?.value
   const backendBase = process.env.NEXT_PUBLIC_API_URL
 
-  if (accessToken && backendBase) {
+  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
+  if (accessToken && backendBase && !useMock) {
     const jti = decodeJwt(accessToken)?.jti
     if (jti) {
       // Best-effort: revoke server-side. Ignore failures — we still want to

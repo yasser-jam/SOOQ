@@ -9,6 +9,7 @@ import cookiesConfig from "@/config/cookies-config"
 import { handleApiError } from "@/lib/api-error"
 import { refreshSession, logoutSession } from "@/lib/auth/internal"
 import { addCookie, getCookie, removeCookie } from "@/lib/cookies"
+import { MockApiError, tryHandleMockApi } from "@/lib/mock"
 
 type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
 
@@ -126,13 +127,49 @@ export const api = async <T = unknown>(
   url: string,
   options: ApiOptions = {}
 ): Promise<T> => {
-  const { body, headers, method = "GET", ...rest } = options
+  const { body, headers, method = "GET", params, ...rest } = options
+
+  const mockUrl = (() => {
+    if (!params || typeof params !== "object") return url
+    const search = new URLSearchParams()
+    for (const [key, value] of Object.entries(
+      params as Record<string, unknown>
+    )) {
+      if (value == null) continue
+      search.set(key, String(value))
+    }
+    const qs = search.toString()
+    if (!qs) return url
+    return url.includes("?") ? `${url}&${qs}` : `${url}?${qs}`
+  })()
+
+  try {
+    const mockData = await tryHandleMockApi<T>(mockUrl, {
+      method,
+      body,
+      headers,
+    })
+    if (mockData !== null) return mockData
+  } catch (error) {
+    if (error instanceof MockApiError) {
+      throw {
+        status: error.status,
+        message: error.message,
+        errorCode: error.errorCode,
+        fieldKey: error.fieldKey,
+        action: error.action,
+        data: error.data,
+      }
+    }
+    throw error
+  }
 
   const response = await apiInstance.request<T>({
     url,
     method,
     data: body,
     headers: { ...headers },
+    params,
     ...rest,
   })
 
