@@ -1,0 +1,1302 @@
+{
+  "root": {
+    "props": {
+      "enableHtmlRichTextBlock": false,
+      "direction": "rtl",
+      "language": "ar",
+      "currency": "SYP",
+
+      "bodyFont": "nunito",
+      "fontOption1": "poppins",
+      "fontOption2": "merriweather",
+
+      "primary": "#1b6b8a",
+      "surface": "#f5f3ef",
+      "success": "#1e7d50",
+      "warning": "#c07825",
+      "error": "#c03328",
+      "dark": "#0d1f30",
+      "text": "#1a2b38",
+      "neutral": "#8090a0",
+
+      "breakpointMobileMax": 767,
+      "breakpointTabletMax": 1023,
+
+      "textSizeXs": "11px",
+      "textSizeSm": "14px",
+      "textSizeMd": "16px",
+      "textSizeLg": "18px",
+      "textSizeXl": "22px",
+      "textSize2xl": "28px",
+
+      "radiusNone": "0px",
+      "radiusSm": "4px",
+      "radiusMd": "8px",
+      "radiusLg": "14px",
+      "radiusXl": "20px",
+      "radiusFull": "9999px",
+
+      "buttonMdHeight": "44px",
+      "buttonMdPaddingX": "20px",
+      "buttonMdPaddingY": "10px",
+      "buttonMdFontSize": "15px",
+      "buttonLgHeight": "52px",
+      "buttonLgPaddingX": "28px",
+      "buttonLgPaddingY": "13px",
+      "buttonLgFontSize": "17px",
+      "buttonSmHeight": "34px",
+      "buttonSmPaddingX": "14px",
+      "buttonSmPaddingY": "7px",
+      "buttonSmFontSize": "13px",
+
+      "fontWeightLight": "300",
+      "fontWeightNormal": "400",
+      "fontWeightMedium": "500",
+      "fontWeightSemibold": "600",
+      "fontWeightBold": "700",
+      "fontWeightBolder": "800",
+
+      "lineHeightTight": "1.2",
+      "lineHeightNormal": "1.5",
+      "lineHeightRelaxed": "1.75",
+
+      "shellComponentsMigrationVersion": 2
+    }
+  },
+
+  "zones": {
+    "root:zone-header": [
+      {
+        "type": "Section",
+        "props": {
+          "id": "Section-waha-header",
+          "name": "رأس الموقع",
+          "anchorId": "",
+          "visible": true,
+          "sectionKind": "zone-header",
+          "metadata": { "preset": "zone-header" },
+          "paddingTop": "14px",
+          "paddingBottom": "14px",
+          "paddingHorizontal": "28px",
+          "backgroundColor": "#ffffff",
+          "backgroundImage": "",
+          "backgroundOverlayColor": "",
+          "theme": "dark",
+          "maxWidth": "1280px",
+          "columns": 1,
+          "columnsMobile": 1,
+          "gridGap": "16px",
+          "collection": null,
+          "content": [
+            {
+              "type": "RowGroup",
+              "props": {
+                "id": "RowGroup-waha-header-row",
+                "gap": 16,
+                "alignItems": "center",
+                "justifyContent": "space-between",
+                "wrap": "nowrap",
+                "backgroundColor": "",
+                "padding": "0px",
+                "borderRadius": "theme-none",
+                "content": [
+                  {
+                    "type": "ContentHeading",
+                    "props": {
+                      "id": "ContentHeading-waha-brand",
+                      "text": "واحة",
+                      "level": "1",
+                      "textAlign": "right",
+                      "fontFamily": "option1",
+                      "fontSize": "theme-xl",
+                      "fontWeight": "theme-bold",
+                      "lineHeight": "theme-normal",
+                      "fontStyle": "normal",
+                      "textTransform": "none",
+                      "color": "theme-primary",
+                      "layout": {
+                        "spanCol": 1, "spanRow": 1, "grow": false,
+                        "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                        "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                        "padding": "0px", "positionMode": "static",
+                        "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                        "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                        "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                        "shadowMode": "none", "shadowPreset": "md",
+                        "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                        "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                        "displayMode": "block",
+                        "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                      }
+                    }
+                  },
+                  {
+                    "type": "Group",
+                    "props": {
+                      "id": "Group-waha-nav-links",
+                      "product": null, "metadata": null, "language": "ar",
+                      "cartLineId": null, "skipProductDetailFetch": false,
+                      "direction": "row",
+                      "gap": 24,
+                      "alignItems": "center",
+                      "justifyContent": "flex-start",
+                      "wrap": "nowrap",
+                      "backgroundColor": "",
+                      "backgroundImage": "",
+                      "backgroundOverlayColor": "",
+                      "padding": "0px",
+                      "borderRadius": "theme-none",
+                      "boxShadow": "none",
+                      "layout": {
+                        "spanCol": 1, "spanRow": 1, "grow": true,
+                        "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                        "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                        "padding": "0px", "positionMode": "static",
+                        "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                        "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                        "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                        "shadowMode": "none", "shadowPreset": "md",
+                        "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                        "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                        "displayMode": "flex",
+                        "hideOnMobile": true, "hideOnTablet": true, "hideOnDesktop": false
+                      },
+                      "content": [
+                        {
+                          "type": "ContentLink",
+                          "props": {
+                            "id": "ContentLink-waha-nav-home",
+                            "title": "الرئيسية",
+                            "link": { "kind": "page", "pageId": "/" },
+                            "align": "right",
+                            "color": "theme-text",
+                            "hoverColor": "theme-primary",
+                            "hoverEffect": "underline",
+                            "fontSize": "theme-sm",
+                            "icon": "none",
+                            "iconPosition": "end",
+                            "layout": {
+                              "spanCol": 1, "spanRow": 1, "grow": false,
+                              "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                              "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                              "padding": "0px", "positionMode": "static",
+                              "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                              "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                              "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                              "shadowMode": "none", "shadowPreset": "md",
+                              "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                              "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                              "displayMode": "block",
+                              "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                            }
+                          }
+                        },
+                        {
+                          "type": "ContentLink",
+                          "props": {
+                            "id": "ContentLink-waha-nav-shop",
+                            "title": "المتجر",
+                            "link": { "kind": "page", "pageId": "/products/example-product" },
+                            "align": "right",
+                            "color": "theme-text",
+                            "hoverColor": "theme-primary",
+                            "hoverEffect": "underline",
+                            "fontSize": "theme-sm",
+                            "icon": "none",
+                            "iconPosition": "end",
+                            "layout": {
+                              "spanCol": 1, "spanRow": 1, "grow": false,
+                              "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                              "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                              "padding": "0px", "positionMode": "static",
+                              "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                              "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                              "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                              "shadowMode": "none", "shadowPreset": "md",
+                              "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                              "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                              "displayMode": "block",
+                              "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                            }
+                          }
+                        },
+                        {
+                          "type": "ContentLink",
+                          "props": {
+                            "id": "ContentLink-waha-nav-about",
+                            "title": "من نحن",
+                            "link": { "kind": "anchor", "hash": "about" },
+                            "align": "right",
+                            "color": "theme-text",
+                            "hoverColor": "theme-primary",
+                            "hoverEffect": "underline",
+                            "fontSize": "theme-sm",
+                            "icon": "none",
+                            "iconPosition": "end",
+                            "layout": {
+                              "spanCol": 1, "spanRow": 1, "grow": false,
+                              "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                              "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                              "padding": "0px", "positionMode": "static",
+                              "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                              "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                              "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                              "shadowMode": "none", "shadowPreset": "md",
+                              "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                              "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                              "displayMode": "block",
+                              "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                            }
+                          }
+                        },
+                        {
+                          "type": "ContentLink",
+                          "props": {
+                            "id": "ContentLink-waha-nav-contact",
+                            "title": "تواصل معنا",
+                            "link": { "kind": "anchor", "hash": "contact" },
+                            "align": "right",
+                            "color": "theme-text",
+                            "hoverColor": "theme-primary",
+                            "hoverEffect": "underline",
+                            "fontSize": "theme-sm",
+                            "icon": "none",
+                            "iconPosition": "end",
+                            "layout": {
+                              "spanCol": 1, "spanRow": 1, "grow": false,
+                              "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                              "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                              "padding": "0px", "positionMode": "static",
+                              "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                              "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                              "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                              "shadowMode": "none", "shadowPreset": "md",
+                              "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                              "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                              "displayMode": "block",
+                              "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Group",
+                    "props": {
+                      "id": "Group-waha-header-actions",
+                      "product": null, "metadata": null, "language": "ar",
+                      "cartLineId": null, "skipProductDetailFetch": false,
+                      "direction": "row",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "justifyContent": "flex-start",
+                      "wrap": "nowrap",
+                      "backgroundColor": "",
+                      "backgroundImage": "",
+                      "backgroundOverlayColor": "",
+                      "padding": "0px",
+                      "borderRadius": "theme-none",
+                      "boxShadow": "none",
+                      "layout": {
+                        "spanCol": 1, "spanRow": 1, "grow": false,
+                        "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                        "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                        "padding": "0px", "positionMode": "static",
+                        "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                        "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                        "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                        "shadowMode": "none", "shadowPreset": "md",
+                        "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                        "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                        "displayMode": "flex",
+                        "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                      },
+                      "content": [
+                        {
+                          "type": "CartIconButton",
+                          "props": {
+                            "id": "CartIconButton-waha-header",
+                            "href": "/cart",
+                            "iconSize": 22,
+                            "badgeColor": "#c03328",
+                            "badgeTextColor": "#ffffff",
+                            "layout": {
+                              "spanCol": 1, "spanRow": 1, "grow": false,
+                              "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                              "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                              "padding": "0px", "positionMode": "static",
+                              "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                              "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                              "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                              "shadowMode": "none", "shadowPreset": "md",
+                              "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                              "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                              "displayMode": "block",
+                              "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                            }
+                          }
+                        },
+                        {
+                          "type": "ContentButton",
+                          "props": {
+                            "id": "ContentButton-waha-burger",
+                            "label": "☰",
+                            "align": "center",
+                            "destinationType": "zone",
+                            "buttonAction": "link",
+                            "submitRedirectUrl": "",
+                            "link": { "kind": "none" },
+                            "zoneKey": "site-drawer",
+                            "zoneAction": "toggle",
+                            "buttonVariantMode": "variant",
+                            "buttonVariant": "secondary",
+                            "buttonVariantSize": "sm",
+                            "radius": "theme-md",
+                            "bgColor": "theme-surface",
+                            "textColor": "theme-text",
+                            "buttonSize": "theme-sm",
+                            "layout": {
+                              "spanCol": 1, "spanRow": 1, "grow": false,
+                              "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                              "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                              "padding": "0px", "positionMode": "static",
+                              "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                              "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                              "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                              "shadowMode": "none", "shadowPreset": "md",
+                              "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                              "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                              "displayMode": "block",
+                              "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": true
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+
+    "root:zone-footer": [
+      {
+        "type": "Section",
+        "props": {
+          "id": "Section-waha-footer",
+          "name": "تذييل الموقع",
+          "anchorId": "",
+          "visible": true,
+          "paddingTop": "52px",
+          "paddingBottom": "28px",
+          "paddingHorizontal": "28px",
+          "backgroundColor": "#0d1f30",
+          "backgroundImage": "",
+          "backgroundOverlayColor": "",
+          "theme": "light",
+          "maxWidth": "1280px",
+          "columns": 1,
+          "columnsMobile": 1,
+          "gridGap": "32px",
+          "collection": null,
+          "content": [
+            {
+              "type": "Group",
+              "props": {
+                "id": "Group-waha-footer-columns",
+                "product": null, "metadata": null, "language": "ar",
+                "cartLineId": null, "skipProductDetailFetch": false,
+                "direction": "row",
+                "gap": 32,
+                "alignItems": "flex-start",
+                "justifyContent": "space-between",
+                "wrap": "wrap",
+                "backgroundColor": "",
+                "backgroundImage": "",
+                "backgroundOverlayColor": "",
+                "padding": "0px",
+                "borderRadius": "theme-none",
+                "boxShadow": "none",
+                "layout": {
+                  "spanCol": 1, "spanRow": 1, "grow": false,
+                  "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                  "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                  "padding": "0px", "positionMode": "static",
+                  "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                  "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                  "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                  "shadowMode": "none", "shadowPreset": "md",
+                  "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                  "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                  "displayMode": "flex",
+                  "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                },
+                "content": [
+                  {
+                    "type": "Group",
+                    "props": {
+                      "id": "Group-waha-footer-brand",
+                      "product": null, "metadata": null, "language": "ar",
+                      "cartLineId": null, "skipProductDetailFetch": false,
+                      "direction": "column",
+                      "gap": 10,
+                      "alignItems": "flex-start",
+                      "justifyContent": "flex-start",
+                      "wrap": "nowrap",
+                      "backgroundColor": "",
+                      "backgroundImage": "",
+                      "backgroundOverlayColor": "",
+                      "padding": "0px",
+                      "borderRadius": "theme-none",
+                      "boxShadow": "none",
+                      "layout": {
+                        "spanCol": 1, "spanRow": 1, "grow": false,
+                        "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                        "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                        "padding": "0px", "positionMode": "static",
+                        "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                        "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                        "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                        "shadowMode": "none", "shadowPreset": "md",
+                        "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                        "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                        "displayMode": "flex",
+                        "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                      },
+                      "content": [
+                        {
+                          "type": "ContentHeading",
+                          "props": {
+                            "id": "ContentHeading-waha-footer-brand",
+                            "text": "واحة",
+                            "level": "2",
+                            "textAlign": "right",
+                            "fontFamily": "option1",
+                            "fontSize": "theme-2xl",
+                            "fontWeight": "theme-bold",
+                            "lineHeight": "theme-normal",
+                            "fontStyle": "normal",
+                            "textTransform": "none",
+                            "color": "theme-surface",
+                            "layout": {
+                              "spanCol": 1, "spanRow": 1, "grow": false,
+                              "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                              "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                              "padding": "0px", "positionMode": "static",
+                              "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                              "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                              "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                              "shadowMode": "none", "shadowPreset": "md",
+                              "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                              "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                              "displayMode": "block",
+                              "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                            }
+                          }
+                        },
+                        {
+                          "type": "ContentParagraph",
+                          "props": {
+                            "id": "ContentParagraph-waha-footer-tagline",
+                            "text": "وجهتك لأجود المنتجات المختارة.",
+                            "textAlign": "right",
+                            "fontFamily": "body",
+                            "fontSize": "theme-sm",
+                            "fontWeight": "theme-normal",
+                            "lineHeight": "theme-relaxed",
+                            "fontStyle": "normal",
+                            "textTransform": "none",
+                            "color": "theme-muted",
+                            "layout": {
+                              "spanCol": 1, "spanRow": 1, "grow": false,
+                              "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                              "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                              "padding": "0px", "positionMode": "static",
+                              "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                              "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                              "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                              "shadowMode": "none", "shadowPreset": "md",
+                              "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                              "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                              "displayMode": "block",
+                              "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Group",
+                    "props": {
+                      "id": "Group-waha-footer-shop",
+                      "product": null, "metadata": null, "language": "ar",
+                      "cartLineId": null, "skipProductDetailFetch": false,
+                      "direction": "column",
+                      "gap": 12,
+                      "alignItems": "flex-start",
+                      "justifyContent": "flex-start",
+                      "wrap": "nowrap",
+                      "backgroundColor": "",
+                      "backgroundImage": "",
+                      "backgroundOverlayColor": "",
+                      "padding": "0px",
+                      "borderRadius": "theme-none",
+                      "boxShadow": "none",
+                      "layout": {
+                        "spanCol": 1, "spanRow": 1, "grow": false,
+                        "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                        "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                        "padding": "0px", "positionMode": "static",
+                        "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                        "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                        "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                        "shadowMode": "none", "shadowPreset": "md",
+                        "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                        "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                        "displayMode": "flex",
+                        "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                      },
+                      "content": [
+                        {
+                          "type": "ContentHeading",
+                          "props": {
+                            "id": "ContentHeading-waha-footer-shop-title",
+                            "text": "المتجر",
+                            "level": "3",
+                            "textAlign": "right",
+                            "fontFamily": "body",
+                            "fontSize": "theme-md",
+                            "fontWeight": "theme-semibold",
+                            "lineHeight": "theme-normal",
+                            "fontStyle": "normal",
+                            "textTransform": "none",
+                            "color": "theme-surface",
+                            "layout": {
+                              "spanCol": 1, "spanRow": 1, "grow": false,
+                              "marginTop": "0px", "marginRight": "0px", "marginBottom": "8px", "marginLeft": "0px",
+                              "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                              "padding": "0px", "positionMode": "static",
+                              "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                              "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                              "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                              "shadowMode": "none", "shadowPreset": "md",
+                              "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                              "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                              "displayMode": "block",
+                              "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                            }
+                          }
+                        },
+                        {
+                          "type": "ContentLink",
+                          "props": {
+                            "id": "ContentLink-waha-footer-shop-home",
+                            "title": "الرئيسية",
+                            "link": { "kind": "page", "pageId": "/" },
+                            "align": "right",
+                            "color": "theme-neutral",
+                            "hoverColor": "theme-surface",
+                            "hoverEffect": "underline",
+                            "fontSize": "theme-sm",
+                            "icon": "none",
+                            "iconPosition": "end",
+                            "layout": { "positionMode": "static", "displayMode": "block", "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false }
+                          }
+                        },
+                        {
+                          "type": "ContentLink",
+                          "props": {
+                            "id": "ContentLink-waha-footer-shop-products",
+                            "title": "المنتجات",
+                            "link": { "kind": "page", "pageId": "/products/example-product" },
+                            "align": "right",
+                            "color": "theme-neutral",
+                            "hoverColor": "theme-surface",
+                            "hoverEffect": "underline",
+                            "fontSize": "theme-sm",
+                            "icon": "none",
+                            "iconPosition": "end",
+                            "layout": { "positionMode": "static", "displayMode": "block", "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false }
+                          }
+                        },
+                        {
+                          "type": "ContentLink",
+                          "props": {
+                            "id": "ContentLink-waha-footer-shop-cart",
+                            "title": "السلة",
+                            "link": { "kind": "page", "pageId": "/cart" },
+                            "align": "right",
+                            "color": "theme-neutral",
+                            "hoverColor": "theme-surface",
+                            "hoverEffect": "underline",
+                            "fontSize": "theme-sm",
+                            "icon": "none",
+                            "iconPosition": "end",
+                            "layout": { "positionMode": "static", "displayMode": "block", "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Group",
+                    "props": {
+                      "id": "Group-waha-footer-explore",
+                      "product": null, "metadata": null, "language": "ar",
+                      "cartLineId": null, "skipProductDetailFetch": false,
+                      "direction": "column",
+                      "gap": 12,
+                      "alignItems": "flex-start",
+                      "justifyContent": "flex-start",
+                      "wrap": "nowrap",
+                      "backgroundColor": "",
+                      "backgroundImage": "",
+                      "backgroundOverlayColor": "",
+                      "padding": "0px",
+                      "borderRadius": "theme-none",
+                      "boxShadow": "none",
+                      "layout": {
+                        "spanCol": 1, "spanRow": 1, "grow": false,
+                        "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                        "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                        "padding": "0px", "positionMode": "static",
+                        "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                        "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                        "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                        "shadowMode": "none", "shadowPreset": "md",
+                        "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                        "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                        "displayMode": "flex",
+                        "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                      },
+                      "content": [
+                        {
+                          "type": "ContentHeading",
+                          "props": {
+                            "id": "ContentHeading-waha-footer-explore-title",
+                            "text": "استكشف",
+                            "level": "3",
+                            "textAlign": "right",
+                            "fontFamily": "body",
+                            "fontSize": "theme-md",
+                            "fontWeight": "theme-semibold",
+                            "lineHeight": "theme-normal",
+                            "fontStyle": "normal",
+                            "textTransform": "none",
+                            "color": "theme-surface",
+                            "layout": {
+                              "spanCol": 1, "spanRow": 1, "grow": false,
+                              "marginTop": "0px", "marginRight": "0px", "marginBottom": "8px", "marginLeft": "0px",
+                              "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                              "padding": "0px", "positionMode": "static",
+                              "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                              "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                              "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                              "shadowMode": "none", "shadowPreset": "md",
+                              "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                              "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                              "displayMode": "block",
+                              "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                            }
+                          }
+                        },
+                        {
+                          "type": "ContentLink",
+                          "props": {
+                            "id": "ContentLink-waha-footer-explore-about",
+                            "title": "من نحن",
+                            "link": { "kind": "anchor", "hash": "about" },
+                            "align": "right",
+                            "color": "theme-neutral",
+                            "hoverColor": "theme-surface",
+                            "hoverEffect": "underline",
+                            "fontSize": "theme-sm",
+                            "icon": "none",
+                            "iconPosition": "end",
+                            "layout": { "positionMode": "static", "displayMode": "block", "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false }
+                          }
+                        },
+                        {
+                          "type": "ContentLink",
+                          "props": {
+                            "id": "ContentLink-waha-footer-explore-contact",
+                            "title": "تواصل معنا",
+                            "link": { "kind": "anchor", "hash": "contact" },
+                            "align": "right",
+                            "color": "theme-neutral",
+                            "hoverColor": "theme-surface",
+                            "hoverEffect": "underline",
+                            "fontSize": "theme-sm",
+                            "icon": "none",
+                            "iconPosition": "end",
+                            "layout": { "positionMode": "static", "displayMode": "block", "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false }
+                          }
+                        },
+                        {
+                          "type": "ContentLink",
+                          "props": {
+                            "id": "ContentLink-waha-footer-explore-privacy",
+                            "title": "سياسة الخصوصية",
+                            "link": { "kind": "page", "pageId": "/privacy" },
+                            "align": "right",
+                            "color": "theme-neutral",
+                            "hoverColor": "theme-surface",
+                            "hoverEffect": "underline",
+                            "fontSize": "theme-sm",
+                            "icon": "none",
+                            "iconPosition": "end",
+                            "layout": { "positionMode": "static", "displayMode": "block", "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "ContentParagraph",
+              "props": {
+                "id": "ContentParagraph-waha-footer-copyright",
+                "text": "© ٢٠٢٦ واحة — جميع الحقوق محفوظة",
+                "textAlign": "center",
+                "fontFamily": "body",
+                "fontSize": "theme-xs",
+                "fontWeight": "theme-normal",
+                "lineHeight": "theme-normal",
+                "fontStyle": "normal",
+                "textTransform": "none",
+                "color": "theme-muted",
+                "layout": {
+                  "spanCol": 1, "spanRow": 1, "grow": false,
+                  "marginTop": "16px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                  "paddingTop": "16px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                  "padding": "0px", "positionMode": "static",
+                  "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                  "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                  "borderWidth": "1px", "borderStyle": "solid", "borderColor": "rgba(255,255,255,0.1)",
+                  "shadowMode": "none", "shadowPreset": "md",
+                  "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                  "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                  "displayMode": "block",
+                  "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                }
+              }
+            }
+          ]
+        }
+      }
+    ],
+
+    "root:zone-drawer": [
+      {
+        "type": "ZoneDrawer",
+        "props": {
+          "id": "ZoneDrawer-waha-mobile-nav",
+          "is_active": true,
+          "is_mobile_only": true,
+          "key": "site-drawer",
+          "side": "left",
+          "backgroundColor": "#ffffff",
+          "overlay": true,
+          "showCloseButton": true,
+          "slot": [
+            {
+              "type": "ContentHeading",
+              "props": {
+                "id": "ContentHeading-waha-drawer-brand",
+                "text": "واحة",
+                "level": "2",
+                "textAlign": "right",
+                "fontFamily": "option1",
+                "fontSize": "theme-2xl",
+                "fontWeight": "theme-bold",
+                "lineHeight": "theme-normal",
+                "fontStyle": "normal",
+                "textTransform": "none",
+                "color": "theme-primary",
+                "layout": {
+                  "spanCol": 1, "spanRow": 1, "grow": false,
+                  "marginTop": "0px", "marginRight": "0px", "marginBottom": "4px", "marginLeft": "0px",
+                  "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                  "padding": "0px", "positionMode": "static",
+                  "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                  "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                  "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                  "shadowMode": "none", "shadowPreset": "md",
+                  "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                  "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                  "displayMode": "block",
+                  "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                }
+              }
+            },
+            {
+              "type": "ContentParagraph",
+              "props": {
+                "id": "ContentParagraph-waha-drawer-tagline",
+                "text": "اكتشف أفضل ما لدينا",
+                "textAlign": "right",
+                "fontFamily": "body",
+                "fontSize": "theme-sm",
+                "fontWeight": "theme-normal",
+                "lineHeight": "theme-relaxed",
+                "fontStyle": "normal",
+                "textTransform": "none",
+                "color": "theme-muted",
+                "layout": {
+                  "spanCol": 1, "spanRow": 1, "grow": false,
+                  "marginTop": "0px", "marginRight": "0px", "marginBottom": "20px", "marginLeft": "0px",
+                  "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "16px", "paddingLeft": "0px",
+                  "padding": "0px", "positionMode": "static",
+                  "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                  "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                  "borderWidth": "0px", "borderStyle": "solid", "borderColor": "rgba(0,0,0,0.1)",
+                  "shadowMode": "none", "shadowPreset": "md",
+                  "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                  "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                  "displayMode": "block",
+                  "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                }
+              }
+            },
+            {
+              "type": "NavMenu",
+              "props": {
+                "id": "NavMenu-waha-drawer-nav",
+                "orientation": "vertical",
+                "variant": "plain",
+                "activePath": "/",
+                "items": [
+                  { "label": { "ar": "الرئيسية", "en": "Home" }, "link": { "kind": "page", "pageId": "/" } },
+                  { "label": { "ar": "المتجر", "en": "Shop" }, "link": { "kind": "page", "pageId": "/products/example-product" } },
+                  { "label": { "ar": "السلة", "en": "Cart" }, "link": { "kind": "page", "pageId": "/cart" } },
+                  { "label": { "ar": "من نحن", "en": "About" }, "link": { "kind": "anchor", "hash": "about" } },
+                  { "label": { "ar": "تواصل معنا", "en": "Contact" }, "link": { "kind": "anchor", "hash": "contact" } }
+                ]
+              }
+            },
+            {
+              "type": "ContentButton",
+              "props": {
+                "id": "ContentButton-waha-drawer-cta",
+                "label": "تسوق الآن",
+                "align": "right",
+                "destinationType": "link",
+                "buttonAction": "link",
+                "submitRedirectUrl": "",
+                "link": { "kind": "page", "pageId": "/products/example-product" },
+                "zoneKey": "site-drawer",
+                "zoneAction": "open",
+                "buttonVariantMode": "variant",
+                "buttonVariant": "primary",
+                "buttonVariantSize": "md",
+                "radius": "theme-md",
+                "bgColor": "theme-primary",
+                "textColor": "theme-surface",
+                "buttonSize": "theme-md",
+                "layout": {
+                  "spanCol": 1, "spanRow": 1, "grow": false,
+                  "marginTop": "20px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                  "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                  "padding": "0px", "positionMode": "static",
+                  "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                  "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                  "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                  "shadowMode": "none", "shadowPreset": "md",
+                  "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                  "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                  "displayMode": "block",
+                  "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                }
+              }
+            }
+          ]
+        }
+      }
+    ],
+
+    "root:zone-popup": [],
+    "root:zone-bottom-sheet": []
+  },
+
+  "pages": [
+    {
+      "id": "page-waha-home",
+      "slug": "/",
+      "route": "/",
+      "title": "الرئيسية",
+      "content": [
+
+        {
+          "type": "Section",
+          "props": {
+            "id": "Section-waha-hero",
+            "name": "القسم الرئيسي",
+            "anchorId": "",
+            "visible": true,
+            "paddingTop": "100px",
+            "paddingBottom": "100px",
+            "paddingHorizontal": "28px",
+            "backgroundColor": "#0d1f30",
+            "backgroundImage": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&auto=format&fit=crop&q=80",
+            "backgroundOverlayColor": "rgba(13, 31, 48, 0.65)",
+            "theme": "light",
+            "maxWidth": "100%",
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "0px",
+            "collection": null,
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-waha-hero-content",
+                  "direction": "column",
+                  "gap": 20,
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "wrap": "nowrap",
+                  "backgroundColor": "",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none",
+                  "boxShadow": "none",
+                  "layout": {
+                    "spanCol": 1, "spanRow": 1, "grow": false,
+                    "positionMode": "static", "displayMode": "flex",
+                    "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                  },
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "ContentHeading-waha-hero-title",
+                        "text": "اكتشف مجموعتنا الفريدة",
+                        "level": "1",
+                        "textAlign": "center",
+                        "fontFamily": "option1",
+                        "fontSize": "theme-2xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-surface",
+                        "layout": {
+                          "spanCol": 1, "spanRow": 1, "grow": false,
+                          "positionMode": "static", "displayMode": "block",
+                          "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                        }
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "ContentParagraph-waha-hero-desc",
+                        "text": "أجود المنتجات المختارة بعناية لتناسب أسلوب حياتك — شحن مجاني على الطلبات التي تتجاوز ١٠٠٠ ل.س.",
+                        "textAlign": "center",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-muted",
+                        "layout": {
+                          "spanCol": 1, "spanRow": 1, "grow": false,
+                          "positionMode": "static", "displayMode": "block",
+                          "marginBottom": "8px",
+                          "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                        }
+                      }
+                    },
+                    {
+                      "type": "Group",
+                      "props": {
+                        "id": "Group-waha-hero-buttons",
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                        "wrap": "wrap",
+                        "backgroundColor": "",
+                        "backgroundImage": "",
+                        "backgroundOverlayColor": "",
+                        "padding": "0px",
+                        "borderRadius": "theme-none",
+                        "boxShadow": "none",
+                        "layout": {
+                          "spanCol": 1, "spanRow": 1, "grow": false,
+                          "positionMode": "static", "displayMode": "flex",
+                          "marginTop": "8px",
+                          "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                        },
+                        "content": [
+                          {
+                            "type": "ContentButton",
+                            "props": {
+                              "id": "ContentButton-waha-hero-primary",
+                              "label": "تسوق الآن",
+                              "align": "center",
+                              "destinationType": "link",
+                              "buttonAction": "link",
+                              "submitRedirectUrl": "",
+                              "link": { "kind": "page", "pageId": "/products/example-product" },
+                              "zoneKey": "", "zoneAction": "open",
+                              "buttonVariantMode": "variant",
+                              "buttonVariant": "primary",
+                              "buttonVariantSize": "lg",
+                              "radius": "theme-md",
+                              "bgColor": "theme-primary",
+                              "textColor": "theme-surface",
+                              "buttonSize": "theme-md",
+                              "layout": {
+                                "spanCol": 1, "spanRow": 1, "grow": false,
+                                "positionMode": "static", "displayMode": "block",
+                                "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                              }
+                            }
+                          },
+                          {
+                            "type": "ContentButton",
+                            "props": {
+                              "id": "ContentButton-waha-hero-secondary",
+                              "label": "تعرف علينا",
+                              "align": "center",
+                              "destinationType": "link",
+                              "buttonAction": "link",
+                              "submitRedirectUrl": "",
+                              "link": { "kind": "anchor", "hash": "about" },
+                              "zoneKey": "", "zoneAction": "open",
+                              "buttonVariantMode": "variant",
+                              "buttonVariant": "secondary",
+                              "buttonVariantSize": "lg",
+                              "radius": "theme-md",
+                              "bgColor": "theme-surface",
+                              "textColor": "theme-text",
+                              "buttonSize": "theme-md",
+                              "layout": {
+                                "spanCol": 1, "spanRow": 1, "grow": false,
+                                "positionMode": "static", "displayMode": "block",
+                                "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "layout": {
+              "spanCol": 1, "spanRow": 1, "grow": false,
+              "positionMode": "static", "displayMode": "block",
+              "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+            }
+          }
+        },
+
+        {
+          "type": "Section",
+          "props": {
+            "id": "Section-waha-two-col",
+            "name": "صورة ونص",
+            "anchorId": "about",
+            "visible": true,
+            "paddingTop": "80px",
+            "paddingBottom": "80px",
+            "paddingHorizontal": "28px",
+            "backgroundColor": "#f5f3ef",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "theme": "dark",
+            "maxWidth": "1280px",
+            "columns": 2,
+            "columnsMobile": 1,
+            "gridGap": "48px",
+            "collection": null,
+            "content": [
+              {
+                "type": "ContentImage",
+                "props": {
+                  "id": "ContentImage-waha-feature",
+                  "src": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=900&auto=format&fit=crop&q=80",
+                  "alt": "منتجات واحة",
+                  "align": "center",
+                  "objectFit": "cover",
+                  "radius": "theme-lg",
+                  "maxWidth": "100%",
+                  "layout": {
+                    "spanCol": 1, "spanRow": 1, "grow": false,
+                    "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                    "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                    "padding": "0px", "positionMode": "static",
+                    "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                    "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                    "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                    "shadowMode": "preset", "shadowPreset": "md",
+                    "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                    "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                    "displayMode": "block",
+                    "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                  }
+                }
+              },
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-waha-feature-text",
+                  "product": null, "metadata": null, "language": "ar",
+                  "cartLineId": null, "skipProductDetailFetch": false,
+                  "direction": "column",
+                  "gap": 18,
+                  "alignItems": "flex-start",
+                  "justifyContent": "center",
+                  "wrap": "nowrap",
+                  "backgroundColor": "",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none",
+                  "boxShadow": "none",
+                  "layout": {
+                    "spanCol": 1, "spanRow": 1, "grow": false,
+                    "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                    "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                    "padding": "0px", "positionMode": "static",
+                    "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                    "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                    "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                    "shadowMode": "none", "shadowPreset": "md",
+                    "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                    "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                    "displayMode": "flex",
+                    "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                  },
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "ContentHeading-waha-feature-title",
+                        "text": "جودة لا تُضاهى",
+                        "level": "2",
+                        "textAlign": "right",
+                        "fontFamily": "option1",
+                        "fontSize": "theme-2xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "layout": {
+                          "spanCol": 1, "spanRow": 1, "grow": false,
+                          "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                          "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                          "padding": "0px", "positionMode": "static",
+                          "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                          "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                          "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                          "shadowMode": "none", "shadowPreset": "md",
+                          "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                          "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                          "displayMode": "block",
+                          "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                        }
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "ContentParagraph-waha-feature-body",
+                        "text": "نختار كل منتج بعناية فائقة ليلبّي توقعاتك. من الأناقة إلى العملية، كل شيء في واحة يجمع بين الجودة والذوق الرفيع.",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "layout": {
+                          "spanCol": 1, "spanRow": 1, "grow": false,
+                          "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                          "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                          "padding": "0px", "positionMode": "static",
+                          "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                          "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                          "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                          "shadowMode": "none", "shadowPreset": "md",
+                          "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                          "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                          "displayMode": "block",
+                          "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                        }
+                      }
+                    },
+                    {
+                      "type": "ContentButton",
+                      "props": {
+                        "id": "ContentButton-waha-feature-cta",
+                        "label": "اكتشف المنتجات",
+                        "align": "right",
+                        "destinationType": "link",
+                        "buttonAction": "link",
+                        "submitRedirectUrl": "",
+                        "link": { "kind": "page", "pageId": "/products/example-product" },
+                        "zoneKey": "popup-main",
+                        "zoneAction": "open",
+                        "buttonVariantMode": "variant",
+                        "buttonVariant": "primary",
+                        "buttonVariantSize": "md",
+                        "radius": "theme-md",
+                        "bgColor": "theme-primary",
+                        "textColor": "theme-surface",
+                        "buttonSize": "theme-md",
+                        "layout": {
+                          "spanCol": 1, "spanRow": 1, "grow": false,
+                          "marginTop": "8px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+                          "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+                          "padding": "0px", "positionMode": "static",
+                          "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+                          "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+                          "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+                          "shadowMode": "none", "shadowPreset": "md",
+                          "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+                          "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+                          "displayMode": "block",
+                          "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "layout": {
+              "spanCol": 1, "spanRow": 1, "grow": false,
+              "marginTop": "0px", "marginRight": "0px", "marginBottom": "0px", "marginLeft": "0px",
+              "paddingTop": "0px", "paddingRight": "0px", "paddingBottom": "0px", "paddingLeft": "0px",
+              "padding": "0px", "positionMode": "static",
+              "floatUseFixedPosition": true, "floatPlacementMode": "preset", "floatPreset": "top-left",
+              "fixedTop": "auto", "fixedRight": "auto", "fixedBottom": "auto", "fixedLeft": "auto",
+              "borderWidth": "0px", "borderStyle": "solid", "borderColor": "#cbd5e1",
+              "shadowMode": "none", "shadowPreset": "md",
+              "shadowOffsetX": "0px", "shadowOffsetY": "4px", "shadowBlur": "6px",
+              "shadowSpread": "0px", "shadowColor": "rgba(0,0,0,0.12)",
+              "displayMode": "block",
+              "hideOnMobile": false, "hideOnTablet": false, "hideOnDesktop": false
+            }
+          }
+        }
+
+      ]
+    }
+  ]
+}
