@@ -1,6 +1,5 @@
 import { CSSProperties, forwardRef } from "react";
 import { useAppStore } from "@/core/store";
-import { getClassNameFactory } from "@/core/lib";
 import {
   getViewportBucket,
   normalizeBreakpoints,
@@ -8,7 +7,6 @@ import {
   type BreakpointThemeProps,
   type ViewportBucket,
 } from "../../theme";
-import styles from "./styles.module.css";
 import {
   type FloatPresetKey,
   getFloatInsetStyleFromPreset,
@@ -18,10 +16,7 @@ import {
   resolvePaddingBottom,
   resolvePaddingTop,
   type LayoutProps,
-  viewportBucketLabel,
 } from "./layout-shared";
-
-const getClassName = getClassNameFactory("Layout", styles);
 
 export const Layout = forwardRef<HTMLDivElement, LayoutProps>(
   (
@@ -35,14 +30,10 @@ export const Layout = forwardRef<HTMLDivElement, LayoutProps>(
     const floatPlacementMode = norm.floatPlacementMode ?? "preset";
     const useFixedPos = norm.floatUseFixedPosition !== false;
 
-    const previewMode = useAppStore((s) => s.state.ui.previewMode);
     const viewportW = useAppStore((s) => s.state.ui.viewports.current.width);
     const rootBp = useAppStore(
       (s) => s.state.data.root.props as Partial<BreakpointThemeProps> | undefined
     );
-
-    const editorLayoutOverride =
-      puckIsEditing && previewMode === "edit";
 
     const bp = normalizeBreakpoints({
       breakpointMobileMax: rootBp?.breakpointMobileMax,
@@ -55,17 +46,14 @@ export const Layout = forwardRef<HTMLDivElement, LayoutProps>(
       ? getViewportBucket(widthPx, bp)
       : ("desktop" as ViewportBucket);
 
+    // In the editor, match live behaviour: hide the block entirely when it
+    // is flagged off for the current canvas viewport (no placeholder badge).
     const hiddenAtViewport =
       (bucket === "mobile" && norm.hideOnMobile) ||
       (bucket === "tablet" && norm.hideOnTablet) ||
       (bucket === "desktop" && norm.hideOnDesktop);
 
-    const showViewportHint = editorLayoutOverride && hiddenAtViewport;
-
-    const hideByViewportInEditor =
-      puckIsEditing &&
-      !editorLayoutOverride &&
-      hiddenAtViewport;
+    const hideByViewportInEditor = puckIsEditing && hiddenAtViewport;
 
     const floatStyle: CSSProperties = !isFloat
       ? { position: "static" }
@@ -90,7 +78,7 @@ export const Layout = forwardRef<HTMLDivElement, LayoutProps>(
 
     return (
       <div
-        className={`${className ?? ""}${showViewportHint ? ` ${getClassName("editorHiddenHint")}` : ""}`.trim()}
+        className={className}
         style={{
           gridColumn: layout?.spanCol
             ? `span ${Math.max(Math.min(layout.spanCol, 12), 1)}`
@@ -119,18 +107,7 @@ export const Layout = forwardRef<HTMLDivElement, LayoutProps>(
         data-puck-hide-mobile={norm.hideOnMobile ? "true" : undefined}
         data-puck-hide-tablet={norm.hideOnTablet ? "true" : undefined}
         data-puck-hide-desktop={norm.hideOnDesktop ? "true" : undefined}
-        data-puck-layout-editor-visible={
-          editorLayoutOverride ? "true" : undefined
-        }
       >
-        {showViewportHint && (
-          <span
-            className={getClassName("viewportHiddenBadge")}
-            title="This block is hidden at the live site for this viewport width"
-          >
-            Hidden on {viewportBucketLabel(bucket)}
-          </span>
-        )}
         {children}
       </div>
     );

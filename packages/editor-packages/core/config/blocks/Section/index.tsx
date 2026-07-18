@@ -2,6 +2,7 @@ import React from "react";
 import { ComponentConfig, Slot } from "@/core/types";
 import type { ComponentDataOptionalId } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";
+import { useAppStore } from "@/core/store";
 import { resolveColor } from "../../content/color-fields";
 import { createThemeColorField } from "../../fields/ThemeColorField";
 import { createSpacingField } from "../../fields/SpacingField";
@@ -35,10 +36,41 @@ import {
 } from "./zone-section";
 import { CartSectionStorefront } from "./CartSectionStorefront";
 import { CollectionProductsBoundProvider } from "../../binding/CollectionProductsBoundProvider";
-import { readMobileBreakpointPx } from "../../theme";
+import {
+  getViewportBucket,
+  normalizeBreakpoints,
+  parseViewportWidthForBucket,
+  readMobileBreakpointPx,
+  type BreakpointThemeProps,
+} from "../../theme";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("Section", styles);
+
+function clampColumns(raw: unknown): number {
+  return Math.max(1, Math.min(6, Number(raw ?? 1) || 1));
+}
+
+/** Active grid column count for the editor canvas viewport (mobile → columnsMobile). */
+function useEditorActiveColumns(
+  isEditing: boolean,
+  columns: number,
+  columnsMobile: number
+): number {
+  const viewportW = useAppStore((s) => s.state.ui.viewports.current.width);
+  const rootBp = useAppStore(
+    (s) => s.state.data.root.props as Partial<BreakpointThemeProps> | undefined
+  );
+
+  if (!isEditing) return columns;
+
+  const bp = normalizeBreakpoints({
+    breakpointMobileMax: rootBp?.breakpointMobileMax,
+    breakpointTabletMax: rootBp?.breakpointTabletMax,
+  });
+  const bucket = getViewportBucket(parseViewportWidthForBucket(viewportW), bp);
+  return bucket === "mobile" ? columnsMobile : columns;
+}
 
 // ─── Preset colours ────────────────────────────────────────────────────────
 export const backgroundOptions = [
@@ -314,203 +346,212 @@ const SectionInner: ComponentConfig<SectionProps> = {
     };
   },
 
-  render: ({
-    id,
-    name: _name,
-    anchorId,
-    visible,
-    paddingTop,
-    paddingBottom,
-    paddingHorizontal,
-    backgroundColor,
-    backgroundImage,
-    backgroundOverlayColor,
-    theme,
-    maxWidth,
-    columns,
-    columnsMobile,
-    gridGap,
-    sectionKind,
-    collection,
-    metadata: sectionMetadata,
-    cartSlotItems,
-    content: Content,
-    puck,
-  }) => {
-    const cols = Math.max(1, Math.min(6, Number(columns ?? 1) || 1));
-    const colsMobile = Math.max(
-      1,
-      Math.min(6, Number(columnsMobile ?? 1) || 1)
-    );
-    const gap = gridGap ?? "24px";
-    const bgImage = (backgroundImage ?? "").trim();
-    const overlayColor = (backgroundOverlayColor ?? "").trim();
-    const gridClassName = getClassName("grid");
-    const sectionScopeId = id ? `section-${id.replace(/[^a-zA-Z0-9_-]/g, "-")}` : undefined;
+  render: (props) => <SectionView {...props} />,
+};
 
-    // Backward-compat: sections saved before the `visible` prop existed
-    // (i.e. `visible === undefined`) default to visible.
-    const isHidden = visible === false;
+type SectionViewProps = SectionProps & {
+  id?: string;
+  puck: { isEditing?: boolean };
+};
 
-    // Published renderer (web + mobile) strips hidden sections entirely.
-    // The editor keeps them interactive but visually demotes them so
-    // merchants can still select and re-enable them from the fields panel.
-    if (isHidden && !puck.isEditing) {
-      return <></>;
-    }
+function SectionView({
+  id,
+  name: _name,
+  anchorId,
+  visible,
+  paddingTop,
+  paddingBottom,
+  paddingHorizontal,
+  backgroundColor,
+  backgroundImage,
+  backgroundOverlayColor,
+  theme,
+  maxWidth,
+  columns,
+  columnsMobile,
+  gridGap,
+  sectionKind,
+  collection,
+  metadata: sectionMetadata,
+  cartSlotItems,
+  content: Content,
+  puck,
+}: SectionViewProps) {
+  const cols = clampColumns(columns);
+  // Default mobile layout: single column unless the merchant overrides.
+  const colsMobile = clampColumns(columnsMobile ?? 1);
+  const isEditing = puck.isEditing === true;
+  const activeCols = useEditorActiveColumns(isEditing, cols, colsMobile);
 
-    // Sanitise the anchor id — CSS ids cannot contain spaces. We trim and
-    // replace whitespace so merchants don't have to learn the rules.
-    const cleanAnchor = (anchorId ?? "").trim().replace(/\s+/g, "-");
+  const gap = gridGap ?? "24px";
+  const bgImage = (backgroundImage ?? "").trim();
+  const overlayColor = (backgroundOverlayColor ?? "").trim();
+  const gridClassName = getClassName("grid");
+  const sectionScopeId = id
+    ? `section-${id.replace(/[^a-zA-Z0-9_-]/g, "-")}`
+    : undefined;
 
-    const gridStyle = {
-      display: "grid",
-      gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-      gap,
-      alignContent: "start",
-      width: "100%",
-    } as const;
+  // Backward-compat: sections saved before the `visible` prop existed
+  // (i.e. `visible === undefined`) default to visible.
+  const isHidden = visible === false;
 
-    const sectionGridContent = (
-      <Content className={gridClassName} style={gridStyle} />
-    );
+  // Published renderer (web + mobile) strips hidden sections entirely.
+  // The editor keeps them interactive but visually demotes them so
+  // merchants can still select and re-enable them from the fields panel.
+  if (isHidden && !isEditing) {
+    return <></>;
+  }
 
-    const wrappedSectionGridContent =
-      isProductsGridSection({ sectionKind, metadata: sectionMetadata }) &&
-      collection?.slug ? (
-        <CollectionProductsBoundProvider
-          collectionSlug={collection.slug}
-          isEditing={puck.isEditing === true}
-        >
-          {sectionGridContent}
-        </CollectionProductsBoundProvider>
-      ) : (
-        sectionGridContent
-      );
+  // Sanitise the anchor id — CSS ids cannot contain spaces. We trim and
+  // replace whitespace so merchants don't have to learn the rules.
+  const cleanAnchor = (anchorId ?? "").trim().replace(/\s+/g, "-");
 
-    return (
-      <section
-        id={cleanAnchor || sectionScopeId}
-        data-section-id={sectionScopeId}
-        data-section-preset={
-          isProductsGridSection({ sectionKind, metadata: sectionMetadata })
-            ? SECTION_KIND_PRODUCTS_GRID
-            : isCartSection({ sectionKind, metadata: sectionMetadata })
-              ? SECTION_KIND_CART
-              : isZoneHeaderSection({ sectionKind, metadata: sectionMetadata })
-                ? SECTION_KIND_ZONE_HEADER
-              : undefined
-        }
-        className={getClassName({ hidden: isHidden })}
-        style={{
-          paddingTop,
-          paddingBottom,
-          backgroundColor: bgImage ? undefined : backgroundColor,
-          backgroundImage: bgImage ? `url(${bgImage})` : undefined,
-          backgroundSize: bgImage ? "cover" : undefined,
-          backgroundPosition: bgImage ? "center" : undefined,
-          backgroundRepeat: bgImage ? "no-repeat" : undefined,
-          color: theme === "light" ? "#ffffff" : "inherit",
-          opacity: isHidden ? 0.35 : undefined,
-          position: "relative",
-        }}
+  const gridStyle = {
+    display: "grid",
+    gridTemplateColumns: `repeat(${activeCols}, minmax(0, 1fr))`,
+    gap,
+    alignContent: "start",
+    width: "100%",
+  } as const;
+
+  const sectionGridContent = (
+    <Content className={gridClassName} style={gridStyle} />
+  );
+
+  const wrappedSectionGridContent =
+    isProductsGridSection({ sectionKind, metadata: sectionMetadata }) &&
+    collection?.slug ? (
+      <CollectionProductsBoundProvider
+        collectionSlug={collection.slug}
+        isEditing={isEditing}
       >
-        {bgImage && overlayColor && (
-          <div
-            aria-hidden
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundColor: resolveColor(overlayColor),
-              pointerEvents: "none",
-              zIndex: 0,
-            }}
-          />
-        )}
-        {sectionScopeId && colsMobile !== cols && (
-          <style>{`
-            @media (max-width: ${readMobileBreakpointPx()}px) {
-              [data-section-id="${sectionScopeId}"] .${gridClassName} {
-                grid-template-columns: repeat(${colsMobile}, minmax(0, 1fr)) !important;
-              }
-            }
-          `}</style>
-        )}
-        {isHidden && puck.isEditing && (
-          <div
-            aria-hidden
-            style={{
-              position: "absolute",
-              top: 8,
-              insetInlineStart: 8,
-              padding: "2px 8px",
-              background: "#111827",
-              color: "#ffffff",
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-              borderRadius: 4,
-              zIndex: 1,
-              pointerEvents: "none",
-            }}
-          >
-            Hidden
-          </div>
-        )}
+        {sectionGridContent}
+      </CollectionProductsBoundProvider>
+    ) : (
+      sectionGridContent
+    );
+
+  return (
+    <section
+      id={cleanAnchor || sectionScopeId}
+      data-section-id={sectionScopeId}
+      data-section-preset={
+        isProductsGridSection({ sectionKind, metadata: sectionMetadata })
+          ? SECTION_KIND_PRODUCTS_GRID
+          : isCartSection({ sectionKind, metadata: sectionMetadata })
+            ? SECTION_KIND_CART
+            : isZoneHeaderSection({ sectionKind, metadata: sectionMetadata })
+              ? SECTION_KIND_ZONE_HEADER
+              : undefined
+      }
+      className={getClassName({ hidden: isHidden })}
+      style={{
+        paddingTop,
+        paddingBottom,
+        backgroundColor: bgImage ? undefined : backgroundColor,
+        backgroundImage: bgImage ? `url(${bgImage})` : undefined,
+        backgroundSize: bgImage ? "cover" : undefined,
+        backgroundPosition: bgImage ? "center" : undefined,
+        backgroundRepeat: bgImage ? "no-repeat" : undefined,
+        color: theme === "light" ? "#ffffff" : "inherit",
+        opacity: isHidden ? 0.35 : undefined,
+        position: "relative",
+      }}
+    >
+      {bgImage && overlayColor && (
         <div
-          className={getClassName("inner")}
+          aria-hidden
           style={{
-            maxWidth,
-            paddingLeft: paddingHorizontal,
-            paddingRight: paddingHorizontal,
-            width: "100%",
-            position: "relative",
+            position: "absolute",
+            inset: 0,
+            backgroundColor: resolveColor(overlayColor),
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        />
+      )}
+      {sectionScopeId && colsMobile !== cols && (
+        <style>{`
+          @media (max-width: ${readMobileBreakpointPx()}px) {
+            [data-section-id="${sectionScopeId}"] .${gridClassName} {
+              grid-template-columns: repeat(${colsMobile}, minmax(0, 1fr)) !important;
+            }
+          }
+        `}</style>
+      )}
+      {isHidden && isEditing && (
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: 8,
+            insetInlineStart: 8,
+            padding: "2px 8px",
+            background: "#111827",
+            color: "#ffffff",
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: "0.04em",
+            textTransform: "uppercase",
+            borderRadius: 4,
             zIndex: 1,
+            pointerEvents: "none",
           }}
         >
-          {isProductsGridSection({ sectionKind, metadata: sectionMetadata }) &&
-          !collection?.slug &&
-          puck.isEditing ? (
-            <div
-              className={getClassName("productsGridEmpty")}
-              style={{
-                gridColumn: "1 / -1",
-                padding: "32px 16px",
-                textAlign: "center",
-                color: "#6b7280",
-                fontSize: 14,
-                border: "1px dashed #d1d5db",
-                borderRadius: 8,
-                background: "#f9fafb",
-              }}
-            >
-              اختر مجموعة من لوحة الحقول لعرض منتجاتها.
-            </div>
-          ) : null}
-          {isCartSection({ sectionKind, metadata: sectionMetadata }) &&
-          !puck.isEditing ? (
-            <CartSectionStorefront
-              cartSlotItems={
-                (cartSlotItems as ComponentDataOptionalId[] | null) ??
-                []
-              }
-              gridClassName={gridClassName}
-              gridStyle={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-                gap,
-                alignContent: "start",
-                width: "100%",
-              }}
-            />
-          ) : (
-            wrappedSectionGridContent
-          )}
+          Hidden
         </div>
-      </section>
-    );
-  },
-};
+      )}
+      <div
+        className={getClassName("inner")}
+        style={{
+          maxWidth,
+          paddingLeft: paddingHorizontal,
+          paddingRight: paddingHorizontal,
+          width: "100%",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        {isProductsGridSection({ sectionKind, metadata: sectionMetadata }) &&
+        !collection?.slug &&
+        isEditing ? (
+          <div
+            className={getClassName("productsGridEmpty")}
+            style={{
+              gridColumn: "1 / -1",
+              padding: "32px 16px",
+              textAlign: "center",
+              color: "#6b7280",
+              fontSize: 14,
+              border: "1px dashed #d1d5db",
+              borderRadius: 8,
+              background: "#f9fafb",
+            }}
+          >
+            اختر مجموعة من لوحة الحقول لعرض منتجاتها.
+          </div>
+        ) : null}
+        {isCartSection({ sectionKind, metadata: sectionMetadata }) &&
+        !isEditing ? (
+          <CartSectionStorefront
+            cartSlotItems={
+              (cartSlotItems as ComponentDataOptionalId[] | null) ?? []
+            }
+            gridClassName={gridClassName}
+            gridStyle={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+              gap,
+              alignContent: "start",
+              width: "100%",
+            }}
+          />
+        ) : (
+          wrappedSectionGridContent
+        )}
+      </div>
+    </section>
+  );
+}
 
 export const Section = withLayout(SectionInner);

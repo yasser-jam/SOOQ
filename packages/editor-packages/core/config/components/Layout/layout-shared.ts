@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
 import type { CustomField, DefaultComponentProps } from "@/core/types";
-import type { ViewportBucket } from "../../theme";
 
 export type LayoutFieldProps = {
   /** @deprecated use paddingTop/paddingBottom; still read for migrated data */
@@ -360,10 +359,4 @@ export function resolvePaddingBottom(layout: LayoutFieldProps | undefined): stri
   if (layout.paddingBottom !== undefined) return layout.paddingBottom;
   if (layout.padding !== undefined) return layout.padding;
   return undefined;
-}
-
-export function viewportBucketLabel(bucket: ViewportBucket): string {
-  if (bucket === "mobile") return "mobile";
-  if (bucket === "tablet") return "tablet";
-  return "desktop";
 }

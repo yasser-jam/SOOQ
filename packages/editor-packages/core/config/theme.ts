@@ -353,7 +353,7 @@ export function getViewportBucket(
 
 /**
  * CSS for per-breakpoint visibility (see Layout `data-puck-hide-*`).
- * Hiding is suppressed when `data-puck-layout-editor-visible="true"` (edit mode).
+ * Editor canvas also hides via Layout JS using the active viewport bucket.
  */
 export function buildResponsiveLayoutCss(bp: BreakpointThemeProps): string {
   const { breakpointMobileMax: m, breakpointTabletMax: t } = normalizeBreakpoints(bp);
@@ -361,17 +361,17 @@ export function buildResponsiveLayoutCss(bp: BreakpointThemeProps): string {
   const desktopMin = t + 1;
   return `
 @media (max-width: ${m}px) {
-  [data-puck-hide-mobile="true"]:not([data-puck-layout-editor-visible="true"]) {
+  [data-puck-hide-mobile="true"] {
     display: none !important;
   }
 }
 @media (min-width: ${tabletMin}px) and (max-width: ${t}px) {
-  [data-puck-hide-tablet="true"]:not([data-puck-layout-editor-visible="true"]) {
+  [data-puck-hide-tablet="true"] {
     display: none !important;
   }
 }
 @media (min-width: ${desktopMin}px) {
-  [data-puck-hide-desktop="true"]:not([data-puck-layout-editor-visible="true"]) {
+  [data-puck-hide-desktop="true"] {
     display: none !important;
   }
 }

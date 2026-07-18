@@ -502,29 +502,3 @@
   height: 16px;
   cursor: pointer;
 }
-
-.Layout-editorHiddenHint {
-  position: relative;
-  outline: 2px dashed #f59e0b;
-  outline-offset: 2px;
-}
-
-.Layout-viewportHiddenBadge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  z-index: 20;
-  max-width: calc(100% - 12px);
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1.2;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid #f59e0b;
-  pointer-events: none;
-  text-align: right;
-}

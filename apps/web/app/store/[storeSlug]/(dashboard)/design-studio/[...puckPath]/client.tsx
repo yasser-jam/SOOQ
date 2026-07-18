@@ -23,11 +23,6 @@ import {
   MousePointer2,
   Type,
   X,
-  Smartphone,
-  Monitor,
-  RefreshCw,
-  Palette,
-  ChevronDown,
 } from "lucide-react"
 import { settingsPlugin } from "@/core/config/plugins/settings"
 import { HtmlBlockPaletteSync } from "@/core/config/plugins/html-block-palette"
@@ -43,10 +38,7 @@ import {
   normalizeSiteData,
   parseEditorMode,
   readSiteData,
-  resetMobileSiteFromDesktop,
   setActiveEditorMode,
-  syncMobilePageFromDesktop,
-  syncMobileThemeFromDesktop,
   type EditorMode,
   type SiteData,
 } from "@/core/config/lib/site-data"
@@ -59,13 +51,6 @@ import { ThemeInjector } from "@/core/config/plugins/settings/ThemeInjector"
 import type { UserData } from "@/core/config/types"
 import type { FullThemeProps } from "@/core/config/theme"
 import { Button } from "@workspace/ui/components/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
 import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell"
 import { PreviewPageShell } from "../_components/preview-page-shell"
 import { PreviewThemeProvider } from "../_components/preview-theme-provider"
@@ -490,14 +475,11 @@ export function Client({
     ? EDITOR_METADATA_MOBILE
     : EDITOR_METADATA_DESKTOP
 
-  const [siteRevision, setSiteRevision] = useState(0)
-
   const { data, resolvedData, savePageData } = useDemoData({
     path,
     isEdit,
     mode: editorMode,
     metadata: editorMetadata,
-    revision: siteRevision,
   })
 
   const previewPageTitle = useMemo(() => {
@@ -533,19 +515,6 @@ export function Client({
         editorMode
       ),
     [designStudioHref, themeSlug, editorMode]
-  )
-
-  const desktopEditHref = useMemo(
-    () =>
-      themeSlug
-        ? buildStudioEditHrefFromSegment(designStudioHref, themeSlug)
-        : resolveStudioThemeEditHref(designStudioHref),
-    [designStudioHref, themeSlug]
-  )
-
-  const mobileEditHref = useMemo(
-    () => withEditorMode(desktopEditHref, "mobile"),
-    [desktopEditHref]
   )
 
   const exportFileName = isMobileEditor ? "site-mobile" : "site"
@@ -636,58 +605,6 @@ export function Client({
     // Remounts <Puck> with the saved page data.
     setDraftEpoch((epoch) => epoch + 1)
   }, [path, editorMode])
-
-  const reloadMobileSite = useCallback(() => {
-    if (draftTimerRef.current) {
-      window.clearTimeout(draftTimerRef.current)
-      draftTimerRef.current = null
-    }
-    clearPageDraft(path, editorMode)
-    draftBaselineRef.current = null
-    exportDataRef.current = null
-    siteDataRef.current = readSiteData(editorMode)
-    setSiteRevision((revision) => revision + 1)
-    setDraftEpoch((epoch) => epoch + 1)
-  }, [path, editorMode])
-
-  const handleSyncPageFromDesktop = useCallback(() => {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(
-        "سيتم استبدال محتوى هذه الصفحة في نسخة الجوال بنسخة سطح المكتب. هل تريد المتابعة؟"
-      )
-    ) {
-      return
-    }
-    syncMobilePageFromDesktop(path)
-    reloadMobileSite()
-  }, [path, reloadMobileSite])
-
-  const handleSyncThemeFromDesktop = useCallback(() => {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(
-        "سيتم نسخ إعدادات المظهر من سطح المكتب إلى نسخة الجوال. محتوى الصفحات لن يتغير. هل تريد المتابعة؟"
-      )
-    ) {
-      return
-    }
-    syncMobileThemeFromDesktop()
-    reloadMobileSite()
-  }, [reloadMobileSite])
-
-  const handleResetMobileSite = useCallback(() => {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(
-        "سيتم إعادة تعيين موقع الجوال بالكامل من نسخة سطح المكتب. ستفقد جميع تخصيصات الجوال. هل تريد المتابعة؟"
-      )
-    ) {
-      return
-    }
-    resetMobileSiteFromDesktop()
-    reloadMobileSite()
-  }, [reloadMobileSite])
 
   // After an explicit save (publish / preview), the crash-safety draft is
   // obsolete: cancel any pending debounced write so it can't resurrect a
@@ -827,57 +744,6 @@ export function Client({
       },
       headerActions: ({ children }) => (
         <div className="EditorHeaderActions">
-          <div className="EditorModeToggle" dir="rtl">
-            <Button
-              variant={isMobileEditor ? "outline" : "default"}
-              size="sm"
-              asChild
-            >
-              <Link href={desktopEditHref}>
-                <Monitor size={16} />
-                سطح المكتب
-              </Link>
-            </Button>
-            <Button
-              variant={isMobileEditor ? "default" : "outline"}
-              size="sm"
-              asChild
-            >
-              <Link href={mobileEditHref}>
-                <Smartphone size={16} />
-                الجوال
-              </Link>
-            </Button>
-          </div>
-          {isMobileEditor ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <RefreshCw size={16} />
-                  مزامنة
-                  <ChevronDown size={14} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" dir="rtl">
-                <DropdownMenuItem onClick={handleSyncPageFromDesktop}>
-                  <Copy size={14} />
-                  نسخ الصفحة من سطح المكتب
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSyncThemeFromDesktop}>
-                  <Palette size={14} />
-                  مزامنة المظهر من سطح المكتب
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={handleResetMobileSite}
-                >
-                  <RefreshCw size={14} />
-                  إعادة تعيين موقع الجوال
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
           <Button variant="outline" size="sm" asChild>
             <Link href={designStudioHref}>إغلاق المحرر</Link>
           </Button>
@@ -889,18 +755,7 @@ export function Client({
         </div>
       ),
     }),
-    [
-      designStudioHref,
-      desktopEditHref,
-      getSiteSnapshot,
-      handleOpenPreview,
-      handleResetMobileSite,
-      handleSyncPageFromDesktop,
-      handleSyncThemeFromDesktop,
-      isMobileEditor,
-      mobileEditHref,
-      modKeyLabel,
-    ]
+    [designStudioHref, getSiteSnapshot, handleOpenPreview, modKeyLabel, editorMode]
   )
 
   const previewRootProps = useMemo(() => {

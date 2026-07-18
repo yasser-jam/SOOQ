@@ -203,7 +203,7 @@ Every block that should support responsive hiding / padding / floating gets:
 
 1. A `layout` field (`fields/layout.ts`) — exposes `hideOnMobile`, `hideOnTablet`, `hideOnDesktop`, `grow`, `positionMode`, `padding` etc. in the block's sidebar panel.
 2. Wrapped in `<Layout layout={layout} puckIsEditing={…}>` which:
-   - In **editor**: reads the current canvas viewport width from the store → computes `bucket` (`mobile | tablet | desktop`) → sets `data-puck-hide-mobile/tablet/desktop` data attributes AND shows a "مخفي على …" badge
+   - In **editor**: reads the current canvas viewport width from the store → computes `bucket` (`mobile | tablet | desktop`) → sets `data-puck-hide-mobile/tablet/desktop` data attributes and hides the block entirely when it is off for that bucket (no placeholder badge)
    - In **storefront**: always sets `bucket = "desktop"` (JS side does nothing); CSS injected by `buildResponsiveLayoutCss` does the actual `display: none` via those data attributes
 
 File: `config/components/Layout/Layout.client.tsx`
@@ -430,7 +430,7 @@ User drops a block onto the canvas
   → MemoizeComponent re-renders that block
   → User edits a field in the sidebar
   → AutoField fires onChange → reducer updates state.data.content[i].props
-  → Layout HOC reads viewport width from store → shows/hides badge
+  → Layout HOC reads viewport width from store → hides blocks off for that viewport
   → User clicks "نشر" (Publish)
   → Puck calls onPublish(userData)
   → applyPuckSave(site, editPath, userData) merges userData back into SiteData
