@@ -107,7 +107,6 @@ export {
   createProductCardGroup,
   createProductCardBlock,
   createDemoProductCard,
-  createProductsGridBlock,
   createProductsGridSection,
   createProductDetailSection,
 } from "./products-grid";

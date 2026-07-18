@@ -74,7 +74,6 @@ const BLOCK_ICONS: Record<
   CategoryListMenu: { icon: List, category: "store" },
   CheckoutForm: { icon: CreditCard, category: "store" },
   ProductSearchMenu: { icon: Search, category: "store" },
-  ProductsGrid: { icon: LayoutGrid, category: "store" },
   CartSection: { icon: ShoppingCart, category: "store" },
   // العميل
   OrderHistory: { icon: History, category: "customer" },

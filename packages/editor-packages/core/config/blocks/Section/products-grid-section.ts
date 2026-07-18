@@ -1,13 +1,5 @@
 import type { ComponentDataOptionalId } from "@/core/types";
-import {
-  fetchCollectionProductsBySlug,
-  type CollectionPickerRef,
-  type CollectionProductRef,
-} from "@/modules/product/collection/data-store";
-import {
-  buildPublicProductResourceMetadata,
-  buildProductResourceMetadata,
-} from "@/modules/product/product/data-store";
+import type { CollectionPickerRef } from "@/modules/product/collection/data-store";
 import { createProductCardBlock } from "../../presets/products-grid";
 import {
   SECTION_KIND_PRODUCTS_GRID,
@@ -35,58 +27,86 @@ export function isProductsGridSection(
   return props.sectionKind === SECTION_KIND_PRODUCTS_GRID;
 }
 
-export function buildProductGroupBlocksFromCollectionProducts(
-  products: CollectionProductRef[]
-): ComponentDataOptionalId[] {
-  return products.map((product) =>
-    createProductCardBlock({
-      product: {
-        id: product.id,
-        titleAr: product.titleAr,
-        titleEn: product.titleEn,
-        slug: product.slug,
-      },
-      metadata: product.slug
-        ? buildPublicProductResourceMetadata(product.slug, product.id)
-        : buildProductResourceMetadata(product.id),
-      skipProductDetailFetch: true,
-    })
-  );
-}
-
-export function productsGridContentNeedsResync(
-  content: unknown
-): boolean {
-  if (!Array.isArray(content) || content.length === 0) return false;
-
-  return content.some((item) => {
-    if (!item || typeof item !== "object") return false;
-    const record = item as { type?: string; props?: Record<string, unknown> };
-    if (record.type !== "Group") return false;
-    if (!record.props?.product) return false;
-    return record.props.skipProductDetailFetch !== true;
+/**
+ * Build the default card template. The template is a generic Group with
+ * bound `valueContext` paths on its children — no `product` prop, so the
+ * repeater's per-product BoundDataProvider drives what each rendered card
+ * shows at runtime.
+ */
+export function buildDefaultProductCardTemplate(): ComponentDataOptionalId {
+  return createProductCardBlock({
+    product: null,
+    metadata: null,
+    skipProductDetailFetch: true,
   });
 }
 
-export async function resolveProductsGridSectionContent(
-  collection: CollectionPickerRef | null | undefined
-): Promise<{
-  content: ComponentDataOptionalId[];
-  columns: number;
-  name?: string;
-}> {
-  if (!collection?.slug) {
-    return { content: [], columns: 1 };
+type TemplateGroupProps = Record<string, unknown> & {
+  product?: unknown;
+  metadata?: unknown;
+  skipProductDetailFetch?: unknown;
+};
+
+function sanitizeTemplateProps(props: TemplateGroupProps): TemplateGroupProps {
+  const { product: _p, metadata: _m, ...rest } = props;
+  return {
+    ...rest,
+    product: null,
+    metadata: null,
+    skipProductDetailFetch: true,
+  };
+}
+
+/**
+ * Normalize a products-grid Section's `content` slot into the template shape:
+ *
+ * - Empty → seed with the default card template.
+ * - Legacy multi-card content (from the old N-card materialization) → keep the
+ *   first card, drop the rest.
+ * - Any card carrying its own `product` binding → strip it so the template is
+ *   product-agnostic and each rendered clone inherits from the repeater's
+ *   BoundDataProvider.
+ *
+ * Returns the normalized array. Callers should compare by reference and skip
+ * emission when nothing needed to change.
+ */
+export function ensureProductsGridTemplate(
+  content: unknown
+): ComponentDataOptionalId[] {
+  if (!Array.isArray(content) || content.length === 0) {
+    return [buildDefaultProductCardTemplate()];
   }
 
-  const products = await fetchCollectionProductsBySlug(collection.slug);
-  const content = buildProductGroupBlocksFromCollectionProducts(products);
-  const columns =
-    content.length > 0 ? Math.min(Math.max(content.length, 1), 3) : 1;
+  const first = content[0] as ComponentDataOptionalId | undefined;
+  if (!first || typeof first !== "object" || first.type !== "Group") {
+    return [buildDefaultProductCardTemplate()];
+  }
 
-  return {
-    content,
-    columns,
-    name: collection.name,
-  };
+  return [
+    {
+      ...first,
+      props: sanitizeTemplateProps(first.props as TemplateGroupProps),
+    },
+  ];
+}
+
+/**
+ * True when the current `content` slot needs `ensureProductsGridTemplate` to run —
+ * either because it's the legacy N-card shape or the surviving template still
+ * carries a product-specific binding.
+ */
+export function productsGridContentNeedsResync(content: unknown): boolean {
+  if (!Array.isArray(content)) return true;
+  if (content.length !== 1) return true;
+
+  const first = content[0] as ComponentDataOptionalId | undefined;
+  if (!first || typeof first !== "object" || first.type !== "Group") {
+    return true;
+  }
+
+  const props = (first.props ?? {}) as TemplateGroupProps;
+  if (props.product != null) return true;
+  if (props.metadata != null) return true;
+  if (props.skipProductDetailFetch !== true) return true;
+  return false;
 }

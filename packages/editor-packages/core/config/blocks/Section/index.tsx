@@ -1,6 +1,6 @@
 import React from "react";
 import { ComponentConfig, Slot } from "@/core/types";
-import type { ComponentDataOptionalId } from "@/core/types";
+import type { ComponentDataOptionalId, SlotComponent } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";
 import { useAppStore } from "@/core/store";
 import { resolveColor } from "../../content/color-fields";
@@ -18,12 +18,13 @@ import {
   createSectionStarterContent,
 } from "./starter-data";
 import {
+  ensureProductsGridTemplate,
   isProductsGridSection,
   productsGridContentNeedsResync,
-  resolveProductsGridSectionContent,
   SECTION_KIND_PRODUCTS_GRID,
   type SectionPresetMetadata,
 } from "./products-grid-section";
+import { ProductsGridTemplateRepeater } from "./ProductsGridTemplateRepeater";
 import {
   isCartSection,
   resolveCartSectionContent,
@@ -35,7 +36,6 @@ import {
   ZONE_SHELL_SECTION_PERMISSIONS,
 } from "./zone-section";
 import { CartSectionStorefront } from "./CartSectionStorefront";
-import { CollectionProductsBoundProvider } from "../../binding/CollectionProductsBoundProvider";
 import {
   getViewportBucket,
   normalizeBreakpoints,
@@ -146,6 +146,21 @@ export type SectionProps = WithLayout<{
   collection?: CollectionPickerRef | null;
   /** Raw slot snapshot for cart preset storefront rendering. */
   cartSlotItems?: ComponentDataOptionalId[] | null;
+  /**
+   * Raw snapshot of the products-grid card template (a single-item wrapper
+   * around content[0]).
+   *
+   * Slots are exposed to render as a `Slot` component, not as the raw JSON
+   * array, so the products-grid repeater needs this snapshot to clone the
+   * template into non-editable cells 1..N. Kept in sync by resolveData
+   * whenever the slot changes.
+   *
+   * NOTE: shaped as an array (not a single object) so Puck's field walker
+   * treats it as a plain non-field array and returns it as-is — walking
+   * into the object would mis-detect its inner `content` array as another
+   * slot (the section's `content` field name shadows).
+   */
+  cardTemplate?: ComponentDataOptionalId[] | null;
   content: Slot;
 }>;
 
@@ -301,38 +316,46 @@ const SectionInner: ComponentConfig<SectionProps> = {
 
     if (!isProductsGridSection(props)) return {};
 
+    // Template model: the section always owns exactly one card template in
+    // `content`. Runtime iteration over the collection lives in the render
+    // path (ProductsGridTemplateRepeater), so resolveData just seeds/migrates
+    // the template shape and mirrors it into `cardTemplate` for storefront
+    // cloning. No async fetch happens here.
+    const rawContent = props.content;
+    const needsResync = productsGridContentNeedsResync(rawContent);
     const collectionChanged = Boolean(changed.collection);
-    const content = props.content;
-    const hasEmptyContent = !Array.isArray(content) || content.length === 0;
-    const needsSkipFlagResync = productsGridContentNeedsResync(content);
-    const shouldSync =
-      collectionChanged ||
+    const contentChanged = Boolean(changed.content);
+    const shouldNormalizeTemplate =
+      needsResync ||
       trigger === "insert" ||
       trigger === "force" ||
-      needsSkipFlagResync ||
-      (trigger === "load" && Boolean(props.collection?.slug) && hasEmptyContent);
+      trigger === "load";
 
-    if (!shouldSync) return {};
+    const patch: Record<string, unknown> = {};
+    const normalizedContent = shouldNormalizeTemplate
+      ? ensureProductsGridTemplate(rawContent)
+      : (rawContent as ComponentDataOptionalId[] | undefined);
 
-    const collection = props.collection;
-
-    if (!collection?.slug) {
-      return { props: { content: [], columns: 1 } };
+    if (shouldNormalizeTemplate) {
+      patch.content = normalizedContent;
     }
 
-    try {
-      const resolved = await resolveProductsGridSectionContent(collection);
-      return {
-        props: {
-          content: resolved.content,
-          columns: resolved.columns,
-          ...(resolved.name ? { name: resolved.name } : {}),
-        },
-      };
-    } catch (error) {
-      console.error("[Section] Failed to load collection products:", error);
-      return { props: { content: [], columns: 1 } };
+    if (
+      shouldNormalizeTemplate ||
+      contentChanged ||
+      props.cardTemplate == null
+    ) {
+      patch.cardTemplate =
+        normalizedContent && normalizedContent.length > 0
+          ? [normalizedContent[0]]
+          : [];
     }
+
+    if (collectionChanged && props.collection?.name) {
+      patch.name = props.collection.name;
+    }
+
+    return Object.keys(patch).length > 0 ? { props: patch } : {};
   },
 
   resolvePermissions: (data, { permissions }) => {
@@ -374,6 +397,7 @@ function SectionView({
   collection,
   metadata: sectionMetadata,
   cartSlotItems,
+  cardTemplate,
   content: Content,
   puck,
 }: SectionViewProps) {
@@ -414,22 +438,34 @@ function SectionView({
     width: "100%",
   } as const;
 
-  const sectionGridContent = (
+  const isProductsGrid = isProductsGridSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const productsGridRender = isProductsGrid ? (
+    <ProductsGridTemplateRepeater
+      // Puck types `content: Slot` on props but transforms it into a
+      // SlotComponent at render — the widely-used `<Content />` pattern
+      // relies on the same runtime coercion.
+      editableSlot={Content as unknown as SlotComponent}
+      cardTemplate={cardTemplate?.[0] ?? undefined}
+      sectionId={id}
+      collection={collection ?? null}
+      isEditing={isEditing}
+      activeCols={activeCols}
+      gap={gap}
+      gridClassName={gridClassName}
+    />
+  ) : null;
+
+  const sectionGridContent = isProductsGrid ? (
+    productsGridRender
+  ) : (
     <Content className={gridClassName} style={gridStyle} />
   );
 
-  const wrappedSectionGridContent =
-    isProductsGridSection({ sectionKind, metadata: sectionMetadata }) &&
-    collection?.slug ? (
-      <CollectionProductsBoundProvider
-        collectionSlug={collection.slug}
-        isEditing={isEditing}
-      >
-        {sectionGridContent}
-      </CollectionProductsBoundProvider>
-    ) : (
-      sectionGridContent
-    );
+  const wrappedSectionGridContent = sectionGridContent;
 
   return (
     <section
@@ -512,25 +548,6 @@ function SectionView({
           zIndex: 1,
         }}
       >
-        {isProductsGridSection({ sectionKind, metadata: sectionMetadata }) &&
-        !collection?.slug &&
-        isEditing ? (
-          <div
-            className={getClassName("productsGridEmpty")}
-            style={{
-              gridColumn: "1 / -1",
-              padding: "32px 16px",
-              textAlign: "center",
-              color: "#6b7280",
-              fontSize: 14,
-              border: "1px dashed #d1d5db",
-              borderRadius: 8,
-              background: "#f9fafb",
-            }}
-          >
-            اختر مجموعة من لوحة الحقول لعرض منتجاتها.
-          </div>
-        ) : null}
         {isCartSection({ sectionKind, metadata: sectionMetadata }) &&
         !isEditing ? (
           <CartSectionStorefront

@@ -151,8 +151,6 @@ const getPreviewKind = (componentType: string): PreviewKind => {
       return "sidebar";
     case "NavMenu":
       return "nav";
-    case "ProductsGrid":
-      return "productsGrid";
     case "ProductCard":
     case "Card":
       return "productCard";

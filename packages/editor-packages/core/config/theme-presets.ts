@@ -306,18 +306,6 @@ function buildAtelierThemeDemoPageData(): UserData {
                 direction: "vertical",
               },
             },
-            {
-              type: "ProductsGrid",
-              props: {
-                id: "ProductsGrid-atelier",
-                collection: null,
-                metadata: null,
-                columns: "3",
-                maxRows: "0",
-                gap: "md",
-                layout: { padding: "0px" },
-              },
-            },
           ],
         },
       },

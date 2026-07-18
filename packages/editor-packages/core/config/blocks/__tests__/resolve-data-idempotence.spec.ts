@@ -86,26 +86,6 @@ describe("bound blocks resolveData idempotence", () => {
     ).toEqual({});
   });
 
-  it("ProductsGrid: second resolve returns {} (with collection)", async () => {
-    expect(
-      await resolveTwice("ProductsGrid", {
-        collection: {
-          id: "c-1",
-          name: "مجموعة",
-          slug: "featured",
-          productCount: 8,
-        },
-        metadata: null,
-      })
-    ).toEqual({});
-  });
-
-  it("ProductsGrid: second resolve returns {} (no collection)", async () => {
-    expect(
-      await resolveTwice("ProductsGrid", { collection: null, metadata: null })
-    ).toEqual({});
-  });
-
   it("CartSection: second resolve returns {}", async () => {
     expect(await resolveTwice("CartSection", { metadata: null })).toEqual({});
   });

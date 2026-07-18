@@ -157,23 +157,6 @@ export function createStorefrontProductCardBlock(
   });
 }
 
-export function createProductsGridBlock(
-  overrides: Record<string, unknown> = {}
-): ComponentDataOptionalId {
-  return {
-    type: "ProductsGrid",
-    props: {
-      collection: null,
-      metadata: null,
-      columns: "3",
-      maxRows: "0",
-      gap: "md",
-      layout: { padding: "0px" },
-      ...overrides,
-    },
-  };
-}
-
 export function createProductsGridSection(
   overrides: Record<string, unknown> = {}
 ): ComponentDataOptionalId {

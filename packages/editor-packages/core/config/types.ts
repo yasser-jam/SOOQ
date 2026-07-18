@@ -11,7 +11,6 @@ import { TemplateProps } from "./blocks/Template";
 import { TextProps } from "./blocks/Text";
 import { SpaceProps } from "./blocks/Space";
 import type { GroupProps } from "./blocks/Group";
-import type { ProductsGridProps } from "./blocks/ProductsGrid";
 import type { ProductImageCarouselProps } from "./blocks/ProductImageCarousel";
 import type { ProductVariantsProps } from "./blocks/ProductVariants";
 import { CartSectionProps } from "./blocks/CartSection";
@@ -80,7 +79,6 @@ export type Components = {
   Space: SpaceProps;
   RichText: RichTextProps;
   ProductCard: GroupProps;
-  ProductsGrid: ProductsGridProps;
   ProductImageCarousel: ProductImageCarouselProps;
   ProductVariants: ProductVariantsProps;
   CartSection: CartSectionProps;

@@ -121,18 +121,6 @@ export const initialData: Record<string, UserData> = {
                 direction: "vertical",
               },
             },
-            {
-              type: "ProductsGrid",
-              props: {
-                id: "ProductsGrid-home",
-                collection: null,
-                metadata: null,
-                columns: "3",
-                maxRows: "0",
-                gap: "md",
-                layout: { padding: "0px" },
-              },
-            },
           ],
         } as any,
       },

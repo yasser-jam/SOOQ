@@ -87,13 +87,13 @@ describe("BlockErrorBoundary", () => {
 
     render(
       <BlockErrorCard
-        componentType="ProductsGrid"
+        componentType="ProductCard"
         error={new Error("fetch failed")}
         onRetry={onRetry}
       />
     );
 
-    expect(screen.getByText(/ProductsGrid/)).toBeInTheDocument();
+    expect(screen.getByText(/ProductCard/)).toBeInTheDocument();
     expect(screen.getByText("fetch failed")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button"));
