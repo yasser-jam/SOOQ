@@ -118,7 +118,6 @@ export function applyZonePreset(
     ui: {
       itemSelector: selector,
       zonePreviewRoot: rootZone,
-      rightSideBarVisible: true,
       plugin: { current: "zones" },
     },
   });
@@ -186,7 +185,6 @@ export function applyZonePresets(
     ui: {
       itemSelector: selector,
       zonePreviewRoot: rootZone,
-      rightSideBarVisible: true,
       plugin: { current: "zones" },
     },
   });

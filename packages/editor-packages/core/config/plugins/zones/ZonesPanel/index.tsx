@@ -145,7 +145,6 @@ export function ZonesPanel() {
         zonePreviewRoot: null,
         plugin: { current: "zones" },
         leftSideBarVisible: true,
-        rightSideBarVisible: false,
       },
     });
   }, [dispatch]);
@@ -198,7 +197,6 @@ export function ZonesPanel() {
           zonePreviewRoot: definition.rootZone,
           plugin: { current: "zones" },
           leftSideBarVisible: true,
-          rightSideBarVisible: true,
         },
       });
 
@@ -220,7 +218,6 @@ export function ZonesPanel() {
         ui: {
           plugin: { current: "zones" },
           leftSideBarVisible: true,
-          rightSideBarVisible: true,
         },
       });
     },

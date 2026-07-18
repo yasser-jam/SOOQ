@@ -195,7 +195,6 @@ export const SiteDrawer = ({
         itemSelector: { zone, index },
         plugin: { current: "fields" },
         leftSideBarVisible: true,
-        rightSideBarVisible: false,
       },
     });
   }, [dispatch, editMode, selectorKey]);

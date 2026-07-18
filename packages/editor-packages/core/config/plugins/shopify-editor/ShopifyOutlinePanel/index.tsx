@@ -236,7 +236,6 @@ export function ShopifyOutlinePanel() {
             itemSelector: { index: 0, zone: targetZone },
             plugin: { current: "fields" },
             leftSideBarVisible: true,
-            rightSideBarVisible: false,
           },
         });
       }
@@ -328,7 +327,6 @@ export function ShopifyOutlinePanel() {
           itemSelector: { index: destinationIndex, zone: targetZone },
           plugin: { current: "fields" },
           leftSideBarVisible: true,
-          rightSideBarVisible: false,
         },
       });
     },
@@ -344,7 +342,6 @@ export function ShopifyOutlinePanel() {
           itemSelector: { index, zone },
           plugin: { current: "fields" },
           leftSideBarVisible: true,
-          rightSideBarVisible: false,
         },
       });
     },

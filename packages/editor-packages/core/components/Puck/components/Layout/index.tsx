@@ -68,7 +68,7 @@ const FieldSideBar = () => {
   const selectedItem = useAppStore((s) => s.selectedItem);
   const title = useAppStore((s) => {
     const item = s.selectedItem;
-    if (!item) return "";
+    if (!item) return "الخصائص";
 
     const label = s.config.components[item.type]?.label;
     if (typeof label === "string" && label.trim()) return label;
@@ -76,13 +76,15 @@ const FieldSideBar = () => {
     return item.type.toString();
   });
 
-  if (!selectedItem) {
-    return null;
-  }
-
   return (
-    <SidebarSection noBorderTop showBreadcrumbs title={title}>
-      <Fields />
+    <SidebarSection noBorderTop showBreadcrumbs={!!selectedItem} title={title}>
+      {selectedItem ? (
+        <Fields />
+      ) : (
+        <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+          اختر عنصراً على الصفحة لتعديل خصائصه
+        </p>
+      )}
     </SidebarSection>
   );
 };
@@ -201,7 +203,6 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
 
   const setUi = useAppStore((s) => s.setUi);
   const currentPlugin = useAppStore((s) => s.state.ui.plugin?.current);
-  const selectedItem = useAppStore((s) => s.selectedItem);
 
   const [mobilePanelHeightMode, setMobilePanelHeightMode] = useState<
     "toggle" | "min-content"
@@ -345,9 +346,7 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
                   leftSideBarVisible: true,
                   mounted,
                   rightSideBarVisible:
-                    !hasDesktopFieldsPlugin &&
-                    rightSideBarVisible &&
-                    !!selectedItem,
+                    !hasDesktopFieldsPlugin && rightSideBarVisible,
                   isExpanded: mobilePanelExpanded,
                   mobilePanelHeightToggle: mobilePanelHeightMode === "toggle",
                   mobilePanelHeightMinContent:
@@ -410,7 +409,7 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
                     <Sidebar
                       position="right"
                       sidebarRef={rightSidebarRef}
-                      isVisible={rightSideBarVisible && !!selectedItem}
+                      isVisible={rightSideBarVisible}
                       onResize={setRightWidth}
                       onResizeEnd={handleRightSidebarResizeEnd}
                     >

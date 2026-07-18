@@ -843,7 +843,7 @@ export function Client({
           data={editorData}
           height="100%"
           ui={{
-            rightSideBarVisible: false,
+            rightSideBarVisible: true,
             leftSideBarVisible: true,
             ...(isMobileEditor ? MOBILE_PUCK_UI : {}),
           }}
