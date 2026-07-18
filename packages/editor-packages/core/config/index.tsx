@@ -99,15 +99,15 @@ export const conf: UserConfig = {
       title: "عناصر المتجر",
       defaultExpanded: true,
       components: [
-        "ProductImageCarousel",
-        "ProductVariants",
-        "CategoryListMenu",
-        "CheckoutForm",
-        "ProductSearchMenu",
-        "OrderHistory",
-        "Wishlist",
+        // "ProductImageCarousel", // IGNORED
+        // "ProductVariants",      // IGNORED
+        // "CategoryListMenu",     // IGNORED
+        // "CheckoutForm",         // IGNORED
+        // "ProductSearchMenu",    // IGNORED
+        // "OrderHistory",         // IGNORED
+        // "Wishlist",             // IGNORED
         "Testimonials",
-        "ContactForm",
+        // "ContactForm",          // IGNORED
       ],
     },
     legacy: {
@@ -143,6 +143,9 @@ export const conf: UserConfig = {
         "ProductImage",
         "ProductInfo",
       ],
+    },
+    other: {
+      visible: false,
     },
   },
   components: {

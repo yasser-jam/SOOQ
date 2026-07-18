@@ -19,16 +19,22 @@ import {
 import type { ComponentData } from "@/core/types";
 import { useAppStore, useAppStoreApi } from "@/core/store";
 import { rootDroppableId } from "@/core/lib/root-droppable-id";
-import { getClassNameFactory } from "@/core/lib";
 import { getFrame } from "@/core/lib/get-frame";
 import { ZoneStoreContext } from "@/core/components/DropZone/context";
-import styles from "./styles.module.css";
+import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+} from "@workspace/ui/components/card";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group";
+import { cn } from "@workspace/ui/lib/utils";
 
-const getClassName = getClassNameFactory("ShopifyOutlinePanel", styles);
-
-// ─── Row ────────────────────────────────────────────────────────────────────
-
-/** Scroll the canvas so the section is visible — Shopify's outline does this. */
 const scrollCanvasToComponent = (id: string) => {
   const frameDoc = getFrame();
   if (!frameDoc) return;
@@ -128,33 +134,24 @@ const SectionRow = React.memo(function SectionRow({
 
   const remove = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Skip a confirm() dialog — the action records history, so Cmd/Ctrl+Z
-    // undoes it instantly. Shopify mirrors this pattern for section rows.
     performRemove();
   };
 
-  const rowClass = [
-    getClassName("sectionRow"),
-    selected ? getClassName("sectionRow--selected") : "",
-    hidden ? getClassName("sectionRow--hidden") : "",
-    dropSide ? getClassName(`sectionRow--drop-${dropSide}`) : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
     <div
-      className={rowClass}
+      className={cn(
+        "group/row flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition-colors hover:bg-muted/60",
+        selected && "bg-primary/10 ring-2 ring-inset ring-primary/20",
+        hidden && "[&_[data-slot=section-label]]:opacity-50 [&_[data-slot=section-label]]:line-through",
+        dropSide === "before" && "shadow-[inset_0_2px_0_0] shadow-primary",
+        dropSide === "after" && "shadow-[inset_0_-2px_0_0] shadow-primary"
+      )}
       onClick={select}
       role="button"
       tabIndex={0}
       aria-keyshortcuts="ArrowUp ArrowDown Delete Control+D Meta+D H"
-      // Hovering an outline row lights up the block on the canvas — same
-      // mechanism the built-in LayerTree uses (D-6).
       onMouseEnter={() => zoneStore.setState({ hoveringComponent: id })}
       onMouseLeave={() => zoneStore.setState({ hoveringComponent: null })}
-      // Drag-reorder within the outline (D-6): native HTML5 drag on the row,
-      // dispatched as a Puck `reorder` on drop.
       draggable
       onDragStart={(e) => {
         e.dataTransfer.setData("text/plain", String(index));
@@ -189,8 +186,6 @@ const SectionRow = React.memo(function SectionRow({
           return;
         }
 
-        // Plain arrows move the SELECTION; Ctrl/Cmd+arrows are the global
-        // "move block" shortcut (use-canvas-shortcuts) — let those through.
         if (e.key === "ArrowUp" && !e.metaKey && !e.ctrlKey) {
           e.preventDefault();
           selectAt(Math.max(0, index - 1));
@@ -222,68 +217,68 @@ const SectionRow = React.memo(function SectionRow({
       }}
       data-section-id={id}
     >
-      <span className={getClassName("sectionHandle")} aria-hidden>
+      <span className="shrink-0 cursor-grab text-muted-foreground/60" aria-hidden>
         <GripVertical size={12} />
       </span>
-      <span className={getClassName("sectionIndex")}>{index + 1}</span>
-      <span className={getClassName("sectionIcon")} aria-hidden>
+      <span className="shrink-0 text-[11px] text-muted-foreground">
+        {index + 1}
+      </span>
+      <span className="flex shrink-0 items-center text-muted-foreground" aria-hidden>
         <LayoutTemplate size={13} />
       </span>
-      <span className={getClassName("sectionLabel")} title={label}>
+      <span
+        data-slot="section-label"
+        className="min-w-0 flex-1 truncate font-medium text-foreground"
+        title={label}
+      >
         {label}
       </span>
       <div
-        className={getClassName("sectionActions")}
+        className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
+        <Button
           type="button"
-          className={getClassName("actionBtn")}
+          variant="ghost"
+          size="icon"
+          className="size-7"
           onClick={toggleHidden}
           title={hidden ? "إظهار القسم" : "إخفاء القسم"}
           aria-label={hidden ? "إظهار القسم" : "إخفاء القسم"}
         >
-          {hidden ? <EyeOff size={13} /> : <Eye size={13} />}
-        </button>
-        <button
+          {hidden ? <EyeOff /> : <Eye />}
+        </Button>
+        <Button
           type="button"
-          className={getClassName("actionBtn")}
+          variant="ghost"
+          size="icon"
+          className="size-7"
           onClick={duplicate}
           title="تكرار القسم"
           aria-label="تكرار القسم"
         >
-          <Copy size={13} />
-        </button>
-        <button
+          <Copy />
+        </Button>
+        <Button
           type="button"
-          className={`${getClassName("actionBtn")} ${getClassName(
-            "actionBtn--danger"
-          )}`}
+          variant="ghost"
+          size="icon"
+          className="size-7 hover:bg-destructive/10 hover:text-destructive"
           onClick={remove}
           title="حذف القسم"
           aria-label="حذف القسم"
         >
-          <Trash2 size={13} />
-        </button>
+          <Trash2 />
+        </Button>
       </div>
     </div>
   );
 });
 
-// ─── List ───────────────────────────────────────────────────────────────────
-
 type Props = {
   onAddSection: (insertAfterIndex?: number) => void;
 };
 
-/**
- * Top-level sections list for the Template group.
- *
- * Subscribes ONLY to what it renders: the slim `{id, type, label, visible}`
- * tuple for each top-level section, plus the current selection. Any edit that
- * doesn't change these fields (typing in a field, dragging a nested block,
- * switching pages in another tab) will not re-render this list.
- */
 export function TemplateSectionList({ onAddSection }: Props) {
   const storeApi = useAppStoreApi();
   const dispatch = useAppStore((s) => s.dispatch);
@@ -318,21 +313,14 @@ export function TemplateSectionList({ onAddSection }: Props) {
 
   type Row = { id: string; label: string; visible: boolean };
 
-  // Subscribe to the raw content array by reference — Puck's reducer keeps the
-  // same array reference when nothing changes, so this produces zero extra
-  // renders when the user is editing deep inside a section.
   const content = useAppStore(
     (s) => s.state.data.content as ComponentData[] | undefined
   );
-  // Config is static for the lifetime of this editor instance.
   const components = useMemo(
     () => storeApi.getState().config.components,
     [storeApi]
   );
 
-  // Derive the rows *after* subscription, so each re-render creates a fresh
-  // mapped array but we don't trigger Zustand's subscription loop (which would
-  // happen if we returned a new array object from the selector itself).
   const rows: Row[] = useMemo(() => {
     return (content ?? []).map((item) => {
       const def = components?.[item.type];
@@ -341,9 +329,6 @@ export function TemplateSectionList({ onAddSection }: Props) {
         | undefined;
       const idFromProps = props?.id ?? item.type;
       const visible = props?.visible !== false;
-      // Prefer the merchant-supplied `name` (e.g. "Hero", "Testimonials")
-      // over the generic component label ("Section"). This makes the outline
-      // scannable even when the page has six Sections in a row.
       const customName = (props?.name ?? "").trim();
       const label =
         customName ||
@@ -370,8 +355,6 @@ export function TemplateSectionList({ onAddSection }: Props) {
     });
   }, [rows, hasActiveSearch, normalizedSearch]);
 
-  // Canvas → outline: when the selection changes (e.g. by clicking a block
-  // on the canvas), keep the matching row visible in the panel.
   useEffect(() => {
     if (selectedIndex < 0) return;
     const id = rows[selectedIndex]?.id;
@@ -399,18 +382,19 @@ export function TemplateSectionList({ onAddSection }: Props) {
             rowCount={rows.length}
             onReorder={onReorder}
           />
-          {/* Inline "add section" gap between rows. Visible on list hover. */}
           {!hasActiveSearch && index < rows.length - 1 && (
-            <button
+            <Button
               type="button"
-              className={getClassName("inlineAdd")}
+              variant="ghost"
+              size="xs"
+              className="h-5 w-full opacity-0 transition-opacity group-hover/sections:opacity-70 hover:!opacity-100"
               onClick={() => onAddSection(index + 1)}
               title="إضافة قسم هنا"
               aria-label={`إضافة قسم بعد الموضع ${index + 1}`}
             >
-              <Plus size={10} />
+              <Plus data-icon="inline-start" />
               إضافة هنا
-            </button>
+            </Button>
           )}
         </React.Fragment>
       )),
@@ -425,44 +409,49 @@ export function TemplateSectionList({ onAddSection }: Props) {
   );
 
   return (
-    <div className={getClassName("sectionsList")} ref={listRef}>
-      <div className={getClassName("sectionsToolbar")}>
-        <div className={getClassName("sectionsStats")}>
-          <span className={getClassName("sectionsStat")}>
+    <div className="group/sections flex flex-col" ref={listRef}>
+      <div className="sticky top-0 z-10 flex flex-col gap-2 border-b border-border bg-background/95 px-1 py-2 backdrop-blur-sm">
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="secondary-tonal" className="text-[10px]">
             {rows.length} قسم
-          </span>
-          <span className={getClassName("sectionsStat")}>
+          </Badge>
+          <Badge variant="outline" className="text-[10px]">
             {visibleRowsCount} ظاهر
-          </span>
+          </Badge>
         </div>
 
-        <label className={getClassName("sectionsSearch")}>
-          <Search size={12} aria-hidden />
-          <input
+        <InputGroup className="h-8">
+          <InputGroupAddon align="inline-start">
+            <Search aria-hidden />
+          </InputGroupAddon>
+          <InputGroupInput
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="ابحث عن قسم"
             aria-label="ابحث عن قسم في الصفحة"
           />
-        </label>
+        </InputGroup>
       </div>
 
       {filteredRows.length > 0 ? (
-        list
+        <div className="flex flex-col py-1">{list}</div>
       ) : hasActiveSearch ? (
-        <div className={getClassName("sectionsNoResults")}>
-          <p className={getClassName("sectionsNoResultsTitle")}>
-            لا توجد أقسام تطابق "{search.trim()}"
-          </p>
-          <button
-            type="button"
-            className={getClassName("sectionsNoResultsClear")}
-            onClick={() => setSearch("")}
-          >
-            مسح البحث
-          </button>
-        </div>
+        <Card className="mx-1 mt-2 border-dashed">
+          <CardContent className="flex flex-col items-center gap-2 py-4 text-center">
+            <CardDescription className="text-xs">
+              لا توجد أقسام تطابق "{search.trim()}"
+            </CardDescription>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setSearch("")}
+            >
+              مسح البحث
+            </Button>
+          </CardContent>
+        </Card>
       ) : null}
     </div>
   );

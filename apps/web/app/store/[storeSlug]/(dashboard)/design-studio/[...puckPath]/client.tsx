@@ -64,11 +64,8 @@ import {
 } from "@/lib/design-studio-paths"
 import { useSelectedPage } from "@/core/config/lib/use-selected-page"
 
-// "outline" is NOT hidden: shopifyOutlinePlugin registers under that name so
-// it replaces Puck's built-in outline tab with the Shopify-style section
-// panel (quick-start presets + AddSectionModal — the "A" shortcut lives
-// there). Hiding it would silently revert the add-section flow to bare
-// empty-Section inserts (Phase D-1).
+// shopifyOutlinePlugin registers as "sections" (الأقسام); built-in outline
+// stays as "شجرة العناصر". Both tabs remain visible in the left sidebar.
 const hiddenPluginNames = new Set(["themes", "heading-analyzer"])
 
 const EDITOR_HINT_DISMISSED_KEY = "puck-demo-editor-hint-dismissed-v1"
@@ -861,9 +858,8 @@ export function Client({
             markPageSaved(data as UserData)
           }}
           plugins={plugins}
-          // "blocks" = drag-and-drop palette tab; "outline" = the sections
-          // tab, which shopifyOutlinePlugin (name: "outline") OVERRIDES with
-          // the Shopify-style section panel + AddSectionModal.
+          // "blocks" = drag-and-drop palette; "outline" = شجرة العناصر tree.
+          // shopifyOutlinePlugin ("sections" / الأقسام) is a separate tab.
           builtinPlugins={["blocks", "outline"]}
           headerPath={path}
           headerTitle={isMobileEditor ? "محرر الجوال" : undefined}

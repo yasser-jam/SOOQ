@@ -8,7 +8,7 @@ const getClassName = getClassNameFactory("OutlinePlugin", styles);
 
 export const outlinePlugin: () => Plugin = () => ({
   name: "outline",
-  label: "Outline",
+  label: "شجرة العناصر",
   render: () => (
     <div className={getClassName()}>
       <Outline />

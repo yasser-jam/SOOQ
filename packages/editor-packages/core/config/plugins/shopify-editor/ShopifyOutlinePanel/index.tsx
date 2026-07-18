@@ -2,7 +2,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PanelLeft, PanelRight, Plus } from "lucide-react";
 import { useAppStore } from "@/core/store";
-import { getClassNameFactory } from "@/core/lib";
 import { rootDroppableId } from "@/core/lib/root-droppable-id";
 import { OPEN_ADD_SECTION_EVENT } from "@/core/components/DropZone";
 import {
@@ -12,9 +11,16 @@ import {
 import { AddSectionModal } from "../AddSectionModal";
 import { TemplateSectionList } from "./TemplateSectionList";
 import { sectionCatalog } from "../section-catalog";
-import styles from "./styles.module.css";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { cn } from "@workspace/ui/lib/utils";
 
-const getClassName = getClassNameFactory("ShopifyOutlinePanel", styles);
 const EMPTY_ZONE_ITEMS: any[] = [];
 
 const isTypingTarget = (target: EventTarget | null) => {
@@ -23,6 +29,58 @@ const isTypingTarget = (target: EventTarget | null) => {
   const tagName = target.tagName;
   return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
 };
+
+type ShellDrawerRowProps = {
+  icon: React.ReactNode;
+  label: string;
+  hint: string;
+  selected: boolean;
+  disabled: boolean;
+  onActivate: () => void;
+};
+
+function ShellDrawerRow({
+  icon,
+  label,
+  hint,
+  selected,
+  disabled,
+  onActivate,
+}: ShellDrawerRowProps) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "flex w-full items-center gap-3 rounded-xl border p-3 text-start transition-colors",
+        selected
+          ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+          : "border-border/70 bg-card hover:border-primary/30 hover:bg-muted/30",
+        disabled && "opacity-70"
+      )}
+      onClick={onActivate}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onActivate();
+        }
+      }}
+    >
+      <span
+        className={cn(
+          "flex size-9 shrink-0 items-center justify-center rounded-lg",
+          selected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+        )}
+        aria-hidden
+      >
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      </div>
+    </button>
+  );
+}
 
 /**
  * Shopify-style left sidebar.
@@ -339,7 +397,6 @@ export function ShopifyOutlinePanel() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [openModal, insertPresetNow, contentCount]);
 
-  // Canvas empty-page CTA (D-2) asks for the section library via this event.
   useEffect(() => {
     const onOpenRequest = () => openModal();
     window.addEventListener(OPEN_ADD_SECTION_EVENT, onOpenRequest);
@@ -347,155 +404,106 @@ export function ShopifyOutlinePanel() {
   }, [openModal]);
 
   return (
-    <div className={getClassName()}>
-      <div className={getClassName("scroll")}>
-        <div className={getClassName("guide")}>
-          <strong>ابنِ صفحتك من أقسام</strong>
-          <span>
-            أضف قسماً ثم اسحب عناصر المحتوى أو عناصر المتجر داخله. اختر أي صف
-            بالأسفل لتعديل إعداداته.
-          </span>
-        </div>
-
+    <div className="flex h-full flex-col overflow-hidden bg-background">
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 py-3">
         {(leftDrawerIndex >= 0 || rightDrawerIndex >= 0) && (
-          <div className={getClassName("group")}>
-            <div className={getClassName("groupHeader")}>الأشرطة الجانبية</div>
-            <div className={getClassName("groupBody")}>
-              <div
-                className={`${getClassName("shellRow")} ${
-                  leftDrawerIndex < 0 ? getClassName("shellRow--disabled") : ""
-                } ${
+          <section className="flex flex-col gap-2">
+            <h3 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              الأشرطة الجانبية
+            </h3>
+            <div className="flex flex-col gap-2">
+              <ShellDrawerRow
+                icon={<PanelLeft size={16} />}
+                label="درج جانبي (يسار)"
+                hint={
+                  leftDrawerIndex >= 0
+                    ? "اختر لتعديل الإعدادات"
+                    : "انقر لنقل الدرج إلى هنا"
+                }
+                selected={
                   leftDrawerIndex >= 0 &&
                   itemSelector?.zone === ROOT_SHELL_LEFT_ZONE &&
                   itemSelector.index === leftDrawerIndex
-                    ? getClassName("shellRow--selected")
-                    : ""
-                }`.trim()}
-                role="button"
-                tabIndex={0}
-                onClick={() =>
+                }
+                disabled={leftDrawerIndex < 0}
+                onActivate={() =>
                   leftDrawerIndex >= 0
                     ? selectDrawerInZone(ROOT_SHELL_LEFT_ZONE, leftDrawerIndex)
                     : moveDrawerToZone(ROOT_SHELL_LEFT_ZONE)
                 }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    if (leftDrawerIndex >= 0) {
-                      selectDrawerInZone(ROOT_SHELL_LEFT_ZONE, leftDrawerIndex);
-                    } else {
-                      moveDrawerToZone(ROOT_SHELL_LEFT_ZONE);
-                    }
-                  }
-                }}
-              >
-                <span className={getClassName("fixedIcon")} aria-hidden>
-                  <PanelLeft size={14} />
-                </span>
-                <div className={getClassName("fixedMeta")}>
-                  <span className={getClassName("fixedLabel")}>
-                    درج جانبي (يسار)
-                  </span>
-                  <span className={getClassName("fixedHint")}>
-                    {leftDrawerIndex >= 0
-                      ? "اختر لتعديل الإعدادات"
-                      : "انقر لنقل الدرج إلى هنا"}
-                  </span>
-                </div>
-              </div>
-
-              <div
-                className={`${getClassName("shellRow")} ${
-                  rightDrawerIndex < 0 ? getClassName("shellRow--disabled") : ""
-                } ${
+              />
+              <ShellDrawerRow
+                icon={<PanelRight size={16} />}
+                label="درج جانبي (يمين)"
+                hint={
+                  rightDrawerIndex >= 0
+                    ? "اختر لتعديل الإعدادات"
+                    : "انقر لنقل الدرج إلى هنا"
+                }
+                selected={
                   rightDrawerIndex >= 0 &&
                   itemSelector?.zone === ROOT_SHELL_RIGHT_ZONE &&
                   itemSelector.index === rightDrawerIndex
-                    ? getClassName("shellRow--selected")
-                    : ""
-                }`.trim()}
-                role="button"
-                tabIndex={0}
-                onClick={() =>
+                }
+                disabled={rightDrawerIndex < 0}
+                onActivate={() =>
                   rightDrawerIndex >= 0
                     ? selectDrawerInZone(ROOT_SHELL_RIGHT_ZONE, rightDrawerIndex)
                     : moveDrawerToZone(ROOT_SHELL_RIGHT_ZONE)
                 }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    if (rightDrawerIndex >= 0) {
-                      selectDrawerInZone(ROOT_SHELL_RIGHT_ZONE, rightDrawerIndex);
-                    } else {
-                      moveDrawerToZone(ROOT_SHELL_RIGHT_ZONE);
-                    }
-                  }
-                }}
-              >
-                <span className={getClassName("fixedIcon")} aria-hidden>
-                  <PanelRight size={14} />
-                </span>
-                <div className={getClassName("fixedMeta")}>
-                  <span className={getClassName("fixedLabel")}>
-                    درج جانبي (يمين)
-                  </span>
-                  <span className={getClassName("fixedHint")}>
-                    {rightDrawerIndex >= 0
-                      ? "اختر لتعديل الإعدادات"
-                      : "انقر لنقل الدرج إلى هنا"}
-                  </span>
-                </div>
-              </div>
+              />
             </div>
-          </div>
+          </section>
         )}
 
-        <div className={getClassName("group")}>
-          <div className={getClassName("groupHeader")}>أقسام الصفحة</div>
-          <div className={getClassName("groupBody")}>
-            {contentCount === 0 ? (
-              <div className={getClassName("emptyTemplate")}>
-                <p className={getClassName("emptyTemplateTitle")}>
-                  لا توجد أقسام بعد.
-                </p>
-                <p className={getClassName("emptyTemplateHint")}>
+        <section className="flex flex-col gap-3">
+          <h3 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            أقسام الصفحة
+          </h3>
+
+          {contentCount === 0 ? (
+            <Card className="border-dashed">
+              <CardHeader className="pb-2 text-center">
+                <CardTitle className="text-sm">لا توجد أقسام بعد</CardTitle>
+                <CardDescription className="text-xs">
                   ابدأ بقالب جاهز لبناء صفحتك أسرع، أو اضغط A لفتح مكتبة
                   الأقسام.
-                </p>
-                <div className={getClassName("quickStart")}>
-                  {quickStartPresets.map((preset) => (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      className={getClassName("quickStartBtn")}
-                      onClick={() => insertPresetNow(preset.id)}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-                <p className={getClassName("shortcutHint")}>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2 pt-0">
+                {quickStartPresets.map((preset) => (
+                  <Button
+                    key={preset.id}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => insertPresetNow(preset.id)}
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+                <p className="pt-1 text-center text-[11px] text-muted-foreground">
                   تلميح: اضغط Shift+A لإدراج قسم هيرو فوراً.
                 </p>
-              </div>
-            ) : (
-              <TemplateSectionList onAddSection={openModal} />
-            )}
+              </CardContent>
+            </Card>
+          ) : (
+            <TemplateSectionList onAddSection={openModal} />
+          )}
 
-            <button
-              type="button"
-              className={`${getClassName("addSection")} ${
-                contentCount === 0 ? getClassName("addSection--primary") : ""
-              }`.trim()}
-              onClick={() => openModal()}
-              title="إضافة قسم (A)"
-              aria-keyshortcuts="A"
-            >
-              <Plus size={14} />
-              إضافة قسم
-            </button>
-          </div>
-        </div>
+          <Button
+            type="button"
+            variant={contentCount === 0 ? "default" : "outline"}
+            className="w-full"
+            onClick={() => openModal()}
+            title="إضافة قسم (A)"
+            aria-keyshortcuts="A"
+          >
+            <Plus data-icon="inline-start" />
+            إضافة قسم
+          </Button>
+        </section>
       </div>
 
       <AddSectionModal
