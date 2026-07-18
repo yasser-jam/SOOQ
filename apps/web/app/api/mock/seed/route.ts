@@ -26,7 +26,13 @@ export async function GET() {
     data: {
       enabled: true,
       storageKey: "sooq-mock-api-db",
-      surfaces: ["auth", "store-settings", "products"],
+      surfaces: [
+        "auth",
+        "store-settings",
+        "products",
+        "categories",
+        "collections",
+      ],
       demoOtp: { phone: "+963999000111", otpCode: "123456" },
     },
   })

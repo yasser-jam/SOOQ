@@ -9,7 +9,7 @@ export type { MockDatabase } from "./types"
 
 /**
  * Wipe and reseed the in-browser mock database.
- * Prefer this over deleting localStorage by hand.
+ * Prefer this over deleting `localStorage` by hand.
  */
 export { resetMockDb as reseedMockApi } from "./db"
 
@@ -50,7 +50,32 @@ const normalizeHeaders = (
 }
 
 /**
- * Try to satisfy an `api()` call from the mock store.
+ * Collapse absolute `/api/v1/...` URLs (and relative ones) to the path
+ * handlers expect, e.g. `/public/collections/new-arrivals/products?...`.
+ */
+export const normalizeMockApiUrl = (url: string): string => {
+  let path = url
+  try {
+    if (/^https?:\/\//i.test(url)) {
+      const parsed = new URL(url)
+      path = `${parsed.pathname}${parsed.search}`
+    }
+  } catch {
+    path = url
+  }
+
+  const apiPrefix = "/api/v1"
+  const idx = path.indexOf(apiPrefix)
+  if (idx >= 0) {
+    path = path.slice(idx + apiPrefix.length) || "/"
+  }
+
+  if (!path.startsWith("/")) path = `/${path}`
+  return path
+}
+
+/**
+ * Try to satisfy an `api()` / `publicApi()` call from the mock store.
  * - `null` → mock mode off, or path not covered → caller should hit the backend
  * - otherwise returns the envelope / payload the real API would return
  * - throws `MockApiError` for simulated failures
@@ -67,7 +92,7 @@ export const tryHandleMockApi = async <T = unknown>(
 
   const result = await routeMockRequest({
     method: (options.method ?? "GET").toUpperCase(),
-    url,
+    url: normalizeMockApiUrl(url),
     body: options.body,
     headers: normalizeHeaders(options.headers),
   })

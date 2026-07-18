@@ -8,6 +8,9 @@ const envelope = <T>(data: T) => ({
   timestamp: Date.now(),
 })
 
+const primaryImageUrl = (product: MockProductRecord): string | undefined =>
+  product.media[0]?.url ?? product.media[0]?.thumbnailUrl
+
 const toListItem = (product: MockProductRecord) => ({
   productId: product.productId,
   titleAr: product.titleAr,
@@ -23,58 +26,67 @@ const toListItem = (product: MockProductRecord) => ({
   seoDescription: product.seoDescription,
   allowOversell: product.allowOversell,
   media: product.media,
+  primaryImageUrl: primaryImageUrl(product),
   createdAt: product.createdAt,
   updatedAt: product.updatedAt,
 })
 
-const toDetail = (product: MockProductRecord) => ({
-  product: {
-    productId: product.productId,
-    titleAr: product.titleAr,
-    titleEn: product.titleEn,
-    descriptionAr: product.descriptionAr,
-    descriptionEn: product.descriptionEn,
-    slug: product.slug,
-    status: product.status,
-    seoTitle: product.seoTitle,
-    seoDescription: product.seoDescription,
-    allowOversell: product.allowOversell,
-    media: product.media,
-    createdAt: product.createdAt,
-    updatedAt: product.updatedAt,
-  },
-  pricing: {
-    basePrice: product.basePrice,
-    compareAtPrice: product.compareAtPrice ?? 0,
-    currencyCode: product.currencyCode,
-    discountPercentage:
-      product.compareAtPrice && product.compareAtPrice > product.basePrice
-        ? Math.round(
-            ((product.compareAtPrice - product.basePrice) /
-              product.compareAtPrice) *
-              100
-          )
-        : 0,
-    displayCompareAt: String(product.compareAtPrice ?? 0),
-    displayPrice: String(product.basePrice),
-    hasDiscount: Boolean(
-      product.compareAtPrice && product.compareAtPrice > product.basePrice
-    ),
-  },
-  categories: (product.categories ?? []).map((c, i) => ({
-    categoryId: c.id ?? `mock-cat-${i}`,
-    nameAr: c.nameAr ?? "",
-    nameEn: c.nameEn ?? "",
-  })),
-  tags: (product.tags ?? []).map((t, i) => ({
-    productTagId: t.id ?? `mock-tag-${i}`,
-    name: t.name ?? "",
-  })),
-  variantMatrix: {
-    options: product.options ?? [],
-    variants: product.variants ?? [],
-  },
-})
+const toDetail = (product: MockProductRecord) => {
+  const imageUrl = primaryImageUrl(product)
+  return {
+    product: {
+      productId: product.productId,
+      titleAr: product.titleAr,
+      titleEn: product.titleEn,
+      descriptionAr: product.descriptionAr,
+      descriptionEn: product.descriptionEn,
+      slug: product.slug,
+      status: product.status,
+      seoTitle: product.seoTitle,
+      seoDescription: product.seoDescription,
+      allowOversell: product.allowOversell,
+      media: product.media,
+      primaryImageUrl: imageUrl,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+    },
+    images: product.media.map((m) => ({
+      url: m.url,
+      thumbnailUrl: m.thumbnailUrl,
+    })),
+    pricing: {
+      basePrice: product.basePrice,
+      compareAtPrice: product.compareAtPrice ?? 0,
+      currencyCode: product.currencyCode,
+      discountPercentage:
+        product.compareAtPrice && product.compareAtPrice > product.basePrice
+          ? Math.round(
+              ((product.compareAtPrice - product.basePrice) /
+                product.compareAtPrice) *
+                100
+            )
+          : 0,
+      displayCompareAt: String(product.compareAtPrice ?? 0),
+      displayPrice: String(product.basePrice),
+      hasDiscount: Boolean(
+        product.compareAtPrice && product.compareAtPrice > product.basePrice
+      ),
+    },
+    categories: (product.categories ?? []).map((c, i) => ({
+      categoryId: c.id ?? `mock-cat-${i}`,
+      nameAr: c.nameAr ?? "",
+      nameEn: c.nameEn ?? "",
+    })),
+    tags: (product.tags ?? []).map((t, i) => ({
+      productTagId: t.id ?? `mock-tag-${i}`,
+      name: t.name ?? "",
+    })),
+    variantMatrix: {
+      options: product.options ?? [],
+      variants: product.variants ?? [],
+    },
+  }
+}
 
 const parseProductBody = async (
   body: unknown
@@ -163,6 +175,25 @@ export const handleProductsMock = async (
 ): Promise<MockHandlerResult> => {
   const method = request.method.toUpperCase()
   const path = request.url.split("?")[0] ?? request.url
+
+  const publicBySlug = path.match(/^\/public\/products\/([^/]+)$/)
+  if (publicBySlug && method === "GET") {
+    const slug = decodeURIComponent(publicBySlug[1] ?? "")
+    const product = getMockDb().products.find(
+      (p) => p.slug === slug && p.status === "ACTIVE"
+    )
+    if (!product) {
+      return {
+        handled: true,
+        error: {
+          status: 404,
+          message: "المنتج غير موجود",
+          errorCode: "ERR_NOT_FOUND",
+        },
+      }
+    }
+    return { handled: true, data: envelope(toDetail(product)) }
+  }
 
   if (method === "GET" && path === "/admin/products") {
     const products = getMockDb().products.map(toListItem)

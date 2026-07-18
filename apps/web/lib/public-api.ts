@@ -5,6 +5,7 @@ import axios, {
 } from "axios"
 
 import { handleApiError } from "@/lib/api-error"
+import { isMockApiEnabled, MockApiError, tryHandleMockApi } from "@/lib/mock"
 
 /**
  * HTTP client for unauthenticated tenant-scoped endpoints under `/api/v1/**`.
@@ -20,6 +21,10 @@ import { handleApiError } from "@/lib/api-error"
  * via a public lookup endpoint before issuing public-API calls. Until that
  * lookup endpoint exists, treat the tenantId as a value that comes from
  * page props / a context wrapped around `app/shop/[storeSlug]/...`.
+ *
+ * When `NEXT_PUBLIC_USE_MOCK_API=true`, covered public paths
+ * (`/public/collections*`, `/public/products*`) are served from the
+ * in-browser mock DB and the UUID check is relaxed.
  */
 const TENANT_ID_HEADER = "X-Tenant-Id"
 const UUID_REGEX =
@@ -40,15 +45,58 @@ export type PublicApiOptions = Omit<AxiosRequestConfig, "url" | "data"> & {
   tenantId: string
 }
 
+const appendParams = (
+  url: string,
+  params?: AxiosRequestConfig["params"]
+): string => {
+  if (!params || typeof params !== "object") return url
+  const search = new URLSearchParams()
+  for (const [key, value] of Object.entries(
+    params as Record<string, unknown>
+  )) {
+    if (value == null) continue
+    search.set(key, String(value))
+  }
+  const qs = search.toString()
+  if (!qs) return url
+  return url.includes("?") ? `${url}&${qs}` : `${url}?${qs}`
+}
+
 export const publicApi = async <T = unknown>(
   url: string,
   options: PublicApiOptions
 ): Promise<T> => {
-  const { body, headers, method = "GET", tenantId, ...rest } = options
+  const { body, headers, method = "GET", tenantId, params, ...rest } = options
 
   if (!tenantId) {
     throw new Error("publicApi: `tenantId` is required (UUID).")
   }
+
+  const mockUrl = appendParams(url, params)
+
+  if (isMockApiEnabled()) {
+    try {
+      const mockData = await tryHandleMockApi<T>(mockUrl, {
+        method,
+        body,
+        headers: headers as Record<string, string | undefined> | undefined,
+      })
+      if (mockData !== null) return mockData
+    } catch (error) {
+      if (error instanceof MockApiError) {
+        throw {
+          status: error.status,
+          message: error.message,
+          errorCode: error.errorCode,
+          fieldKey: error.fieldKey,
+          action: error.action,
+          data: error.data,
+        }
+      }
+      throw error
+    }
+  }
+
   if (!UUID_REGEX.test(tenantId)) {
     throw new Error(`publicApi: \`tenantId\` must be a UUID (got "${tenantId}").`)
   }
@@ -61,6 +109,7 @@ export const publicApi = async <T = unknown>(
       ...headers,
       [TENANT_ID_HEADER]: tenantId,
     },
+    params,
     ...rest,
   })
 

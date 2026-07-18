@@ -74,8 +74,38 @@ export type MockProductRecord = {
   updatedAt: string
 }
 
+export type MockCategoryRecord = {
+  categoryId: string
+  nameAr: string
+  nameEn: string
+  slug: string
+  descriptionAr: string
+  descriptionEn: string
+  parentCategoryId: string | null
+  sortOrder: number
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type MockCollectionRecord = {
+  collectionId: string
+  collectionName: string
+  collectionSlug: string
+  collectionType: "MANUAL" | "AUTOMATED" | "AUTOMATIC"
+  descriptionAr: string
+  descriptionEn: string
+  isActive: boolean
+  /** Ordered product ids for MANUAL collections (and for public listing). */
+  productIds: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export const MOCK_DB_VERSION = 2 as const
+
 export type MockDatabase = {
-  version: 1
+  version: typeof MOCK_DB_VERSION
   user: MockUser
   session: MockSession | null
   /** Issued OTPs keyed by normalized phone */
@@ -84,6 +114,8 @@ export type MockDatabase = {
   /** Reserved slugs that should fail availability checks */
   reservedSlugs: string[]
   products: MockProductRecord[]
+  categories: MockCategoryRecord[]
+  collections: MockCollectionRecord[]
 }
 
 export type MockRequest = {

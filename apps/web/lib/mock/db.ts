@@ -1,5 +1,5 @@
 import { createSeedDatabase, MOCK_STORAGE_KEY } from "./seed"
-import type { MockDatabase } from "./types"
+import { MOCK_DB_VERSION, type MockDatabase } from "./types"
 
 let memoryDb: MockDatabase | null = null
 
@@ -14,7 +14,10 @@ const readFromStorage = (): MockDatabase | null => {
   if (!raw) return null
   try {
     const parsed = JSON.parse(raw) as MockDatabase
-    if (parsed?.version !== 1) return null
+    if (parsed?.version !== MOCK_DB_VERSION) return null
+    if (!Array.isArray(parsed.categories) || !Array.isArray(parsed.collections)) {
+      return null
+    }
     return parsed
   } catch {
     return null
