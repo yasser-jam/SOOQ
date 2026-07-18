@@ -103,6 +103,18 @@ export const PAGES: PageDefinition[] = [
     iconName: "ShoppingCart",
   },
   {
+    path: "/login",
+    label: "Login",
+    description: "Customer login",
+    iconName: "FileText",
+  },
+  {
+    path: "/verify-otp",
+    label: "Verify OTP",
+    description: "OTP verification",
+    iconName: "FileText",
+  },
+  {
     path: "/pricing",
     label: "Pricing",
     description: "Pricing plans",
