@@ -398,28 +398,11 @@ body {
 }
 
 .EditorJsonDialog {
-  max-width: 900px;
-  width: min(900px, calc(100vw - 28px));
-}
-
-.EditorJsonDialog-preWrap {
-  background: #0f172a;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  margin-top: 14px;
-  max-height: calc(100vh - 200px);
-  overflow: auto;
-}
-
-.EditorJsonDialog-pre {
-  color: #e2e8f0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px;
-  line-height: 1.5;
-  margin: 0;
-  padding: 14px;
-  white-space: pre-wrap;
-  word-break: break-word;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 48px);
+  max-width: 1100px;
+  width: min(1100px, calc(100vw - 28px));
 }
 
 .EditorJsonDialog-actions {
@@ -445,6 +428,224 @@ body {
 
 .EditorJsonDialog-copyBtn:hover {
   background: #e2e8f0;
+}
+
+/* ── Site JSON collapsible viewer ─────────────────────────────────────── */
+
+.SiteJsonViewer {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 200px minmax(0, 1fr);
+  margin-top: 14px;
+  min-height: 0;
+  flex: 1;
+}
+
+@media (max-width: 720px) {
+  .SiteJsonViewer {
+    grid-template-columns: 1fr;
+  }
+}
+
+.SiteJsonViewer-nav {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100vh - 220px);
+  overflow: auto;
+  padding: 10px;
+}
+
+.SiteJsonViewer-navTitle {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.SiteJsonViewer-navList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.SiteJsonViewer-navBtn {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: #334155;
+  cursor: pointer;
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.3;
+  padding: 6px 8px;
+  text-align: start;
+  width: 100%;
+}
+
+.SiteJsonViewer-navBtn:hover {
+  background: #e2e8f0;
+}
+
+.SiteJsonViewer-navBtn--root {
+  border-inline-start: 3px solid #38bdf8;
+}
+
+.SiteJsonViewer-navBtn--zones {
+  border-inline-start: 3px solid #fbbf24;
+}
+
+.SiteJsonViewer-navBtn--pages {
+  border-inline-start: 3px solid #4ade80;
+}
+
+.SiteJsonViewer-navActions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.SiteJsonViewer-navAction {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #0f172a;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 8px;
+}
+
+.SiteJsonViewer-navAction:hover {
+  background: #f1f5f9;
+}
+
+.SiteJsonViewer-tree {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  max-height: calc(100vh - 220px);
+  overflow: auto;
+  padding: 12px;
+}
+
+.SiteJsonSection {
+  border-radius: 8px;
+  margin: 6px 0;
+  padding: 4px 0;
+  scroll-margin-top: 8px;
+}
+
+.SiteJsonSection--root {
+  background: rgba(56, 189, 248, 0.08);
+  box-shadow: inset 3px 0 0 #38bdf8;
+}
+
+.SiteJsonSection--zones {
+  background: rgba(251, 191, 36, 0.08);
+  box-shadow: inset 3px 0 0 #fbbf24;
+}
+
+.SiteJsonSection--pages {
+  background: rgba(74, 222, 128, 0.08);
+  box-shadow: inset 3px 0 0 #4ade80;
+}
+
+.SiteJsonNode {
+  scroll-margin-top: 8px;
+}
+
+.SiteJsonNode-toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  font: inherit;
+  gap: 2px;
+  padding: 2px 4px;
+  text-align: start;
+  width: 100%;
+}
+
+.SiteJsonNode-toggle:hover {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.SiteJsonNode-chevron {
+  color: #94a3b8;
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 16px;
+}
+
+.SiteJsonNode-key {
+  color: #7dd3fc;
+  font-weight: 600;
+}
+
+.SiteJsonNode--zones .SiteJsonNode-key {
+  color: #fcd34d;
+}
+
+.SiteJsonNode--pages .SiteJsonNode-key {
+  color: #86efac;
+}
+
+.SiteJsonNode-colon {
+  color: #94a3b8;
+}
+
+.SiteJsonNode-brace {
+  color: #cbd5e1;
+}
+
+.SiteJsonNode-summary {
+  color: #64748b;
+  font-style: italic;
+}
+
+.SiteJsonNode-value--string {
+  color: #f9a8d4;
+}
+
+.SiteJsonNode-value--number {
+  color: #fdba74;
+}
+
+.SiteJsonNode-value--boolean {
+  color: #c4b5fd;
+}
+
+.SiteJsonNode-value--undefined,
+.SiteJsonNode-value--object {
+  color: #94a3b8;
+}
+
+.SiteJsonNode--leaf {
+  padding-block: 1px;
+}
+
+.SiteJsonNode-closeBrace {
+  color: #cbd5e1;
 }
 
 .EditorShortcutDialogHeader {

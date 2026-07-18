@@ -1,6 +1,6 @@
 import { ReactElement, ReactNode, useEffect, useMemo, useState } from "react";
 import { getClassNameFactory } from "../../../../lib";
-import { IframeConfig, UiState } from "../../../../types";
+import { IframeConfig } from "../../../../types";
 import { usePropsContext } from "../..";
 import styles from "./styles.module.css";
 import { useInjectGlobalCss } from "../../../../lib/use-inject-css";
@@ -146,35 +146,18 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
     handleResizeEnd: handleRightSidebarResizeEnd,
   } = useSidebarResize("right", dispatch);
 
+  // Left sidebar is always open — only collapse the right panel on narrow screens.
   useEffect(() => {
     if (!window.matchMedia("(min-width: 638px)").matches) {
       dispatch({
         type: "setUi",
         ui: {
-          leftSideBarVisible: false,
+          leftSideBarVisible: true,
           rightSideBarVisible: false,
         },
       });
     }
-
-    const handleResize = () => {
-      if (!window.matchMedia("(min-width: 638px)").matches) {
-        dispatch({
-          type: "setUi",
-          ui: (ui: UiState) => ({
-            ...ui,
-            ...(ui.rightSideBarVisible ? { leftSideBarVisible: false } : {}),
-          }),
-        });
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+  }, [dispatch]);
 
   const overrides = useAppStore((s) => s.overrides);
 
@@ -266,22 +249,15 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
           onClick: () => {
             setMobilePanelHeightMode(plugin.mobilePanelHeight ?? "toggle");
 
-            if (plugin.name === currentPlugin) {
-              if (leftSideBarVisible) {
-                setUi({ leftSideBarVisible: false });
-              } else {
-                setUi({ leftSideBarVisible: true });
-              }
-            } else {
-              if (plugin.name) {
-                setUi({
-                  plugin: { current: plugin.name },
-                  leftSideBarVisible: true,
-                });
-              }
+            // Left sidebar stays open — re-clicking the active tab is a no-op.
+            if (plugin.name && plugin.name !== currentPlugin) {
+              setUi({
+                plugin: { current: plugin.name },
+                leftSideBarVisible: true,
+              });
             }
           },
-          isActive: leftSideBarVisible && currentPlugin === plugin.name,
+          isActive: currentPlugin === plugin.name,
           render: plugin.render,
           mobileOnly: hasLegacySideBarPlugin || plugin.mobileOnly,
           desktopOnly: plugin.name === "legacy-side-bar" || plugin.desktopOnly,
@@ -290,16 +266,24 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
     });
 
     return details;
-  }, [plugins, builtinPlugins, currentPlugin, leftSideBarVisible]);
+  }, [plugins, builtinPlugins, currentPlugin, setUi, hasLegacySideBarPlugin]);
 
+  // Always keep the left sidebar open and select the first plugin tab by default.
   useEffect(() => {
-    if (currentPlugin) return;
-
     const names = Object.keys(pluginItems);
     if (names.length === 0) return;
 
-    setUi({ plugin: { current: names[0] } });
-  }, [pluginItems, currentPlugin, setUi]);
+    const firstPlugin = names[0];
+    const needsPlugin = !currentPlugin || !pluginItems[currentPlugin];
+    const needsOpen = !leftSideBarVisible;
+
+    if (!needsPlugin && !needsOpen) return;
+
+    setUi({
+      ...(needsPlugin ? { plugin: { current: firstPlugin } } : {}),
+      leftSideBarVisible: true,
+    });
+  }, [pluginItems, currentPlugin, leftSideBarVisible, setUi]);
 
   const hasDesktopFieldsPlugin =
     pluginItems["fields"] && pluginItems["fields"].mobileOnly === false;
@@ -313,12 +297,6 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
       if (event.defaultPrevented) return;
       if (!event.ctrlKey && !event.metaKey) return;
       if (isTypingTarget(event.target)) return;
-
-      if (event.key === "\\") {
-        event.preventDefault();
-        setUi({ leftSideBarVisible: !leftSideBarVisible });
-        return;
-      }
 
       if (event.key !== "]" && event.key !== "[") return;
 
@@ -348,8 +326,7 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
     return () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [currentPlugin, leftSideBarVisible, pluginItems, setUi]);
-
+  }, [currentPlugin, pluginItems, setUi]);
   return (
     <div
       className={`Puck ${getClassName({
@@ -365,7 +342,7 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
             <FrameProvider>
               <div
                 className={getLayoutClassName({
-                  leftSideBarVisible,
+                  leftSideBarVisible: true,
                   mounted,
                   rightSideBarVisible:
                     !hasDesktopFieldsPlugin &&
@@ -389,7 +366,6 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
                     <Nav
                       items={pluginItems}
                       mobileActions={
-                        leftSideBarVisible &&
                         mobilePanelHeightMode === "toggle" && (
                           <IconButton
                             type="button"
@@ -413,7 +389,7 @@ export const Layout = ({ children }: { children?: ReactNode }) => {
                   <Sidebar
                     position="left"
                     sidebarRef={leftSidebarRef}
-                    isVisible={leftSideBarVisible}
+                    isVisible
                     onResize={setLeftWidth}
                     onResizeEnd={handleLeftSidebarResizeEnd}
                   >

@@ -54,6 +54,7 @@ import { Button } from "@workspace/ui/components/button"
 import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell"
 import { PreviewPageShell } from "../_components/preview-page-shell"
 import { PreviewThemeProvider } from "../_components/preview-theme-provider"
+import { SiteJsonViewer } from "../_components/site-json-viewer"
 import {
   buildStudioEditHrefFromSegment,
   buildStudioPreviewHrefFromSegment,
@@ -140,11 +141,15 @@ function JsonViewerDialog({
   const puckData = usePuck((s) => (open ? s.appState.data : null))
   const [copied, setCopied] = useState(false)
 
-  const jsonString = useMemo(() => {
-    if (!open) return ""
-
-    return JSON.stringify(normalizeSiteData(getSiteSnapshot()), null, 2)
+  const siteSnapshot = useMemo(() => {
+    if (!open) return null
+    return normalizeSiteData(getSiteSnapshot())
   }, [open, getSiteSnapshot, puckData])
+
+  const jsonString = useMemo(
+    () => (siteSnapshot ? JSON.stringify(siteSnapshot, null, 2) : ""),
+    [siteSnapshot]
+  )
 
   useEffect(() => {
     if (!open) {
@@ -173,7 +178,7 @@ function JsonViewerDialog({
     }
   }, [jsonString])
 
-  if (!open) return null
+  if (!open || !siteSnapshot) return null
 
   return (
     <div
@@ -223,11 +228,7 @@ function JsonViewerDialog({
           </div>
         </div>
 
-        <div className="EditorJsonDialog-preWrap" dir="ltr">
-          <pre className="EditorJsonDialog-pre">
-            <code>{jsonString}</code>
-          </pre>
-        </div>
+        <SiteJsonViewer site={siteSnapshot} />
       </div>
     </div>
   )

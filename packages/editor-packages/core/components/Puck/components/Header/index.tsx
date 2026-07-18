@@ -4,7 +4,6 @@ import {
   ChevronDown,
   ChevronUp,
   Globe,
-  PanelLeft,
   PanelRight,
 } from "lucide-react"
 import { Heading } from "../../../Heading"
@@ -102,56 +101,36 @@ const HeaderInner = <
     return rootData.props.title ?? ""
   })
 
-  const leftSideBarVisible = useAppStore((s) => s.state.ui.leftSideBarVisible)
   const rightSideBarVisible = useAppStore((s) => s.state.ui.rightSideBarVisible)
 
-  const toggleSidebars = useCallback(
-    (sidebar: "left" | "right") => {
-      const widerViewport = window.matchMedia("(min-width: 638px)").matches
-      const sideBarVisible =
-        sidebar === "left" ? leftSideBarVisible : rightSideBarVisible
-      const oppositeSideBar =
-        sidebar === "left" ? "rightSideBarVisible" : "leftSideBarVisible"
+  const toggleRightSidebar = useCallback(() => {
+    const widerViewport = window.matchMedia("(min-width: 638px)").matches
 
-      dispatch({
-        type: "setUi",
-        ui: {
-          [`${sidebar}SideBarVisible`]: !sideBarVisible,
-          ...(!widerViewport ? { [oppositeSideBar]: false } : {}),
-        },
-      })
-    },
-    [dispatch, leftSideBarVisible, rightSideBarVisible]
-  )
+    dispatch({
+      type: "setUi",
+      ui: {
+        rightSideBarVisible: !rightSideBarVisible,
+        // Left sidebar stays open; on narrow viewports keep it visible too.
+        ...(!widerViewport ? { leftSideBarVisible: true } : {}),
+      },
+    })
+  }, [dispatch, rightSideBarVisible])
 
   return (
     <CustomHeader actions={[]}>
       <header
         className={getClassName({
-          leftSideBarVisible,
+          leftSideBarVisible: true,
           rightSideBarVisible,
           hidePlugins,
         })}
       >
         <div className={getClassName("inner")}>
           <div className={getClassName("toggle")}>
-            <div className={getClassName("leftSideBarToggle")}>
-              <IconButton
-                type="button"
-                onClick={() => {
-                  toggleSidebars("left")
-                }}
-                title="Toggle left sidebar"
-              >
-                <PanelLeft focusable="false" />
-              </IconButton>
-            </div>
             <div className={getClassName("rightSideBarToggle")}>
               <IconButton
                 type="button"
-                onClick={() => {
-                  toggleSidebars("right")
-                }}
+                onClick={toggleRightSidebar}
                 title="Toggle right sidebar"
               >
                 <PanelRight focusable="false" />
