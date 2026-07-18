@@ -31,6 +31,7 @@ import { ContentParagraph } from "./blocks/ContentParagraph";
 import { Accordion } from "./blocks/Accordion";
 import { ContentImage } from "./blocks/ContentImage";
 import { ContentButton } from "./blocks/ContentButton";
+import { Chip } from "./blocks/Chip";
 import { ButtonGroup } from "./blocks/ButtonGroup";
 import { ContentLink } from "./blocks/ContentLink";
 import { ContentInput } from "./blocks/ContentInput";
@@ -85,6 +86,7 @@ export const conf: UserConfig = {
         "ContentParagraph",
         "ContentImage",
         "ContentButton",
+        "Chip",
         "ButtonGroup",
         "ContentLink",
         "ContentInput",
@@ -187,6 +189,7 @@ export const conf: UserConfig = {
     Accordion,
     ContentImage,
     ContentButton,
+    Chip,
     ButtonGroup,
     ContentLink,
     ContentInput,

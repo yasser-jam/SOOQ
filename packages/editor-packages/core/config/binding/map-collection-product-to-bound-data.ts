@@ -29,6 +29,7 @@ export function mapCollectionProductToBoundData(
       slug: product.slug ?? product.id,
       primaryImageUrl: product.primaryImageUrl,
       status: product.status,
+      tags: product.tags ?? [],
     },
     images: imageUrls.map((url) => ({ url })),
     pricing: {

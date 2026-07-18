@@ -377,7 +377,8 @@ The binding layer lets blocks show **live data** (products, cart, etc.) without 
 
 1. `BoundDataContext` — React context that holds the current `ValueContext` (product, collection, cart…) for a page or collection loop
 2. `useBoundValue(prop, propName)` — called inside a block's render: resolves a field value either from static block props or from `ValueContext` if the prop is bound
-3. `CollectionProductsBoundProvider` — wraps a products grid, fetches a collection and pushes each product into `ValueContext` for its child `ProductCard`
+3. `listValueContext` on the `Chip` block — resolves an **array** path (e.g. `product.tags`) via `resolveValueContext`; renders one chip per `{ id, name }` item, or nothing when the value is null/empty
+4. `CollectionProductsBoundProvider` — wraps a products grid, fetches a collection and pushes each product into `ValueContext` for its child `ProductCard`
 
 ### Key files
 
@@ -491,6 +492,7 @@ Browser requests /shop/my-store/products/widget
 | `config/components/ZoneDrawer/index.tsx` | ZoneDrawer overlay React component |
 | `config/components/ZoneOverlay/useZoneOverlay.tsx` | Zone event listener + isOpen state |
 | `config/blocks/ContentButton/index.tsx` | Trigger block: link / action / zone-open |
+| `config/blocks/Chip/index.tsx` | Chip/badge list block: theme or custom styling; binds to array paths like `product.tags` |
 | `config/lib/zone-responsive.module.css` | CSS module: hideOnDesktop / hideOnMobile classes |
 | `config/binding/index.ts` | Binding system entry: useBoundValue, BoundDataContext |
 | `config/data-adapter/index.ts` | EditorDataAdapter interface + registration |

@@ -35,6 +35,10 @@ export const SAMPLE_COLLECTION_PRODUCTS: CollectionProductRef[] = [
     displayPrice: "85,000 SYP",
     status: "ACTIVE",
     primaryImageUrl: sampleImage("عطر", "#7c5cbf"),
+    tags: [
+      { id: "t1", name: "جديد" },
+      { id: "t2", name: "مميز" },
+    ],
   },
   {
     id: "sample-product-2",
@@ -48,6 +52,7 @@ export const SAMPLE_COLLECTION_PRODUCTS: CollectionProductRef[] = [
     displayPrice: "145,000 SYP",
     status: "ACTIVE",
     primaryImageUrl: sampleImage("حقيبة", "#b8763e"),
+    tags: [{ id: "t3", name: "حصري" }],
   },
   {
     id: "sample-product-3",
@@ -62,6 +67,10 @@ export const SAMPLE_COLLECTION_PRODUCTS: CollectionProductRef[] = [
     displayPrice: "230,000 SYP",
     status: "ACTIVE",
     primaryImageUrl: sampleImage("ساعة", "#3e6bb8"),
+    tags: [
+      { id: "t4", name: "كلاسيكي" },
+      { id: "t5", name: "أناقة" },
+    ],
   },
   {
     id: "sample-product-4",
@@ -75,6 +84,7 @@ export const SAMPLE_COLLECTION_PRODUCTS: CollectionProductRef[] = [
     displayPrice: "120,000 SYP",
     status: "ACTIVE",
     primaryImageUrl: sampleImage("حذاء", "#3f9d6e"),
+    tags: [{ id: "t6", name: "رياضي" }],
   },
 ];
 
@@ -116,6 +126,7 @@ export function buildSampleProductPayload(
       slug: ref?.slug ?? base.slug,
       status: base.status,
       primaryImageUrl: base.primaryImageUrl,
+      tags: base.tags ?? [],
     },
     images: [{ url: base.primaryImageUrl }],
     pricing: {

@@ -116,7 +116,7 @@ function buildCompareAtPrice(price: number, discountPercentage: number): number 
 function buildProductPayload(
   product: SeedProductSource,
   categoryId: string,
-  tagIds: string[],
+  tagIds: Map<string, string>,
   mediaFiles: File[]
 ): CreateProductInput {
   const title = product.title.trim()
@@ -125,6 +125,14 @@ function buildProductPayload(
     product.price,
     product.discountPercentage
   )
+
+  const resolvedTags = (product.tags ?? [])
+    .map((name) => {
+      const id = tagIds.get(name)
+      if (!id) return null
+      return { id, name }
+    })
+    .filter((tag): tag is { id: string; name: string } => Boolean(tag))
 
   return {
     titleAr: title,
@@ -141,7 +149,7 @@ function buildProductPayload(
     seoDescription: description.slice(0, 160),
     defaultCategoryId: categoryId,
     categories: [{ id: categoryId }],
-    tags: tagIds.map((id) => ({ id })),
+    tags: resolvedTags,
     mediaFiles,
     variants: [
       {

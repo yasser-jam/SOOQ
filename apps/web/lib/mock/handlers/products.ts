@@ -158,7 +158,10 @@ const fromInput = (
       ? (input.categories as MockProductRecord["categories"])
       : (existing?.categories ?? []),
     tags: Array.isArray(input.tags)
-      ? (input.tags as MockProductRecord["tags"])
+      ? (input.tags as Array<{ id?: string; name?: string }>).map((tag, index) => ({
+          id: String(tag.id ?? `mock-tag-${index}`),
+          name: tag.name != null ? String(tag.name) : undefined,
+        }))
       : (existing?.tags ?? []),
     media: existing?.media ?? [],
     options: existing?.options ?? [],

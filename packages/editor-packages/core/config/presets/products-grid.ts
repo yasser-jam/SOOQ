@@ -41,6 +41,18 @@ export function createProductCardGroup(
             maxWidth: "100%",
           },
         },
+        {
+          type: "Chip",
+          props: {
+            chipVariantMode: "theme",
+            chipVariant: "neutral",
+            shape: "pill",
+            size: "sm",
+            gap: 6,
+            maxItems: 5,
+            listValueContext: { path: "product.tags" },
+          },
+        },
         createHeading("عنوان المنتج", {
           valueContext: { path: "product.title" },
           fontSize: "theme-lg",

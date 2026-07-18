@@ -51,6 +51,7 @@ export type CollectionProductRef = {
   primaryImageUrl?: string;
   descriptionAr?: string;
   descriptionEn?: string;
+  tags?: Array<{ id: string; name?: string }>;
 };
 
 export type ProductCardVariant = {

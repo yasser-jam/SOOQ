@@ -78,6 +78,12 @@ const toPublicProductItem = (
   displayPrice: String(product.basePrice),
   status: product.status,
   primaryImageUrl: primaryImageUrl(product),
+  tags: (product.tags ?? [])
+    .map((tag, index) => ({
+      id: String(tag.id ?? `mock-tag-${index}`),
+      name: tag.name ?? undefined,
+    }))
+    .filter((tag) => tag.id || tag.name),
   sortOrder,
 })
 

@@ -310,7 +310,7 @@ export const seedMockProducts = (): MockProductRecord[] => {
           nameEn: "Accessories",
         },
       ],
-      tags: [],
+      tags: [{ id: "mock-tag-leather", name: "جلد" }],
       media: [
         {
           mediaAssetId: "mock-media-4",

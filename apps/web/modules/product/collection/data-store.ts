@@ -38,8 +38,9 @@ export type CollectionProductRef = {
 	currencyCode?: string
 	status?: string
 	primaryImageUrl?: string
-	descriptionAr?: string
-	descriptionEn?: string
+  descriptionAr?: string
+  descriptionEn?: string
+  tags?: Array<{ id: string; name?: string }>
 }
 
 type CollectionProductListItem = {
@@ -53,9 +54,15 @@ type CollectionProductListItem = {
 	currencyCode?: string
 	status?: string
 	primaryImageUrl?: string
-	descriptionAr?: string
-	descriptionEn?: string
-	sortOrder?: number
+  descriptionAr?: string
+  descriptionEn?: string
+  sortOrder?: number
+  tags?: Array<{
+    id?: string
+    name?: string
+    productTagId?: string
+    tagName?: string
+  }>
 }
 
 const COLLECTION_LIST_PAGE_SIZE = 20
@@ -149,23 +156,42 @@ function filterCollectionList(
 	)
 }
 
+function mapCollectionProductTags(
+  tags: CollectionProductListItem["tags"]
+): Array<{ id: string; name?: string }> {
+  if (!Array.isArray(tags)) return []
+
+  return tags
+    .map((tag, index) => {
+      const id = String(tag.productTagId ?? tag.id ?? "").trim()
+      const name = String(tag.tagName ?? tag.name ?? "").trim()
+      if (!id && !name) return null
+      return {
+        id: id || `tag-${index}`,
+        name: name || undefined,
+      }
+    })
+    .filter((tag): tag is { id: string; name?: string } => tag != null)
+}
+
 function mapCollectionProductItems(
-	items: CollectionProductListItem[],
+  items: CollectionProductListItem[],
 ): CollectionProductRef[] {
-	return items.map((item) => ({
-		id: item.productId,
-		titleAr: item.titleAr,
-		titleEn: item.titleEn,
-		slug: item.slug,
-		displayPrice: item.displayPrice,
-		basePrice: item.basePrice,
-		compareAtPrice: item.compareAtPrice,
-		currencyCode: item.currencyCode,
-		status: item.status,
-		primaryImageUrl: item.primaryImageUrl,
-		descriptionAr: item.descriptionAr,
-		descriptionEn: item.descriptionEn,
-	}))
+  return items.map((item) => ({
+    id: item.productId,
+    titleAr: item.titleAr,
+    titleEn: item.titleEn,
+    slug: item.slug,
+    displayPrice: item.displayPrice,
+    basePrice: item.basePrice,
+    compareAtPrice: item.compareAtPrice,
+    currencyCode: item.currencyCode,
+    status: item.status,
+    primaryImageUrl: item.primaryImageUrl,
+    descriptionAr: item.descriptionAr,
+    descriptionEn: item.descriptionEn,
+    tags: mapCollectionProductTags(item.tags),
+  }))
 }
 
 export async function fetchCollectionProductsFromUrl(
