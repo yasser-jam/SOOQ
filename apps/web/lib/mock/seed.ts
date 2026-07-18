@@ -19,6 +19,10 @@ export const MOCK_DEFAULT_OTP = "123456"
 export const MOCK_HUB_TENANT_ID = "00000000-0000-4000-8000-000000000001"
 export const MOCK_STORE_TENANT_ID = "00000000-0000-4000-8000-000000000002"
 export const MOCK_USER_ID = "mock-owner-user"
+/** Storefront customer identity used by `/customer/auth/*` mocks. */
+export const MOCK_CUSTOMER_USER_ID = "mock-customer-user"
+/** Default store slug for storefront OTP when `NEXT_PUBLIC_TENANT_SLUG` is unset. */
+export const MOCK_STORE_SLUG = "demo-store"
 
 const mockImage = (label: string, bg: string, fg = "#ffffff"): string =>
   `data:image/svg+xml;utf8,${encodeURIComponent(
@@ -414,4 +418,5 @@ export const createSeedDatabase = (): MockDatabase => ({
   products: seedMockProducts(),
   categories: seedMockCategories(),
   collections: seedMockCollections(),
+  orders: [],
 })

@@ -102,7 +102,24 @@ export type MockCollectionRecord = {
   updatedAt: string
 }
 
-export const MOCK_DB_VERSION = 2 as const
+export type MockOrderRecord = {
+  orderId: string
+  tenantId: string
+  items: Array<{ variantId: string; quantity: number }>
+  shippingAddress: {
+    latitude: number
+    longitude: number
+    recipientName: string
+    phone: string
+    addressLabel: string
+  }
+  paymentMethod: "COD"
+  guestEmail: string
+  status: "PENDING" | "CONFIRMED"
+  createdAt: string
+}
+
+export const MOCK_DB_VERSION = 3 as const
 
 export type MockDatabase = {
   version: typeof MOCK_DB_VERSION
@@ -116,6 +133,8 @@ export type MockDatabase = {
   products: MockProductRecord[]
   categories: MockCategoryRecord[]
   collections: MockCollectionRecord[]
+  /** Storefront checkout orders (POST /public/checkout) */
+  orders: MockOrderRecord[]
 }
 
 export type MockRequest = {

@@ -1,6 +1,8 @@
 import { handleAuthMock } from "./handlers/auth"
 import { handleCategoriesMock } from "./handlers/categories"
+import { handleCheckoutMock } from "./handlers/checkout"
 import { handleCollectionsMock } from "./handlers/collections"
+import { handleCustomerAuthMock } from "./handlers/customer-auth"
 import { handleProductsMock } from "./handlers/products"
 import { handleStoreSettingsMock } from "./handlers/store-settings"
 import type { MockHandlerResult, MockRequest } from "./types"
@@ -15,6 +17,9 @@ export const routeMockRequest = async (
   const auth = handleAuthMock(request)
   if (auth.handled) return auth
 
+  const customerAuth = handleCustomerAuthMock(request)
+  if (customerAuth.handled) return customerAuth
+
   const settings = handleStoreSettingsMock(request)
   if (settings.handled) return settings
 
@@ -26,6 +31,9 @@ export const routeMockRequest = async (
 
   const products = await handleProductsMock(request)
   if (products.handled) return products
+
+  const checkout = handleCheckoutMock(request)
+  if (checkout.handled) return checkout
 
   return { handled: false }
 }

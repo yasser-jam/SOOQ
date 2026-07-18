@@ -15,7 +15,11 @@ const readFromStorage = (): MockDatabase | null => {
   try {
     const parsed = JSON.parse(raw) as MockDatabase
     if (parsed?.version !== MOCK_DB_VERSION) return null
-    if (!Array.isArray(parsed.categories) || !Array.isArray(parsed.collections)) {
+    if (
+      !Array.isArray(parsed.categories) ||
+      !Array.isArray(parsed.collections) ||
+      !Array.isArray(parsed.orders)
+    ) {
       return null
     }
     return parsed

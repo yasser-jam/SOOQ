@@ -1,10 +1,11 @@
-import axios from "axios"
-
 import {
 	getProductTitle,
 	type StoreCart,
 	type StoreCartLine,
 } from "@/core/config/cart/store-cart"
+import { publicApi } from "@/lib/public-api"
+import { isMockApiEnabled } from "@/lib/mock/enabled"
+import { MOCK_STORE_TENANT_ID } from "@/lib/mock/seed"
 
 // ─── Cookie helper (no js-cookie in this app) ─────────────────────────────────
 
@@ -13,7 +14,7 @@ export function readCookie(name: string): string | null {
 	const match = document.cookie.match(
 		new RegExp(`(?:^|; )${name.replace(/[[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}=([^;]*)`)
 	)
-	return match ? decodeURIComponent(match[1]) : null
+	return match?.[1] != null ? decodeURIComponent(match[1]) : null
 }
 
 // ─── Tenant + customer cookies ─────────────────────────────────────────────────
@@ -158,8 +159,6 @@ export function validateCheckoutForm(values: CheckoutFormValues): CheckoutFormEr
 
 // ─── API call ─────────────────────────────────────────────────────────────────
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? ""
-
 export type CheckoutOrderPayload = {
 	items: CheckoutOrderItem[]
 	shippingAddress: {
@@ -171,6 +170,26 @@ export type CheckoutOrderPayload = {
 	}
 	paymentMethod: "COD"
 	guestEmail: string
+	checkoutToken?: string
+}
+
+function resolveCheckoutTenantId(tenantId: string | null): string {
+	if (tenantId) return tenantId
+	if (isMockApiEnabled()) return MOCK_STORE_TENANT_ID
+	throw new Error("معرّف المتجر غير متوفر. سجّل الدخول أولاً.")
+}
+
+function getApiErrorMessage(err: unknown, fallback: string): string {
+	if (err instanceof Error && err.message) return err.message
+	if (
+		err &&
+		typeof err === "object" &&
+		"message" in err &&
+		typeof (err as { message: unknown }).message === "string"
+	) {
+		return (err as { message: string }).message
+	}
+	return fallback
 }
 
 export function buildCheckoutPayload(cart: StoreCart): CheckoutOrderPayload {
@@ -229,26 +248,31 @@ export async function submitCheckoutOrder(
 		throw new Error("رقم الهاتف غير متوفر. سجّل الدخول أولاً.")
 	}
 
-	const headers: Record<string, string> = {}
-	if (tenantId) headers["X-Tenant-Id"] = tenantId
+	const resolvedTenantId = resolveCheckoutTenantId(tenantId)
 
-	await axios.post(
-		`${API_URL}/public/checkout`,
-		{
-			items,
-			shippingAddress: {
-				latitude: Number(values.latitude),
-				longitude: Number(values.longitude),
-				recipientName,
-				phone,
-				addressLabel: values.addressLabel,
+	try {
+		await publicApi("/public/checkout", {
+			method: "POST",
+			tenantId: resolvedTenantId,
+			body: {
+				items,
+				shippingAddress: {
+					latitude: Number(values.latitude),
+					longitude: Number(values.longitude),
+					recipientName,
+					phone,
+					addressLabel: values.addressLabel,
+				},
+				paymentMethod: "COD",
+				checkoutToken: "a26fa499-66a0-4d34-b9a7-18dca9a1e817",
+				guestEmail: DEFAULT_GUEST_EMAIL,
 			},
-			paymentMethod: "COD",
-			checkoutToken: 'a26fa499-66a0-4d34-b9a7-18dca9a1e817',
-			guestEmail: DEFAULT_GUEST_EMAIL,
-		},
-		{ headers },
-	)
+		})
+	} catch (err) {
+		throw new Error(
+			getApiErrorMessage(err, "حدث خطأ أثناء تقديم الطلب."),
+		)
+	}
 }
 
 /** Submit checkout using cart lines from localStorage and customer cookies. */
@@ -257,8 +281,17 @@ export async function submitCheckoutOrderFromCart(
 	tenantId: string | null,
 ): Promise<void> {
 	const payload = buildCheckoutPayload(cart)
-	const headers: Record<string, string> = {}
-	if (tenantId) headers["X-Tenant-Id"] = tenantId
+	const resolvedTenantId = resolveCheckoutTenantId(tenantId)
 
-	await axios.post(`${API_URL}/public/checkout`, payload, { headers })
+	try {
+		await publicApi("/public/checkout", {
+			method: "POST",
+			tenantId: resolvedTenantId,
+			body: payload,
+		})
+	} catch (err) {
+		throw new Error(
+			getApiErrorMessage(err, "حدث خطأ أثناء تقديم الطلب."),
+		)
+	}
 }

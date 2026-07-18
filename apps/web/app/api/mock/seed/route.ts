@@ -28,12 +28,18 @@ export async function GET() {
       storageKey: "sooq-mock-api-db",
       surfaces: [
         "auth",
+        "customer-auth",
         "store-settings",
         "products",
         "categories",
         "collections",
+        "checkout",
       ],
       demoOtp: { phone: "+963999000111", otpCode: "123456" },
+      storefront: {
+        tenantSlug: "demo-store",
+        tenantId: "00000000-0000-4000-8000-000000000002",
+      },
     },
   })
 }

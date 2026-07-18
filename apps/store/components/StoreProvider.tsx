@@ -24,6 +24,12 @@ import {
 	type CreateOrderEventDetail,
 } from "@/core/config/cart/make-order"
 import { registerAddProductCartListener } from "@/core/config/cart/use-store-cart"
+import {
+	requestCustomerOtp,
+	verifyCustomerOtp,
+} from "@/modules/auth/customer-auth/actions"
+import { isMockApiEnabled } from "@/lib/mock/enabled"
+import { MOCK_STORE_SLUG } from "@/lib/mock/seed"
 import { CheckoutDrawer } from "./checkout/CheckoutDrawer"
 import {
 	getStoreTenantId,
@@ -32,9 +38,11 @@ import {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? ""
 const TENANT_SLUG =
-	process.env.NEXT_PUBLIC_TENANT_SLUG ?? "tmp-4624d73c8f49494cb8be2aedcb967e3a"
+	process.env.NEXT_PUBLIC_TENANT_SLUG ??
+	(isMockApiEnabled()
+		? MOCK_STORE_SLUG
+		: "tmp-4624d73c8f49494cb8be2aedcb967e3a")
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 days
 
@@ -47,7 +55,7 @@ function readCookie(name: string): string | null {
 			`(?:^|; )${name.replace(/[[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}=([^;]*)`,
 		),
 	)
-	return match ? decodeURIComponent(match[1]) : null
+	return match?.[1] != null ? decodeURIComponent(match[1]) : null
 }
 
 function setCookie(name: string, value: string) {
@@ -66,6 +74,19 @@ function readAuthFromCookies(): StoreAuthState {
 		customerName: customerName ?? null,
 		customerPhone: customerPhone ?? null,
 	}
+}
+
+function getErrorMessage(err: unknown, fallback: string): string {
+	if (err instanceof Error && err.message) return err.message
+	if (
+		err &&
+		typeof err === "object" &&
+		"message" in err &&
+		typeof (err as { message: unknown }).message === "string"
+	) {
+		return (err as { message: string }).message
+	}
+	return fallback
 }
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -114,19 +135,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		localStorage.setItem("sooq-login-fullName", fullName)
 
 		try {
-			const res = await fetch(`${API_URL}/customer/auth/otp/request`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ phone, tenantSlug: TENANT_SLUG, fullName }),
+			await requestCustomerOtp({
+				phone,
+				tenantSlug: TENANT_SLUG,
+				fullName,
 			})
-
-			if (!res.ok) {
-				const text = await res.text().catch(() => "")
-				throw new Error(`فشل إرسال رمز التحقق (${res.status}): ${text}`)
-			}
 		} catch (err) {
-			const msg =
-				err instanceof Error ? err.message : "فشل إرسال رمز التحقق. حاول مرة أخرى."
+			const msg = getErrorMessage(
+				err,
+				"فشل إرسال رمز التحقق. حاول مرة أخرى.",
+			)
 			setErrors((prev) => ({ ...prev, login: msg }))
 			throw err
 		} finally {
@@ -146,19 +164,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		setErrors((prev) => ({ ...prev, verifyOtp: null }))
 
 		try {
-			const res = await fetch(`${API_URL}/customer/auth/otp/verify`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ phone, tenantSlug: TENANT_SLUG, otpCode: otp }),
+			const tokens = await verifyCustomerOtp({
+				phone,
+				tenantSlug: TENANT_SLUG,
+				otpCode: otp,
 			})
 
-			if (!res.ok) {
-				const text = await res.text().catch(() => "")
-				throw new Error(`رمز التحقق غير صحيح (${res.status}): ${text}`)
-			}
-
-			const data = await res.json()
-			const tenantId = data?.tenantId ?? data?.tenant_id ?? TENANT_SLUG
+			const tenantId = tokens.tenantId || TENANT_SLUG
 
 			setCookie("sooq-tenant-id", tenantId)
 			setCookie("sooq-user-name", fullName)
@@ -169,8 +181,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
 			setAuth({ isLoggedIn: true, customerName: fullName, customerPhone: phone })
 		} catch (err) {
-			const msg =
-				err instanceof Error ? err.message : "رمز التحقق غير صحيح. حاول مرة أخرى."
+			const msg = getErrorMessage(
+				err,
+				"رمز التحقق غير صحيح. حاول مرة أخرى.",
+			)
 			setErrors((prev) => ({ ...prev, verifyOtp: msg }))
 			throw err
 		} finally {
@@ -216,8 +230,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		try {
 			openCheckout(cart)
 		} catch (err) {
-			const msg =
-				err instanceof Error ? err.message : "حدث خطأ أثناء تقديم الطلب."
+			const msg = getErrorMessage(err, "حدث خطأ أثناء تقديم الطلب.")
 			setErrors((prev) => ({ ...prev, makeOrder: msg }))
 			throw err
 		}

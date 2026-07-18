@@ -9,7 +9,11 @@ Fixed theme id (v1): **`test`** — see [`lib/store-config.ts`](lib/store-config
 ```bash
 # From monorepo root
 pnpm install
-cp apps/store/.env.example apps/store/.env.local   # set NEXT_PUBLIC_API_URL
+cp apps/store/.env.example apps/store/.env.local
+
+# Full offline storefront flow (catalog + customer OTP + checkout):
+#   NEXT_PUBLIC_USE_MOCK_API=true
+# Demo: phone +963999000111 · OTP 123456 · slug demo-store
 
 pnpm --filter store dev    # http://localhost:3001
 pnpm --filter web dev      # http://localhost:3000 (design studio)
@@ -26,7 +30,9 @@ pnpm --filter web dev      # http://localhost:3000 (design studio)
 
 Unknown paths show a **404** page.
 
-API-backed blocks (ProductCard, ProductsGrid) use `NEXT_PUBLIC_API_URL` via shared modules in `apps/web/modules`.
+API-backed blocks (ProductCard, ProductsGrid), customer OTP, and checkout go through
+shared `apps/web` clients (`api` / `publicApi`). With `NEXT_PUBLIC_USE_MOCK_API=true`
+they hit the same in-browser seeder as the merchant dashboard (`apps/web/lib/mock`).
 
 ## localStorage caveat
 

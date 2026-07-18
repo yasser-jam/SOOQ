@@ -4,7 +4,13 @@ import type { MockApiErrorShape, MockRequest } from "./types"
 
 export { isMockApiEnabled } from "./enabled"
 export { resetMockDb, getMockDb } from "./db"
-export { createSeedDatabase } from "./seed"
+export {
+  createSeedDatabase,
+  MOCK_DEFAULT_OTP,
+  MOCK_DEFAULT_PHONE,
+  MOCK_STORE_SLUG,
+  MOCK_STORE_TENANT_ID,
+} from "./seed"
 export type { MockDatabase } from "./types"
 
 /**

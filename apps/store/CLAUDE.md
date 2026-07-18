@@ -41,3 +41,6 @@ slug/domain, SSR/ISR) is a known gap and a roadmap item. When adding backend fet
   `resolveAllData`, and `config`.
 - Arabic-first UI, RTL; loading/empty states in Arabic.
 - Public (customer) endpoints only — no admin `/admin/*` calls from this app.
+- Network calls must go through `api()` / `publicApi()` (aliased from `apps/web`)
+  so `NEXT_PUBLIC_USE_MOCK_API=true` can serve customer OTP + checkout + catalog
+  from the shared seeder. Do not use raw `fetch`/`axios` for those paths.

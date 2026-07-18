@@ -74,12 +74,17 @@ export const publicApi = async <T = unknown>(
 
   const mockUrl = appendParams(url, params)
 
+  const requestHeaders: Record<string, string | undefined> = {
+    ...(headers as Record<string, string | undefined> | undefined),
+    [TENANT_ID_HEADER]: tenantId,
+  }
+
   if (isMockApiEnabled()) {
     try {
       const mockData = await tryHandleMockApi<T>(mockUrl, {
         method,
         body,
-        headers: headers as Record<string, string | undefined> | undefined,
+        headers: requestHeaders,
       })
       if (mockData !== null) return mockData
     } catch (error) {
@@ -105,10 +110,7 @@ export const publicApi = async <T = unknown>(
     url,
     method,
     data: body,
-    headers: {
-      ...headers,
-      [TENANT_ID_HEADER]: tenantId,
-    },
+    headers: requestHeaders,
     params,
     ...rest,
   })
