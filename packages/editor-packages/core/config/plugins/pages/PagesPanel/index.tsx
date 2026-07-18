@@ -11,6 +11,7 @@ import {
   ShoppingCart,
 } from "lucide-react"
 import { getClassNameFactory } from "@/core/lib"
+import { useAppStoreApi } from "@/core/store"
 import {
   PageDefinition,
   PAGES_UPDATED_EVENT,
@@ -23,6 +24,7 @@ import {
   readSiteData,
   writeSiteData,
 } from "../../../lib/site-data"
+import { syncPagesMenuZones } from "../../../lib/sync-pages-menu"
 import { normalizeEditorData } from "../../../lib/normalize-editor-data"
 import type { UserData } from "../../../types"
 import {
@@ -208,6 +210,7 @@ function PageCard({
 }
 
 export function PagesPanel() {
+  const appStoreApi = useAppStoreApi()
   const [pages, setPages] = useState<PageDefinition[]>(() => getAllPages())
   const [labelDraft, setLabelDraft] = useState("")
   const [pathDraft, setPathDraft] = useState("")
@@ -231,7 +234,8 @@ export function PagesPanel() {
 
   const refreshPages = useCallback(() => {
     setPages(getAllPages())
-  }, [])
+    syncPagesMenuZones(appStoreApi)
+  }, [appStoreApi])
 
   const handleSelectPage = useCallback((page: PageDefinition) => {
     applySelectedPage(getEditPath(page))
@@ -310,7 +314,6 @@ export function PagesPanel() {
     )
 
     writeSiteData(nextSite)
-    refreshPages()
 
     setFormError(null)
     setLabelDraft("")

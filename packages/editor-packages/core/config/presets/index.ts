@@ -111,6 +111,15 @@ export {
   createProductDetailSection,
 } from "./products-grid";
 export {
+  getPagesMenuHeaderPreset,
+  getPagesMenuResponsiveHeaderPreset,
+  getPagesMenuDrawerPreset,
+  PAGES_MENU_MARKER,
+  buildPagesMenuContentLinks,
+  createPagesMenuGroup,
+  getPageLinkId,
+} from "./pages-menu";
+export {
   createCartItemGroup,
   createCartSectionPreset,
   createCartPageContent,

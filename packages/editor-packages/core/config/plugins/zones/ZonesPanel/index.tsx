@@ -18,6 +18,7 @@ import { resolveZoneDefinitionFromState } from "../../../lib/zone-selection";
 import { DEFAULT_ZONE_POPUP_PRESETS } from "../../../presets/popup";
 import { DEFAULT_ZONE_FOOTER_PRESET } from "../../../presets/footer";
 import { DEFAULT_ZONE_HEADER_PRESET } from "../../../presets/header";
+import { getPagesMenuDrawerPreset } from "../../../presets/pages-menu";
 import { getZonePresetsByCategory } from "../../../presets/index";
 import type { ZonePreset } from "../../../presets/types";
 import { cn } from "@workspace/ui/lib/utils";
@@ -224,6 +225,23 @@ export function ZonesPanel() {
     [appStoreApi, dispatch, selectedZoneDefinition]
   );
 
+  const applyPagesMenuDrawerPreset = useCallback(() => {
+    if (!selectedZoneDefinition) return;
+    applyZonePreset(
+      selectedZoneDefinition.rootZone,
+      getPagesMenuDrawerPreset(),
+      appStoreApi
+    );
+
+    dispatch({
+      type: "setUi",
+      ui: {
+        plugin: { current: "zones" },
+        leftSideBarVisible: true,
+      },
+    });
+  }, [appStoreApi, dispatch, selectedZoneDefinition]);
+
   return (
     <div className={getClassName()}>
       <header className={getClassName("header")}>
@@ -328,6 +346,27 @@ export function ZonesPanel() {
             open={headerDialogOpen}
             onOpenChange={setHeaderDialogOpen}
           />
+        </section>
+      ) : null}
+
+      {selectedZoneDefinition?.presetCategory === "zone-drawer" ? (
+        <section className={getClassName("presets")}>
+          <div className={getClassName("presetsHeader")}>
+            <h3 className={getClassName("presetsTitle")}>قائمة صفحات الموقع</h3>
+            <p className={getClassName("presetsSubtitle")}>
+              ينشئ رابطاً مستقلاً لكل صفحة في الدرج. تُحدَّث الروابط تلقائياً
+              عند إضافة صفحة أو حذفها.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-center gap-2"
+            onClick={applyPagesMenuDrawerPreset}
+          >
+            <LayoutTemplate size={16} aria-hidden />
+            <span>تطبيق قائمة صفحات (درج)</span>
+          </Button>
         </section>
       ) : null}
 
