@@ -5,6 +5,7 @@ import { handleCollectionsMock } from "./handlers/collections"
 import { handleCustomerAuthMock } from "./handlers/customer-auth"
 import { handleProductsMock } from "./handlers/products"
 import { handleStoreSettingsMock } from "./handlers/store-settings"
+import { handleTagsMock } from "./handlers/tags"
 import type { MockHandlerResult, MockRequest } from "./types"
 
 /**
@@ -25,6 +26,9 @@ export const routeMockRequest = async (
 
   const categories = handleCategoriesMock(request)
   if (categories.handled) return categories
+
+  const tags = handleTagsMock(request)
+  if (tags.handled) return tags
 
   const collections = handleCollectionsMock(request)
   if (collections.handled) return collections

@@ -18,6 +18,7 @@ const readFromStorage = (): MockDatabase | null => {
     if (
       !Array.isArray(parsed.categories) ||
       !Array.isArray(parsed.collections) ||
+      !Array.isArray(parsed.tags) ||
       !Array.isArray(parsed.orders)
     ) {
       return null

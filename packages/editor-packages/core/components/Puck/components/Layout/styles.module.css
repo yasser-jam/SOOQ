@@ -155,7 +155,7 @@
 
 @media (min-width: 638px) {
   .PuckLayout .PuckLayout-inner {
-    --puck-side-bar-width: minmax(150px, 200px);
+    --puck-side-bar-width: minmax(180px, 230px);
   }
 }
 
@@ -167,25 +167,25 @@
 
 @media (min-width: 990px) {
   .PuckLayout .PuckLayout-inner {
-    --puck-side-bar-width: 200px;
+    --puck-side-bar-width: 230px;
   }
 }
 
 @media (min-width: 1198px) {
   .PuckLayout .PuckLayout-inner {
-    --puck-side-bar-width: 220px;
+    --puck-side-bar-width: 250px;
   }
 }
 
 @media (min-width: 1398px) {
   .PuckLayout .PuckLayout-inner {
-    --puck-side-bar-width: 240px;
+    --puck-side-bar-width: 270px;
   }
 }
 
 @media (min-width: 1598px) {
   .PuckLayout .PuckLayout-inner {
-    --puck-side-bar-width: 260px;
+    --puck-side-bar-width: 290px;
   }
 }
 

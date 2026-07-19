@@ -102,6 +102,14 @@ export type MockCollectionRecord = {
   updatedAt: string
 }
 
+export type MockTagRecord = {
+  productTagId: string
+  tagName: string
+  slug: string
+  createdAt: string
+  updatedAt: string
+}
+
 export type MockOrderRecord = {
   orderId: string
   tenantId: string
@@ -119,7 +127,7 @@ export type MockOrderRecord = {
   createdAt: string
 }
 
-export const MOCK_DB_VERSION = 3 as const
+export const MOCK_DB_VERSION = 5 as const
 
 export type MockDatabase = {
   version: typeof MOCK_DB_VERSION
@@ -133,6 +141,7 @@ export type MockDatabase = {
   products: MockProductRecord[]
   categories: MockCategoryRecord[]
   collections: MockCollectionRecord[]
+  tags: MockTagRecord[]
   /** Storefront checkout orders (POST /public/checkout) */
   orders: MockOrderRecord[]
 }

@@ -32,6 +32,7 @@ export async function GET() {
         "store-settings",
         "products",
         "categories",
+        "tags",
         "collections",
         "checkout",
       ],

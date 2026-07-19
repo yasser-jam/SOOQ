@@ -7,8 +7,6 @@ import {
   ArrowUpRight,
   Check,
   ExternalLink,
-  Globe,
-  Link2Icon,
   Monitor,
   Palette,
   Pencil,
@@ -74,7 +72,6 @@ export default function DesignStudioPage() {
   const hasMobileApp = false
   const mobileInstalls = 0
 
-
   return (
     <div className="container space-y-8 py-8">
       {/* Page header */}
@@ -103,41 +100,16 @@ export default function DesignStudioPage() {
       {/* Stage 2: No theme selected */}
       {hasCompletedConfig && !hasSelectedTheme && <NoThemeCta />}
 
-      {/* Stage 3: Active theme hero */}
+      {/* Stage 3: Active theme hero — store URL bar is embedded inside */}
       {hasSelectedTheme && selectedTheme && (
         <ActiveThemeCard
           theme={selectedTheme}
           themeEditHref={themeEditHref}
           themeMobileEditHref={themeMobileEditHref}
-          storePath={storePath}
+          shopUrl={shopUrl}
+          isPending={isPending}
         />
       )}
-
-      {/* Store URL bar */}
-      <div className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/30 px-5 py-3">
-        <span className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Globe className="size-4" />
-          رابط المتجر
-        </span>
-        {isPending ? (
-          <Skeleton className="h-4 w-48" />
-        ) : shopUrl ? (
-          <a
-            href={shopUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-            dir="ltr"
-          >
-            {shopUrl.replace(/^https?:\/\//, "")}
-            <ExternalLink className="size-3.5" />
-          </a>
-        ) : (
-          <span className="text-sm text-muted-foreground">
-            أكمل إعداد المتجر لعرض الرابط العام.
-          </span>
-        )}
-      </div>
 
       {/* Theme marketplace */}
       <section className="space-y-5">
@@ -149,14 +121,11 @@ export default function DesignStudioPage() {
             </p>
           </div>
           <Button variant="outline" size="sm" asChild>
-            <Link href={themesGalleryHref}>
-              استكشف المزيد
-              <Sparkles data-icon="inline-end" className="size-4" />
-            </Link>
+            <Link href={themesGalleryHref}>استكشف المزيد</Link>
           </Button>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {themeCatalog.map((theme) => (
             <ThemeMarketplaceCard
               key={theme.id}
@@ -326,70 +295,22 @@ function ActiveThemeCard({
   theme,
   themeEditHref,
   themeMobileEditHref,
-  storePath,
+  shopUrl,
+  isPending,
 }: {
   theme: { name: string; description: string; image?: string }
   themeEditHref: string
   themeMobileEditHref: string
-  storePath: (p: string) => string
+  shopUrl: string
+  isPending: boolean
 }) {
   return (
     <Card className="overflow-hidden border border-border/60 p-0">
-      <div className="grid gap-0 lg:grid-cols-[1fr_240px]">
-        {/* Info side */}
-        <div className="flex flex-col justify-between p-6">
-          <div>
-            <Badge variant="secondary-tonal" className="mb-3">
-              <Palette className="size-3" /> الثيم النشط
-            </Badge>
-            <CardTitle className="mb-1 text-xl">{theme.name}</CardTitle>
-            <CardDescription className="max-w-sm text-sm leading-relaxed">
-              {theme.description}
-            </CardDescription>
-
-            {/* Color swatches */}
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2.5">
-              <div className="size-5 rounded-full border border-border/50 bg-primary" />
-              <div className="size-5 rounded-full border border-border/50 bg-secondary" />
-              <div className="size-5 rounded-full border border-border/50 bg-muted" />
-              <div className="size-5 rounded-full border border-border/50 bg-destructive" />
-              <span className="me-auto ms-2 text-xs text-muted-foreground">
-                الألوان المستخدمة
-              </span>
-              <Button variant="outline" size="xs" asChild>
-                <Link href={themeEditHref}>
-                  تغيير <Pencil className="size-3" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Button asChild>
-              <Link href={themeEditHref}>
-                <Monitor data-icon="inline-start" className="size-4" />
-                محرر سطح المكتب
-              </Link>
-            </Button>
-            <Button variant="secondary" asChild>
-              <Link href={themeMobileEditHref}>
-                <Smartphone data-icon="inline-start" className="size-4" />
-                محرر الجوال
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href={storePath("/design-studio")}>
-                <Eye data-icon="inline-start" className="size-4" />
-                معاينة
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        {/* Preview side */}
-        <div className="relative flex items-center justify-center overflow-hidden border-e border-border/60 bg-gradient-to-br from-stone-100 via-background to-amber-50/30">
-          <span className="absolute start-3 top-3 flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-600">
+      {/* Two-column: image (inline-start / right in RTL) | info */}
+      <div className="flex flex-wrap">
+        {/* Image side – first in DOM → inline-start (right in RTL) */}
+        <div className="relative min-h-[280px] basis-80 flex-shrink-0 bg-gradient-to-br from-stone-100 via-background to-amber-50/30">
+          <span className="absolute start-3 top-3 z-10 flex items-center gap-1.5 rounded-full bg-background/90 px-3 py-1 text-xs font-bold text-emerald-600">
             <span className="size-1.5 rounded-full bg-emerald-500" />
             معاينة حية
           </span>
@@ -402,20 +323,93 @@ function ActiveThemeCard({
               className="size-full object-cover"
             />
           ) : (
-            <div className="w-[170px] overflow-hidden rounded-lg border bg-background shadow-sm">
-              <div className="h-5 bg-primary" />
-              <div className="space-y-2 p-2">
-                <div className="h-10 rounded border border-dashed bg-muted/30" />
-                <div className="h-1.5 w-4/5 rounded-full bg-foreground/10" />
-                <div className="h-1.5 w-3/5 rounded-full bg-foreground/10" />
-                <div className="grid grid-cols-2 gap-1.5">
-                  <div className="h-8 rounded border bg-muted/20" />
-                  <div className="h-8 rounded border bg-muted/20" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-[170px] overflow-hidden rounded-lg border bg-background shadow-sm">
+                <div className="h-5 bg-primary" />
+                <div className="space-y-2 p-2">
+                  <div className="h-10 rounded border border-dashed bg-muted/30" />
+                  <div className="h-1.5 w-4/5 rounded-full bg-foreground/10" />
+                  <div className="h-1.5 w-3/5 rounded-full bg-foreground/10" />
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <div className="h-8 rounded border bg-muted/20" />
+                    <div className="h-8 rounded border bg-muted/20" />
+                  </div>
                 </div>
               </div>
             </div>
           )}
         </div>
+
+        {/* Info side */}
+        <div className="flex min-w-80 flex-1 flex-col gap-5 p-7">
+          <div>
+            <Badge variant="secondary-tonal" className="mb-3">
+              <Palette className="size-3" /> الثيم النشط
+            </Badge>
+            <h2 className="mb-2 text-2xl font-extrabold">{theme.name}</h2>
+            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
+              {theme.description}
+            </p>
+          </div>
+
+          {/* Color swatches */}
+          <div className="flex flex-col gap-2">
+            <span className="text-xs text-muted-foreground">
+              الألوان المستخدمة
+            </span>
+            <div className="flex gap-2">
+              <div className="size-6 rounded-md border border-border/50 bg-primary" />
+              <div className="size-6 rounded-md border border-border/50 bg-background" />
+              <div className="size-6 rounded-md border border-border/50 bg-secondary" />
+              <div className="size-6 rounded-md border border-border/50 bg-muted-foreground/60" />
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="mt-auto flex flex-wrap gap-2.5 pt-2">
+            <Button variant="outline" asChild>
+              <Link href={shopUrl || themeEditHref}>
+                <Eye data-icon="inline-start" className="size-4" />
+                معاينة
+              </Link>
+            </Button>
+            <Button variant="secondary" asChild>
+              <Link href={themeMobileEditHref}>
+                <Smartphone data-icon="inline-start" className="size-4" />
+                محرر الجوال
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href={themeEditHref}>
+                <Monitor data-icon="inline-start" className="size-4" />
+                محرر سطح المكتب
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Store URL footer */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 bg-muted/20 px-8 py-4">
+        <span className="text-sm text-muted-foreground">رابط المتجر</span>
+        {isPending ? (
+          <Skeleton className="h-4 w-48" />
+        ) : shopUrl ? (
+          <a
+            href={shopUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+            dir="ltr"
+          >
+            {shopUrl.replace(/^https?:\/\//, "")}
+            <ExternalLink className="size-3.5" />
+          </a>
+        ) : (
+          <span className="text-sm text-muted-foreground">
+            أكمل إعداد المتجر لعرض الرابط العام.
+          </span>
+        )}
       </div>
     </Card>
   )
@@ -434,57 +428,61 @@ function MobileAppCta() {
       </div>
 
       <Card className="border border-border/60">
-        <CardContent className="py-6">
-          <div className="grid grid-cols-[1fr_auto] items-center gap-6">
-            <div>
-              <Badge variant="destructive" className="mb-3">
+        <CardContent className="py-8">
+          <div className="flex flex-wrap items-center gap-10">
+            {/* Phone mockup – first in DOM → inline-start (right in RTL) */}
+            <div className="flex-shrink-0">
+              <div className="flex h-[280px] w-[140px] flex-col rounded-[28px] border-[8px] border-foreground/80 bg-foreground/80 p-1.5">
+                <div className="relative flex-1 overflow-hidden rounded-[18px] bg-muted">
+                  {/* Simulated screen content */}
+                  <div className="flex h-full flex-col gap-1.5 p-2">
+                    <div className="h-4 rounded bg-primary/20" />
+                    <div className="h-1.5 w-3/4 rounded-full bg-muted-foreground/20" />
+                    <div className="h-1.5 w-1/2 rounded-full bg-muted-foreground/20" />
+                    <div className="mt-1 grid flex-1 grid-cols-2 gap-1">
+                      <div className="rounded bg-muted-foreground/10" />
+                      <div className="rounded bg-muted-foreground/10" />
+                      <div className="rounded bg-muted-foreground/10" />
+                      <div className="rounded bg-muted-foreground/10" />
+                    </div>
+                  </div>
+                  {/* Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center rounded-[18px] bg-background/50">
+                    <Plus className="size-8 text-muted-foreground/40" />
+                  </div>
+                </div>
+              </div>
+              <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                لم يتم الإنشاء
+              </p>
+            </div>
+
+            {/* Info */}
+            <div className="flex min-w-[280px] flex-1 flex-col gap-3.5">
+              <Badge variant="destructive" className="self-start">
                 غير مفعّل
               </Badge>
-              <CardTitle className="mb-1 text-lg">
+              <h3 className="text-lg font-extrabold">
                 أنشئ تطبيق جوال لمتجرك
-              </CardTitle>
-              <CardDescription className="mb-4 max-w-md text-sm leading-relaxed">
-                حوّل متجرك إلى تطبيق جوال يمكن للعملاء تحميله وتثبيته. التطبيق
-                يعكس تصميم ثيمك الحالي تلقائياً.
-              </CardDescription>
-
-              <div className="mb-5 flex flex-wrap gap-4">
+              </h3>
+              <p className="max-w-lg text-sm leading-relaxed text-muted-foreground">
+                حوّل متجرك إلى تطبيق جوال يمكن للعملاء تحميله وتثبيته.
+                التطبيق يعكس تصميم ثيمك الحالي تلقائياً.
+              </p>
+              <div className="flex flex-wrap gap-5">
                 <FeatureChip label="مزامنة تلقائية مع الثيم" />
                 <FeatureChip label="إشعارات فورية" />
                 <FeatureChip label="تصفّح بدون إنترنت" />
               </div>
-
-              <div className="flex gap-2">
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                <Button variant="ghost" size="sm">
+                  معرفة المزيد
+                </Button>
                 <Button variant="secondary">
                   <Sparkles data-icon="inline-start" className="size-4" />
                   إنشاء التطبيق الآن
                 </Button>
-                <Button variant="ghost" size="sm">
-                  معرفة المزيد
-                </Button>
               </div>
-            </div>
-
-            {/* Phone wireframe */}
-            <div className="flex flex-col items-center gap-2">
-              <div className="relative flex h-36 w-20 flex-col gap-1 rounded-2xl border-2 border-muted-foreground/40 bg-muted/30 p-1.5">
-                <div className="mx-auto h-1 w-6 rounded-full bg-muted-foreground/40" />
-                <div className="h-4 rounded border bg-muted/40" />
-                <div className="h-1 w-3/4 rounded-full bg-muted" />
-                <div className="h-1 w-1/2 rounded-full bg-muted" />
-                <div className="grid flex-1 grid-cols-2 gap-0.5">
-                  <div className="rounded-sm bg-muted/50" />
-                  <div className="rounded-sm bg-muted/50" />
-                  <div className="rounded-sm bg-muted/50" />
-                  <div className="rounded-sm bg-muted/50" />
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-primary/5">
-                  <Plus className="size-6 text-secondary/60" />
-                </div>
-              </div>
-              <span className="text-[11px] text-muted-foreground">
-                لم يتم الإنشاء
-              </span>
             </div>
           </div>
         </CardContent>
@@ -573,16 +571,19 @@ function MobileAppStats({ installs }: { installs: number }) {
 
             {/* Phone wireframe */}
             <div className="flex flex-col items-center gap-2">
-              <div className="flex h-36 w-20 flex-col gap-1 rounded-2xl border-2 border-muted-foreground/40 bg-muted/30 p-1.5">
-                <div className="mx-auto h-1 w-6 rounded-full bg-muted-foreground/40" />
-                <div className="h-4 rounded border bg-muted/40" />
-                <div className="h-1 w-3/4 rounded-full bg-muted" />
-                <div className="h-1 w-1/2 rounded-full bg-muted" />
-                <div className="grid flex-1 grid-cols-2 gap-0.5">
-                  <div className="rounded-sm bg-muted/50" />
-                  <div className="rounded-sm bg-muted/50" />
-                  <div className="rounded-sm bg-muted/50" />
-                  <div className="rounded-sm bg-muted/50" />
+              <div className="flex h-[280px] w-[140px] flex-col rounded-[28px] border-[8px] border-foreground/80 bg-foreground/80 p-1.5">
+                <div className="flex-1 overflow-hidden rounded-[18px] bg-muted">
+                  <div className="flex h-full flex-col gap-1.5 p-2">
+                    <div className="h-4 rounded bg-primary/20" />
+                    <div className="h-1.5 w-3/4 rounded-full bg-muted-foreground/20" />
+                    <div className="h-1.5 w-1/2 rounded-full bg-muted-foreground/20" />
+                    <div className="mt-1 grid flex-1 grid-cols-2 gap-1">
+                      <div className="rounded bg-muted-foreground/10" />
+                      <div className="rounded bg-muted-foreground/10" />
+                      <div className="rounded bg-muted-foreground/10" />
+                      <div className="rounded bg-muted-foreground/10" />
+                    </div>
+                  </div>
                 </div>
               </div>
               <span className="text-[11px] text-muted-foreground">
