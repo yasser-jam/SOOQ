@@ -263,6 +263,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		setAuth({ isLoggedIn: false, customerName: null, customerPhone: null })
 	}, [])
 
+	const searchProducts = useCallback(
+		(query: string) => {
+			productsPageActions.setSearch(query)
+		},
+		[productsPageActions],
+	)
+
 	// ─── Context value ─────────────────────────────────────────────────────────
 
 	const value: StoreContextValue = {
@@ -277,6 +284,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 			addToCart,
 			addToWishlist,
 			logout,
+			searchProducts,
 			productsPage: productsPageActions,
 		},
 	}

@@ -22,7 +22,7 @@ Actions: `setCategory`, `setSearch`, `setPage`, `resetProductsPage`.
 
 | Block | Role |
 |---|---|
-| `ProductSearchInput` | Writes `actions.productsPage.setSearch` (debounced query in provider) |
+| `ContentInput` (`inputAction: "search_products"`) | Writes `actions.searchProducts` (debounced); bound in `StoreProvider` |
 | `ButtonGroup` (`bindingMode: "categories"`) | Reads categories, writes `setCategory` |
 | `ButtonGroup` (`bindingMode: "pagination"`) | Reads `totalPages`/`page`, writes `setPage` |
 | `Section` (`metadata.preset: "products-page"`) | `ProductsPageTemplateRepeater` renders `productsPage.products` |

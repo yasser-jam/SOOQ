@@ -35,7 +35,6 @@ import { Chip } from "./blocks/Chip";
 import { ButtonGroup } from "./blocks/ButtonGroup";
 import { ContentLink } from "./blocks/ContentLink";
 import { ContentInput } from "./blocks/ContentInput";
-import { ProductSearchInput } from "./blocks/ProductSearchInput";
 import { ContentDivider } from "./blocks/ContentDivider";
 import { ImageGallery } from "./blocks/ImageGallery";
 import { VideoEmbed } from "./blocks/VideoEmbed";
@@ -91,7 +90,6 @@ export const conf: UserConfig = {
         "ButtonGroup",
         "ContentLink",
         "ContentInput",
-        "ProductSearchInput",
         "ContentDivider",
         "Space",
         "ImageGallery",
@@ -195,7 +193,6 @@ export const conf: UserConfig = {
     ButtonGroup,
     ContentLink,
     ContentInput,
-    ProductSearchInput,
     ContentDivider,
     Space,
     ImageGallery,

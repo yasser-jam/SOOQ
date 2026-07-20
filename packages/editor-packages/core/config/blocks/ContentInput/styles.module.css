@@ -38,3 +38,21 @@
 .ContentInput-input::placeholder {
   color: var(--theme-color-text-muted, #9ca3af);
 }
+
+.ContentInput-inputWrap {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.ContentInput-prependIcon {
+  position: absolute;
+  inset-inline-start: 12px;
+  color: var(--theme-color-text-muted, #9ca3af);
+  pointer-events: none;
+}
+
+.ContentInput-inputWithIcon {
+  padding-inline-start: 40px;
+}

@@ -74,6 +74,8 @@ export type StoreContextActions = {
   addToWishlist: (detail: ProductCardActionEventDetail) => void;
   /** Clear auth cookies and reset auth state. */
   logout: () => void;
+  /** Update the products-page search query (debounced by the input block). */
+  searchProducts: (query: string) => void;
 };
 
 // ─── Full context value ────────────────────────────────────────────────────────
@@ -136,6 +138,7 @@ const defaultValue: StoreContextValue = {
     addToCart: noop,
     addToWishlist: noop,
     logout: noop,
+    searchProducts: noop,
     productsPage: defaultProductsPageActions,
   },
 };

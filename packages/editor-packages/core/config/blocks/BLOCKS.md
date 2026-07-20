@@ -572,21 +572,9 @@ When `bindingMode` is `"categories"` or `"pagination"`, items are generated at r
 ```
 ---
 
-## ProductSearchInput
+## ContentInput (products search)
 
-**Label:** بحث المنتجات  
-**Description:** Search field wired to `StoreContext.productsPage`. Updates local input immediately; debounces writes to `actions.productsPage.setSearch`. Used by the Products Page preset.
-
-### Properties
-
-| Property | Type | Default |
-|---|---|---|
-| `placeholder` | `string` | `"ابحث عن منتج…"` |
-| `debounceMs` | `number` | `250` |
-| `bgColor` | color token / hex | `"theme-surface"` |
-| `textColor` | color token / hex | `"theme-text"` |
-| `borderColor` | color token / hex | `"theme-border"` |
-| `radius` | radius token / px | `"theme-md"` |
+Use `ContentInput` with `prependIcon: "search"`, `inputAction: "search_products"`, and an empty `label` for a search-bar layout. The block debounces keystrokes and calls `actions.searchProducts(query)`; `StoreProvider` maps that to `productsPage.setSearch`.
 
 ---
 

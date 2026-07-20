@@ -34,14 +34,16 @@ export function createProductsPagePresetContent(): ComponentDataOptionalId[] {
       maxWidth: "1280px",
       content: [
         {
-          type: "ProductSearchInput",
+          type: "ContentInput",
           props: {
+            label: "",
+            name: "search",
+            inputType: "search",
             placeholder: "ابحث عن منتج…",
+            required: false,
+            prependIcon: "search",
+            inputAction: "search_products",
             debounceMs: 250,
-            bgColor: "theme-surface",
-            textColor: "theme-text",
-            borderColor: "theme-border",
-            radius: "theme-md",
           },
         },
         {
