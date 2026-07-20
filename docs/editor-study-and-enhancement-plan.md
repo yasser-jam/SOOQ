@@ -986,4 +986,16 @@ deserve a splitting pass eventually.
 
 ---
 
+---
+
+## Shipped: Products Page (2026-07-20)
+
+- Shared `productsPage` slice on `StoreContext` with categories + paginated product queries in `StoreProvider`.
+- Public mock/real endpoints: `/public/categories`, `/public/products?categorySlug&search&page&size`.
+- `ButtonGroup.bindingMode`: `static` | `categories` | `pagination`.
+- New blocks: `ProductSearchInput`, `Section` preset kind `products-page` + `ProductsPageTemplateRepeater`.
+- Full page preset **صفحة المنتجات** + Pages panel quick-create at `/products`.
+- Storefront URL sync for `?category=&search=&page=`.
+- See [`docs/products-page-feature.md`](./products-page-feature.md).
+
 *End of study.*

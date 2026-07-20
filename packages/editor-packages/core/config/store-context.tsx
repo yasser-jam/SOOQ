@@ -11,6 +11,10 @@
 
 import React, { createContext, useContext } from "react";
 import type { ProductCardActionEventDetail } from "./binding/product-actions";
+import type {
+  CategoryRef,
+  CollectionProductRef,
+} from "./data-adapter/types";
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -32,6 +36,27 @@ export type StoreErrorState = {
   login: string | null;
   verifyOtp: string | null;
   makeOrder: string | null;
+};
+
+// ─── Products page (searchable listing) ───────────────────────────────────────
+
+export type ProductsPageState = {
+  categories: CategoryRef[];
+  selectedCategorySlug: string | null;
+  search: string;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  products: CollectionProductRef[];
+  isLoading: boolean;
+  isError: boolean;
+};
+
+export type ProductsPageActions = {
+  setCategory: (slug: string | null) => void;
+  setSearch: (query: string) => void;
+  setPage: (page: number) => void;
+  resetProductsPage: () => void;
 };
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -57,13 +82,35 @@ export type StoreContextValue = {
   auth: StoreAuthState;
   loading: StoreLoadingState;
   errors: StoreErrorState;
-  actions: StoreContextActions;
+  productsPage: ProductsPageState;
+  actions: StoreContextActions & {
+    productsPage: ProductsPageActions;
+  };
 };
 
 // ─── No-op defaults (editor mode) ─────────────────────────────────────────────
 
 const noopAsync = () => Promise.resolve();
 const noop = () => {};
+
+const defaultProductsPageState: ProductsPageState = {
+  categories: [],
+  selectedCategorySlug: null,
+  search: "",
+  page: 1,
+  pageSize: 12,
+  totalPages: 0,
+  products: [],
+  isLoading: false,
+  isError: false,
+};
+
+const defaultProductsPageActions: ProductsPageActions = {
+  setCategory: noop,
+  setSearch: noop,
+  setPage: noop,
+  resetProductsPage: noop,
+};
 
 const defaultValue: StoreContextValue = {
   auth: {
@@ -81,6 +128,7 @@ const defaultValue: StoreContextValue = {
     verifyOtp: null,
     makeOrder: null,
   },
+  productsPage: defaultProductsPageState,
   actions: {
     login: noopAsync,
     verifyOtp: noopAsync,
@@ -88,6 +136,7 @@ const defaultValue: StoreContextValue = {
     addToCart: noop,
     addToWishlist: noop,
     logout: noop,
+    productsPage: defaultProductsPageActions,
   },
 };
 

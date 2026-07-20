@@ -171,7 +171,7 @@ Defined in `config/presets/index.ts`. Inserted via `insertPresetSection()` → P
 | `general` | 4 presets |
 | `header` | empty (coming soon) |
 | `footer` | empty (coming soon) |
-| `products-grid` | empty (coming soon) |
+| `products-grid` | Products grid, product card, product detail, **products page** presets |
 
 ### Preset: `image-text-two-columns`
 

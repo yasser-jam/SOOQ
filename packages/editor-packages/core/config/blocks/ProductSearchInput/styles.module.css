@@ -1,0 +1,40 @@
+.ProductSearchInput {
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  font-family: var(--theme-body-font, inherit);
+}
+
+.ProductSearchInput-icon {
+  position: absolute;
+  inset-inline-start: 12px;
+  color: var(--theme-color-text-muted, #9ca3af);
+  pointer-events: none;
+}
+
+.ProductSearchInput-input {
+  width: 100%;
+  padding: 10px 12px 10px 40px;
+  border: 1px solid var(--theme-color-border, #d1d5db);
+  border-radius: var(--theme-radius-md, 8px);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--theme-color-text, #111827);
+  background: var(--theme-color-surface, #ffffff);
+  box-sizing: border-box;
+}
+
+[dir="rtl"] .ProductSearchInput-input {
+  padding: 10px 40px 10px 12px;
+}
+
+.ProductSearchInput-input:focus {
+  outline: 2px solid var(--theme-color-primary, #3b82f6);
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.ProductSearchInput-input::placeholder {
+  color: var(--theme-color-text-muted, #9ca3af);
+}

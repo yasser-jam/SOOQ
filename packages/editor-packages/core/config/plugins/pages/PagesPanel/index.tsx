@@ -31,6 +31,7 @@ import {
   DEFAULT_SECTION_NAME,
   createSectionStarterContent,
 } from "../../../blocks/Section/starter-data"
+import { createProductsPagePresetContent } from "../../../presets/products-page"
 import { useSelectedPage } from "../../../lib/use-selected-page"
 import {
   applySelectedPage,
@@ -320,6 +321,46 @@ export function PagesPanel() {
     setPathDraft("")
   }
 
+  const handleCreateProductsPage = () => {
+    if (typeof window === "undefined") return
+
+    const normalizedPath = "/products"
+    const existingEditPaths = new Set(pages.map((page) => getEditPath(page)))
+    if (existingEditPaths.has(normalizedPath)) {
+      setFormError("توجد صفحة بهذا المسار بالفعل.")
+      return
+    }
+
+    const site = readSiteData()
+    const nonce = Date.now().toString(36)
+    const presetContent = createProductsPagePresetContent().map((item, index) => ({
+      ...item,
+      props: {
+        ...(item.props ?? {}),
+        id: `${item.type}-${nonce}-${index}`,
+      },
+    }))
+
+    const nextSite = addSitePage(
+      site,
+      {
+        path: normalizedPath,
+        name: "صفحة المنتجات",
+        link: normalizedPath,
+        title: "صفحة المنتجات",
+        description: "قائمة منتجات قابلة للبحث والتصفية",
+        iconName: "Package",
+        isCustom: true,
+      },
+      presetContent as UserData["content"]
+    )
+
+    writeSiteData(nextSite)
+    setFormError(null)
+    setLabelDraft("")
+    setPathDraft("")
+  }
+
   const renderPageGroup = (
     title: string,
     groupPages: PageDefinition[],
@@ -407,6 +448,17 @@ export function PagesPanel() {
               <Button type="submit" variant="secondary" size="sm" className="w-full">
                 <Plus size={14} />
                 إضافة الصفحة
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handleCreateProductsPage}
+              >
+                <Package size={14} />
+                صفحة المنتجات
               </Button>
             </FieldGroup>
           </form>

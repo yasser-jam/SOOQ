@@ -32,6 +32,15 @@ import { dispatchZoneEvent } from "../../lib/zone-events";
 import { collectSooqInputValues } from "../../lib/login-events";
 import { bumpCartLineQuantity } from "../../cart/cart-qty-actions";
 import { useStore } from "../../store-context";
+import {
+  getEditorDataAdapter,
+  useSampleDataInEditor,
+} from "../../data-adapter";
+import {
+  ALL_CATEGORY_VALUE,
+  buildPaginationItems,
+  validatePaginationItemValues,
+} from "./pagination-utils";
 import { AlignRight } from "lucide-react";
 import { createAlignField } from "../../fields/AlignField";
 
@@ -56,7 +65,12 @@ export type ButtonGroupItem = {
   zoneAction: "open" | "close" | "toggle";
 };
 
+export type ButtonGroupBindingMode = "static" | "categories" | "pagination";
+
 export type ButtonGroupProps = WithLayout<{
+  bindingMode?: ButtonGroupBindingMode;
+  prependAllButton?: boolean;
+  allButtonTitle?: string;
   items: ButtonGroupItem[];
   inactiveStyle: ButtonStyle;
   activeStyle: ButtonStyle;
@@ -206,6 +220,27 @@ function stripLegacyItemStyles(
 const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
   label: "مجموعة أزرار",
   fields: {
+    bindingMode: {
+      type: "select",
+      label: "وضع الربط",
+      options: [
+        { label: "ثابت", value: "static" },
+        { label: "تصنيفات المنتجات", value: "categories" },
+        { label: "ترقيم الصفحات", value: "pagination" },
+      ],
+    },
+    prependAllButton: {
+      type: "radio",
+      label: "زر الكل",
+      options: [
+        { label: "نعم", value: true },
+        { label: "لا", value: false },
+      ],
+    },
+    allButtonTitle: {
+      type: "text",
+      label: "عنوان زر الكل",
+    },
     items: {
       type: "array",
       label: "الأزرار",
@@ -273,6 +308,9 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
     align: alignField,
   },
   defaultProps: {
+    bindingMode: "static",
+    prependAllButton: true,
+    allButtonTitle: "الكل",
     defaultSelectedValue: "option-a",
     gap: "theme-8",
     align: "center",
@@ -322,6 +360,9 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
   },
   render: (props) => {
     const {
+      bindingMode = "static",
+      prependAllButton = true,
+      allButtonTitle = "الكل",
       items = [],
       inactiveStyle,
       activeStyle,
@@ -333,15 +374,99 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
     } = props;
 
     const { data: boundData, language, metadata, selectedVariantId } = useBoundData();
-    const { actions, loading } = useStore();
+    const { actions, loading, productsPage } = useStore();
+    const adapter = getEditorDataAdapter();
+    const sampleMode = puck.isEditing && useSampleDataInEditor();
+
+    const categoryItems = useMemo(() => {
+      const categories =
+        sampleMode && bindingMode === "categories"
+          ? adapter.getSampleCategories()
+          : productsPage.categories;
+      const mapped = categories.map((category) =>
+        createDefaultItem(category.nameAr, category.slug, {
+          destinationType: "link",
+          link: EMPTY_LINK,
+        })
+      );
+      if (prependAllButton) {
+        mapped.unshift(
+          createDefaultItem(allButtonTitle, ALL_CATEGORY_VALUE, {
+            destinationType: "link",
+            link: EMPTY_LINK,
+          })
+        );
+      }
+      return mapped;
+    }, [
+      adapter,
+      allButtonTitle,
+      bindingMode,
+      prependAllButton,
+      productsPage.categories,
+      sampleMode,
+    ]);
+
+    const paginationItems = useMemo(() => {
+      const totalPages =
+        sampleMode && bindingMode === "pagination"
+          ? Math.max(
+              adapter.getSampleProductsPage({ page: 1, size: 12 }).totalPages,
+              3
+            )
+          : productsPage.totalPages;
+      const currentPage =
+        sampleMode && bindingMode === "pagination" ? 1 : productsPage.page;
+      const generated = buildPaginationItems(totalPages, currentPage).map((entry) =>
+        createDefaultItem(entry.title, entry.value, {
+          destinationType: "link",
+          link: EMPTY_LINK,
+        })
+      );
+      if (
+        bindingMode === "pagination" &&
+        generated.length > 0 &&
+        !validatePaginationItemValues(
+          generated.filter((item) => !item.value.startsWith("ellipsis-"))
+        )
+      ) {
+        return [];
+      }
+      return generated;
+    }, [
+      adapter,
+      bindingMode,
+      productsPage.page,
+      productsPage.totalPages,
+      sampleMode,
+    ]);
+
+    const resolvedItems =
+      bindingMode === "categories"
+        ? categoryItems
+        : bindingMode === "pagination"
+          ? paginationItems
+          : items;
 
     const initialValue = useMemo(() => {
-      const values = items.map((item) => item.value);
+      if (bindingMode === "categories") {
+        return productsPage.selectedCategorySlug ?? ALL_CATEGORY_VALUE;
+      }
+      if (bindingMode === "pagination") {
+        return String(productsPage.page || 1);
+      }
+      const values = resolvedItems.map((item) => item.value);
       if (defaultSelectedValue && values.includes(defaultSelectedValue)) {
         return defaultSelectedValue;
       }
       return values[0] ?? "";
-    }, [items, defaultSelectedValue]);
+    }, [
+      bindingMode,
+      defaultSelectedValue,
+      productsPage.page,
+      productsPage.selectedCategorySlug,
+      resolvedItems,
+    ]);
 
     const [selectedValue, setSelectedValue] = useState(initialValue);
 
@@ -351,7 +476,12 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
 
     const resolvedAlign = align ?? "center";
     const resolvedGap = resolveGap(gap);
-    const activeValue = puck.isEditing ? initialValue : selectedValue;
+    const activeValue =
+      bindingMode === "static"
+        ? puck.isEditing
+          ? initialValue
+          : selectedValue
+        : initialValue;
 
     const placementStyle: CSSProperties = {
       display: "flex",
@@ -495,13 +625,44 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
     const handleItemClick = async (e: MouseEvent, item: ButtonGroupItem) => {
       e.preventDefault();
       if (puck.isEditing) return;
+      if (item.value.startsWith("ellipsis-")) return;
+
+      if (bindingMode === "categories") {
+        actions.productsPage.setCategory(
+          item.value === ALL_CATEGORY_VALUE ? null : item.value
+        );
+        return;
+      }
+
+      if (bindingMode === "pagination") {
+        const page = Number(item.value);
+        if (Number.isFinite(page) && page > 0) {
+          actions.productsPage.setPage(page);
+        }
+        return;
+      }
 
       setSelectedValue(item.value);
       dispatchSelectEvent(item.value);
       await runDestination(e, item);
     };
 
-    if (items.length === 0) {
+    const isCategoriesLoading =
+      bindingMode === "categories" && productsPage.isLoading && !sampleMode;
+    const showEmptyCategories =
+      bindingMode === "categories" &&
+      !isCategoriesLoading &&
+      resolvedItems.length === 0;
+    const showEmptyPagination =
+      bindingMode === "pagination" &&
+      resolvedItems.length === 0 &&
+      !puck.isEditing;
+
+    if (showEmptyCategories || showEmptyPagination) {
+      return null;
+    }
+
+    if (resolvedItems.length === 0) {
       if (!puck.isEditing) return null;
       return (
         <div style={{ color: "var(--theme-neutral, #64748b)", fontSize: 14 }}>
@@ -511,9 +672,17 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
     }
 
     return (
-      <div style={placementStyle} role="group">
-        {items.map((item) => {
-          const isActive = item.value === activeValue;
+      <div
+        style={{
+          ...placementStyle,
+          opacity: isCategoriesLoading ? 0.6 : 1,
+        }}
+        role="group"
+        aria-busy={isCategoriesLoading}
+      >
+        {resolvedItems.map((item) => {
+          const isEllipsis = item.value.startsWith("ellipsis-");
+          const isActive = !isEllipsis && item.value === activeValue;
           const style = resolveButtonStyle(
             isActive ? activeStyle : inactiveStyle,
             puck.isEditing
@@ -531,12 +700,13 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
               key={item.value}
               type="button"
               onClick={(e) => handleItemClick(e, item)}
-              disabled={isLoading}
+              disabled={isLoading || isEllipsis}
               aria-pressed={isActive}
-              tabIndex={puck.isEditing ? -1 : undefined}
+              tabIndex={puck.isEditing || isEllipsis ? -1 : undefined}
               style={{
                 ...style,
-                opacity: isLoading ? 0.65 : 1,
+                opacity: isLoading ? 0.65 : isEllipsis ? 0.5 : 1,
+                cursor: isEllipsis ? "default" : style.cursor,
               }}
             >
               {isLoading ? "..." : item.title}
@@ -559,8 +729,19 @@ export const ButtonGroup: typeof WithLayoutButtonGroup = {
       }
     ).resolveFields;
     const base = resolver?.(data, params);
-    const apply = (f: Record<string, unknown>) =>
-      hideLayoutBorder(f as Fields<WithLayout<ButtonGroupProps>>);
+    const bindingMode = data.props.bindingMode ?? "static";
+    const apply = (f: Record<string, unknown>) => {
+      const next = { ...f };
+      if (bindingMode !== "static") {
+        delete next.items;
+        delete next.defaultSelectedValue;
+      }
+      if (bindingMode !== "categories") {
+        delete next.prependAllButton;
+        delete next.allButtonTitle;
+      }
+      return hideLayoutBorder(next as Fields<WithLayout<ButtonGroupProps>>);
+    };
 
     if (base != null && typeof (base as Promise<unknown>).then === "function") {
       return (base as Promise<Record<string, unknown>>).then(apply);

@@ -24,7 +24,14 @@ import {
   SECTION_KIND_PRODUCTS_GRID,
   type SectionPresetMetadata,
 } from "./products-grid-section";
+import {
+  ensureProductsPageTemplate,
+  isProductsPageSection,
+  productsPageContentNeedsResync,
+  SECTION_KIND_PRODUCTS_PAGE,
+} from "./products-page-section";
 import { ProductsGridTemplateRepeater } from "./ProductsGridTemplateRepeater";
+import { ProductsPageTemplateRepeater } from "./ProductsPageTemplateRepeater";
 import {
   isCartSection,
   resolveCartSectionContent,
@@ -139,7 +146,7 @@ export type SectionProps = WithLayout<{
   /** Color overlay on top of background image (supports rgba for transparency) */
   backgroundOverlayColor?: string;
   /** @deprecated Prefer `metadata.preset`. Kept for older saved configs. */
-  sectionKind?: typeof SECTION_KIND_PRODUCTS_GRID | typeof SECTION_KIND_CART | null;
+  sectionKind?: typeof SECTION_KIND_PRODUCTS_GRID | typeof SECTION_KIND_PRODUCTS_PAGE | typeof SECTION_KIND_CART | null;
   /** Identifies preset-driven sections (e.g. products-grid) in store_config.json. */
   metadata?: SectionPresetMetadata | null;
   /** Selected collection — available on every section; drives products-grid fill. */
@@ -282,6 +289,14 @@ const SectionInner: ComponentConfig<SectionProps> = {
       } as typeof fields;
     }
 
+    if (isProductsPageSection(data.props)) {
+      const { collection: _collection, ...rest } = fields as Record<
+        string,
+        unknown
+      >;
+      fields = rest as typeof fields;
+    }
+
     if (isMobileEditorMetadata(params.metadata)) {
       fields = {
         ...fields,
@@ -314,16 +329,16 @@ const SectionInner: ComponentConfig<SectionProps> = {
       };
     }
 
-    if (!isProductsGridSection(props)) return {};
+    if (!isProductsGridSection(props) && !isProductsPageSection(props)) {
+      return {};
+    }
 
-    // Template model: the section always owns exactly one card template in
-    // `content`. Runtime iteration over the collection lives in the render
-    // path (ProductsGridTemplateRepeater), so resolveData just seeds/migrates
-    // the template shape and mirrors it into `cardTemplate` for storefront
-    // cloning. No async fetch happens here.
     const rawContent = props.content;
-    const needsResync = productsGridContentNeedsResync(rawContent);
-    const collectionChanged = Boolean(changed.collection);
+    const needsResync = isProductsGridSection(props)
+      ? productsGridContentNeedsResync(rawContent)
+      : productsPageContentNeedsResync(rawContent);
+    const collectionChanged =
+      isProductsGridSection(props) && Boolean(changed.collection);
     const contentChanged = Boolean(changed.content);
     const shouldNormalizeTemplate =
       needsResync ||
@@ -333,7 +348,9 @@ const SectionInner: ComponentConfig<SectionProps> = {
 
     const patch: Record<string, unknown> = {};
     const normalizedContent = shouldNormalizeTemplate
-      ? ensureProductsGridTemplate(rawContent)
+      ? isProductsGridSection(props)
+        ? ensureProductsGridTemplate(rawContent)
+        : ensureProductsPageTemplate(rawContent)
       : (rawContent as ComponentDataOptionalId[] | undefined);
 
     if (shouldNormalizeTemplate) {
@@ -351,7 +368,11 @@ const SectionInner: ComponentConfig<SectionProps> = {
           : [];
     }
 
-    if (collectionChanged && props.collection?.name) {
+    if (
+      collectionChanged &&
+      isProductsGridSection(props) &&
+      props.collection?.name
+    ) {
       patch.name = props.collection.name;
     }
 
@@ -443,6 +464,11 @@ function SectionView({
     metadata: sectionMetadata,
   });
 
+  const isProductsPage = isProductsPageSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
   const productsGridRender = isProductsGrid ? (
     <ProductsGridTemplateRepeater
       // Puck types `content: Slot` on props but transforms it into a
@@ -459,8 +485,22 @@ function SectionView({
     />
   ) : null;
 
+  const productsPageRender = isProductsPage ? (
+    <ProductsPageTemplateRepeater
+      editableSlot={Content as unknown as SlotComponent}
+      cardTemplate={cardTemplate?.[0] ?? undefined}
+      sectionId={id}
+      isEditing={isEditing}
+      activeCols={activeCols}
+      gap={gap}
+      gridClassName={gridClassName}
+    />
+  ) : null;
+
   const sectionGridContent = isProductsGrid ? (
     productsGridRender
+  ) : isProductsPage ? (
+    productsPageRender
   ) : (
     <Content className={gridClassName} style={gridStyle} />
   );
@@ -474,6 +514,8 @@ function SectionView({
       data-section-preset={
         isProductsGridSection({ sectionKind, metadata: sectionMetadata })
           ? SECTION_KIND_PRODUCTS_GRID
+          : isProductsPageSection({ sectionKind, metadata: sectionMetadata })
+            ? SECTION_KIND_PRODUCTS_PAGE
           : isCartSection({ sectionKind, metadata: sectionMetadata })
             ? SECTION_KIND_CART
             : isZoneHeaderSection({ sectionKind, metadata: sectionMetadata })

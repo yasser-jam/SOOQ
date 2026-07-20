@@ -10,9 +10,12 @@
  */
 import {
   registerEditorDataAdapter,
+  SAMPLE_CATEGORIES,
   SAMPLE_COLLECTION_PRODUCTS,
   buildSampleProductPayload,
+  filterAndPaginateSampleProducts,
   type EditorDataAdapter,
+  type ProductsPageQuery,
 } from "@/core/config/data-adapter"
 import {
   buildProductsGridResourceMetadata,
@@ -20,11 +23,19 @@ import {
   getCollectionProductsApiUrl,
 } from "@/modules/product/collection/data-store"
 import {
+  fetchCategoriesFromUrl,
+  getCategoriesApiUrl,
+} from "@/modules/product/category/public-data-store"
+import {
   buildProductResourceMetadata,
   buildPublicProductResourceMetadata,
   fetchProductDetailPayloadFromUrl,
   getProductCardApiUrl,
 } from "@/modules/product/product/data-store"
+import {
+  fetchProductsPageFromUrl,
+  getProductsPageApiUrl,
+} from "@/modules/product/product/public-data-store"
 
 const apiEditorDataAdapter: EditorDataAdapter = {
   getCollectionProductsApiUrl,
@@ -36,6 +47,13 @@ const apiEditorDataAdapter: EditorDataAdapter = {
   buildPublicProductResourceMetadata,
   getSampleCollectionProducts: () => SAMPLE_COLLECTION_PRODUCTS,
   getSampleProductPayload: buildSampleProductPayload,
+  getCategoriesApiUrl,
+  fetchCategories: fetchCategoriesFromUrl,
+  getSampleCategories: () => SAMPLE_CATEGORIES,
+  getProductsPageApiUrl,
+  fetchProductsPage: fetchProductsPageFromUrl,
+  getSampleProductsPage: (query: ProductsPageQuery) =>
+    filterAndPaginateSampleProducts(query),
 }
 
 registerEditorDataAdapter(apiEditorDataAdapter)

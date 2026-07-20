@@ -35,6 +35,7 @@ import {
 	getStoreTenantId,
 	validateCartForCheckout,
 } from "./checkout/checkout-api"
+import { useProductsPageState } from "../lib/use-products-page-state"
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -92,6 +93,8 @@ function getErrorMessage(err: unknown, fallback: string): string {
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
+	const { productsPage, actions: productsPageActions } = useProductsPageState()
+
 	const [auth, setAuth] = useState<StoreAuthState>({
 		isLoggedIn: false,
 		customerName: null,
@@ -266,6 +269,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		auth,
 		loading,
 		errors,
+		productsPage,
 		actions: {
 			login,
 			verifyOtp,
@@ -273,6 +277,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 			addToCart,
 			addToWishlist,
 			logout,
+			productsPage: productsPageActions,
 		},
 	}
 

@@ -85,3 +85,24 @@ export type ProductCardData = {
 
 /** Raw API payload used by editor valueContext path resolution. */
 export type ProductDetailPayload = Record<string, unknown>;
+
+export type CategoryRef = {
+  id: string;
+  slug: string;
+  nameAr: string;
+  nameEn?: string;
+  productCount?: number;
+};
+
+export type ProductsPageQuery = {
+  categorySlug?: string | null;
+  search?: string;
+  page: number;
+  size: number;
+};
+
+export type ProductsPageResult = {
+  items: CollectionProductRef[];
+  totalItems: number;
+  totalPages: number;
+};

@@ -173,11 +173,87 @@ const fromInput = (
   }
 }
 
+const pagedEnvelope = <T>(
+  items: T[],
+  page: number,
+  size: number
+) => {
+  const total = items.length
+  const totalPages = total === 0 ? 0 : Math.max(1, Math.ceil(total / (size || 1)))
+  const start = (page - 1) * size
+  const slice = size > 0 ? items.slice(start, start + size) : items
+  return {
+    success: true,
+    data: slice,
+    meta: {
+      page,
+      size: size || total,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    },
+    message: null,
+    timestamp: Date.now(),
+  }
+}
+
+const parseProductsPageParams = (url: string) => {
+  const params = new URLSearchParams(url.split("?")[1] ?? "")
+  return {
+    page: Number(params.get("page") ?? 1),
+    size: Number(params.get("size") ?? 12),
+    categorySlug: params.get("categorySlug") ?? undefined,
+    search: params.get("search") ?? undefined,
+  }
+}
+
+const filterPublicProducts = (
+  categorySlug?: string,
+  search?: string
+): MockProductRecord[] => {
+  const db = getMockDb()
+  const categoryById = new Map(
+    db.categories.map((category) => [category.categoryId, category])
+  )
+
+  return db.products.filter((product) => {
+    if (product.status !== "ACTIVE") return false
+
+    if (categorySlug) {
+      const categoryIds = [
+        product.defaultCategoryId,
+        ...(product.categories?.map((c) => c.id) ?? []),
+      ].filter(Boolean) as string[]
+      const matchesCategory = categoryIds.some((id) => {
+        const category = categoryById.get(id)
+        return category?.slug === categorySlug
+      })
+      if (!matchesCategory) return false
+    }
+
+    const q = search?.trim().toLowerCase()
+    if (q) {
+      const haystack = `${product.titleAr ?? ""} ${product.titleEn ?? ""}`.toLowerCase()
+      if (!haystack.includes(q)) return false
+    }
+
+    return true
+  })
+}
+
 export const handleProductsMock = async (
   request: MockRequest
 ): Promise<MockHandlerResult> => {
   const method = request.method.toUpperCase()
   const path = request.url.split("?")[0] ?? request.url
+
+  if (method === "GET" && path === "/public/products") {
+    const { page, size, categorySlug, search } = parseProductsPageParams(request.url)
+    const filtered = filterPublicProducts(categorySlug, search)
+    const items = filtered.map(toListItem)
+    return { handled: true, data: pagedEnvelope(items, page, size) }
+  }
 
   const publicBySlug = path.match(/^\/public\/products\/([^/]+)$/)
   if (publicBySlug && method === "GET") {

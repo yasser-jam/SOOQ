@@ -5,6 +5,7 @@ import { GENERAL_PRESETS } from "./general";
 import { HEADER_PRESETS, ZONE_HEADER_PRESETS } from "./header";
 import { HERO_PRESETS } from "./hero";
 import { PRODUCTS_GRID_PRESETS } from "./products-grid";
+import { PRODUCTS_PAGE_PRESETS } from "./products-page";
 import { ZONE_DRAWER_PRESETS } from "./drawer";
 import { ZONE_POPUP_PRESETS } from "./popup";
 import { ZONE_BOTTOM_SHEET_PRESETS } from "./bottom-sheet";
@@ -59,6 +60,7 @@ export const SECTION_PRESETS: SectionPreset[] = [
   ...GENERAL_PRESETS,
   ...HERO_PRESETS,
   ...PRODUCTS_GRID_PRESETS,
+  ...PRODUCTS_PAGE_PRESETS,
   ...FORMS_PRESETS,
   ...CART_PRESETS,
 ];
@@ -102,6 +104,7 @@ export {
   ZONE_POPUP_PRESETS,
   ZONE_BOTTOM_SHEET_PRESETS,
   PRODUCTS_GRID_PRESETS,
+  PRODUCTS_PAGE_PRESETS,
 };
 export {
   createProductCardGroup,
@@ -110,6 +113,11 @@ export {
   createProductsGridSection,
   createProductDetailSection,
 } from "./products-grid";
+export {
+  createProductsPagePreset,
+  createProductsPagePresetContent,
+  createProductsPageInnerSection,
+} from "./products-page";
 export {
   getPagesMenuHeaderPreset,
   getPagesMenuResponsiveHeaderPreset,

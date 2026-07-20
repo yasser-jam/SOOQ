@@ -64,11 +64,37 @@ const fromInput = (
   }
 }
 
+const toPublicListItem = (category: MockCategoryRecord, productCount: number) => ({
+  categoryId: category.categoryId,
+  slug: category.slug,
+  nameAr: category.nameAr,
+  nameEn: category.nameEn,
+  productCount,
+})
+
+const countProductsForCategory = (categoryId: string): number => {
+  return getMockDb().products.filter(
+    (product) =>
+      product.status === "ACTIVE" &&
+      (product.defaultCategoryId === categoryId ||
+        product.categories?.some((c) => c.id === categoryId))
+  ).length
+}
+
 export const handleCategoriesMock = (
   request: MockRequest
 ): MockHandlerResult => {
   const method = request.method.toUpperCase()
   const path = request.url.split("?")[0] ?? request.url
+
+  if (method === "GET" && path === "/public/categories") {
+    const categories = getMockDb()
+      .categories.filter((c) => c.isActive)
+      .map((category) =>
+        toPublicListItem(category, countProductsForCategory(category.categoryId))
+      )
+    return { handled: true, data: envelope(categories) }
+  }
 
   if (method === "GET" && path === "/admin/categories/templates") {
     return {

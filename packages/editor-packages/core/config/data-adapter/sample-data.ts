@@ -1,7 +1,10 @@
 import type {
+  CategoryRef,
   CollectionProductRef,
   ProductDetailPayload,
   ProductPickerRef,
+  ProductsPageQuery,
+  ProductsPageResult,
 } from "./types";
 
 /**
@@ -87,6 +90,91 @@ export const SAMPLE_COLLECTION_PRODUCTS: CollectionProductRef[] = [
     tags: [{ id: "t6", name: "رياضي" }],
   },
 ];
+
+export const SAMPLE_CATEGORIES: CategoryRef[] = [
+  {
+    id: "sample-cat-1",
+    slug: "perfumes",
+    nameAr: "عطور",
+    nameEn: "Perfumes",
+    productCount: 2,
+  },
+  {
+    id: "sample-cat-2",
+    slug: "accessories",
+    nameAr: "إكسسوارات",
+    nameEn: "Accessories",
+    productCount: 1,
+  },
+  {
+    id: "sample-cat-3",
+    slug: "watches",
+    nameAr: "ساعات",
+    nameEn: "Watches",
+    productCount: 1,
+  },
+  {
+    id: "sample-cat-4",
+    slug: "footwear",
+    nameAr: "أحذية",
+    nameEn: "Footwear",
+    productCount: 1,
+  },
+  {
+    id: "sample-cat-5",
+    slug: "bags",
+    nameAr: "حقائب",
+    nameEn: "Bags",
+    productCount: 1,
+  },
+];
+
+/** Map sample products to categories by slug for filtering. */
+const SAMPLE_PRODUCT_CATEGORY_SLUGS: Record<string, string[]> = {
+  "sample-product-1": ["perfumes"],
+  "sample-product-2": ["bags", "accessories"],
+  "sample-product-3": ["watches", "accessories"],
+  "sample-product-4": ["footwear"],
+};
+
+function matchesCategory(
+  product: CollectionProductRef,
+  categorySlug: string | null | undefined
+): boolean {
+  if (!categorySlug) return true;
+  const slugs = SAMPLE_PRODUCT_CATEGORY_SLUGS[product.id] ?? [];
+  return slugs.includes(categorySlug);
+}
+
+function matchesSearch(
+  product: CollectionProductRef,
+  search: string | undefined
+): boolean {
+  const q = search?.trim().toLowerCase();
+  if (!q) return true;
+  return (
+    product.titleAr?.toLowerCase().includes(q) ||
+    product.titleEn?.toLowerCase().includes(q) ||
+    false
+  );
+}
+
+export function filterAndPaginateSampleProducts(
+  query: ProductsPageQuery
+): ProductsPageResult {
+  const filtered = SAMPLE_COLLECTION_PRODUCTS.filter(
+    (product) =>
+      matchesCategory(product, query.categorySlug) &&
+      matchesSearch(product, query.search)
+  );
+  const totalItems = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / query.size));
+  const page = Math.min(Math.max(1, query.page), totalPages);
+  const start = (page - 1) * query.size;
+  const items = filtered.slice(start, start + query.size);
+
+  return { items, totalItems, totalPages: totalItems === 0 ? 0 : totalPages };
+}
 
 /**
  * Deterministically assign one of the sample products to an arbitrary

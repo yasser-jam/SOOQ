@@ -452,14 +452,19 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 
 ## ButtonGroup
 
-**Label:** مجموعة أزرار  
+**Label:** مجموعة أزرار
 **Description:** A segmented control — a row of buttons where exactly one is active at a time. Active/inactive styles are shared by the whole group. Each button has its own title, value, and destination (link, action, or zone — same semantics as `ContentButton`). Selecting a button updates the active state, dispatches `sooq:button-group-select`, then runs that button's destination.
+
+When `bindingMode` is `"categories"` or `"pagination"`, items are generated at runtime from `StoreContext.productsPage` (see [Products Page feature](../../../../docs/products-page-feature.md)).
 
 ### Properties
 
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
-| `items` | `ButtonGroupItem[]` | Array of buttons (see below) | two default items |
+| `bindingMode` | `"static" \| "categories" \| "pagination"` | `static` = manual items; `categories` = category filters; `pagination` = page numbers | `"static"` |
+| `prependAllButton` | `boolean` | Prepend an "All" chip when `bindingMode = "categories"` | `true` |
+| `allButtonTitle` | `string` | Label for the All chip | `"الكل"` |
+| `items` | `ButtonGroupItem[]` | Array of buttons (see below); hidden when `bindingMode !== "static"` | two default items |
 | `inactiveStyle` | `ButtonStyle` | Shared style for non-active buttons | surface / text defaults |
 | `activeStyle` | `ButtonStyle` | Shared style for the active button | primary / surface defaults |
 | `defaultSelectedValue` | `string` | `value` of the initially active button | `"option-a"` |
@@ -565,6 +570,24 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
   }
 }
 ```
+---
+
+## ProductSearchInput
+
+**Label:** بحث المنتجات  
+**Description:** Search field wired to `StoreContext.productsPage`. Updates local input immediately; debounces writes to `actions.productsPage.setSearch`. Used by the Products Page preset.
+
+### Properties
+
+| Property | Type | Default |
+|---|---|---|
+| `placeholder` | `string` | `"ابحث عن منتج…"` |
+| `debounceMs` | `number` | `250` |
+| `bgColor` | color token / hex | `"theme-surface"` |
+| `textColor` | color token / hex | `"theme-text"` |
+| `borderColor` | color token / hex | `"theme-border"` |
+| `radius` | radius token / px | `"theme-md"` |
+
 ---
 
 ## ContentDivider

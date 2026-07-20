@@ -1,20 +1,27 @@
 import type {
+  CategoryRef,
   CollectionPickerRef,
   CollectionProductRef,
   ProductDetailPayload,
   ProductPickerRef,
   ProductResourceMetadata,
   ProductsGridResourceMetadata,
+  ProductsPageQuery,
+  ProductsPageResult,
 } from "./types";
 import {
+  SAMPLE_CATEGORIES,
   SAMPLE_COLLECTION_PRODUCTS,
   buildSampleProductPayload,
+  filterAndPaginateSampleProducts,
 } from "./sample-data";
 
 export * from "./types";
 export {
+  SAMPLE_CATEGORIES,
   SAMPLE_COLLECTION_PRODUCTS,
   buildSampleProductPayload,
+  filterAndPaginateSampleProducts,
   pickSampleCollectionProduct,
 } from "./sample-data";
 
@@ -50,6 +57,16 @@ export type EditorDataAdapter = {
   /** Instant, network-free data for the edit canvas (C2-5). */
   getSampleCollectionProducts(): CollectionProductRef[];
   getSampleProductPayload(ref?: ProductPickerRef | null): ProductDetailPayload;
+
+  /** Public categories list for the products page. */
+  getCategoriesApiUrl(): string;
+  fetchCategories(apiUrl: string): Promise<CategoryRef[]>;
+  getSampleCategories(): CategoryRef[];
+
+  /** Public paginated product listing for the products page. */
+  getProductsPageApiUrl(query: ProductsPageQuery): string;
+  fetchProductsPage(apiUrl: string): Promise<ProductsPageResult>;
+  getSampleProductsPage(query: ProductsPageQuery): ProductsPageResult;
 
   /**
    * Escape hatch: set true to make the edit canvas fetch live data instead
@@ -89,6 +106,28 @@ export const sampleEditorDataAdapter: EditorDataAdapter = {
   }),
   getSampleCollectionProducts: () => SAMPLE_COLLECTION_PRODUCTS,
   getSampleProductPayload: (ref) => buildSampleProductPayload(ref),
+  getCategoriesApiUrl: () => `${SAMPLE_URL_PREFIX}categories`,
+  fetchCategories: async () => SAMPLE_CATEGORIES,
+  getSampleCategories: () => SAMPLE_CATEGORIES,
+  getProductsPageApiUrl: (query) =>
+    `${SAMPLE_URL_PREFIX}products?${new URLSearchParams({
+      page: String(query.page),
+      size: String(query.size),
+      ...(query.categorySlug ? { categorySlug: query.categorySlug } : {}),
+      ...(query.search ? { search: query.search } : {}),
+    }).toString()}`,
+  fetchProductsPage: async (apiUrl) => {
+    const queryString = apiUrl.includes("?") ? (apiUrl.split("?")[1] ?? "") : "";
+    const params = new URLSearchParams(queryString);
+    const query: ProductsPageQuery = {
+      page: Number(params.get("page") ?? 1),
+      size: Number(params.get("size") ?? 12),
+      categorySlug: params.get("categorySlug"),
+      search: params.get("search") ?? undefined,
+    };
+    return filterAndPaginateSampleProducts(query);
+  },
+  getSampleProductsPage: (query) => filterAndPaginateSampleProducts(query),
 };
 
 let registeredAdapter: EditorDataAdapter | null = null;
@@ -116,6 +155,9 @@ export const boundQueryKeys = {
     ["collection", "picker", "products", apiUrl] as const,
   productDetail: (id: string, apiUrl = "") =>
     ["product", "picker", id, apiUrl] as const,
+  categories: () => ["public", "categories"] as const,
+  productsPage: (query: ProductsPageQuery) =>
+    ["public", "products-page", query] as const,
 };
 
 /** Shared react-query policy for bound-data fetches (C2-2). */
