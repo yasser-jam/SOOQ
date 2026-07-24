@@ -1,6 +1,7 @@
 # Order Admin Module Rules
 
-This document defines the rules future AI agents should follow when adding or binding `Order` admin APIs and pages.
+This document defines the rules future AI agents should follow when adding or binding
+`Order` and related ORD admin APIs/pages (`Order`, `Invoice`).
 
 ## Environment Status
 
@@ -31,12 +32,12 @@ The target style is:
 
 ## Source Of Truth
 
-Always treat [21-4.json](/home/yasser-jamal-al-deen/graduation-project/project/SOOQ/21-4.json) as the source of truth for `Order` admin APIs.
+Always treat [21-4.json](/home/yasser-jamal-al-deen/graduation-project/project/SOOQ/21-4.json) as the source of truth for ORD admin APIs.
 
 Before adding or editing anything:
 
 1. Read the `ORD (Order)` section.
-2. Focus on `Admin - Orders`.
+2. Focus on the relevant admin folder (`Admin - Orders`, `Admin - Invoices`, …).
 3. Make sure every documented admin endpoint has matching interfaces and actions.
 4. Check whether an existing page already covers that endpoint.
 5. If no page exists for an important admin action, create one.
@@ -254,15 +255,54 @@ When creating new order pages or action screens:
 - Do not introduce a new design language for one page.
 - Tables should pass `EmptyState` to `DataTable` instead of custom empty cards.
 
+## Invoice Module Rules
+
+Module path: `apps/web/modules/order/invoice/`.
+
+Source of truth in `21-4.json`: **Admin - Invoices**.
+
+### Endpoints
+
+| Endpoint | Binding |
+|---|---|
+| `GET /admin/invoices` | Invoices list page → `InvoicesTable` |
+| `POST /admin/invoices/generate/{order_id}` | Order details actions (not a separate route) |
+| `POST /admin/invoices/regenerate/{order_id}` | Order details actions (not a separate route) |
+
+### File layout
+
+Same lightweight style as Order:
+
+- `types.ts` — API-facing shapes (`AdminInvoice`, `Invoice` after tiny id alias)
+- `actions.ts` — plain async methods; only a tiny `invoiceId` → `id` normalize
+- `queryKeys.ts` — `invoiceQueryKeys` with `all`, `list`, `detail(orderId)`
+- No `schema.ts` / `init.ts` / `model.ts` unless forms appear later
+- `components/table.tsx` — list table used by the thin `/invoices` route
+
+### Binding rules
+
+1. List page stays thin: `page-title` + `<InvoicesTable />`. No invent create CTA —
+   invoices are generated from the order details page.
+2. Table uses `useQuery` + `invoiceQueryKeys.list()` + `EmptyState` on `DataTable`.
+3. Generate / regenerate stay on the order details actions card:
+   - they are order-scoped, so route-based pages are unnecessary
+   - use `useMutation`, disable buttons while pending
+   - on success: invalidate `orderQueryKeys.detail(orderId)` + `invoiceQueryKeys.all`,
+     toast Arabic success via sonner
+4. Prefer reading `invoiceNumber` / `invoicePdfUrl` from the order detail response
+   for the download / regenerate UI — do not add a separate invoice fetch there.
+5. Avoid heavy view-model layers; keep the tiny id alias in `actions.ts` only.
+
 ## Mutation Rules
 
-For all order mutations:
+For all order / invoice mutations:
 
 - Use `useMutation`
-- Invalidate `orderQueryKeys.all` or the specific relevant query keys
-- Redirect after success
+- Invalidate `orderQueryKeys.all` / `invoiceQueryKeys.all` or the specific relevant keys
+- Redirect after success when the action has its own route
 - Disable submit buttons while pending
-- Keep mutation payload creation inside `init.ts`
+- Keep mutation payload creation inside `init.ts` when an input wrapper exists
+- Toast Arabic success messages via sonner
 
 ## Cleanup Rules
 

@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { useQuery } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
 import { Download, Receipt } from "lucide-react"
 
 import DataTable from "@/components/system/table"
+import EmptyState from "@/components/system/empty-state"
+import { useStorePath } from "@/lib/store-path"
 import { formatOrderDateTime } from "@/modules/order/order/utils"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
@@ -14,9 +17,12 @@ import { listInvoices } from "../actions"
 import { invoiceQueryKeys } from "../queryKeys"
 import type { Invoice } from "../types"
 
-export default function InvoicesTable() {
+export function InvoicesTable() {
+	const router = useRouter()
+	const storePath = useStorePath()
+
 	const { data: invoices, isPending } = useQuery({
-		queryKey: invoiceQueryKeys.all,
+		queryKey: invoiceQueryKeys.list(),
 		queryFn: listInvoices,
 	})
 
@@ -88,13 +94,24 @@ export default function InvoicesTable() {
 	}, [pageCount])
 
 	return (
-		<div className="w-full overflow-hidden rounded-lg border bg-white">
+		<div className="w-full overflow-hidden rounded-lg border">
 			<DataTable
 				columns={columns}
 				isLoading={isPending}
 				data={invoices ?? []}
 				pagination={{ pageIndex, pageSize, pageCount }}
 				onPageChange={setPageIndex}
+				emptyState={
+					<EmptyState
+						icon={<Receipt className="size-8" />}
+						title="لا توجد فواتير"
+						description="ولّد الفاتورة من صفحة تفاصيل الطلب، ثم ستظهر هنا للتنزيل."
+						cta={{
+							label: "الانتقال إلى الطلبات",
+							onClick: () => router.push(storePath("/orders")),
+						}}
+					/>
+				}
 			/>
 		</div>
 	)

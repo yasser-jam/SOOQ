@@ -1,26 +1,24 @@
 import { api } from "@/lib/api"
 import type { ApiResponse } from "@/lib/types"
 
-import type { Invoice, InvoiceApiModel } from "./types"
+import type { AdminInvoice, Invoice } from "./types"
 
-const normalizeInvoice = (model: InvoiceApiModel): Invoice => ({
+/** Tiny id alias only — keep the rest of the API shape intact. */
+const normalizeInvoice = (model: AdminInvoice): Invoice => ({
+	...model,
 	id: model.invoiceId ?? model.id ?? "",
 	orderId: model.orderId ?? "",
 	invoiceNumber: model.invoiceNumber ?? "",
 	pdfUrl: model.pdfUrl ?? null,
-	generatedAt: model.generatedAt,
 })
 
 export const listInvoices = async (): Promise<Invoice[]> => {
-	const response = await api<ApiResponse<InvoiceApiModel[]>>(
-		"/admin/invoices"
-	)
-
+	const response = await api<ApiResponse<AdminInvoice[]>>("/admin/invoices")
 	return response.data?.map(normalizeInvoice) ?? []
 }
 
 export const generateInvoice = async (orderId: string): Promise<Invoice> => {
-	const response = await api<ApiResponse<InvoiceApiModel>>(
+	const response = await api<ApiResponse<AdminInvoice>>(
 		`/admin/invoices/generate/${orderId}`,
 		{ method: "POST" }
 	)
@@ -31,7 +29,7 @@ export const generateInvoice = async (orderId: string): Promise<Invoice> => {
 export const regenerateInvoice = async (
 	orderId: string
 ): Promise<Invoice> => {
-	const response = await api<ApiResponse<InvoiceApiModel>>(
+	const response = await api<ApiResponse<AdminInvoice>>(
 		`/admin/invoices/regenerate/${orderId}`,
 		{ method: "POST" }
 	)

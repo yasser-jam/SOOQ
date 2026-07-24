@@ -21,6 +21,7 @@ const readFromStorage = (): MockDatabase | null => {
       !Array.isArray(parsed.tags) ||
       !Array.isArray(parsed.discountCodes) ||
       !Array.isArray(parsed.orders) ||
+      !Array.isArray(parsed.invoices) ||
       !Array.isArray(parsed.shippingProviders) ||
       !Array.isArray(parsed.shipments) ||
       !Array.isArray(parsed.codReconciliationBatches) ||

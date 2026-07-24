@@ -210,8 +210,16 @@ export type MockCodCollectionEntryRecord = {
   collectedAt: string | null
 }
 
-/** v7: finance COD + shipping providers/shipments for mock dashboard. */
-export const MOCK_DB_VERSION = 7 as const
+export type MockInvoiceRecord = {
+  invoiceId: string
+  orderId: string
+  invoiceNumber: string
+  pdfUrl: string | null
+  generatedAt: string
+}
+
+/** v8: admin invoices (list / generate / regenerate). */
+export const MOCK_DB_VERSION = 8 as const
 
 export type MockDatabase = {
   version: typeof MOCK_DB_VERSION
@@ -229,6 +237,7 @@ export type MockDatabase = {
   discountCodes: MockDiscountCodeRecord[]
   /** Storefront checkout orders (POST /public/checkout) */
   orders: MockOrderRecord[]
+  invoices: MockInvoiceRecord[]
   shippingProviders: MockShippingProviderRecord[]
   shipments: MockShipmentRecord[]
   codReconciliationBatches: MockCodReconciliationBatchRecord[]

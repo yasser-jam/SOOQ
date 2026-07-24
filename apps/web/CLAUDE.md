@@ -46,11 +46,11 @@ domain module in `modules/` (see `modules/CLAUDE.md`). Route-private helpers go 
 - `lib/tenant-context.ts` — tenant (store) context; requests carry `X-Tenant-ID`.
 - Mock API: set `NEXT_PUBLIC_USE_MOCK_API=true` to serve merchant auth, customer
   OTP, onboarding store settings, products/categories/tags/collections,
-  discount codes, finance COD reconciliation (plus shipping providers /
+  discount codes, invoices, finance COD reconciliation (plus shipping providers /
   shipments used by those screens), and storefront checkout from in-browser
   seeders via `lib/mock` (intercepted in `lib/api.ts` / `lib/public-api.ts`).
   Other endpoints still hit the real backend. Clear `sooq-mock-api-db` (or
-  hard-refresh after a version bump) so seed v7 loads.
+  hard-refresh after a version bump) so seed v8 loads.
 
 ## Conventions
 

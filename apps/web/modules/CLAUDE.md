@@ -52,3 +52,5 @@ modules/<domain>/<name>/
   `null` = unchanged, `[]` = clear, `[ids]` = exact list; new files are multipart `files` parts.
 - Keep list routes thin (`<FooTable />`); detail/create pages orchestrate the form but reuse
   `init.ts` + `schema.ts` + module components.
+- **Order + Invoice** admin binding: follow `docs/order-admin-ai-rules.md` (Invoice list at
+  `/invoices`; generate/regenerate stay on order details — no separate invoice action routes).

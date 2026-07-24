@@ -17,6 +17,7 @@ import {
   MOCK_DB_VERSION,
   type MockDatabase,
   type MockDiscountCodeRecord,
+  type MockInvoiceRecord,
   type MockUser,
 } from "./types"
 
@@ -135,6 +136,38 @@ export const seedMockDiscountCodes = (): MockDiscountCodeRecord[] => {
   ]
 }
 
+/** Sample PDF so list "تنزيل" works in mock mode without a backend. */
+const MOCK_INVOICE_PDF_URL =
+  "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+
+/**
+ * Invoices aligned with seed-finance shipment order ids (`mock-order-1001`…).
+ * One row has no `pdfUrl` so the list empty-download state is visible.
+ */
+export const seedMockInvoices = (): MockInvoiceRecord[] => [
+  {
+    invoiceId: "mock-invoice-1001",
+    orderId: "mock-order-1001",
+    invoiceNumber: "INV-2026-1001",
+    pdfUrl: MOCK_INVOICE_PDF_URL,
+    generatedAt: daysFromNow(-4),
+  },
+  {
+    invoiceId: "mock-invoice-1002",
+    orderId: "mock-order-1002",
+    invoiceNumber: "INV-2026-1002",
+    pdfUrl: MOCK_INVOICE_PDF_URL,
+    generatedAt: daysFromNow(-3),
+  },
+  {
+    invoiceId: "mock-invoice-1003",
+    orderId: "mock-order-1003",
+    invoiceNumber: "INV-2026-1003",
+    pdfUrl: null,
+    generatedAt: daysFromNow(-10),
+  },
+]
+
 export const seedMockUser = (): MockUser => ({
   userId: MOCK_USER_ID,
   phone: MOCK_DEFAULT_PHONE,
@@ -184,6 +217,7 @@ export const createSeedDatabase = (): MockDatabase => ({
   tags: seedMockTags(),
   discountCodes: seedMockDiscountCodes(),
   orders: [],
+  invoices: seedMockInvoices(),
   shippingProviders: seedMockShippingProviders(),
   shipments: seedMockShipments(),
   codReconciliationBatches: seedMockCodReconciliationBatches(),

@@ -20,6 +20,7 @@ import {
   Wallet,
   XCircle,
 } from "lucide-react"
+import { toast } from "sonner"
 
 import ConfirmAlert from "@/components/system/confirm-alert"
 import { useStorePath } from "@/lib/store-path"
@@ -130,13 +131,19 @@ export default function OrderDetailsActions({
 
   const { mutate: generateMutation, isPending: isGenerating } = useMutation({
     mutationFn: () => generateInvoice(orderId),
-    onSuccess: invalidateAfterInvoiceMutation,
+    onSuccess: async () => {
+      await invalidateAfterInvoiceMutation()
+      toast.success("تم توليد الفاتورة")
+    },
   })
 
   const { mutate: regenerateMutation, isPending: isRegenerating } = useMutation(
     {
       mutationFn: () => regenerateInvoice(orderId),
-      onSuccess: invalidateAfterInvoiceMutation,
+      onSuccess: async () => {
+        await invalidateAfterInvoiceMutation()
+        toast.success("تم إعادة توليد الفاتورة")
+      },
     }
   )
 

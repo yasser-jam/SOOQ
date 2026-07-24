@@ -5,6 +5,7 @@ import { handleCodMock } from "./handlers/cod"
 import { handleCollectionsMock } from "./handlers/collections"
 import { handleCustomerAuthMock } from "./handlers/customer-auth"
 import { handleDiscountCodesMock } from "./handlers/discount-codes"
+import { handleInvoicesMock } from "./handlers/invoices"
 import { handleProductsMock } from "./handlers/products"
 import { handleShipmentsMock } from "./handlers/shipments"
 import { handleShippingProvidersMock } from "./handlers/shipping-providers"
@@ -42,6 +43,9 @@ export const routeMockRequest = async (
 
   const discountCodes = handleDiscountCodesMock(request)
   if (discountCodes.handled) return discountCodes
+
+  const invoices = handleInvoicesMock(request)
+  if (invoices.handled) return invoices
 
   const shippingProviders = handleShippingProvidersMock(request)
   if (shippingProviders.handled) return shippingProviders

@@ -1,4 +1,4 @@
-export interface InvoiceApiModel {
+export interface AdminInvoice {
 	invoiceId?: string
 	id?: string
 	orderId?: string
@@ -7,10 +7,10 @@ export interface InvoiceApiModel {
 	generatedAt?: string
 }
 
-export interface Invoice {
+/** List/detail shape after the tiny id alias (`invoiceId` → `id`). */
+export interface Invoice extends AdminInvoice {
 	id: string
 	orderId: string
 	invoiceNumber: string
 	pdfUrl: string | null
-	generatedAt?: string
 }
