@@ -242,6 +242,9 @@ Each page should:
 When creating new order pages or action screens:
 
 - Match the visual tone already used in the dashboard.
+- List pages follow the products header: `page-title` + `FilterMenu` + system
+  `Button` (`variant="secondary"`). Never raw `<button>` or hex-styled CTAs.
+  Full list/form UI rules: `.github/instructions/admin-form-ui.instructions.md`.
 - Use `PageDialog` for focused edit/cancel/transition flows.
 - Keep forms short and direct.
 - Use `Button` variants consistently:
@@ -249,6 +252,7 @@ When creating new order pages or action screens:
   - `secondary` for primary confirmation
 - Prefer cards, borders, muted surfaces, and compact layouts over overly complex layouts.
 - Do not introduce a new design language for one page.
+- Tables should pass `EmptyState` to `DataTable` instead of custom empty cards.
 
 ## Mutation Rules
 

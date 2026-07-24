@@ -34,8 +34,12 @@ modules/<domain>/<name>/
 - `shipping/` — shipment, provider, cod
 - `inventory/`, `media/` (upload), `store/` (settings, staff), `design-studio/`
 
-## Rules (from docs/order-admin-ai-rules.md + docs/refactoring-notes-detail-pages.md)
+## Rules (from docs/order-admin-ai-rules.md + docs/refactoring-notes-detail-pages.md
++ `.github/instructions/admin-form-ui.instructions.md`)
 
+- List pages match the products header: `page-title` + `FilterMenu` + system
+  `Button` (`variant="secondary"`). Never raw `<button>` or hardcoded hex CTAs.
+- Tables use `EmptyState` via `DataTable`'s `emptyState` prop.
 - `useQuery`/`useMutation` are called **inside the page/detail component**, using the module's
   `actions.ts` functions and `queryKeys.ts` keys — not wrapped in extra abstraction layers.
 - On mutation success: `queryClient.invalidateQueries({ queryKey: fooKeys.all })`, toast via

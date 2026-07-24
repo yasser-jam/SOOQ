@@ -5,12 +5,15 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { FileBox } from "lucide-react"
+import { toast } from "sonner"
 
+import EmptyState from "@/components/system/empty-state"
 import DataTable from "@/components/system/table"
 import TableActions from "@/components/system/table-actions"
 import { formatSyp } from "@/lib/money"
 import { useStorePath } from "@/lib/store-path"
 import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
 
 import type {
   CodReconciliationBatch,
@@ -21,6 +24,7 @@ import {
   listCodReconciliationBatches,
   updateCodReconciliationStatus,
 } from "../actions"
+import { initCodReconciliationStatusUpdate } from "../init"
 import { codReconciliationQueryKeys } from "../queryKeys"
 import {
   COD_SETTLEMENT_STATUS_META,
@@ -118,10 +122,13 @@ export default function CodReconciliationTable({
 
   const { mutate: updateStatus, isPending: isUpdatingStatus } = useMutation({
     mutationFn: updateCodReconciliationStatus,
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
         queryKey: codReconciliationQueryKeys.all,
       })
+      toast.success(
+        `تم التحويل إلى: ${COD_SETTLEMENT_STATUS_META[variables.data.status].label}`
+      )
     },
   })
 
@@ -208,24 +215,29 @@ export default function CodReconciliationTable({
           <TableActions
             onUpdate={() => {
               if (!id) return
-              router.push(storePath(`/finance/shipping/cod-reconciliation/${id}`))
+              router.push(
+                storePath(`/finance/shipping/cod-reconciliation/${id}`)
+              )
             }}
             onDelete={undefined}
           >
             {id && status && firstTransition ? (
-              <button
+              <Button
                 type="button"
-                className="text-xs text-secondary hover:underline disabled:opacity-60"
+                variant="outline"
+                size="sm"
                 disabled={isUpdatingStatus}
                 onClick={() =>
-                  updateStatus({
-                    id,
-                    data: { status: firstTransition as CodSettlementStatus },
-                  })
+                  updateStatus(
+                    initCodReconciliationStatusUpdate(
+                      id,
+                      firstTransition as CodSettlementStatus
+                    )
+                  )
                 }
               >
                 تحويل إلى: {COD_SETTLEMENT_STATUS_META[firstTransition].label}
-              </button>
+              </Button>
             ) : null}
           </TableActions>
         )
@@ -233,34 +245,28 @@ export default function CodReconciliationTable({
     },
   ]
 
-  // Empty State
-  if (!isPending && filteredBatches.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-xl border bg-white py-16 shadow-sm">
-        <div
-          className="mb-4 rounded-full p-4"
-          style={{ backgroundColor: "#F3F4F6" }}
-        >
-          <FileBox className="size-12" style={{ color: "#9CA3AF" }} />
-        </div>
-        <h3 className="mb-2 text-lg font-semibold" style={{ color: "#122640" }}>
-          لا توجد تسويات مطابقة
-        </h3>
-        <p className="text-sm text-gray-500">
-          جرب تغيير إعدادات الفلترة أو قم بإنشاء دفعة تسوية جديدة
-        </p>
-      </div>
-    )
-  }
-
   return (
-    <div className="w-full overflow-hidden rounded-xl border bg-white shadow-sm">
+    <div className="w-full overflow-hidden rounded-lg border">
       <DataTable
         columns={columns}
         isLoading={isPending}
         data={pageRows}
         pagination={{ pageIndex, pageSize: PAGE_SIZE, pageCount }}
         onPageChange={setPageIndex}
+        emptyState={
+          <EmptyState
+            icon={<FileBox className="size-8" />}
+            title="لا توجد تسويات مطابقة"
+            description="جرّب تغيير إعدادات الفلترة أو أنشئ دفعة تسوية جديدة."
+            cta={{
+              label: "إنشاء دفعة تسوية",
+              onClick: () =>
+                router.push(
+                  storePath("/finance/shipping/cod-reconciliation/create")
+                ),
+            }}
+          />
+        }
       />
     </div>
   )

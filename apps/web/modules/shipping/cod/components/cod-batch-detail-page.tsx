@@ -6,9 +6,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowRight, ExternalLink } from "lucide-react"
+import { toast } from "sonner"
 
 import ConfirmAlert from "@/components/system/confirm-alert"
 import DataTable from "@/components/system/table"
+import EmptyState from "@/components/system/empty-state"
 import { formatSyp } from "@/lib/money"
 import { useStorePath } from "@/lib/store-path"
 import { listShipments } from "@/modules/shipping/shipment/actions"
@@ -29,6 +31,7 @@ import {
   getCodReconciliationBatch,
   updateCodReconciliationStatus,
 } from "../actions"
+import { initCodReconciliationStatusUpdate } from "../init"
 import {
   COD_SETTLEMENT_STATUS_META,
   COD_SETTLEMENT_STATUS_TRANSITIONS,
@@ -66,10 +69,13 @@ export default function CodBatchDetailPageView({
 
   const { mutate: updateStatus, isPending: isUpdatingStatus } = useMutation({
     mutationFn: updateCodReconciliationStatus,
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
         queryKey: codReconciliationQueryKeys.all,
       })
+      toast.success(
+        `تم التحويل إلى: ${COD_SETTLEMENT_STATUS_META[variables.data.status].label}`
+      )
       setPendingTransition(null)
     },
   })
@@ -303,6 +309,13 @@ export default function CodBatchDetailPageView({
                   columns={shipmentColumns}
                   isLoading={isShipmentsLoading}
                   data={batchShipments}
+                  emptyState={
+                    <EmptyState
+                      title="لا توجد شحنات مطابقة"
+                      description="لم يُعثر على شحنات مسلَّمة لهذا المزود في تاريخ التسوية."
+                      compact
+                    />
+                  }
                 />
               </div>
             </CardContent>
@@ -325,10 +338,9 @@ export default function CodBatchDetailPageView({
         variant={pendingTransition === "DISPUTED" ? "destructive" : "default"}
         onAction={() => {
           if (pendingTransition) {
-            updateStatus({
-              id: batchId,
-              data: { status: pendingTransition },
-            })
+            updateStatus(
+              initCodReconciliationStatusUpdate(batchId, pendingTransition)
+            )
           }
         }}
       />

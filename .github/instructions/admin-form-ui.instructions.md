@@ -1,15 +1,15 @@
 ---
-description: Apply when building or editing admin forms, detail/create pages, date pickers, or dashboard UI styling in apps/web.
+description: Apply when building or editing admin list pages, forms, detail/create pages, date pickers, or dashboard UI styling in apps/web.
 applyTo: "apps/web/**/*.{ts,tsx},packages/ui/src/components/**/*.{ts,tsx}"
 ---
 
 # Admin Form & UI Styling Rules
 
-Use these instructions when generating, refactoring, or reviewing forms and detail pages in `apps/web` (especially create/edit dialogs under `app/store/[storeSlug]/(dashboard)/**`).
+Use these instructions when generating, refactoring, or reviewing list pages, forms, and detail pages in `apps/web` (especially under `app/store/[storeSlug]/(dashboard)/**` and matching `modules/**` components).
 
 ## Core Goal
 
-Keep forms consistent with the design system: system field adapters, semantic color tokens, shadcn composition for pickers, token-based spacing, and grid-first layouts. Do not reintroduce one-off styling or third-party date pickers.
+Keep dashboard UI consistent with the design system: products-page list chrome, system field adapters, semantic color tokens, shadcn composition for pickers, token-based spacing, and grid-first layouts. Do not reintroduce one-off styling, raw HTML controls, or third-party date pickers.
 
 ## Required Rules
 
@@ -18,8 +18,50 @@ Keep forms consistent with the design system: system field adapters, semantic co
 3. Compose date/time pickers from shadcn `Popover` + `Calendar` (or the system `DatePickerField`) — do not use `react-datepicker` / `react-date-picker`.
 4. Avoid arbitrary spacing hacks (e.g. `min-h-[16px]` empty spacers) — use spacing tokens only when needed; do not invent empty space to “align” columns.
 5. Prefer CSS Grid as the main form layout (`grid grid-cols-1 gap-* md:grid-cols-2`), not stacked `space-y-*` wrappers that fight the grid.
+6. Match list-page headers to the products page — `page-title` + `FilterMenu` + system `Button`; never raw `<button>` / custom hex CTAs.
+7. Use system empty states and tables — `EmptyState` + `DataTable` with `rounded-lg border`; do not hand-roll empty cards with inline colors.
 
 ## Detailed Guidance
+
+### 0) List Page Header (Match Products)
+
+Reference: `apps/web/app/store/[storeSlug]/(dashboard)/products/page.tsx` and siblings
+(`discount-codes`, `shipping/provider`, `shipping/cod`).
+
+```tsx
+<div className="container">
+  <div className="my-6 flex justify-between">
+    <div className="page-title">…العنوان…</div>
+
+    <div className="flex items-center gap-4">
+      <FilterMenu>{/* FieldGroup filters */}</FilterMenu>
+
+      <Button
+        size="md"
+        variant="secondary"
+        onClick={() => router.push(storePath("/…/create"))}
+      >
+        إضافة …
+        <Plus data-icon="inline-end" />
+      </Button>
+    </div>
+  </div>
+
+  <FooTable filters={filters} />
+</div>
+```
+
+Rules:
+
+- Title uses the shared `page-title` class — not a custom `h1` with hex/`text-3xl` one-offs.
+- Primary list CTA is always `@workspace/ui` `Button` with `variant="secondary"` and `size="md"`.
+- **Forbidden:** raw `<button>`, ad-hoc `className`/`style` CTAs (`bg-[#BA7B1B]`, etc.).
+- Put list filters inside `FilterMenu` (`@/components/system/filter-menu`) using `Field` /
+  `FieldGroup` / `FieldLabel` / `FieldContent` — not a full-width custom filter bar.
+- Prefer module table components for the body; keep the route/view thin.
+- Tables: `rounded-lg border` wrapper + `emptyState={<EmptyState … />}` on `DataTable`.
+- Button variants elsewhere: `outline` for secondary/cancel, `secondary` for primary confirm
+  (same as `docs/order-admin-ai-rules.md`).
 
 ### 1) System Field, Not Shared `UiField` on Pages
 
@@ -129,11 +171,17 @@ Flag changes that:
 - insert empty spacer divs / `min-h-[…]` alignment hacks
 - replace an existing grid form layout with ad-hoc stacked blocks without a reason
 - leave inputs with empty `label=""` plus a duplicate manual label
+- use raw `<button>` (or styled native buttons) instead of `@workspace/ui` `Button`
+- invent a custom list header / filter bar instead of `page-title` + `FilterMenu`
+- hand-roll empty-state cards instead of `EmptyState` on `DataTable`
 
 ## Related Sources
 
+- List header reference: `apps/web/app/store/[storeSlug]/(dashboard)/products/page.tsx`
+- System chrome: `apps/web/components/system/filter-menu.tsx`, `empty-state.tsx`, `table.tsx`
 - System field adapters: `apps/web/components/system/Field.tsx`, `date-picker.tsx`
 - Design tokens: `packages/ui/src/styles/globals.css`
 - Detail-page pattern: `docs/refactoring-notes-detail-pages.md`
+- Order/admin binding rules: `docs/order-admin-ai-rules.md`
 - Frontend conventions: `docs/frontend-standards.md`
 - shadcn Date Picker: https://ui.shadcn.com/docs/components/base/date-picker

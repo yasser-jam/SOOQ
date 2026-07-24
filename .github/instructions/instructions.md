@@ -57,15 +57,16 @@ For expanded operational guidance and applyTo targeting, see:
 
 # Admin Form & UI Styling Instructions
 
-Use this section when building or reviewing admin forms / create-edit detail pages.
+Use this section when building or reviewing admin list pages, forms, or create/edit detail pages.
 
 ## When To Apply
 
+- list page headers and filters
 - forms and Field adapters
 - date/time pickers
 - design tokens and colors
 - form layout (grid / spacing)
-- discount-code and other dashboard detail dialogs
+- discount-code, COD, and other dashboard pages
 
 ## Rules
 
@@ -74,6 +75,8 @@ Use this section when building or reviewing admin forms / create-edit detail pag
 3. Use shadcn DatePicker composition (`Popover` + `Calendar` / system `DatePickerField`) — never `react-datepicker`.
 4. Do not use empty spacers or arbitrary classes like `min-h-[16px]` to force alignment.
 5. Keep CSS Grid as the main form layout (`grid … md:grid-cols-2`).
+6. Match list headers to the products page: `page-title` + `FilterMenu` + system `Button` (`variant="secondary"`). Never raw `<button>`.
+7. Use `EmptyState` on `DataTable` for empty lists — no custom empty cards with inline colors.
 
 ## Source Of Truth
 

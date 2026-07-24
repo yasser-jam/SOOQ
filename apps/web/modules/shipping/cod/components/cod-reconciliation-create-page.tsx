@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 import PageDialog from "@/components/system/page-dialog"
 import Field from "@/components/system/Field"
@@ -28,6 +29,7 @@ import {
 import { listShippingProviders } from "../../provider/actions"
 import { shippingProviderQueryKeys } from "../../provider/queryKeys"
 import { createCodReconciliationBatch } from "../actions"
+import { initCreateCodReconciliationBatch } from "../init"
 import { createCodReconciliationBatchSchema } from "../schema"
 import { codReconciliationQueryKeys } from "../queryKeys"
 
@@ -70,7 +72,10 @@ export default function CodReconciliationCreatePageView() {
   const { mutate: create, isPending: isCreating } = useMutation({
     mutationFn: createCodReconciliationBatch,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: codReconciliationQueryKeys.all })
+      await queryClient.invalidateQueries({
+        queryKey: codReconciliationQueryKeys.all,
+      })
+      toast.success("تم إنشاء دفعة التسوية بنجاح")
       router.push(storePath("/finance/shipping/cod-reconciliation"))
     },
   })
@@ -91,7 +96,12 @@ export default function CodReconciliationCreatePageView() {
             <Button variant="outline">إلغاء</Button>
           </DialogClose>
 
-          <Button type="submit" form="cod-reconciliation-form" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            form="cod-reconciliation-form"
+            variant="secondary"
+            disabled={isSubmitting}
+          >
             إنشاء
           </Button>
         </>
@@ -100,7 +110,9 @@ export default function CodReconciliationCreatePageView() {
       <form
         id="cod-reconciliation-form"
         className="grid gap-4"
-        onSubmit={form.handleSubmit((values) => create(values))}
+        onSubmit={form.handleSubmit((values) =>
+          create(initCreateCodReconciliationBatch(values))
+        )}
       >
         <Controller
           name="shippingProviderId"

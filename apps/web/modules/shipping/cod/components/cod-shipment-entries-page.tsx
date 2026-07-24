@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { ArrowRight } from "lucide-react"
 
 import DataTable from "@/components/system/table"
+import EmptyState from "@/components/system/empty-state"
 import { formatSyp } from "@/lib/money"
 import { useStorePath } from "@/lib/store-path"
 import { Button } from "@workspace/ui/components/button"
@@ -125,6 +126,13 @@ export default function CodShipmentEntriesPageView({
               columns={columns}
               isLoading={isPending}
               data={entries ?? []}
+              emptyState={
+                <EmptyState
+                  title="لا توجد حركات تحصيل"
+                  description="لم تُسجَّل أي حركات COD لهذه الشحنة بعد."
+                  compact
+                />
+              }
             />
           </div>
         </CardContent>
