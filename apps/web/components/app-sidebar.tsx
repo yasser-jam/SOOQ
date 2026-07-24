@@ -7,7 +7,6 @@ import {
   Circle,
   CircleDollarSign,
   CreditCard,
-  FileText,
   LayoutDashboard,
   Package,
   Palette,
@@ -28,7 +27,7 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  // SidebarGroupLabel,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -55,105 +54,145 @@ type NavItem = {
   children?: readonly NavChild[]
 }
 
-function buildNavItems(storeSlug: string): readonly NavItem[] {
+type NavGroup = {
+  label: string
+  items: readonly NavItem[]
+}
+
+function buildNavGroups(storeSlug: string): readonly NavGroup[] {
   const base = `/store/${storeSlug}`
   return [
     {
-      title: "لوحة التحكم",
-      url: base,
-      icon: LayoutDashboard,
-    },
-    {
-      title: "المنتجات",
-      url: `${base}/products`,
-      icon: Package,
-      children: [
-        { title: "المنتجات", url: `${base}/products` },
-        { title: "الفئات", url: `${base}/products/categories` },
-        { title: "الوسوم", url: `${base}/products/tags` },
-        { title: "المجموعات", url: `${base}/products/collections` },
-        { title: "السمات المخصّصة", url: `${base}/products/attributes` },
-        { title: "استيراد منتجات", url: `${base}/products/import` },
-        { title: "سجلّ الاستيراد", url: `${base}/products/import/batches` },
+      label: "الرئيسية",
+      items: [
+        {
+          title: "لوحة التحكم",
+          url: base,
+          icon: LayoutDashboard,
+        },
       ],
     },
     {
-      title: "المخزون",
-      url: `${base}/inventory`,
-      icon: Warehouse,
-      children: [
-        { title: "المخزون المنخفض", url: `${base}/inventory/low-stock` },
-        { title: "تعديل متعدّد", url: `${base}/inventory/bulk-adjust` },
+      label: "الكتالوج",
+      items: [
+        {
+          title: "المنتجات",
+          url: `${base}/products`,
+          icon: Package,
+          children: [
+            { title: "المنتجات", url: `${base}/products` },
+            { title: "الفئات", url: `${base}/products/categories` },
+            { title: "الوسوم", url: `${base}/products/tags` },
+            { title: "المجموعات", url: `${base}/products/collections` },
+            { title: "السمات المخصّصة", url: `${base}/products/attributes` },
+            { title: "استيراد منتجات", url: `${base}/products/import` },
+            { title: "سجلّ الاستيراد", url: `${base}/products/import/batches` },
+          ],
+        },
+        {
+          title: "المخزون",
+          url: `${base}/inventory`,
+          icon: Warehouse,
+          children: [
+            { title: "المخزون المنخفض", url: `${base}/inventory/low-stock` },
+            { title: "تعديل متعدّد", url: `${base}/inventory/bulk-adjust` },
+          ],
+        },
       ],
     },
     {
-      title: "الطلبات",
-      url: `${base}/orders`,
-      icon: ShoppingBag,
-    },
-    {
-      title: "أكواد الخصم",
-      url: `${base}/discount-codes`,
-      icon: BadgePercent,
-    },
-    {
-      title: "الفواتير",
-      url: `${base}/invoices`,
-      icon: Receipt,
-      children: [
-        { title: "قائمة الفواتير", url: `${base}/invoices` },
-        { title: "قوالب الفاتورة", url: `${base}/invoice-layouts` },
+      label: "المبيعات",
+      items: [
+        {
+          title: "الطلبات",
+          url: `${base}/orders`,
+          icon: ShoppingBag,
+        },
+        {
+          title: "الخدمات اللوجستية",
+          url: `${base}/logistics`,
+          icon: Truck,
+          children: [
+            { title: "مزودي الشحن", url: `${base}/logistics/shipping/providers` },
+            { title: "الشحنات", url: `${base}/logistics/shipping/shipments` },
+          ],
+        },
+        {
+          title: "الاستردادات",
+          url: `${base}/refunds`,
+          icon: RotateCcw,
+        },
       ],
     },
     {
-      title: "الخدمات اللوجستية",
-      url: `${base}/logistics`,
-      icon: Truck,
-      children: [
-        { title: "مزودي الشحن", url: `${base}/logistics/shipping/providers` },
-        { title: "الشحنات", url: `${base}/logistics/shipping/shipments` },
+      label: "العملاء والتسويق",
+      items: [
+        {
+          title: "العملاء",
+          url: `${base}/customers`,
+          icon: Users,
+        },
+        {
+          title: "أكواد الخصم",
+          url: `${base}/discount-codes`,
+          icon: BadgePercent,
+        },
       ],
     },
     {
-      title: "استوديو التصميم",
-      url: `${base}/design-studio`,
-      icon: Palette,
-    },
-    {
-      title: "العملاء",
-      url: `${base}/customers`,
-      icon: Users,
-    },
-    {
-      title: "المالية",
-      url: `${base}/finance`,
-      icon: CircleDollarSign,
-      children: [
-        { title: "تسوية تحصيل COD", url: `${base}/finance/shipping/cod-reconciliation` },
+      label: "المالية",
+      items: [
+        {
+          title: "الفواتير",
+          url: `${base}/invoices`,
+          icon: Receipt,
+          children: [
+            { title: "قائمة الفواتير", url: `${base}/invoices` },
+            { title: "قوالب الفاتورة", url: `${base}/invoice-layouts` },
+          ],
+        },
+        {
+          title: "المالية",
+          url: `${base}/finance`,
+          icon: CircleDollarSign,
+          children: [
+            { title: "تسوية تحصيل COD", url: `${base}/finance/shipping/cod-reconciliation` },
+          ],
+        },
+        {
+          title: "بوابات الدفع",
+          url: `${base}/payment-providers`,
+          icon: CreditCard,
+        },
       ],
     },
     {
-      title: "بوابات الدفع",
-      url: `${base}/payment-providers`,
-      icon: CreditCard,
+      label: "المتجر",
+      items: [
+        {
+          title: "استوديو التصميم",
+          url: `${base}/design-studio`,
+          icon: Palette,
+        },
+      ],
     },
     {
-      title: "الاستردادات",
-      url: `${base}/refunds`,
-      icon: RotateCcw,
-    },
-    {
-      title: "الموظفون",
-      url: `${base}/staff`,
-      icon: UserCog,
-    },
-    {
-      title: "الإعدادات",
-      url: `${base}/settings`,
-      icon: Settings,
-      children: [
-        { title: "الإعدادات العامة", url: `${base}/settings` },
-        { title: "إدارة الوصول", url: `${base}/settings/access` },
+      label: "الإدارة",
+      items: [
+        {
+          title: "الموظفون",
+          url: `${base}/staff`,
+          icon: UserCog,
+        },
+        {
+          title: "الإعدادات",
+          url: `${base}/settings`,
+          icon: Settings,
+          children: [
+            { title: "الإعدادات العامة", url: `${base}/settings` },
+            { title: "إدارة الوصول", url: `${base}/settings/access` },
+          ],
+        },
       ],
     },
   ]
@@ -285,7 +324,7 @@ export type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 export function AppSidebar({ pathname: pathnameProp, storeSlug, user, ...props }: AppSidebarProps) {
   const fallbackPathname = useFallbackPathname()
   const pathname = pathnameProp ?? fallbackPathname
-  const navItems = buildNavItems(storeSlug)
+  const navGroups = buildNavGroups(storeSlug)
 
   return (
     <Sidebar {...props} side="right" dir="rtl">
@@ -309,20 +348,22 @@ export function AppSidebar({ pathname: pathnameProp, storeSlug, user, ...props }
         {/* <SearchForm /> */}
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          {/* <SidebarGroupLabel>قسم</SidebarGroupLabel> */}
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <NavMenuItem
-                  key={item.url}
-                  item={item}
-                  pathname={pathname}
-                />
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {navGroups.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => (
+                  <NavMenuItem
+                    key={item.url}
+                    item={item}
+                    pathname={pathname}
+                  />
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
