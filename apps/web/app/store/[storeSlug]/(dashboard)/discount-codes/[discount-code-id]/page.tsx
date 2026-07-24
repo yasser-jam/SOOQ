@@ -139,7 +139,7 @@ export default function EditDiscountCodePage() {
       onOpenChange={(open) => {
         if (!open) router.back()
       }}
-      size="lg"
+      size="md"
       title={isEdit ? "تعديل كود الخصم" : "إضافة كود خصم"}
       actions={
         <>

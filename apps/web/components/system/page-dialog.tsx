@@ -39,7 +39,7 @@ export default function PageDialog({
             <DialogDescription>{description}</DialogDescription>
           ) : null}
         </DialogHeader>
-        {children}
+        <div className="max-h-[calc(100vh-20rem)] overflow-y-auto">{children}</div>
         {actions ? <DialogFooter>{actions}</DialogFooter> : null}
       </DialogContent>
     </Dialog>

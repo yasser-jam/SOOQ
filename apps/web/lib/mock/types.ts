@@ -127,7 +127,24 @@ export type MockOrderRecord = {
   createdAt: string
 }
 
-export const MOCK_DB_VERSION = 5 as const
+export type MockDiscountCodeRecord = {
+  discountCodeId: string
+  code: string
+  discountType: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_SHIPPING"
+  discountValue: number
+  minOrderAmount: number | null
+  maxDiscountCap: number | null
+  usageLimit: number | null
+  currentUses: number
+  perCustomerMax: number | null
+  applicableScope: "ALL" | "PRODUCT" | "CATEGORY"
+  startsAt: string
+  expiresAt: string
+  isActive: boolean
+  createdAt: string
+}
+
+export const MOCK_DB_VERSION = 6 as const
 
 export type MockDatabase = {
   version: typeof MOCK_DB_VERSION
@@ -142,6 +159,7 @@ export type MockDatabase = {
   categories: MockCategoryRecord[]
   collections: MockCollectionRecord[]
   tags: MockTagRecord[]
+  discountCodes: MockDiscountCodeRecord[]
   /** Storefront checkout orders (POST /public/checkout) */
   orders: MockOrderRecord[]
 }

@@ -7,7 +7,12 @@ import {
   seedMockProducts,
   seedMockTags,
 } from "./seed-catalog"
-import { MOCK_DB_VERSION, type MockDatabase, type MockUser } from "./types"
+import {
+  MOCK_DB_VERSION,
+  type MockDatabase,
+  type MockDiscountCodeRecord,
+  type MockUser,
+} from "./types"
 
 export const MOCK_STORAGE_KEY = "sooq-mock-api-db"
 
@@ -28,6 +33,100 @@ export {
   seedMockCollections,
   seedMockProducts,
   seedMockTags,
+}
+
+const daysFromNow = (days: number): string => {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  d.setHours(12, 0, 0, 0)
+  return d.toISOString()
+}
+
+/** Sample codes covering ACTIVE / SCHEDULED / EXPIRED / INACTIVE statuses. */
+export const seedMockDiscountCodes = (): MockDiscountCodeRecord[] => {
+  const now = new Date().toISOString()
+  return [
+    {
+      discountCodeId: "mock-discount-welcome10",
+      code: "WELCOME10",
+      discountType: "PERCENTAGE",
+      discountValue: 10,
+      minOrderAmount: 50_000,
+      maxDiscountCap: 25_000,
+      usageLimit: 100,
+      currentUses: 23,
+      perCustomerMax: 1,
+      applicableScope: "ALL",
+      startsAt: daysFromNow(-30),
+      expiresAt: daysFromNow(60),
+      isActive: true,
+      createdAt: daysFromNow(-30),
+    },
+    {
+      discountCodeId: "mock-discount-save5k",
+      code: "SAVE5K",
+      discountType: "FIXED_AMOUNT",
+      discountValue: 5_000,
+      minOrderAmount: 100_000,
+      maxDiscountCap: null,
+      usageLimit: 50,
+      currentUses: 12,
+      perCustomerMax: 2,
+      applicableScope: "PRODUCT",
+      startsAt: daysFromNow(-14),
+      expiresAt: daysFromNow(30),
+      isActive: true,
+      createdAt: daysFromNow(-14),
+    },
+    {
+      discountCodeId: "mock-discount-freeship",
+      code: "FREESHIP",
+      discountType: "FREE_SHIPPING",
+      discountValue: 1,
+      minOrderAmount: 75_000,
+      maxDiscountCap: null,
+      usageLimit: null,
+      currentUses: 0,
+      perCustomerMax: 1,
+      applicableScope: "ALL",
+      startsAt: daysFromNow(7),
+      expiresAt: daysFromNow(90),
+      isActive: true,
+      createdAt: now,
+    },
+    {
+      discountCodeId: "mock-discount-summer25",
+      code: "SUMMER25",
+      discountType: "PERCENTAGE",
+      discountValue: 25,
+      minOrderAmount: null,
+      maxDiscountCap: 50_000,
+      usageLimit: 200,
+      currentUses: 200,
+      perCustomerMax: 1,
+      applicableScope: "CATEGORY",
+      startsAt: daysFromNow(-90),
+      expiresAt: daysFromNow(-7),
+      isActive: true,
+      createdAt: daysFromNow(-90),
+    },
+    {
+      discountCodeId: "mock-discount-paused",
+      code: "PAUSED15",
+      discountType: "PERCENTAGE",
+      discountValue: 15,
+      minOrderAmount: 25_000,
+      maxDiscountCap: null,
+      usageLimit: 30,
+      currentUses: 5,
+      perCustomerMax: null,
+      applicableScope: "ALL",
+      startsAt: daysFromNow(-10),
+      expiresAt: daysFromNow(40),
+      isActive: false,
+      createdAt: daysFromNow(-10),
+    },
+  ]
 }
 
 export const seedMockUser = (): MockUser => ({
@@ -77,5 +176,6 @@ export const createSeedDatabase = (): MockDatabase => ({
   categories: seedMockCategories(),
   collections: seedMockCollections(),
   tags: seedMockTags(),
+  discountCodes: seedMockDiscountCodes(),
   orders: [],
 })

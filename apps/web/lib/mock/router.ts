@@ -3,6 +3,7 @@ import { handleCategoriesMock } from "./handlers/categories"
 import { handleCheckoutMock } from "./handlers/checkout"
 import { handleCollectionsMock } from "./handlers/collections"
 import { handleCustomerAuthMock } from "./handlers/customer-auth"
+import { handleDiscountCodesMock } from "./handlers/discount-codes"
 import { handleProductsMock } from "./handlers/products"
 import { handleStoreSettingsMock } from "./handlers/store-settings"
 import { handleTagsMock } from "./handlers/tags"
@@ -35,6 +36,9 @@ export const routeMockRequest = async (
 
   const products = await handleProductsMock(request)
   if (products.handled) return products
+
+  const discountCodes = handleDiscountCodesMock(request)
+  if (discountCodes.handled) return discountCodes
 
   const checkout = handleCheckoutMock(request)
   if (checkout.handled) return checkout
