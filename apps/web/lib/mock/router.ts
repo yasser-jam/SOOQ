@@ -1,10 +1,13 @@
 import { handleAuthMock } from "./handlers/auth"
 import { handleCategoriesMock } from "./handlers/categories"
 import { handleCheckoutMock } from "./handlers/checkout"
+import { handleCodMock } from "./handlers/cod"
 import { handleCollectionsMock } from "./handlers/collections"
 import { handleCustomerAuthMock } from "./handlers/customer-auth"
 import { handleDiscountCodesMock } from "./handlers/discount-codes"
 import { handleProductsMock } from "./handlers/products"
+import { handleShipmentsMock } from "./handlers/shipments"
+import { handleShippingProvidersMock } from "./handlers/shipping-providers"
 import { handleStoreSettingsMock } from "./handlers/store-settings"
 import { handleTagsMock } from "./handlers/tags"
 import type { MockHandlerResult, MockRequest } from "./types"
@@ -39,6 +42,15 @@ export const routeMockRequest = async (
 
   const discountCodes = handleDiscountCodesMock(request)
   if (discountCodes.handled) return discountCodes
+
+  const shippingProviders = handleShippingProvidersMock(request)
+  if (shippingProviders.handled) return shippingProviders
+
+  const shipments = handleShipmentsMock(request)
+  if (shipments.handled) return shipments
+
+  const cod = handleCodMock(request)
+  if (cod.handled) return cod
 
   const checkout = handleCheckoutMock(request)
   if (checkout.handled) return checkout

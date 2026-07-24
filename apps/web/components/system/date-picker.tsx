@@ -28,8 +28,27 @@ import { cn } from "@workspace/ui/lib/utils"
 
 const pad = (n: number) => String(n).padStart(2, "0")
 
+const toLocalDateValue = (date: Date) =>
+  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+
 const toLocalDateTimeValue = (date: Date) =>
-  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  `${toLocalDateValue(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+
+const parseLocalDateValue = (value?: string): Date | undefined => {
+  if (!value) return undefined
+  // Accept "YYYY-MM-DD" or "YYYY-MM-DDTHH:mm" (and ISO with Z).
+  const dateOnly = value.slice(0, 10)
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateOnly)
+  if (!match) {
+    const parsed = new Date(value)
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed
+  }
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const parsed = new Date(year, month - 1, day)
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed
+}
 
 const parseLocalDateTimeValue = (value?: string): Date | undefined => {
   if (!value) return undefined
@@ -52,6 +71,11 @@ type DatePickerFieldProps<T extends FieldValues> = {
   disabled?: boolean
   /** Earliest selectable calendar day (inclusive). */
   minDate?: Date
+  /**
+   * When false, stores/displays `YYYY-MM-DD` only (no time input).
+   * Default true keeps `YYYY-MM-DDTHH:mm` for datetime fields.
+   */
+  includeTime?: boolean
   className?: string
 }
 
@@ -59,25 +83,34 @@ export default function DatePickerField<T extends FieldValues>({
   name,
   control,
   label,
-  placeholder = "اختر التاريخ والوقت",
+  placeholder,
   disabled,
   minDate,
+  includeTime = true,
   className,
 }: DatePickerFieldProps<T>) {
   const fieldId = String(name)
   const [open, setOpen] = useState(false)
+  const resolvedPlaceholder =
+    placeholder ?? (includeTime ? "اختر التاريخ والوقت" : "اختر التاريخ")
 
   return (
     <Controller
       name={name}
       control={control}
       render={({ field, fieldState }) => {
-        const selected = parseLocalDateTimeValue(field.value)
+        const selected = includeTime
+          ? parseLocalDateTimeValue(field.value)
+          : parseLocalDateValue(field.value)
         const timeValue = selected
           ? `${pad(selected.getHours())}:${pad(selected.getMinutes())}`
           : "00:00"
         const display = selected
-          ? format(selected, "yyyy-MM-dd HH:mm", { locale: ar })
+          ? format(
+              selected,
+              includeTime ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd",
+              { locale: ar }
+            )
           : null
 
         return (
@@ -96,7 +129,7 @@ export default function DatePickerField<T extends FieldValues>({
                   )}
                 >
                   <CalendarIcon data-icon="inline-start" />
-                  {display ?? <span>{placeholder}</span>}
+                  {display ?? <span>{resolvedPlaceholder}</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent align="start" className="w-auto gap-3 p-3">
@@ -106,6 +139,11 @@ export default function DatePickerField<T extends FieldValues>({
                   onSelect={(date) => {
                     if (!date) {
                       field.onChange("")
+                      return
+                    }
+                    if (!includeTime) {
+                      field.onChange(toLocalDateValue(date))
+                      setOpen(false)
                       return
                     }
                     const next = mergeDateAndTime(date, timeValue)
@@ -118,23 +156,25 @@ export default function DatePickerField<T extends FieldValues>({
                   }
                   locale={ar}
                 />
-                <div className="flex flex-col gap-1.5 border-t border-border pt-3">
-                  <FieldLabel htmlFor={`${fieldId}-time`}>الوقت</FieldLabel>
-                  <Input
-                    id={`${fieldId}-time`}
-                    type="time"
-                    value={timeValue}
-                    disabled={disabled || !selected}
-                    onChange={(event) => {
-                      if (!selected) return
-                      const next = mergeDateAndTime(
-                        selected,
-                        event.target.value || "00:00"
-                      )
-                      field.onChange(toLocalDateTimeValue(next))
-                    }}
-                  />
-                </div>
+                {includeTime ? (
+                  <div className="flex flex-col gap-1.5 border-t border-border pt-3">
+                    <FieldLabel htmlFor={`${fieldId}-time`}>الوقت</FieldLabel>
+                    <Input
+                      id={`${fieldId}-time`}
+                      type="time"
+                      value={timeValue}
+                      disabled={disabled || !selected}
+                      onChange={(event) => {
+                        if (!selected) return
+                        const next = mergeDateAndTime(
+                          selected,
+                          event.target.value || "00:00"
+                        )
+                        field.onChange(toLocalDateTimeValue(next))
+                      }}
+                    />
+                  </div>
+                ) : null}
               </PopoverContent>
             </Popover>
             <FieldError errors={[fieldState.error]} />

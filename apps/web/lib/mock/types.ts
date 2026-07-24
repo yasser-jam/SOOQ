@@ -144,7 +144,74 @@ export type MockDiscountCodeRecord = {
   createdAt: string
 }
 
-export const MOCK_DB_VERSION = 6 as const
+export type MockShippingProviderRecord = {
+  shippingProviderId: string
+  providerCode: string
+  providerName: string
+  apiBaseUrl?: string
+  priority: number
+  hasApiKey: boolean
+  hasWebhookSecret: boolean
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type MockShipmentRecord = {
+  shipmentId: string
+  orderId: string
+  shippingProviderId: string
+  providerCode: string
+  providerName: string
+  originLat: number
+  originLng: number
+  destinationLat: number
+  destinationLng: number
+  shipmentStatus:
+    | "PENDING"
+    | "PICKED_UP"
+    | "IN_TRANSIT"
+    | "READY_FOR_PICKUP_AT_OFFICE"
+    | "DELIVERED"
+    | "FAILED"
+    | "RETURNED"
+  expectedCodAmountSyp: number | null
+  collectedCodAmountSyp: number | null
+  deliveredAt: string | null
+  createdAt: string
+}
+
+export type MockCodSettlementStatus = "PENDING" | "SETTLED" | "DISPUTED"
+
+export type MockCodReconciliationBatchRecord = {
+  batchId: string
+  shippingProviderId: string
+  providerCode: string
+  providerName: string
+  orderCount: number
+  expectedTotalSyp: number
+  collectedTotalSyp: number
+  providerFeePercentage: number
+  providerFeeAmountSyp: number
+  netSettlementSyp: number
+  settlementStatus: MockCodSettlementStatus
+  settlementDate: string
+  reconciledByUserId: string
+  reconciledAt: string
+  notes?: string
+}
+
+export type MockCodCollectionEntryRecord = {
+  codCollectionEntryId: string
+  shipmentId: string
+  paymentTxnId: string | null
+  expectedAmountSyp: number | null
+  collectedAmountSyp: number | null
+  collectedAt: string | null
+}
+
+/** v7: finance COD + shipping providers/shipments for mock dashboard. */
+export const MOCK_DB_VERSION = 7 as const
 
 export type MockDatabase = {
   version: typeof MOCK_DB_VERSION
@@ -162,6 +229,10 @@ export type MockDatabase = {
   discountCodes: MockDiscountCodeRecord[]
   /** Storefront checkout orders (POST /public/checkout) */
   orders: MockOrderRecord[]
+  shippingProviders: MockShippingProviderRecord[]
+  shipments: MockShipmentRecord[]
+  codReconciliationBatches: MockCodReconciliationBatchRecord[]
+  codEntries: MockCodCollectionEntryRecord[]
 }
 
 export type MockRequest = {

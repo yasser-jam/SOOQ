@@ -8,6 +8,12 @@ import {
   seedMockTags,
 } from "./seed-catalog"
 import {
+  seedMockCodEntries,
+  seedMockCodReconciliationBatches,
+  seedMockShipments,
+  seedMockShippingProviders,
+} from "./seed-finance"
+import {
   MOCK_DB_VERSION,
   type MockDatabase,
   type MockDiscountCodeRecord,
@@ -178,4 +184,8 @@ export const createSeedDatabase = (): MockDatabase => ({
   tags: seedMockTags(),
   discountCodes: seedMockDiscountCodes(),
   orders: [],
+  shippingProviders: seedMockShippingProviders(),
+  shipments: seedMockShipments(),
+  codReconciliationBatches: seedMockCodReconciliationBatches(),
+  codEntries: seedMockCodEntries(),
 })

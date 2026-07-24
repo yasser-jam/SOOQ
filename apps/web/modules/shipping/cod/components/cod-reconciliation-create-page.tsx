@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 import PageDialog from "@/components/system/page-dialog"
+import DatePickerField from "@/components/system/date-picker"
 import Field from "@/components/system/Field"
 import TextareaField from "@/components/system/textarea"
 import { useStorePath } from "@/lib/store-path"
@@ -29,7 +30,10 @@ import {
 import { listShippingProviders } from "../../provider/actions"
 import { shippingProviderQueryKeys } from "../../provider/queryKeys"
 import { createCodReconciliationBatch } from "../actions"
-import { initCreateCodReconciliationBatch } from "../init"
+import {
+  initCreateCodReconciliationBatch,
+  toLocalDateInput,
+} from "../init"
 import { createCodReconciliationBatchSchema } from "../schema"
 import { codReconciliationQueryKeys } from "../queryKeys"
 
@@ -50,7 +54,7 @@ export default function CodReconciliationCreatePageView() {
     defaultValues: {
       shippingProviderId: "",
       providerFeePercentage: 5,
-      settlementDate: new Date().toISOString().slice(0, 10),
+      settlementDate: toLocalDateInput(),
       notes: "",
     },
   })
@@ -59,7 +63,7 @@ export default function CodReconciliationCreatePageView() {
     form.reset({
       shippingProviderId: "",
       providerFeePercentage: 5,
-      settlementDate: new Date().toISOString().slice(0, 10),
+      settlementDate: toLocalDateInput(),
       notes: "",
     })
   }, [form])
@@ -149,11 +153,13 @@ export default function CodReconciliationCreatePageView() {
           inputProps={{ disabled: isSubmitting, type: "number", step: "0.01" }}
         />
 
-        <Field
+        <DatePickerField
           name="settlementDate"
           control={form.control}
           label="تاريخ التسوية"
-          inputProps={{ disabled: isSubmitting, type: "date", dir: "ltr" }}
+          placeholder="اختر تاريخ التسوية"
+          disabled={isSubmitting}
+          includeTime={false}
         />
 
         <TextareaField

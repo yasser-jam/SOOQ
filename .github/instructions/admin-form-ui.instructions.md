@@ -109,6 +109,7 @@ Map brand colors to existing tokens from `packages/ui` (`globals.css`):
 
 - Date picking is **Popover + Calendar** (see [shadcn Date Picker](https://ui.shadcn.com/docs/components/base/date-picker)). There is no separate `DatePicker` root in shadcn.
 - Prefer `@/components/system/date-picker` (`DatePickerField`) for react-hook-form fields that store local datetime strings (`YYYY-MM-DDTHH:mm`).
+- For date-only fields (e.g. COD `settlementDate`), pass `includeTime={false}` so the value is `YYYY-MM-DD` with no time input.
 - Calendar lives in `@workspace/ui/components/calendar`. Reuse it; do not paste a one-off calendar into a page.
 - **Forbidden:** `react-datepicker`, `react-date-picker`, and their CSS imports (`react-datepicker/dist/react-datepicker.css`).
 - Keep datetime values in local form shape via existing module `init.ts` helpers — do not switch to UTC `toISOString().slice(...)` unless the schema explicitly requires it.
