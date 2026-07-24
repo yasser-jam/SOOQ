@@ -8,7 +8,13 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck",
-    "test": "turbo test"
+    "test": "turbo test",
+    "web:build": "pnpm --filter web build",
+    "web:dev": "pnpm --filter web dev --webpack",
+    "web:start": "pnpm --filter web start",
+    "store:build": "pnpm --filter store build",
+    "store:dev": "pnpm --filter store dev",
+    "store:start": "pnpm --filter store start --port 3000"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",

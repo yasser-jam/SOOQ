@@ -25,6 +25,10 @@ const config: Options = {
     "@dnd-kit/state",
     "@dnd-kit/geometry",
     "@dnd-kit/utilities",
+    // Next.js path aliases — resolved by apps at build time, not by tsup
+    /^@\/core/,
+    /^@\/modules\//,
+    /^@\/lib\//,
   ],
   esbuildPlugins: [
     {
