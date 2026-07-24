@@ -3,6 +3,7 @@ import theme1Data from "./theme-1.json";
 import theme2Data from "./theme-2.json";
 import theme3Data from "./theme-3.json";
 import themeWahaData from "./theme-waha.json";
+import themeSooqModernData from "./theme-sooq-modern.json";
 
 export type ThemeCatalogItem = {
   id: number;

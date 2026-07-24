@@ -52,3 +52,31 @@ The detailed source for these rules is:
 For expanded operational guidance and applyTo targeting, see:
 
 - .github/instructions/modular-project.instructions.md
+
+---
+
+# Admin Form & UI Styling Instructions
+
+Use this section when building or reviewing admin forms / create-edit detail pages.
+
+## When To Apply
+
+- forms and Field adapters
+- date/time pickers
+- design tokens and colors
+- form layout (grid / spacing)
+- discount-code and other dashboard detail dialogs
+
+## Rules
+
+1. Use system `Field` (`@/components/system/Field`) — do not use `Field as UiField` from `@workspace/ui` in pages.
+2. Use design tokens (`text-primary`, `variant="secondary"`, `border-border`, `text-muted-foreground`) — never hardcode hex colors like `#122640` / `#BA7B1B`.
+3. Use shadcn DatePicker composition (`Popover` + `Calendar` / system `DatePickerField`) — never `react-datepicker`.
+4. Do not use empty spacers or arbitrary classes like `min-h-[16px]` to force alignment.
+5. Keep CSS Grid as the main form layout (`grid … md:grid-cols-2`).
+
+## Source Of Truth
+
+Full guidance, examples, and PR checks:
+
+- .github/instructions/admin-form-ui.instructions.md
