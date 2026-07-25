@@ -1,23 +1,22 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo, useState } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useEffect, useMemo, useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 import {
   ArrowUpRight,
   Check,
   ExternalLink,
+  Loader2,
   Monitor,
   Palette,
-  Pencil,
   Plus,
+  Send,
   Smartphone,
   Sparkles,
   Upload,
   Eye,
-  Download,
-  RefreshCw,
-  Settings,
 } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
@@ -35,27 +34,87 @@ import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 
 import ThemeMarketplaceCard from "./_components/theme-marketplace-card"
 import { ThemeOnboardingDialog } from "./_components/theme-onboarding-dialog"
-import { themeCatalog } from "@/modules/design-studio/store-theme"
 import {
   buildStudioMobileEditHref,
   themeNameToStudioSegment,
 } from "@/lib/design-studio-paths"
-import { useSelectedStoreTheme } from "@/modules/design-studio/use-selected-store-theme"
+import {
+  getDesignDraftQueryOptions,
+  listDesignVersionsQueryOptions,
+  publishDesign,
+} from "@/modules/design-studio/actions"
+import { designStudioKeys } from "@/modules/design-studio/queryKeys"
+import {
+  applyStudioTemplate,
+  readDraftTemplateKey,
+  resolveActiveThemeName,
+  syncSelectedThemeCache,
+  useStudioTemplates,
+  type StudioTemplateCard,
+} from "@/modules/design-studio/templates"
 
 export default function DesignStudioPage() {
   const storePath = useStorePath()
-  const { data: settings, isPending } = useQuery(getStoreSettingsQueryOptions())
-  const { selectedTheme, selectTheme, isReady } = useSelectedStoreTheme()
+  const queryClient = useQueryClient()
+  const { data: settings, isPending: isSettingsPending } = useQuery(
+    getStoreSettingsQueryOptions()
+  )
+  const { templates, isPending: isTemplatesPending } = useStudioTemplates()
+  const { data: draft, isPending: isDraftPending } = useQuery(
+    getDesignDraftQueryOptions()
+  )
+  const { data: versions = [] } = useQuery(listDesignVersionsQueryOptions())
   const [onboardingOpen, setOnboardingOpen] = useState(false)
 
+  const applyTemplateMutation = useMutation({
+    mutationFn: applyStudioTemplate,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
+      toast.success("تم تطبيق القالب. افتح المحرر لتخصيصه.")
+    },
+    onError: () => {
+      toast.error("تعذر تطبيق القالب. حاول مرة أخرى.")
+    },
+  })
+
+  const publishMutation = useMutation({
+    mutationFn: publishDesign,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
+      toast.success("تم نشر التصميم.")
+    },
+    onError: () => {
+      toast.error("تعذر النشر. تحقق من وجود مسودة قابلة للنشر.")
+    },
+  })
+
   const editorBase = storePath("/design-studio")
-  const themeSegment = selectedTheme
-    ? themeNameToStudioSegment(selectedTheme.name)
-    : "theme-1"
+  const activeTemplateKey = readDraftTemplateKey(draft)
+  const activeTemplate: StudioTemplateCard | null = useMemo(() => {
+    if (!activeTemplateKey) return null
+    return templates.find((t) => t.templateKey === activeTemplateKey) ?? null
+  }, [activeTemplateKey, templates])
+
+  const activeThemeName = resolveActiveThemeName(draft, templates)
+
+  useEffect(() => {
+    syncSelectedThemeCache(draft, templates)
+  }, [draft, templates])
+
+  const publishedVersionNumber = useMemo(() => {
+    const published = versions
+      .filter((v) => v.lifecycleStatus === "PUBLISHED")
+      .map((v) => v.versionNumber ?? 0)
+    return published.length > 0 ? Math.max(...published) : null
+  }, [versions])
+
+  const themeSegment = themeNameToStudioSegment(
+    activeThemeName || "Theme 1"
+  )
   const themeEditHref = `${editorBase}/${themeSegment}/edit`
   const themeMobileEditHref = buildStudioMobileEditHref(
     editorBase,
-    selectedTheme?.name ?? "Theme 1"
+    activeThemeName || "Theme 1"
   )
   const themesGalleryHref = themeEditHref
 
@@ -66,11 +125,9 @@ export default function DesignStudioPage() {
     return `${window.location.origin}/shop/${storeSlug}`
   }, [storeSlug])
 
-  // TODO: Wire these to real stage flags from backend/localStorage
-  const hasCompletedConfig = true
-  const hasSelectedTheme = isReady && !!selectedTheme
-  const hasMobileApp = false
-  const mobileInstalls = 0
+  const hasCompletedConfig = Boolean(settings)
+  const hasDraft = Boolean(draft)
+  const isReady = !isDraftPending
 
   return (
     <div className="container space-y-8 py-8">
@@ -87,64 +144,94 @@ export default function DesignStudioPage() {
               واحد.
             </p>
           </div>
-          <Button variant="secondary" onClick={() => setOnboardingOpen(true)}>
-            <Plus data-icon="inline-start" className="size-4" />
-            إنشاء ثيم مخصص
-          </Button>
+          <div className="flex items-center gap-2">
+            {hasDraft && (
+              <Button
+                variant="default"
+                onClick={() => publishMutation.mutate()}
+                disabled={publishMutation.isPending}
+              >
+                {publishMutation.isPending ? (
+                  <Loader2 data-icon="inline-start" className="size-4 animate-spin" />
+                ) : (
+                  <Send data-icon="inline-start" className="size-4" />
+                )}
+                نشر التصميم
+              </Button>
+            )}
+            <Button variant="secondary" onClick={() => setOnboardingOpen(true)}>
+              <Plus data-icon="inline-start" className="size-4" />
+              إنشاء ثيم مخصص
+            </Button>
+          </div>
         </div>
       </header>
 
       {/* Stage 1: Store configuration not done */}
       {!hasCompletedConfig && <StoreConfigCta storePath={storePath} />}
 
-      {/* Stage 2: No theme selected */}
-      {hasCompletedConfig && !hasSelectedTheme && <NoThemeCta />}
+      {/* Stage 2: Config done, no design draft yet */}
+      {hasCompletedConfig && isReady && !hasDraft && <NoThemeCta />}
 
-      {/* Stage 3: Active theme hero — store URL bar is embedded inside */}
-      {hasSelectedTheme && selectedTheme && (
+      {/* Stage 3: Active design hero */}
+      {hasDraft && draft && (
         <ActiveThemeCard
-          theme={selectedTheme}
+          themeName={activeThemeName}
+          previewImageUrl={activeTemplate?.previewImageUrl ?? null}
+          draftVersionNumber={draft.versionNumber}
+          publishedVersionNumber={publishedVersionNumber}
+          lifecycleStatus={draft.lifecycleStatus}
           themeEditHref={themeEditHref}
           themeMobileEditHref={themeMobileEditHref}
           shopUrl={shopUrl}
-          isPending={isPending}
+          isPending={isSettingsPending}
         />
       )}
 
-      {/* Theme marketplace */}
+      {/* Template marketplace */}
       <section className="space-y-5">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="text-text text-xl font-semibold">قوالب الثيمات</h2>
+            <h2 className="text-text text-xl font-semibold">قوالب التصميم</h2>
             <p className="text-sm text-muted-foreground">
-              استكشف اتجاهات بصرية جاهزة أو طبّق ثيماً جديداً على متجرك.
+              استكشف قوالب جاهزة أو طبّق قالباً جديداً على متجرك.
             </p>
           </div>
           <Button variant="outline" size="sm" asChild>
-            <Link href={themesGalleryHref}>استكشف المزيد</Link>
+            <Link href={themesGalleryHref}>افتح المحرر</Link>
           </Button>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {themeCatalog.map((theme) => (
-            <ThemeMarketplaceCard
-              key={theme.id}
-              title={theme.name}
-              description={theme.description}
-              previewImage={theme.image}
-              isActive={selectedTheme?.id === theme.id}
-              onSelect={() => selectTheme(theme.id)}
-            />
-          ))}
-        </div>
+        {isTemplatesPending ? (
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="aspect-[4/3] w-full rounded-xl" />
+            ))}
+          </div>
+        ) : templates.length === 0 ? (
+          <Card className="border border-border/60">
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              لا توجد قوالب متاحة حالياً.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {templates.map((template) => (
+              <ThemeMarketplaceCard
+                key={template.templateKey}
+                title={template.templateName}
+                description={template.description}
+                previewImage={template.previewImageUrl ?? undefined}
+                isActive={activeTemplateKey === template.templateKey}
+                onSelect={() => applyTemplateMutation.mutate(template)}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Mobile app section */}
-      {hasMobileApp ? (
-        <MobileAppStats installs={mobileInstalls} />
-      ) : (
-        <MobileAppCta />
-      )}
+      {/* Mobile app section (placeholder) */}
+      <MobileAppCta />
 
       {/* Onboarding dialog */}
       <ThemeOnboardingDialog
@@ -248,14 +335,14 @@ function NoThemeCta() {
       <CardContent className="py-6">
         <div className="grid grid-cols-[1fr_auto] items-center gap-6">
           <div>
-            <CardTitle className="mb-1 text-xl">اختر ثيماً لمتجرك</CardTitle>
+            <CardTitle className="mb-1 text-xl">اختر قالباً لمتجرك</CardTitle>
             <CardDescription className="mb-4 text-sm leading-relaxed">
               اختر أحد القوالب الجاهزة أدناه كنقطة انطلاق، ثم خصّصه كما تريد
               من محرر التصميم.
             </CardDescription>
             <div className="mb-4 flex flex-wrap gap-2">
               <Badge variant="primary">
-                <Sparkles className="size-3" /> ٦ قوالب متاحة
+                <Sparkles className="size-3" /> قوالب من الخادم
               </Badge>
               <Badge variant="outline">تخصيص كامل بعد الاختيار</Badge>
             </div>
@@ -292,18 +379,32 @@ function NoThemeCta() {
 // ─── Stage 3: Active Theme Hero ──────────────────────────────────────────────
 
 function ActiveThemeCard({
-  theme,
+  themeName,
+  previewImageUrl,
+  draftVersionNumber,
+  publishedVersionNumber,
+  lifecycleStatus,
   themeEditHref,
   themeMobileEditHref,
   shopUrl,
   isPending,
 }: {
-  theme: { name: string; description: string; image?: string }
+  themeName: string
+  previewImageUrl: string | null
+  draftVersionNumber: number | null
+  publishedVersionNumber: number | null
+  lifecycleStatus: string
   themeEditHref: string
   themeMobileEditHref: string
   shopUrl: string
   isPending: boolean
 }) {
+  const statusLabel =
+    lifecycleStatus === "PUBLISHED"
+      ? "منشور"
+      : lifecycleStatus === "DRAFT"
+        ? "مسودة"
+        : lifecycleStatus
   return (
     <Card className="overflow-hidden border border-border/60 p-0">
       {/* Two-column: image (inline-start / right in RTL) | info */}
@@ -312,14 +413,14 @@ function ActiveThemeCard({
         <div className="relative min-h-[280px] basis-80 flex-shrink-0 bg-gradient-to-br from-stone-100 via-background to-amber-50/30">
           <span className="absolute start-3 top-3 z-10 flex items-center gap-1.5 rounded-full bg-background/90 px-3 py-1 text-xs font-bold text-emerald-600">
             <span className="size-1.5 rounded-full bg-emerald-500" />
-            معاينة حية
+            {statusLabel}
           </span>
 
-          {theme.image ? (
+          {previewImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={theme.image}
-              alt={theme.name}
+              src={previewImageUrl}
+              alt={themeName}
               className="size-full object-cover"
             />
           ) : (
@@ -344,25 +445,15 @@ function ActiveThemeCard({
         <div className="flex min-w-80 flex-1 flex-col gap-5 p-7">
           <div>
             <Badge variant="secondary-tonal" className="mb-3">
-              <Palette className="size-3" /> الثيم النشط
+              <Palette className="size-3" /> التصميم النشط
             </Badge>
-            <h2 className="mb-2 text-2xl font-extrabold">{theme.name}</h2>
+            <h2 className="mb-2 text-2xl font-extrabold">{themeName}</h2>
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              {theme.description}
+              {publishedVersionNumber
+                ? `آخر إصدار منشور: v${publishedVersionNumber}`
+                : "لم يتم النشر بعد. استكمل التخصيص من المحرر ثم اضغط نشر."}
+              {draftVersionNumber ? ` · المسودة v${draftVersionNumber}` : ""}
             </p>
-          </div>
-
-          {/* Color swatches */}
-          <div className="flex flex-col gap-2">
-            <span className="text-xs text-muted-foreground">
-              الألوان المستخدمة
-            </span>
-            <div className="flex gap-2">
-              <div className="size-6 rounded-md border border-border/50 bg-primary" />
-              <div className="size-6 rounded-md border border-border/50 bg-background" />
-              <div className="size-6 rounded-md border border-border/50 bg-secondary" />
-              <div className="size-6 rounded-md border border-border/50 bg-muted-foreground/60" />
-            </div>
           </div>
 
           {/* Action buttons */}
@@ -415,7 +506,7 @@ function ActiveThemeCard({
   )
 }
 
-// ─── Stage 4a: Mobile App CTA ────────────────────────────────────────────────
+// ─── Mobile App CTA (unchanged placeholder) ─────────────────────────────────
 
 function MobileAppCta() {
   return (
@@ -430,11 +521,10 @@ function MobileAppCta() {
       <Card className="border border-border/60">
         <CardContent className="py-8">
           <div className="flex flex-wrap items-center gap-10">
-            {/* Phone mockup – first in DOM → inline-start (right in RTL) */}
+            {/* Phone mockup */}
             <div className="flex-shrink-0">
               <div className="flex h-[280px] w-[140px] flex-col rounded-[28px] border-[8px] border-foreground/80 bg-foreground/80 p-1.5">
                 <div className="relative flex-1 overflow-hidden rounded-[18px] bg-muted">
-                  {/* Simulated screen content */}
                   <div className="flex h-full flex-col gap-1.5 p-2">
                     <div className="h-4 rounded bg-primary/20" />
                     <div className="h-1.5 w-3/4 rounded-full bg-muted-foreground/20" />
@@ -446,7 +536,6 @@ function MobileAppCta() {
                       <div className="rounded bg-muted-foreground/10" />
                     </div>
                   </div>
-                  {/* Overlay */}
                   <div className="absolute inset-0 flex items-center justify-center rounded-[18px] bg-background/50">
                     <Plus className="size-8 text-muted-foreground/40" />
                   </div>
@@ -469,11 +558,6 @@ function MobileAppCta() {
                 حوّل متجرك إلى تطبيق جوال يمكن للعملاء تحميله وتثبيته.
                 التطبيق يعكس تصميم ثيمك الحالي تلقائياً.
               </p>
-              <div className="flex flex-wrap gap-5">
-                <FeatureChip label="مزامنة تلقائية مع الثيم" />
-                <FeatureChip label="إشعارات فورية" />
-                <FeatureChip label="تصفّح بدون إنترنت" />
-              </div>
               <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
                 <Button variant="ghost" size="sm">
                   معرفة المزيد
@@ -483,112 +567,6 @@ function MobileAppCta() {
                   إنشاء التطبيق الآن
                 </Button>
               </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </section>
-  )
-}
-
-function FeatureChip({ label }: { label: string }) {
-  return (
-    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      <span className="flex size-4 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-        <Check className="size-2.5" />
-      </span>
-      {label}
-    </span>
-  )
-}
-
-// ─── Stage 4b: Mobile App Stats ──────────────────────────────────────────────
-
-function MobileAppStats({ installs }: { installs: number }) {
-  return (
-    <section className="space-y-5">
-      <div className="space-y-1">
-        <h2 className="text-text text-xl font-semibold">تطبيق الجوال</h2>
-        <p className="text-sm text-muted-foreground">
-          تطبيقك جاهز ومتاح للعملاء. يتم تحديثه تلقائياً مع كل تعديل على
-          الثيم.
-        </p>
-      </div>
-
-      <Card className="border border-border/60">
-        <CardContent className="py-6">
-          <div className="grid grid-cols-[1fr_auto] items-center gap-6">
-            <div>
-              <div className="mb-3 flex items-center gap-2">
-                <CardTitle className="text-lg">
-                  تطبيق المتجر للجوال
-                </CardTitle>
-                <Badge variant="secondary-tonal">
-                  <Check className="size-3" /> تم التوليد
-                </Badge>
-              </div>
-              <CardDescription className="mb-4 text-sm leading-relaxed">
-                تطبيقك جاهز ومتاح للعملاء. يتم تحديثه تلقائياً مع كل تعديل
-                على الثيم.
-              </CardDescription>
-
-              <div className="mb-5 flex gap-6">
-                <div>
-                  <p className="text-2xl font-bold">{installs}</p>
-                  <p className="text-xs text-muted-foreground">
-                    عدد التثبيتات
-                  </p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">٤٧</p>
-                  <p className="text-xs text-muted-foreground">
-                    مستخدم نشط
-                  </p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">٢.١ MB</p>
-                  <p className="text-xs text-muted-foreground">
-                    حجم التطبيق
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button>
-                  <Settings data-icon="inline-start" className="size-4" />
-                  إعدادات التطبيق
-                </Button>
-                <Button variant="outline">
-                  <RefreshCw data-icon="inline-start" className="size-4" />
-                  إعادة التوليد
-                </Button>
-                <Button variant="outline">
-                  <Download data-icon="inline-start" className="size-4" />
-                  تحميل APK
-                </Button>
-              </div>
-            </div>
-
-            {/* Phone wireframe */}
-            <div className="flex flex-col items-center gap-2">
-              <div className="flex h-[280px] w-[140px] flex-col rounded-[28px] border-[8px] border-foreground/80 bg-foreground/80 p-1.5">
-                <div className="flex-1 overflow-hidden rounded-[18px] bg-muted">
-                  <div className="flex h-full flex-col gap-1.5 p-2">
-                    <div className="h-4 rounded bg-primary/20" />
-                    <div className="h-1.5 w-3/4 rounded-full bg-muted-foreground/20" />
-                    <div className="h-1.5 w-1/2 rounded-full bg-muted-foreground/20" />
-                    <div className="mt-1 grid flex-1 grid-cols-2 gap-1">
-                      <div className="rounded bg-muted-foreground/10" />
-                      <div className="rounded bg-muted-foreground/10" />
-                      <div className="rounded bg-muted-foreground/10" />
-                      <div className="rounded bg-muted-foreground/10" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <span className="text-[11px] text-muted-foreground">
-                معاينة التطبيق
-              </span>
             </div>
           </div>
         </CardContent>

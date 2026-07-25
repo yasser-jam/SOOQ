@@ -1,66 +1,65 @@
 import type { SiteData } from "../config/lib/site-data";
-import theme1Data from "./theme-1.json";
-import theme2Data from "./theme-2.json";
-import theme3Data from "./theme-3.json";
-import themeWahaData from "./theme-waha.json";
-import themeSooqModernData from "./theme-sooq-modern.json";
 
-export type ThemeCatalogItem = {
-  id: number;
-  name: string;
+/**
+ * Card metadata for the themes we still ship in the client bundle.
+ *
+ * These exist only because the DSN backend's seeded templates carry empty
+ * `templateJson`. They are applied through `PUT /admin/design/draft` and are
+ * meant to be retired once the backend seeds real payloads — at which point
+ * this whole module can be deleted without touching the gallery UI.
+ *
+ * Payloads are loaded on demand: statically importing them pulled ~1.1MB of
+ * JSON into every page that rendered the gallery.
+ *
+ * `legacy/theme-waha.json` is excluded: its pages use the pre-`SitePage` shape
+ * (`route` instead of `path`), which normalizes to `path: undefined`. Migrate
+ * it before listing it here.
+ */
+export type BuiltinThemeSummary = {
+  templateKey: string;
+  templateName: string;
   description: string;
-  image: string;
-  siteData: SiteData;
+  previewImageUrl: string | null;
 };
 
-const themeDataByFile = {
-  "theme-1.json": theme1Data as SiteData,
-  "theme-2.json": theme2Data as SiteData,
-  "theme-3.json": theme3Data as SiteData,
-  "theme-waha.json": themeWahaData as SiteData,
-} as const;
+const builtinThemeLoaders: Record<string, () => Promise<unknown>> = {
+  "builtin-sooq-modern": () => import("./theme-sooq-modern.json"),
+};
 
-const catalogEntries = [
+export const builtinThemeCatalog: BuiltinThemeSummary[] = [
   {
-    id: 1,
-    name: "Theme 1",
-    description: "Theme 1 description",
-    image: "https://via.placeholder.com/150",
-    theme: "theme-1.json",
+    templateKey: "builtin-sooq-modern",
+    templateName: "سوق مودرن",
+    description:
+      "قالب متعدد الصفحات بتصميم عصري — صفحة رئيسية، منتجات، تفاصيل منتج، سلة، وتسجيل دخول.",
+    previewImageUrl:
+      "https://placehold.co/400x250/1f2937/f9fafb?text=%D8%B3%D9%88%D9%82",
   },
-  {
-    id: 2,
-    name: "Theme 2",
-    description: "Theme 2 description",
-    image: "https://via.placeholder.com/150",
-    theme: "theme-2.json",
-  },
-  {
-    id: 3,
-    name: "Theme 3",
-    description: "Theme 3 description",
-    image: "https://via.placeholder.com/150",
-    theme: "theme-3.json",
-  },
-  {
-    id: 4,
-    name: "واحة",
-    description: "ثيم عربي متجاوب — لوحة ألوان دافئة، خطوط Nunito و Poppins، رأس متجاوب بزر قائمة جوال ودرج تنقل جانبي.",
-    image: "https://placehold.co/400x250/1b6b8a/f5f3ef?text=%D9%88%D8%A7%D8%AD%D8%A9",
-    theme: "theme-waha.json",
-  },
-] as const;
+];
 
-export const themeCatalog: ThemeCatalogItem[] = catalogEntries.map((entry) => ({
-  id: entry.id,
-  name: entry.name,
-  description: entry.description,
-  image: entry.image,
-  siteData: themeDataByFile[entry.theme],
-}));
-
-export function getThemeById(id: number): ThemeCatalogItem | undefined {
-  return themeCatalog.find((theme) => theme.id === id);
+export function isBuiltinThemeKey(templateKey: string): boolean {
+  return Object.prototype.hasOwnProperty.call(
+    builtinThemeLoaders,
+    templateKey
+  );
 }
 
-export default themeCatalog;
+export function getBuiltinTheme(
+  templateKey: string
+): BuiltinThemeSummary | undefined {
+  return builtinThemeCatalog.find(
+    (theme) => theme.templateKey === templateKey
+  );
+}
+
+export async function loadBuiltinThemeSiteData(
+  templateKey: string
+): Promise<SiteData | null> {
+  const loader = builtinThemeLoaders[templateKey];
+  if (!loader) return null;
+
+  const mod = (await loader()) as { default?: SiteData } & SiteData;
+  return (mod.default ?? mod) as SiteData;
+}
+
+export default builtinThemeCatalog;

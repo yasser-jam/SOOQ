@@ -1,4 +1,7 @@
-import { readSelectedTheme } from "@/core/config/lib/selected-theme";
+import {
+	FALLBACK_THEME_NAME,
+	readSelectedTheme,
+} from "@/core/config/lib/selected-theme";
 import type { EditorMode } from "@/core/config/lib/editor-mode";
 
 /** Maps a theme name (e.g. `Theme 1`) to a design-studio URL segment. */
@@ -40,8 +43,10 @@ export function buildStudioMobileEditHrefFromSegment(
 
 export function resolveStudioThemeMobileEditHref(studioBase: string): string {
 	const theme = readSelectedTheme();
-	const themeName = theme?.name ?? "Theme 1";
-	return buildStudioMobileEditHref(studioBase, themeName);
+	return buildStudioMobileEditHref(
+		studioBase,
+		theme?.name ?? FALLBACK_THEME_NAME,
+	);
 }
 
 export function buildStudioPreviewHref(
@@ -60,14 +65,12 @@ export function buildStudioEditHref(
 
 export function resolveStudioThemeEditHref(studioBase: string): string {
 	const theme = readSelectedTheme();
-	const themeName = theme?.name ?? "Theme 1";
-	return buildStudioEditHref(studioBase, themeName);
+	return buildStudioEditHref(studioBase, theme?.name ?? FALLBACK_THEME_NAME);
 }
 
 export function resolveStudioThemePreviewHref(studioBase: string): string {
 	const theme = readSelectedTheme();
-	const themeName = theme?.name ?? "Theme 1";
-	return buildStudioPreviewHref(studioBase, themeName);
+	return buildStudioPreviewHref(studioBase, theme?.name ?? FALLBACK_THEME_NAME);
 }
 
 export function buildStudioEditHrefFromSegment(

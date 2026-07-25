@@ -2,10 +2,13 @@
 
 import { useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Loader2,
   Monitor,
   Palette,
   Ruler,
@@ -43,10 +46,13 @@ import {
 } from "@/core/config/theme"
 import {
   normalizeSiteData,
-  writeSiteData,
   type SiteData,
   type SitePage,
 } from "@/core/config/lib/site-data"
+import {
+  FALLBACK_THEME_NAME,
+  writeSelectedTheme,
+} from "@/core/config/lib/selected-theme"
 import { DEFAULT_HEADER_LINKS, type HeaderLink } from "@/core/config/components/Header"
 import { DEFAULT_FOOTER_COLUMNS, type FooterColumn } from "@/core/config/components/Footer"
 import {
@@ -64,6 +70,12 @@ import {
   type SectionPreset,
 } from "@/core/config/presets"
 import { buildStudioEditHref } from "@/lib/design-studio-paths"
+import {
+  DESIGN_SCHEMA_VERSION,
+  saveDesignDraft,
+} from "@/modules/design-studio/actions"
+import { designStudioKeys } from "@/modules/design-studio/queryKeys"
+import { CUSTOM_TEMPLATE_KEY } from "@/modules/design-studio/templates"
 
 // ─── Steps ──────────────────────────────────────────────────────────────────
 
@@ -432,6 +444,7 @@ export function ThemeOnboardingDialog({
 }: ThemeOnboardingDialogProps) {
   const router = useRouter()
   const params = useParams()
+  const queryClient = useQueryClient()
   const storeSlug = params.storeSlug as string
 
   const [currentStep, setCurrentStep] = useState(1)
@@ -466,16 +479,43 @@ export function ThemeOnboardingDialog({
     if (currentStep > 1) setCurrentStep((s) => s - 1)
   }
 
+  const createDraftMutation = useMutation({
+    mutationFn: async () => {
+      const themeName = data.storeName.trim() || FALLBACK_THEME_NAME
+      const siteData = normalizeSiteData(buildSiteDataFromState(data))
+
+      const version = await saveDesignDraft({
+        configJson: {
+          web: siteData,
+          mobile: {},
+          templateKey: CUSTOM_TEMPLATE_KEY,
+        },
+        schemaVersion: DESIGN_SCHEMA_VERSION,
+      })
+
+      return { version, themeName }
+    },
+    onSuccess: async ({ themeName }) => {
+      writeSelectedTheme({
+        templateKey: CUSTOM_TEMPLATE_KEY,
+        name: themeName,
+        previewImageUrl: null,
+      })
+      await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
+
+      onOpenChange(false)
+      setCurrentStep(1)
+
+      const studioBase = `/store/${storeSlug}/design-studio`
+      router.push(buildStudioEditHref(studioBase, themeName))
+    },
+    onError: () => {
+      toast.error("تعذر حفظ الثيم المخصص. حاول مرة أخرى.")
+    },
+  })
+
   const handleComplete = () => {
-    const siteData = buildSiteDataFromState(data)
-    writeSiteData(normalizeSiteData(siteData))
-
-    onOpenChange(false)
-    setCurrentStep(1)
-
-    const studioBase = `/store/${storeSlug}/design-studio`
-    const themeName = data.storeName.trim() || "Theme 1"
-    router.push(buildStudioEditHref(studioBase, themeName))
+    createDraftMutation.mutate()
   }
 
   return (
@@ -569,8 +609,19 @@ export function ThemeOnboardingDialog({
               <ChevronLeft data-icon="inline-end" className="size-4" />
             </Button>
           ) : (
-            <Button variant="secondary" onClick={handleComplete}>
-              <Sparkles data-icon="inline-start" className="size-4" />
+            <Button
+              variant="secondary"
+              onClick={handleComplete}
+              disabled={createDraftMutation.isPending}
+            >
+              {createDraftMutation.isPending ? (
+                <Loader2
+                  data-icon="inline-start"
+                  className="size-4 animate-spin"
+                />
+              ) : (
+                <Sparkles data-icon="inline-start" className="size-4" />
+              )}
               ابدأ التحرير في المحرر
             </Button>
           )}

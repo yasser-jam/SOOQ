@@ -1,10 +1,13 @@
 /**
  * Fixture round-trip suite (roadmap A4-2).
  *
- * The static theme exports in `core/themes/theme-{1,2,3}.json` are treated as
- * the persistence contract: whatever refactor touches normalize-editor-data /
+ * The builtin theme exports in `core/themes/*.json` are treated as the
+ * persistence contract: whatever refactor touches normalize-editor-data /
  * site-data must keep these green. If a change legitimately alters the
  * contract, update this spec consciously — never silently.
+ *
+ * `core/themes/legacy/` is deliberately outside the glob: those fixtures use
+ * the pre-`SitePage` page shape and are kept only until they are migrated.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -26,13 +29,14 @@ const loadThemeFixture = (name: string): Partial<SiteData> =>
   JSON.parse(fs.readFileSync(path.join(THEMES_DIR, name), "utf8"));
 
 const themeFiles = fs
-  .readdirSync(THEMES_DIR)
-  .filter((file) => file.endsWith(".json"))
+  .readdirSync(THEMES_DIR, { withFileTypes: true })
+  .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+  .map((entry) => entry.name)
   .sort();
 
 describe("theme fixtures exist", () => {
-  it("finds the static theme JSON files", () => {
-    expect(themeFiles.length).toBeGreaterThanOrEqual(3);
+  it("finds the builtin theme JSON files", () => {
+    expect(themeFiles.length).toBeGreaterThanOrEqual(1);
   });
 });
 

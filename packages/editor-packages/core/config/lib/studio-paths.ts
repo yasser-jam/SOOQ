@@ -1,4 +1,4 @@
-import { readSelectedTheme } from "./selected-theme";
+import { FALLBACK_THEME_NAME, readSelectedTheme } from "./selected-theme";
 
 /** Maps a theme name (e.g. `Theme 1`) to a design-studio URL segment. */
 export function themeNameToStudioSegment(themeName: string): string {
@@ -42,14 +42,12 @@ export function parseStudioPathname(pathname: string): {
 
 export function resolveStudioThemeEditHref(studioBase: string): string {
   const theme = readSelectedTheme();
-  const themeName = theme?.name ?? "Theme 1";
-  return buildStudioEditHref(studioBase, themeName);
+  return buildStudioEditHref(studioBase, theme?.name ?? FALLBACK_THEME_NAME);
 }
 
 export function resolveStudioThemePreviewHref(studioBase: string): string {
   const theme = readSelectedTheme();
-  const themeName = theme?.name ?? "Theme 1";
-  return buildStudioPreviewHref(studioBase, themeName);
+  return buildStudioPreviewHref(studioBase, theme?.name ?? FALLBACK_THEME_NAME);
 }
 
 export function buildStudioEditHrefFromSegment(

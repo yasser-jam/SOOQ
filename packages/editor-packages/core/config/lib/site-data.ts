@@ -136,7 +136,9 @@ export function resolveSitePageEditPath(page: SitePage) {
 }
 
 const matchDynamicPathPattern = (pattern: string, pathname: string): boolean => {
-  if (!pattern.includes(":")) return false;
+  // Sites authored against the pre-SitePage schema (`route` instead of `path`)
+  // normalize to pages with no path; those can never match a dynamic route.
+  if (typeof pattern !== "string" || !pattern.includes(":")) return false;
 
   const patternSegments = pattern.split("/").filter(Boolean);
   const pathSegments = pathname.split("/").filter(Boolean);

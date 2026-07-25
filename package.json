@@ -9,6 +9,7 @@
     "format": "turbo format",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
+    "design:export-seed": "node scripts/export-design-seed-payloads.mjs",
     "web:build": "pnpm --filter web build",
     "web:dev": "pnpm --filter web dev --webpack",
     "web:start": "pnpm --filter web start",
