@@ -1,11 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { Check } from "lucide-react"
 import { toast } from "sonner"
 
 import Field from "@/components/system/Field"
@@ -26,20 +25,9 @@ import { ProductCategory } from "@/modules/product/category/types"
 import { init } from "@/modules/product/category/lib/init"
 import { Button } from "@workspace/ui/components/button"
 import { DialogClose } from "@workspace/ui/components/dialog"
-import {
-  Field as UiField,
-  FieldError,
-  FieldLabel,
-} from "@workspace/ui/components/field"
 import CategorySelect from "@/modules/product/category/components/select"
 import CategoryTemplateSelect from "@/modules/product/category/components/template-select"
 import TextareaField from "@/components/system/textarea"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/system/tabs"
 import SysSwitch from "@/components/system/switch"
 
 export default function EditCategoryPage() {
@@ -54,7 +42,6 @@ export default function EditCategoryPage() {
   const parentIdFromQuery = searchParams.get("parentId")
 
   const isEdit = categoryId !== "create"
-  const [languageTab, setLanguageTab] = useState("ar")
   const userEditedSlug = useRef(false)
 
   const form = useForm({
@@ -182,138 +169,70 @@ export default function EditCategoryPage() {
             المعلومات الأساسية
           </h3>
 
-          <Tabs
-            value={languageTab}
-            onValueChange={setLanguageTab}
-            className="w-full"
-          >
-            <TabsList className="mb-3 grid w-full max-w-md grid-cols-2">
-              <TabsTrigger
-                value="ar"
-                className="data-[state=active]:text-white"
-                style={
-                  languageTab === "ar"
-                    ? { backgroundColor: "#BA7B1B" }
-                    : undefined
-                }
-              >
-                العربية
-              </TabsTrigger>
-              <TabsTrigger
-                value="en"
-                className="data-[state=active]:text-white"
-                style={
-                  languageTab === "en"
-                    ? { backgroundColor: "#BA7B1B" }
-                    : undefined
-                }
-              >
-                الإنجليزية
-              </TabsTrigger>
-            </TabsList>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Field
+                name="nameAr"
+                control={form.control}
+                label="الاسم بالعربية"
+                inputProps={{
+                  disabled: isSubmitting,
+                  placeholder: "مثال: إلكترونيات",
+                }}
+              />
+              <p className="text-xs text-gray-500">
+                اسم الفئة باللغة العربية كما سيظهر للمستخدمين
+              </p>
+            </div>
+            <div className="space-y-1">
+              <Field
+                name="nameEn"
+                control={form.control}
+                label="الاسم بالإنجليزية"
+                inputProps={{
+                  disabled: isSubmitting,
+                  placeholder: "Example: Electronics",
+                }}
+              />
+              <p className="text-xs text-gray-500">
+                اسم الفئة باللغة الإنجليزية كما سيظهر للمستخدمين
+              </p>
+            </div>
+          </div>
 
-            <TabsContent value="ar" className="space-y-3">
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label
-                    className="text-sm font-medium"
-                    style={{ color: "#122640" }}
-                  >
-                    الاسم بالعربية
-                  </label>
-                  {form.watch("nameAr") && !form.formState.errors.nameAr && (
-                    <Check className="size-4 text-green-500" />
-                  )}
-                </div>
-                <Field
-                  name="nameAr"
-                  control={form.control}
-                  label=""
-                  inputProps={{
-                    disabled: isSubmitting,
-                    placeholder: "مثال: إلكترونيات",
-                  }}
-                />
-                <p className="text-xs text-gray-500">
-                  اسم الفئة باللغة العربية كما سيظهر للمستخدمين
-                </p>
-              </div>
+          <div className="space-y-1">
+            <TextareaField
+              name="descriptionAr"
+              control={form.control}
+              label="الوصف بالعربية"
+              textareaProps={{
+                placeholder:
+                  "مثال: أحدث الأجهزة الإلكترونية والملحقات بأسعار منافسة",
+                disabled: isSubmitting,
+                rows: 4,
+              }}
+            />
+            <p className="text-xs text-gray-500">
+              وصف تفصيلي للفئة باللغة العربية
+            </p>
+          </div>
 
-              <div className="space-y-1">
-                <label
-                  className="text-sm font-medium"
-                  style={{ color: "#122640" }}
-                >
-                  الوصف بالعربية
-                </label>
-                <TextareaField
-                  name="descriptionAr"
-                  control={form.control}
-                  label=""
-                  textareaProps={{
-                    placeholder:
-                      "مثال: أحدث الأجهزة الإلكترونية والملحقات بأسعار منافسة",
-                    disabled: isSubmitting,
-                    rows: 4,
-                  }}
-                />
-                <p className="text-xs text-gray-500">
-                  وصف تفصيلي للفئة باللغة العربية
-                </p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="en" className="space-y-3">
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label
-                    className="text-sm font-medium"
-                    style={{ color: "#122640" }}
-                  >
-                    الاسم بالإنجليزية
-                  </label>
-                  {form.watch("nameEn") && !form.formState.errors.nameEn && (
-                    <Check className="size-4 text-green-500" />
-                  )}
-                </div>
-                <Field
-                  name="nameEn"
-                  control={form.control}
-                  label=""
-                  inputProps={{
-                    disabled: isSubmitting,
-                    placeholder: "Example: Electronics",
-                  }}
-                />
-                <p className="text-xs text-gray-500">
-                  اسم الفئة باللغة الإنجليزية كما سيظهر للمستخدمين
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <label
-                  className="text-sm font-medium"
-                  style={{ color: "#122640" }}
-                >
-                  الوصف بالإنجليزية
-                </label>
-                <TextareaField
-                  name="descriptionEn"
-                  control={form.control}
-                  label=""
-                  textareaProps={{
-                    disabled: isSubmitting,
-                    placeholder:
-                      "Example: Latest electronic devices and accessories at competitive prices",
-                    rows: 4,
-                  }}
-                />
-                <p className="text-xs text-gray-500">
-                  وصف تفصيلي للفئة باللغة الإنجليزية
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
+          <div className="space-y-1">
+            <TextareaField
+              name="descriptionEn"
+              control={form.control}
+              label="الوصف بالإنجليزية"
+              textareaProps={{
+                disabled: isSubmitting,
+                placeholder:
+                  "Example: Latest electronic devices and accessories at competitive prices",
+                rows: 4,
+              }}
+            />
+            <p className="text-xs text-gray-500">
+              وصف تفصيلي للفئة باللغة الإنجليزية
+            </p>
+          </div>
         </div>
 
         <CategorySelect
