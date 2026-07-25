@@ -16,13 +16,6 @@
   overflow: hidden;
 }
 
-body {
-  font-family: var(--theme-body-font, "DM Sans", "Segoe UI", sans-serif);
-  margin: 0;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
-
 /* ══ Puck editor — visual tuning ══════════════════════════════════════════
    These overrides sit on top of `packages/core/styles.css`. Puck reads its
    UI colours, typography and spacing from CSS custom properties, so we can

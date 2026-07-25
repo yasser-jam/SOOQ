@@ -333,14 +333,12 @@ export function AppSidebar({ pathname: pathnameProp, storeSlug, user, ...props }
           <SidebarMenuItem className="flex flex-col items-center justify-center">
             <SidebarMenuButton
               size="lg"
-              className="pointer-events-none cursor-default py-16"
+              className="pointer-events-none cursor-default py-4"
             >
-              <div className="flex flex-col gap-4 text-start">
+              <div className="text-start">
                 <span className="truncate text-2xl font-medium">
-                  لوحة تحكم المتجر
+                  {user?.storeName || "لوحة تحكم المتجر"}
                 </span>
-
-                <span className="text-sm text-gray-200">{user?.storeConfigId}</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
