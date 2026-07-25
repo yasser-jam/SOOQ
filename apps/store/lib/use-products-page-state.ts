@@ -125,11 +125,12 @@ export function useProductsPageState(): {
 		staleTime: CATEGORIES_STALE_TIME,
 	})
 
+	// API is 0-based; UI / URL keep 1-based page numbers for the user.
 	const productsQuery: ProductsPageQuery = useMemo(
 		() => ({
 			categorySlug: filter.selectedCategorySlug,
 			search: debouncedSearch.trim() || undefined,
-			page: filter.page,
+			page: Math.max(0, filter.page - 1),
 			size: filter.pageSize,
 		}),
 		[

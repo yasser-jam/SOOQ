@@ -92,7 +92,7 @@ function useProductsPageProducts(isEditing: boolean): {
   const sampleMode = isEditing && useSampleDataInEditor();
 
   if (sampleMode) {
-    const sample = adapter.getSampleProductsPage({ page: 1, size: 12 });
+    const sample = adapter.getSampleProductsPage({ page: 0, size: 12 });
     return {
       products: sample.items,
       isLoading: false,

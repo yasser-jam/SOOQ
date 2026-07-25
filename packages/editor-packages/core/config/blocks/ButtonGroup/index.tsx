@@ -411,7 +411,7 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
       const totalPages =
         sampleMode && bindingMode === "pagination"
           ? Math.max(
-              adapter.getSampleProductsPage({ page: 1, size: 12 }).totalPages,
+              adapter.getSampleProductsPage({ page: 0, size: 12 }).totalPages,
               3
             )
           : productsPage.totalPages;

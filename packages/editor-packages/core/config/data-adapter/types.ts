@@ -97,6 +97,7 @@ export type CategoryRef = {
 export type ProductsPageQuery = {
   categorySlug?: string | null;
   search?: string;
+  /** 0-based page index sent to `/public/products` (UI may show page + 1). */
   page: number;
   size: number;
 };

@@ -120,7 +120,7 @@ export const sampleEditorDataAdapter: EditorDataAdapter = {
     const queryString = apiUrl.includes("?") ? (apiUrl.split("?")[1] ?? "") : "";
     const params = new URLSearchParams(queryString);
     const query: ProductsPageQuery = {
-      page: Number(params.get("page") ?? 1),
+      page: Number(params.get("page") ?? 0),
       size: Number(params.get("size") ?? 12),
       categorySlug: params.get("categorySlug"),
       search: params.get("search") ?? undefined,

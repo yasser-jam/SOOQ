@@ -169,8 +169,9 @@ export function filterAndPaginateSampleProducts(
   );
   const totalItems = filtered.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / query.size));
-  const page = Math.min(Math.max(1, query.page), totalPages);
-  const start = (page - 1) * query.size;
+  // `query.page` is 0-based (same as the public products API).
+  const page = Math.min(Math.max(0, query.page), Math.max(0, totalPages - 1));
+  const start = page * query.size;
   const items = filtered.slice(start, start + query.size);
 
   return { items, totalItems, totalPages: totalItems === 0 ? 0 : totalPages };

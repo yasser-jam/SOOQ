@@ -180,7 +180,8 @@ const pagedEnvelope = <T>(
 ) => {
   const total = items.length
   const totalPages = total === 0 ? 0 : Math.max(1, Math.ceil(total / (size || 1)))
-  const start = (page - 1) * size
+  // Public products API uses 0-based page indexes (aligned with collections).
+  const start = page * size
   const slice = size > 0 ? items.slice(start, start + size) : items
   return {
     success: true,
@@ -190,8 +191,8 @@ const pagedEnvelope = <T>(
       size: size || total,
       total,
       totalPages,
-      hasNext: page < totalPages,
-      hasPrev: page > 1,
+      hasNext: page + 1 < totalPages,
+      hasPrev: page > 0,
     },
     message: null,
     timestamp: Date.now(),
@@ -201,7 +202,7 @@ const pagedEnvelope = <T>(
 const parseProductsPageParams = (url: string) => {
   const params = new URLSearchParams(url.split("?")[1] ?? "")
   return {
-    page: Number(params.get("page") ?? 1),
+    page: Number(params.get("page") ?? 0),
     size: Number(params.get("size") ?? 12),
     categorySlug: params.get("categorySlug") ?? undefined,
     search: params.get("search") ?? undefined,
