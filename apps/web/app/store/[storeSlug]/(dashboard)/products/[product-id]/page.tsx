@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -69,6 +69,7 @@ export default function ProductDetailsPage() {
   const productsListPath = `/store/${storeSlug}/products`
 
   const [activeSection, setActiveSection] = useState<string>("basic-info")
+  const formScrollRef = useRef<HTMLDivElement>(null)
 
   const queryClient = useQueryClient()
 
@@ -100,8 +101,11 @@ export default function ProductDetailsPage() {
     enabled: !isLoading,
   })
 
-  // Scroll-spy: track the topmost section visible in the upper half of the viewport
+  // Scroll-spy: track the topmost section visible in the form scroll area
   useEffect(() => {
+    const root = formScrollRef.current
+    if (!root) return
+
     const visible = new Set<string>()
 
     const observer = new IntersectionObserver(
@@ -116,11 +120,11 @@ export default function ProductDetailsPage() {
         const first = SECTION_IDS.find((id) => visible.has(id))
         if (first) setActiveSection(first)
       },
-      { rootMargin: "0px 0px -50% 0px", threshold: 0 }
+      { root, rootMargin: "0px 0px -50% 0px", threshold: 0 }
     )
 
     SECTION_IDS.forEach((id) => {
-      const el = document.getElementById(id)
+      const el = root.querySelector<HTMLElement>(`#${id}`)
       if (el) observer.observe(el)
     })
 
@@ -215,8 +219,9 @@ export default function ProductDetailsPage() {
   }, [isEdit, product])
 
   return (
-    <div className="container my-6 flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+    // Fill the inset below the dashboard header (h-16) so only the form column scrolls
+    <div className="container flex h-[calc(100svh-4rem)] flex-col gap-6 overflow-hidden py-6">
+      <div className="flex shrink-0 items-center justify-between">
         <div className="page-title">
           {isEdit ? "تفاصيل المنتج" : "إضافة منتج"}
         </div>
@@ -235,25 +240,40 @@ export default function ProductDetailsPage() {
         </div>
       </div>
 
-      <div className="relative flex gap-6">
+      <div className="relative flex min-h-0 flex-1 gap-6">
         <ProductSidebarNavigation
           activeSection={activeSection}
           onSectionChange={setActiveSection}
+          scrollContainerRef={formScrollRef}
           sectionValidation={{}}
         />
 
-        <div className="flex-1 space-y-6">
+        <div
+          ref={formScrollRef}
+          className={[
+            "min-h-0 flex-1 overflow-y-auto pe-1",
+            // Thin light-gray scrollbar (same as DialogContent)
+            "[scrollbar-width:thin] [scrollbar-color:var(--border)_transparent]",
+            "**:[scrollbar-width:thin] **:[scrollbar-color:var(--border)_transparent]",
+            "[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5",
+            "[&::-webkit-scrollbar-track]:bg-transparent",
+            "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border",
+            "[&_*::-webkit-scrollbar]:h-1.5 [&_*::-webkit-scrollbar]:w-1.5",
+            "[&_*::-webkit-scrollbar-track]:bg-transparent",
+            "[&_*::-webkit-scrollbar-thumb]:rounded-full [&_*::-webkit-scrollbar-thumb]:bg-border",
+          ].join(" ")}
+        >
           <FormProvider {...form}>
             <form
               id="product-form"
               onSubmit={form.handleSubmit(handleSubmit)}
-              className="space-y-6"
+              className="space-y-6 pb-6"
             >
-              <section id="basic-info" className="scroll-mt-6">
+              <section id="basic-info" className="scroll-mt-2">
                 <BasicInfoSection isSubmitting={isSubmitting} isEdit={isEdit} />
               </section>
 
-              <section id="media" className="scroll-mt-6">
+              <section id="media" className="scroll-mt-2">
                 <MediaTab
                   isSubmitting={isSubmitting}
                   existing={existingMedia}
@@ -261,7 +281,7 @@ export default function ProductDetailsPage() {
                 />
               </section>
 
-              <section id="pricing-inventory" className="scroll-mt-6 space-y-6">
+              <section id="pricing-inventory" className="scroll-mt-2 space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>التسعير</CardTitle>
@@ -283,14 +303,14 @@ export default function ProductDetailsPage() {
                 )} */}
               </section>
 
-              <section id="variants" className="scroll-mt-6">
+              <section id="variants" className="scroll-mt-2">
                 <VariantsTab
                   isSubmitting={isSubmitting}
                   productId={productId}
                 />
               </section>
 
-              <section id="categorization-attributes" className="scroll-mt-6">
+              <section id="categorization-attributes" className="scroll-mt-2">
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   <Card>
                     <CardHeader>
@@ -305,7 +325,7 @@ export default function ProductDetailsPage() {
                 </div>
               </section>
 
-              <section id="seo" className="scroll-mt-6">
+              <section id="seo" className="scroll-mt-2">
                 <SeoTab isSubmitting={isSubmitting} />
               </section>
             </form>

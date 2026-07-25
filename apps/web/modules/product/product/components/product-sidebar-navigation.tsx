@@ -1,5 +1,6 @@
 "use client"
 
+import type { RefObject } from "react"
 import { Check, AlertCircle, Circle } from "lucide-react"
 
 type Section = {
@@ -21,18 +22,37 @@ type ValidationStatus = "empty" | "valid" | "error"
 type Props = {
   activeSection: string
   onSectionChange: (section: string) => void
+  /** Form column scroll root — section jumps scroll inside it, not the page */
+  scrollContainerRef?: RefObject<HTMLElement | null>
   sectionValidation?: Record<string, ValidationStatus>
 }
 
 export default function ProductSidebarNavigation({
   activeSection,
   onSectionChange,
+  scrollContainerRef,
   sectionValidation = {},
 }: Props) {
   const handleClick = (sectionId: string) => {
     onSectionChange(sectionId)
-    const el = document.getElementById(sectionId)
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+
+    const container = scrollContainerRef?.current
+    const el = container
+      ? container.querySelector<HTMLElement>(`#${sectionId}`)
+      : document.getElementById(sectionId)
+
+    if (!el) return
+
+    if (container) {
+      const top =
+        el.getBoundingClientRect().top -
+        container.getBoundingClientRect().top +
+        container.scrollTop
+      container.scrollTo({ top, behavior: "smooth" })
+      return
+    }
+
+    el.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   const getStatusIcon = (sectionId: string) => {
@@ -49,7 +69,7 @@ export default function ProductSidebarNavigation({
 
   return (
     // Todo: use Card comoponent here
-    <aside className="sticky top-6 w-64 shrink-0">
+    <aside className="w-64 shrink-0 self-start">
       <nav className="rounded-xl bg-card/75 p-4">
         <h3 className="mb-4 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
           أقسام المنتج
