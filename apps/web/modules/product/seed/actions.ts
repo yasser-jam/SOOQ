@@ -1,31 +1,50 @@
 import {
+  createAttributeDefinition,
+  listAttributeDefinitions,
+} from "@/modules/product/attribute/actions"
+import type {
+  CreateAttributeInput,
+  ProductAttributeDefinition,
+  ProductAttributeValue,
+} from "@/modules/product/attribute/types"
+import {
   createProductCategory,
   listProductCategories,
 } from "@/modules/product/category/actions"
 import type { ProductCategory } from "@/modules/product/category/types"
-import { createProduct, listProducts } from "@/modules/product/product/actions"
-import type { CreateProductInput } from "@/modules/product/product/types"
+import {
+  addCollectionProduct,
+  createCollectionRule,
+  createProductCollection,
+  evaluateCollectionRules,
+  listProductCollections,
+} from "@/modules/product/collection/actions"
+import type { ProductCollection } from "@/modules/product/collection/types"
+import {
+  createProduct,
+  listProducts,
+} from "@/modules/product/product/actions"
+import type {
+  CategoryRef,
+  CreateProductInput,
+  TagRef,
+} from "@/modules/product/product/types"
 import {
   createProductTag,
   listProductTags,
 } from "@/modules/product/tag/actions"
 import type { ProductTag } from "@/modules/product/tag/types"
-import { slugify } from "@/components/system/creatable-select"
 
 import {
-  CATEGORY_META,
-  CATEGORY_SLUG_ALIASES,
-  KNOWN_CATEGORY_IDS,
-  KNOWN_TAG_IDS,
-} from "./constants"
-import seedFile from "./products.json"
-import type {
-  SeedProductSource,
-  SeedProductsFile,
-  SeedProgress,
-} from "./types"
-
-const seedData = seedFile as SeedProductsFile
+  SEED_DATASET,
+  type SeedAttributeDef,
+  type SeedCategoryDef,
+  type SeedCollectionDef,
+  type SeedProductAttributeValue,
+  type SeedProductDef,
+  type SeedTagDef,
+} from "./dataset"
+import type { SeedProgress } from "./types"
 
 export type SeedProgressCallback = (progress: SeedProgress) => void
 
@@ -42,336 +61,571 @@ const errorMessage = (error: unknown, fallback: string): string => {
   return fallback
 }
 
-const toSlug = (value: string): string =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w\u0600-\u06FF-]/g, "")
-    .slice(0, 100)
+const eqSlug = (a: string | undefined, b: string): boolean =>
+  (a ?? "").trim().toLowerCase() === b.trim().toLowerCase()
 
-const unique = <T>(items: T[]): T[] => [...new Set(items)]
+/* ============================================================================
+ * Categories
+ * ==========================================================================*/
 
-const collectRequiredCategorySlugs = (
-  products: SeedProductSource[]
-): string[] => unique(products.map((p) => p.category).filter(Boolean))
-
-const collectRequiredTagNames = (products: SeedProductSource[]): string[] =>
-  unique(products.flatMap((p) => p.tags ?? []).filter(Boolean))
-
-const categoryMatchesSlug = (
-  category: ProductCategory,
-  neededSlug: string
-): boolean => {
-  const aliases = CATEGORY_SLUG_ALIASES[neededSlug] ?? [neededSlug]
-  const slug = (category.slug ?? "").toLowerCase()
-  const knownId = KNOWN_CATEGORY_IDS[neededSlug]
-  return aliases.includes(slug) || (!!knownId && category.id === knownId)
-}
-
-const tagMatchesName = (tag: ProductTag, name: string): boolean => {
-  const neededSlug = slugify(name)
-  const knownId = KNOWN_TAG_IDS[neededSlug]
-  const tagSlug = (tag.slug ?? "").toLowerCase()
-  const tagNameSlug = slugify(tag.tagName ?? "")
-  return (
-    tagSlug === neededSlug ||
-    tagNameSlug === neededSlug ||
-    (!!knownId && tag.id === knownId)
-  )
-}
-
-const findCategory = (
-  categories: ProductCategory[],
-  neededSlug: string
-): ProductCategory | undefined =>
-  categories.find((c) => categoryMatchesSlug(c, neededSlug))
-
-const findTag = (
-  tags: ProductTag[],
-  name: string
-): ProductTag | undefined => tags.find((t) => tagMatchesName(t, name))
-
-async function fetchImageAsFile(url: string): Promise<File | null> {
-  try {
-    const response = await fetch(url)
-    if (!response.ok) return null
-    const blob = await response.blob()
-    const filename = url.split("/").pop()?.split("?")[0] || "image.webp"
-    return new File([blob], filename, {
-      type: blob.type || "image/webp",
-    })
-  } catch {
-    return null
-  }
-}
-
-function buildCompareAtPrice(price: number, discountPercentage: number): number {
-  if (!discountPercentage || discountPercentage <= 0) return price
-  const ratio = 1 - discountPercentage / 100
-  if (ratio <= 0) return price
-  return Number((price / ratio).toFixed(2))
-}
-
-function buildProductPayload(
-  product: SeedProductSource,
-  categoryId: string,
-  tagIds: Map<string, string>,
-  mediaFiles: File[]
-): CreateProductInput {
-  const title = product.title.trim()
-  const description = product.description.trim()
-  const compareAtPrice = buildCompareAtPrice(
-    product.price,
-    product.discountPercentage
-  )
-
-  const resolvedTags = (product.tags ?? [])
-    .map((name) => {
-      const id = tagIds.get(name)
-      if (!id) return null
-      return { id, name }
-    })
-    .filter((tag): tag is { id: string; name: string } => Boolean(tag))
-
-  return {
-    titleAr: title,
-    titleEn: title,
-    descriptionAr: description,
-    descriptionEn: description,
-    slug: `${toSlug(title)}-${product.id}`,
-    basePrice: product.price,
-    compareAtPrice,
-    currencyCode: "USD",
-    status: "ACTIVE",
-    allowOversell: false,
-    seoTitle: title,
-    seoDescription: description.slice(0, 160),
-    defaultCategoryId: categoryId,
-    categories: [{ id: categoryId }],
-    tags: resolvedTags,
-    mediaFiles,
-    variants: [
-      {
-        // Backend rejects empty attributes maps — use a single default axis
-        // for simple (non-matrix) seed products.
-        attributes: { العنوان: "افتراضي" },
-        sku: product.sku,
-        price: product.price,
-        compareAtPrice,
-        stockQty: product.stock,
-        weightGrams:
-          typeof product.weight === "number"
-            ? Math.max(1, Math.round(product.weight * 100))
-            : null,
-        barcode: product.meta?.barcode ?? null,
-        isActive: true,
-      },
-    ],
-  }
-}
-
-/**
- * Ensures every category referenced by the seed file exists.
- * Creates missing ones, then returns a slug → id map.
- */
-export async function ensureSeedCategories(
-  requiredSlugs: string[],
-  onProgress?: SeedProgressCallback
+async function ensureCategories(
+  defs: SeedCategoryDef[],
+  progress: SeedProgressCallback,
+  errors: string[]
 ): Promise<Map<string, string>> {
-  let categories = await listProductCategories()
-  const map = new Map<string, string>()
-  const missing = requiredSlugs.filter((slug) => !findCategory(categories, slug))
-
-  onProgress?.({
+  progress({
     phase: "categories",
     current: 0,
-    total: missing.length,
-    message:
-      missing.length === 0
-        ? "كل الفئات موجودة"
-        : `إنشاء ${missing.length} فئة ناقصة…`,
-    errors: [],
+    total: defs.length,
+    message: "قراءة الفئات الحالية…",
+    errors: [...errors],
   })
 
-  for (let i = 0; i < missing.length; i++) {
-    const slug = missing[i]!
-    const meta = CATEGORY_META[slug] ?? {
-      nameAr: slug,
-      nameEn: slug,
-      descriptionAr: slug,
-      descriptionEn: slug,
+  let existing = await listProductCategories()
+  const slugToId = new Map<string, string>()
+  for (const c of existing) {
+    if (c.slug && c.id) slugToId.set(c.slug.toLowerCase(), c.id)
+  }
+
+  // Two passes: parents first, then children (so parentCategoryId resolves).
+  const parents = defs.filter((c) => !c.parentSlug)
+  const children = defs.filter((c) => !!c.parentSlug)
+  const ordered = [...parents, ...children]
+
+  let done = 0
+  for (const def of ordered) {
+    done++
+    if (slugToId.has(def.slug.toLowerCase())) {
+      progress({
+        phase: "categories",
+        current: done,
+        total: ordered.length,
+        message: `موجودة: ${def.nameAr}`,
+        errors: [...errors],
+      })
+      continue
     }
 
-    onProgress?.({
+    const parentId = def.parentSlug
+      ? slugToId.get(def.parentSlug.toLowerCase()) ?? null
+      : null
+
+    progress({
       phase: "categories",
-      current: i + 1,
-      total: missing.length,
-      message: `إنشاء فئة: ${meta.nameEn}`,
-      errors: [],
-    })
-
-    await createProductCategory({
-      nameAr: meta.nameAr,
-      nameEn: meta.nameEn,
-      slug,
-      descriptionAr: meta.descriptionAr,
-      descriptionEn: meta.descriptionEn,
-      parentCategoryId: null,
-      sortOrder: i,
-      isActive: true,
-    })
-  }
-
-  if (missing.length > 0) {
-    categories = await listProductCategories()
-  }
-
-  for (const slug of requiredSlugs) {
-    const found = findCategory(categories, slug)
-    if (!found?.id) {
-      throw new Error(`Category not found after ensure: ${slug}`)
-    }
-    map.set(slug, found.id)
-  }
-
-  return map
-}
-
-/**
- * Ensures every tag referenced by the seed file exists.
- * Creates missing ones, then returns a name → id map.
- */
-export async function ensureSeedTags(
-  requiredNames: string[],
-  onProgress?: SeedProgressCallback
-): Promise<Map<string, string>> {
-  let tags = await listProductTags()
-  const map = new Map<string, string>()
-  const missing = requiredNames.filter((name) => !findTag(tags, name))
-
-  onProgress?.({
-    phase: "tags",
-    current: 0,
-    total: missing.length,
-    message:
-      missing.length === 0
-        ? "كل الوسوم موجودة"
-        : `إنشاء ${missing.length} وسم ناقص…`,
-    errors: [],
-  })
-
-  for (let i = 0; i < missing.length; i++) {
-    const name = missing[i]!
-    const slug = slugify(name)
-
-    onProgress?.({
-      phase: "tags",
-      current: i + 1,
-      total: missing.length,
-      message: `إنشاء وسم: ${name}`,
-      errors: [],
-    })
-
-    await createProductTag({
-      tagName: name,
-      slug,
-    })
-  }
-
-  if (missing.length > 0) {
-    tags = await listProductTags()
-  }
-
-  for (const name of requiredNames) {
-    const found = findTag(tags, name)
-    if (!found?.id) {
-      throw new Error(`Tag not found after ensure: ${name}`)
-    }
-    map.set(name, found.id)
-  }
-
-  return map
-}
-
-/**
- * Creates seed products with resolved category/tag ids.
- * Skips products whose slug already exists.
- */
-export async function createSeedProducts(
-  products: SeedProductSource[],
-  categoryIds: Map<string, string>,
-  tagIds: Map<string, string>,
-  onProgress?: SeedProgressCallback
-): Promise<{ created: number; skipped: number; errors: string[] }> {
-  const existing = await listProducts()
-  const existingSlugs = new Set(
-    (existing.data ?? []).map((p) => (p.slug ?? "").toLowerCase())
-  )
-
-  const errors: string[] = []
-  let created = 0
-  let skipped = 0
-
-  for (let i = 0; i < products.length; i++) {
-    const product = products[i]!
-    const slug = `${toSlug(product.title)}-${product.id}`
-
-    onProgress?.({
-      phase: "products",
-      current: i + 1,
-      total: products.length,
-      message: `منتج ${i + 1}/${products.length}: ${product.title}`,
+      current: done,
+      total: ordered.length,
+      message: `إنشاء فئة: ${def.nameAr}`,
       errors: [...errors],
     })
 
-    if (existingSlugs.has(slug.toLowerCase())) {
-      skipped++
-      continue
-    }
-
-    const categoryId = categoryIds.get(product.category)
-    if (!categoryId) {
-      errors.push(`${product.title}: missing category ${product.category}`)
-      continue
-    }
-
-    const resolvedTagIds = (product.tags ?? [])
-      .map((name) => tagIds.get(name))
-      .filter((id): id is string => Boolean(id))
-
-    const imageUrls = unique(
-      [product.thumbnail, ...(product.images ?? [])].filter(Boolean)
-    )
-    const mediaFiles: File[] = []
-    for (const url of imageUrls.slice(0, 3)) {
-      const file = await fetchImageAsFile(url)
-      if (file) mediaFiles.push(file)
-    }
-
     try {
-      await createProduct(
-        buildProductPayload(product, categoryId, resolvedTagIds, mediaFiles)
-      )
-      created++
-      existingSlugs.add(slug.toLowerCase())
+      await createProductCategory({
+        nameAr: def.nameAr,
+        nameEn: def.nameEn,
+        slug: def.slug,
+        descriptionAr: def.descriptionAr,
+        descriptionEn: def.descriptionEn,
+        parentCategoryId: parentId,
+        sortOrder: def.sortOrder,
+        isActive: true,
+      })
     } catch (error) {
-      errors.push(
-        `${product.title}: ${errorMessage(error, "unknown create error")}`
-      )
+      errors.push(`فئة ${def.nameAr}: ${errorMessage(error, "unknown")}`)
+      continue
+    }
+
+    // Refresh so children created in the same pass can find their parent.
+    existing = await listProductCategories()
+    slugToId.clear()
+    for (const c of existing) {
+      if (c.slug && c.id) slugToId.set(c.slug.toLowerCase(), c.id)
     }
   }
 
-  return { created, skipped, errors }
+  return slugToId
 }
 
+/* ============================================================================
+ * Tags
+ * ==========================================================================*/
+
+async function ensureTags(
+  defs: SeedTagDef[],
+  progress: SeedProgressCallback,
+  errors: string[]
+): Promise<Map<string, string>> {
+  progress({
+    phase: "tags",
+    current: 0,
+    total: defs.length,
+    message: "قراءة الوسوم الحالية…",
+    errors: [...errors],
+  })
+
+  const existing = await listProductTags()
+  const slugToId = new Map<string, string>()
+  const nameToId = new Map<string, string>()
+  for (const t of existing) {
+    if (t.id) {
+      if (t.slug) slugToId.set(t.slug.toLowerCase(), t.id)
+      if (t.tagName) nameToId.set(t.tagName.trim().toLowerCase(), t.id)
+    }
+  }
+
+  const finalMap = new Map<string, string>() // seed-slug → id
+  let done = 0
+
+  for (const def of defs) {
+    done++
+    const existingId =
+      slugToId.get(def.slug.toLowerCase()) ??
+      nameToId.get(def.name.trim().toLowerCase())
+
+    if (existingId) {
+      finalMap.set(def.slug, existingId)
+      progress({
+        phase: "tags",
+        current: done,
+        total: defs.length,
+        message: `موجود: ${def.name}`,
+        errors: [...errors],
+      })
+      continue
+    }
+
+    progress({
+      phase: "tags",
+      current: done,
+      total: defs.length,
+      message: `إنشاء وسم: ${def.name}`,
+      errors: [...errors],
+    })
+
+    try {
+      await createProductTag({ tagName: def.name, slug: def.slug })
+    } catch (error) {
+      errors.push(`وسم ${def.name}: ${errorMessage(error, "unknown")}`)
+      continue
+    }
+
+    const refreshed = await listProductTags()
+    const found = refreshed.find(
+      (t) =>
+        eqSlug(t.slug, def.slug) ||
+        (t.tagName ?? "").trim().toLowerCase() ===
+          def.name.trim().toLowerCase()
+    )
+    if (found?.id) finalMap.set(def.slug, found.id)
+  }
+
+  return finalMap
+}
+
+/* ============================================================================
+ * Attributes
+ * ==========================================================================*/
+
+type ResolvedAttribute = {
+  attributeDefId: string
+  /** seed option key → attributeOptionId */
+  optionIdByKey: Map<string, string>
+}
+
+async function ensureAttributes(
+  defs: SeedAttributeDef[],
+  categoryIdBySlug: Map<string, string>,
+  progress: SeedProgressCallback,
+  errors: string[]
+): Promise<Map<string, ResolvedAttribute>> {
+  progress({
+    phase: "attributes",
+    current: 0,
+    total: defs.length,
+    message: "قراءة السمات الحالية…",
+    errors: [...errors],
+  })
+
+  const scopeIds = new Set<string | null>()
+  for (const def of defs) {
+    const scopeId = def.categorySlug
+      ? categoryIdBySlug.get(def.categorySlug.toLowerCase()) ?? null
+      : null
+    scopeIds.add(scopeId)
+  }
+
+  const attrsByScope = new Map<string | null, ProductAttributeDefinition[]>()
+  for (const scopeId of scopeIds) {
+    const list = await listAttributeDefinitions(scopeId ?? undefined)
+    attrsByScope.set(scopeId, list)
+  }
+
+  const findByKey = (
+    scopeId: string | null,
+    key: string
+  ): ProductAttributeDefinition | undefined =>
+    (attrsByScope.get(scopeId) ?? []).find(
+      (a) => (a.attributeKey ?? "").toLowerCase() === key.toLowerCase()
+    )
+
+  const result = new Map<string, ResolvedAttribute>()
+  let done = 0
+
+  for (const def of defs) {
+    done++
+    const scopeId = def.categorySlug
+      ? categoryIdBySlug.get(def.categorySlug.toLowerCase()) ?? null
+      : null
+
+    let apiDef = findByKey(scopeId, def.attributeKey)
+
+    if (!apiDef) {
+      progress({
+        phase: "attributes",
+        current: done,
+        total: defs.length,
+        message: `إنشاء سمة: ${def.nameAr}`,
+        errors: [...errors],
+      })
+
+      const payload: CreateAttributeInput = {
+        categoryId: scopeId,
+        attributeNameAr: def.nameAr,
+        attributeNameEn: def.nameEn,
+        attributeKey: def.attributeKey,
+        dataType: def.dataType,
+        isRequired: def.isRequired ?? false,
+        isFilterable: def.isFilterable ?? false,
+        isVisibleOnStorefront: def.isVisibleOnStorefront ?? true,
+        sortOrder: def.sortOrder ?? 0,
+        options: (def.options ?? []).map((o, i) => ({
+          optionValueAr: o.valueAr,
+          optionValueEn: o.valueEn,
+          sortOrder: i,
+        })),
+      }
+
+      try {
+        await createAttributeDefinition(payload)
+      } catch (error) {
+        errors.push(`سمة ${def.nameAr}: ${errorMessage(error, "unknown")}`)
+        continue
+      }
+
+      const refreshed = await listAttributeDefinitions(scopeId ?? undefined)
+      attrsByScope.set(scopeId, refreshed)
+      apiDef = findByKey(scopeId, def.attributeKey)
+    } else {
+      progress({
+        phase: "attributes",
+        current: done,
+        total: defs.length,
+        message: `موجودة: ${def.nameAr}`,
+        errors: [...errors],
+      })
+    }
+
+    if (!apiDef?.attributeDefId) continue
+
+    // Map seed option keys → real ids by matching English value (fallback Arabic).
+    const optionIdByKey = new Map<string, string>()
+    for (const seedOpt of def.options ?? []) {
+      const match = (apiDef.options ?? []).find(
+        (o) =>
+          (o.optionValueEn ?? "").trim().toLowerCase() ===
+            seedOpt.valueEn.trim().toLowerCase() ||
+          (o.optionValueAr ?? "").trim() === seedOpt.valueAr.trim()
+      )
+      if (match?.attributeOptionId) {
+        optionIdByKey.set(seedOpt.key, match.attributeOptionId)
+      }
+    }
+
+    result.set(def.attributeKey, {
+      attributeDefId: apiDef.attributeDefId,
+      optionIdByKey,
+    })
+  }
+
+  return result
+}
+
+/* ============================================================================
+ * Products
+ * ==========================================================================*/
+
+function buildProductPayload(
+  def: SeedProductDef,
+  categoryIdBySlug: Map<string, string>,
+  tagIdBySlug: Map<string, string>,
+  attributeBySeedKey: Map<string, ResolvedAttribute>
+): CreateProductInput {
+  const categories: CategoryRef[] = def.categorySlugs
+    .map((slug) => {
+      const id = categoryIdBySlug.get(slug.toLowerCase())
+      return id ? ({ id } as CategoryRef) : null
+    })
+    .filter((c): c is CategoryRef => Boolean(c))
+
+  const defaultCategoryId = categoryIdBySlug.get(
+    def.defaultCategorySlug.toLowerCase()
+  )
+
+  const tags: TagRef[] = def.tagSlugs
+    .map((slug) => {
+      const id = tagIdBySlug.get(slug)
+      return id ? ({ id } as TagRef) : null
+    })
+    .filter((t): t is TagRef => Boolean(t))
+
+  const attributes: ProductAttributeValue[] = (def.attributes ?? [])
+    .map((entry): ProductAttributeValue | null => {
+      const resolved = attributeBySeedKey.get(entry.attributeKey)
+      if (!resolved) return null
+      if ("valueText" in entry) {
+        return {
+          attributeDefId: resolved.attributeDefId,
+          valueText: entry.valueText,
+        }
+      }
+      const optionIds = entry.optionKeys
+        .map((k) => resolved.optionIdByKey.get(k))
+        .filter((id): id is string => Boolean(id))
+      if (optionIds.length === 0) return null
+      return {
+        attributeDefId: resolved.attributeDefId,
+        attributeOptionIds: optionIds,
+      }
+    })
+    .filter((v): v is ProductAttributeValue => Boolean(v))
+
+  const variants =
+    def.variants && def.variants.length > 0
+      ? def.variants.map((v) => ({
+          attributes: v.attributes,
+          sku: v.sku,
+          price: v.price ?? null,
+          compareAtPrice: v.compareAtPrice ?? null,
+          stockQty: v.stockQty,
+          weightGrams: v.weightGrams ?? null,
+          barcode: v.barcode ?? null,
+          isActive: true,
+        }))
+      : [
+          {
+            // Backend rejects an empty variants list — send a single default
+            // axis for simple products without matrix options.
+            attributes: { "العنوان": "افتراضي" },
+            sku: def.slug.toUpperCase(),
+            price: def.basePrice,
+            compareAtPrice: def.compareAtPrice,
+            stockQty: 20,
+            isActive: true,
+          },
+        ]
+
+  const normalizedOptions = (def.options ?? []).map((opt, i) => ({
+    optionNameAr: opt.optionNameAr,
+    optionNameEn: opt.optionNameEn,
+    sortOrder: i,
+    values: opt.values.map((v, vi) => ({
+      valueAr: v.valueAr,
+      valueEn: v.valueEn,
+      sortOrder: vi,
+    })),
+  }))
+
+  const payload: CreateProductInput = {
+    titleAr: def.titleAr,
+    titleEn: def.titleEn,
+    descriptionAr: def.descriptionAr,
+    descriptionEn: def.descriptionEn,
+    slug: def.slug,
+    basePrice: def.basePrice,
+    compareAtPrice: def.compareAtPrice,
+    currencyCode: def.currencyCode,
+    status: def.status,
+    allowOversell: def.allowOversell ?? false,
+    seoTitle: def.seoTitle ?? def.titleEn,
+    seoDescription: def.seoDescription ?? def.descriptionEn.slice(0, 160),
+    defaultCategoryId,
+    categories,
+    tags,
+    mediaFiles: [],
+    options: normalizedOptions,
+    variants,
+  }
+
+  // EAV attributes are read by buildProductFormData via a cast — attach after
+  // the typed literal so we don't fight the exported CreateProductInput shape.
+  ;(payload as CreateProductInput & { attributes: ProductAttributeValue[] }).attributes =
+    attributes
+
+  return payload
+}
+
+async function ensureProducts(
+  defs: SeedProductDef[],
+  categoryIdBySlug: Map<string, string>,
+  tagIdBySlug: Map<string, string>,
+  attributeBySeedKey: Map<string, ResolvedAttribute>,
+  progress: SeedProgressCallback,
+  errors: string[]
+): Promise<Map<string, string>> {
+  const existing = await listProducts()
+  const slugToId = new Map<string, string>()
+  for (const p of existing.data ?? []) {
+    if (p.slug && p.id) slugToId.set(p.slug.toLowerCase(), p.id)
+  }
+
+  let done = 0
+  for (const def of defs) {
+    done++
+    if (slugToId.has(def.slug.toLowerCase())) {
+      progress({
+        phase: "products",
+        current: done,
+        total: defs.length,
+        message: `موجود: ${def.titleAr}`,
+        errors: [...errors],
+      })
+      continue
+    }
+
+    progress({
+      phase: "products",
+      current: done,
+      total: defs.length,
+      message: `إنشاء منتج: ${def.titleAr}`,
+      errors: [...errors],
+    })
+
+    try {
+      await createProduct(
+        buildProductPayload(
+          def,
+          categoryIdBySlug,
+          tagIdBySlug,
+          attributeBySeedKey
+        )
+      )
+    } catch (error) {
+      errors.push(`منتج ${def.titleAr}: ${errorMessage(error, "unknown")}`)
+    }
+  }
+
+  // Refresh once at the end so collections can resolve product ids by slug.
+  const refreshed = await listProducts()
+  for (const p of refreshed.data ?? []) {
+    if (p.slug && p.id) slugToId.set(p.slug.toLowerCase(), p.id)
+  }
+  return slugToId
+}
+
+/* ============================================================================
+ * Collections
+ * ==========================================================================*/
+
+async function ensureCollections(
+  defs: SeedCollectionDef[],
+  productIdBySlug: Map<string, string>,
+  progress: SeedProgressCallback,
+  errors: string[]
+): Promise<void> {
+  const existing = await listProductCollections()
+  const slugToCollection = new Map<string, ProductCollection>()
+  for (const c of existing) {
+    if (c.collectionSlug) {
+      slugToCollection.set(c.collectionSlug.toLowerCase(), c)
+    }
+  }
+
+  let done = 0
+  for (const def of defs) {
+    done++
+    progress({
+      phase: "collections",
+      current: done,
+      total: defs.length,
+      message: `مجموعة: ${def.name}`,
+      errors: [...errors],
+    })
+
+    let collection = slugToCollection.get(def.slug.toLowerCase())
+
+    if (!collection) {
+      try {
+        collection = await createProductCollection({
+          collectionName: def.name,
+          collectionSlug: def.slug,
+          collectionType: def.type,
+          descriptionAr: def.descriptionAr,
+          descriptionEn: def.descriptionEn,
+          isActive: true,
+        })
+      } catch (error) {
+        errors.push(`مجموعة ${def.name}: ${errorMessage(error, "unknown")}`)
+        continue
+      }
+    }
+
+    if (!collection?.id) continue
+
+    if (def.type === "MANUAL") {
+      let sort = 0
+      for (const productSlug of def.productSlugs) {
+        const productId = productIdBySlug.get(productSlug.toLowerCase())
+        if (!productId) {
+          errors.push(
+            `مجموعة ${def.name}: منتج غير موجود (${productSlug})`
+          )
+          continue
+        }
+        try {
+          await addCollectionProduct(collection.id, {
+            productId,
+            sortOrder: sort++,
+          })
+        } catch (error) {
+          // Duplicate links are fine on re-run — surface only the first message.
+          const msg = errorMessage(error, "unknown")
+          if (!/exist|already/i.test(msg)) {
+            errors.push(`مجموعة ${def.name} / ${productSlug}: ${msg}`)
+          }
+        }
+      }
+    } else {
+      for (const rule of def.rules) {
+        try {
+          await createCollectionRule(collection.id, rule)
+        } catch (error) {
+          errors.push(
+            `قاعدة ${def.name} (${rule.fieldKey}=${rule.value}): ${errorMessage(error, "unknown")}`
+          )
+        }
+      }
+      try {
+        await evaluateCollectionRules(collection.id)
+      } catch (error) {
+        errors.push(
+          `تقييم ${def.name}: ${errorMessage(error, "unknown")}`
+        )
+      }
+    }
+  }
+}
+
+/* ============================================================================
+ * Orchestrator
+ * ==========================================================================*/
+
 /**
- * Full seed pipeline: check → ensure categories → ensure tags → create products.
+ * Full seed pipeline: categories → tags → attributes → products → collections.
+ * Each phase reports fine-grained progress; individual errors are collected
+ * without aborting the pipeline so a partial seed still lands in the store.
  */
 export async function runProductSeed(
   onProgress: SeedProgressCallback
 ): Promise<void> {
-  const products = seedData.products ?? []
   const errors: string[] = []
 
   try {
@@ -379,34 +633,49 @@ export async function runProductSeed(
       phase: "checking",
       current: 0,
       total: 0,
-      message: "التحقق من الفئات والوسوم…",
+      message: "بدء التهيئة…",
       errors: [],
     })
 
-    const requiredCategories = collectRequiredCategorySlugs(products)
-    const requiredTags = collectRequiredTagNames(products)
-
-    const categoryIds = await ensureSeedCategories(
-      requiredCategories,
-      onProgress
+    const categoryIds = await ensureCategories(
+      SEED_DATASET.categories,
+      onProgress,
+      errors
     )
-    const tagIds = await ensureSeedTags(requiredTags, onProgress)
 
-    const result = await createSeedProducts(
-      products,
+    const tagIds = await ensureTags(SEED_DATASET.tags, onProgress, errors)
+
+    const attributeMap = await ensureAttributes(
+      SEED_DATASET.attributes,
+      categoryIds,
+      onProgress,
+      errors
+    )
+
+    const productIds = await ensureProducts(
+      SEED_DATASET.products,
       categoryIds,
       tagIds,
-      onProgress
+      attributeMap,
+      onProgress,
+      errors
     )
-    errors.push(...result.errors)
+
+    await ensureCollections(
+      SEED_DATASET.collections,
+      productIds,
+      onProgress,
+      errors
+    )
 
     onProgress({
       phase: errors.length > 0 ? "error" : "done",
-      current: products.length,
-      total: products.length,
-      message: `تم: إنشاء ${result.created}، تخطي ${result.skipped}${
-        errors.length ? `، أخطاء ${errors.length}` : ""
-      }`,
+      current: 1,
+      total: 1,
+      message:
+        errors.length > 0
+          ? `اكتمل مع ${errors.length} خطأ`
+          : "اكتمل الـ seeder بنجاح",
       errors,
     })
   } catch (error) {
@@ -420,5 +689,3 @@ export async function runProductSeed(
     })
   }
 }
-
-export { seedData }

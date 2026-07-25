@@ -3,7 +3,9 @@ export type SeedPhase =
   | "checking"
   | "categories"
   | "tags"
+  | "attributes"
   | "products"
+  | "collections"
   | "done"
   | "error"
 
@@ -13,26 +15,4 @@ export type SeedProgress = {
   total: number
   message: string
   errors: string[]
-}
-
-export type SeedProductSource = {
-  id: number
-  title: string
-  description: string
-  category: string
-  price: number
-  discountPercentage: number
-  stock: number
-  tags: string[]
-  sku: string
-  weight: number
-  images: string[]
-  thumbnail: string
-  meta?: {
-    barcode?: string
-  }
-}
-
-export type SeedProductsFile = {
-  products: SeedProductSource[]
 }

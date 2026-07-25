@@ -1,3 +1,4 @@
-export { runProductSeed, ensureSeedCategories, ensureSeedTags, createSeedProducts } from "./actions"
+export { runProductSeed } from "./actions"
 export { SeedProductsButton } from "./seed-products-button"
-export type { SeedProgress, SeedPhase, SeedProductSource } from "./types"
+export { SEED_DATASET } from "./dataset"
+export type { SeedProgress, SeedPhase } from "./types"

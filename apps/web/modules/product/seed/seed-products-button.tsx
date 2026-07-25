@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/card"
 
 import { runProductSeed } from "@/modules/product/seed/actions"
+import { SEED_DATASET } from "@/modules/product/seed/dataset"
 import type { SeedProgress } from "@/modules/product/seed/types"
 
 const INITIAL_PROGRESS: SeedProgress = {
@@ -37,8 +38,12 @@ function phaseLabel(phase: SeedProgress["phase"]): string {
       return "فئات"
     case "tags":
       return "وسوم"
+    case "attributes":
+      return "سمات"
     case "products":
       return "منتجات"
+    case "collections":
+      return "مجموعات"
     case "done":
       return "اكتمل"
     case "error":
@@ -54,6 +59,17 @@ export function SeedProductsButton() {
 
   const percent = useMemo(() => progressPercent(progress), [progress])
   const showProgress = progress.phase !== "idle"
+
+  const counts = useMemo(
+    () => ({
+      categories: SEED_DATASET.categories.length,
+      tags: SEED_DATASET.tags.length,
+      attributes: SEED_DATASET.attributes.length,
+      products: SEED_DATASET.products.length,
+      collections: SEED_DATASET.collections.length,
+    }),
+    []
+  )
 
   const handleSeed = useCallback(async () => {
     if (running) return
@@ -75,11 +91,13 @@ export function SeedProductsButton() {
       <CardHeader className="gap-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Database className="size-4" aria-hidden />
-          تهيئة منتجات تجريبية
+          تهيئة بيانات تجريبية
         </CardTitle>
         <CardDescription>
-          يتحقق من الفئات والوسوم أولاً، ينشئ الناقص منها، ثم يضيف منتجات
-          DummyJSON المرتبطة بها.
+          ينشئ بالتسلسل: {counts.categories} فئة (مع فئات متداخلة)،{" "}
+          {counts.tags} وسم، {counts.attributes} سمة، {counts.products} منتج،{" "}
+          و {counts.collections} مجموعة (يدوية وتلقائية). يتخطى ما هو موجود
+          مسبقاً.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
