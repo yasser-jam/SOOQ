@@ -72,6 +72,78 @@ function isPublicApiUrl(apiUrl: string): boolean {
 	)
 }
 
+function pickLocalizedString(
+	record: Record<string, unknown>,
+	arKeys: string[],
+	enKeys: string[],
+	locale: "ar" | "en",
+): string {
+	const readKeys = (keys: string[]) => {
+		for (const key of keys) {
+			const v = record[key]
+			if (typeof v === "string" && v.trim()) return v.trim()
+		}
+		return ""
+	}
+	const primary = readKeys(locale === "ar" ? arKeys : enKeys)
+	if (primary) return primary
+	return readKeys(locale === "ar" ? enKeys : arKeys)
+}
+
+/**
+ * Build a locale-specific one-line summary of product attributes for the
+ * ContentParagraph binding on the product-details preset — e.g. Arabic:
+ * "العلامة التجارية: SOOQ · سعة التخزين: ٦٤ جيجابايت · الضمان: 1".
+ */
+function formatAttributesDisplay(
+	attributes: Array<Record<string, unknown>>,
+	locale: "ar" | "en",
+): string {
+	const separator = " · "
+	const pairSeparator = locale === "ar" ? ": " : ": "
+
+	const lines = attributes
+		.map((attr) => {
+			const label = pickLocalizedString(
+				attr,
+				["attributeNameAr", "nameAr", "labelAr"],
+				["attributeNameEn", "nameEn", "labelEn"],
+				locale,
+			)
+			if (!label) return null
+
+			const options = Array.isArray(attr.selectedOptions)
+				? (attr.selectedOptions as Array<Record<string, unknown>>)
+				: []
+			let value = ""
+			if (options.length > 0) {
+				value = options
+					.map((opt) =>
+						pickLocalizedString(
+							opt,
+							["optionValueAr", "valueAr", "nameAr"],
+							["optionValueEn", "valueEn", "nameEn"],
+							locale,
+						),
+					)
+					.filter(Boolean)
+					.join("، ")
+			}
+			if (!value && typeof attr.valueText === "string") {
+				value = attr.valueText.trim()
+			}
+			if (!value && typeof attr.valueNumber === "number") {
+				value = String(attr.valueNumber)
+			}
+			if (!value) return null
+
+			return `${label}${pairSeparator}${value}`
+		})
+		.filter((line): line is string => Boolean(line))
+
+	return lines.join(separator)
+}
+
 function normalizePublicProductPayload(
 	raw: ProductDetailPayload,
 ): ProductDetailPayload {
@@ -79,30 +151,132 @@ function normalizePublicProductPayload(
 
 	const flat = raw as Record<string, unknown>
 	const productId = String(flat.productId ?? flat.id ?? "")
+	const pricingRaw =
+		flat.pricing != null && typeof flat.pricing === "object"
+			? (flat.pricing as Record<string, unknown>)
+			: {}
+	const currencyCode = String(
+		pricingRaw.currencyCode ?? flat.currencyCode ?? "SYP",
+	)
+
+	const rawImages = Array.isArray(flat.images)
+		? (flat.images as Array<Record<string, unknown> | string>)
+		: []
+	const images = rawImages
+		.map((item) => {
+			if (typeof item === "string") return { url: item }
+			const url = String(item.url ?? item.imageUrl ?? "").trim()
+			if (!url) return null
+			return {
+				url,
+				thumbnailUrl:
+					item.thumbnailUrl != null ? String(item.thumbnailUrl) : undefined,
+			}
+		})
+		.filter((item): item is { url: string; thumbnailUrl?: string } => item != null)
+
+	const primaryImageUrl =
+		flat.primaryImageUrl != null
+			? String(flat.primaryImageUrl)
+			: (images[0]?.url ?? null)
+	const primaryThumbnailUrl =
+		flat.primaryThumbnailUrl != null
+			? String(flat.primaryThumbnailUrl)
+			: (images[0]?.thumbnailUrl ?? null)
+
+	const rawVariants = Array.isArray(flat.variants)
+		? (flat.variants as Array<Record<string, unknown>>)
+		: []
+	const variants = rawVariants.map((variant) => ({
+		variantId:
+			variant.variantId != null ? String(variant.variantId) : undefined,
+		sku: variant.sku != null ? String(variant.sku) : undefined,
+		price: variant.price != null ? Number(variant.price) : undefined,
+		compareAtPrice:
+			variant.compareAtPrice != null ? Number(variant.compareAtPrice) : undefined,
+		stockQty: variant.stockQty == null ? null : Number(variant.stockQty),
+		optionValues: Array.isArray(variant.optionValues)
+			? (variant.optionValues as Array<Record<string, unknown>>)
+			: [],
+		isActive: variant.available !== false && variant.isActive !== false,
+	}))
+
+	// Synthesize a variantMatrix from the flat variants list. The public API
+	// doesn't expose per-attribute grouping, so we group option values by
+	// their position within each variant's optionValues array (position i =
+	// option group i). This is the same convention the admin editor uses.
+	const optionGroupCount = variants.reduce(
+		(max, v) => Math.max(max, v.optionValues.length),
+		0,
+	)
+	const matrixOptions: Array<{
+		optionNameAr: string
+		optionNameEn: string
+		optionValues: Array<Record<string, unknown>>
+	}> = []
+	for (let i = 0; i < optionGroupCount; i += 1) {
+		const seen = new Map<string, Record<string, unknown>>()
+		for (const variant of variants) {
+			const value = variant.optionValues[i]
+			if (!value) continue
+			const id = String(value.optionValueId ?? value.id ?? "").trim()
+			if (!id || seen.has(id)) continue
+			seen.set(id, value)
+		}
+		if (seen.size === 0) continue
+		matrixOptions.push({
+			optionNameAr: `الخيار ${i + 1}`,
+			optionNameEn: `Option ${i + 1}`,
+			optionValues: [...seen.values()].sort(
+				(a, b) => Number(a.sortOrder ?? 0) - Number(b.sortOrder ?? 0),
+			),
+		})
+	}
+
+	const rawAttributes = Array.isArray(flat.attributes)
+		? (flat.attributes as Array<Record<string, unknown>>)
+		: []
+	const attributesDisplayAr = formatAttributesDisplay(rawAttributes, "ar")
+	const attributesDisplayEn = formatAttributesDisplay(rawAttributes, "en")
 
 	return {
 		product: {
 			productId,
+			id: productId,
 			titleAr: flat.titleAr,
 			titleEn: flat.titleEn,
 			descriptionAr: flat.descriptionAr,
 			descriptionEn: flat.descriptionEn,
 			slug: flat.slug,
-			basePrice: flat.basePrice,
-			compareAtPrice: flat.compareAtPrice,
-			currencyCode: flat.currencyCode,
+			basePrice: pricingRaw.basePrice ?? flat.basePrice,
+			compareAtPrice: pricingRaw.compareAtPrice ?? flat.compareAtPrice,
+			currencyCode,
 			status: flat.status,
-			primaryImageUrl: flat.primaryImageUrl,
-			primaryThumbnailUrl: flat.primaryThumbnailUrl,
-			media: flat.primaryImageUrl
-				? [{ url: flat.primaryImageUrl, thumbnailUrl: flat.primaryThumbnailUrl }]
-				: [],
+			primaryImageUrl,
+			primaryThumbnailUrl,
+			media: images,
+			tags: flat.tags ?? [],
+			categories: flat.categories ?? [],
+			attributes: rawAttributes,
+			attributesDisplayAr,
+			attributesDisplayEn,
 		},
 		pricing: {
-			basePrice: flat.basePrice,
-			compareAtPrice: flat.compareAtPrice,
-			currencyCode: flat.currencyCode,
-			displayPrice: flat.displayPrice,
+			basePrice: pricingRaw.basePrice ?? flat.basePrice,
+			compareAtPrice: pricingRaw.compareAtPrice ?? flat.compareAtPrice,
+			currencyCode,
+			displayPrice: pricingRaw.displayPrice ?? flat.displayPrice ?? "",
+			displayCompareAt:
+				pricingRaw.displayCompareAt ?? flat.displayCompareAt ?? "",
+			discountPercentage:
+				pricingRaw.discountPercentage ?? flat.discountPercentage ?? 0,
+			hasDiscount: Boolean(pricingRaw.hasDiscount ?? flat.hasDiscount),
+		},
+		images,
+		variants,
+		variantMatrix: {
+			options: matrixOptions,
+			variants,
 		},
 	}
 }

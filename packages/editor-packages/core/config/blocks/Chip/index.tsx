@@ -94,16 +94,48 @@ function getChipVariantColors(variant: ChipVariant): {
   return map[variant] ?? map.neutral;
 }
 
-function parseChipList(value: unknown): ChipItem[] | null {
+function pickChipString(
+  record: Record<string, unknown>,
+  keys: string[]
+): string {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+}
+
+function parseChipList(
+  value: unknown,
+  locale: "ar" | "en" = "ar"
+): ChipItem[] | null {
   if (!Array.isArray(value) || value.length === 0) return null;
+
+  const arKeys = ["nameAr", "titleAr", "labelAr", "tagNameAr"];
+  const enKeys = ["nameEn", "titleEn", "labelEn", "tagNameEn"];
+  const genericKeys = ["name", "title", "label", "tagName"];
+  const idKeys = [
+    "id",
+    "productTagId",
+    "categoryId",
+    "collectionId",
+    "attributeDefId",
+    "slug",
+  ];
 
   const items = value
     .map((entry) => {
       if (entry == null || typeof entry !== "object") return null;
 
       const record = entry as Record<string, unknown>;
-      const id = String(record.id ?? "").trim();
-      const name = String(record.name ?? "").trim();
+
+      const localised =
+        locale === "ar"
+          ? pickChipString(record, arKeys) || pickChipString(record, enKeys)
+          : pickChipString(record, enKeys) || pickChipString(record, arKeys);
+
+      const name = localised || pickChipString(record, genericKeys);
+      const id = pickChipString(record, idKeys) || name;
       if (!id && !name) return null;
 
       return { id: id || name, name: name || id };
@@ -228,7 +260,7 @@ const ChipInner: ComponentConfig<ChipProps> = {
         locale: language,
       });
 
-      return parseChipList(resolved);
+      return parseChipList(resolved, language);
     }, [data, language, listValueContext?.path]);
 
     if (!items) return null;

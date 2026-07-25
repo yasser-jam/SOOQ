@@ -2,8 +2,10 @@
 export {
   PAGES,
   PAGES_UPDATED_EVENT,
+  buildExamplePathFromPattern,
   dedupeByPath,
   getEditPath,
+  isDynamicPath,
   isValidIconName,
   matchCurrentPage,
   normalizePagePath,

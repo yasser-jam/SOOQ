@@ -10,6 +10,10 @@ const LOCALE_SHORTHANDS: Record<string, { ar: string; en: string }> = {
     ar: "product.descriptionAr",
     en: "product.descriptionEn",
   },
+  "product.attributesDisplay": {
+    ar: "product.attributesDisplayAr",
+    en: "product.attributesDisplayEn",
+  },
 };
 
 function tokenizePath(path: string): string[] {

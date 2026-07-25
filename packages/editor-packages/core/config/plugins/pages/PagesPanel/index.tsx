@@ -15,8 +15,10 @@ import { useAppStoreApi } from "@/core/store"
 import {
   PageDefinition,
   PAGES_UPDATED_EVENT,
+  buildExamplePathFromPattern,
   getAllPages,
   getEditPath,
+  isDynamicPath,
   normalizePagePath,
 } from "../../../pages"
 import {
@@ -280,13 +282,23 @@ export function PagesPanel() {
 
     if (!normalizedPath) {
       setFormError(
-        "استخدم مسارًا صالحًا مثل /about-us. المسارات الديناميكية و /edit غير مسموح بهما."
+        "استخدم مسارًا صالحًا مثل /about-us أو /products/:product-slug. مسار /edit غير مسموح به."
       )
       return
     }
 
+    const dynamic = isDynamicPath(normalizedPath)
+    const examplePath = dynamic
+      ? buildExamplePathFromPattern(normalizedPath)
+      : undefined
+    const linkPath = examplePath ?? normalizedPath
+
     const existingEditPaths = new Set(pages.map((page) => getEditPath(page)))
-    if (existingEditPaths.has(normalizedPath)) {
+    const existingPaths = new Set(pages.map((page) => page.path))
+    if (
+      existingPaths.has(normalizedPath) ||
+      existingEditPaths.has(linkPath)
+    ) {
       setFormError("توجد صفحة بهذا المسار بالفعل.")
       return
     }
@@ -305,11 +317,13 @@ export function PagesPanel() {
       {
         path: normalizedPath,
         name: normalizedLabel,
-        link: normalizedPath,
+        link: linkPath,
         title: normalizedLabel,
-        description: "صفحة مخصصة",
+        description: dynamic ? "صفحة ديناميكية" : "صفحة مخصصة",
         iconName: "FileText",
         isCustom: true,
+        dynamic: dynamic || undefined,
+        examplePath,
       },
       starterContent
     )
@@ -436,7 +450,7 @@ export function PagesPanel() {
                   type="text"
                   value={pathDraft}
                   onChange={(event) => setPathDraft(event.target.value)}
-                  placeholder="/about-us"
+                  placeholder="/about-us أو /products/:product-slug"
                   required
                   dir="ltr"
                   className="h-9 font-mono text-sm"

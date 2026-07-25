@@ -68,12 +68,44 @@ export function normalizePagePath(rawPath: string): string | null {
     value = value.slice(0, -1);
   }
 
-  if (value === "/edit" || value.endsWith("/edit") || value.includes(":")) {
+  if (value === "/edit" || value.endsWith("/edit")) {
     return null;
+  }
+
+  // Dynamic segments (":param") are allowed; each dynamic segment must be a
+  // non-empty parameter name (e.g. "/products/:product-slug"). Reject stray
+  // colons like "/foo/:" or "/foo/:/bar".
+  const segments = value.split("/").filter(Boolean);
+  for (const segment of segments) {
+    if (segment === ":" || segment.startsWith("::")) return null;
   }
 
   return value || null;
 };
+
+/** True when the path contains at least one dynamic ":param" segment. */
+export function isDynamicPath(path: string): boolean {
+  return path
+    .split("/")
+    .filter(Boolean)
+    .some((segment) => segment.startsWith(":") && segment.length > 1);
+}
+
+/**
+ * Auto-generate a concrete example path for a dynamic pattern by replacing
+ * each ":param" segment with "example-<param>" (e.g. "/products/:product-slug"
+ * → "/products/example-product-slug"). Used as the default `examplePath` when
+ * merchants create a dynamic page.
+ */
+export function buildExamplePathFromPattern(pattern: string): string {
+  const segments = pattern.split("/").map((segment) => {
+    if (segment.startsWith(":") && segment.length > 1) {
+      return `example-${segment.slice(1)}`;
+    }
+    return segment;
+  });
+  return segments.join("/");
+}
 
 export const PAGES: PageDefinition[] = [
   {

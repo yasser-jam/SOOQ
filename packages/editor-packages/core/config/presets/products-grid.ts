@@ -285,6 +285,36 @@ export function createProductDetailSection(
                     color: "theme-neutral",
                     textAlign: "right",
                   }),
+                  {
+                    type: "Chip",
+                    props: {
+                      chipVariantMode: "theme",
+                      chipVariant: "primary",
+                      shape: "pill",
+                      size: "sm",
+                      gap: 8,
+                      maxItems: 20,
+                      listValueContext: { path: "product.tags" },
+                    },
+                  },
+                  {
+                    type: "Chip",
+                    props: {
+                      chipVariantMode: "theme",
+                      chipVariant: "secondary",
+                      shape: "rounded",
+                      size: "sm",
+                      gap: 8,
+                      maxItems: 20,
+                      listValueContext: { path: "product.categories" },
+                    },
+                  },
+                  createParagraph("", {
+                    valueContext: { path: "product.attributesDisplay" },
+                    fontSize: "theme-sm",
+                    color: "theme-neutral",
+                    textAlign: "right",
+                  }),
                   createPrimaryButton("إضافة إلى السلة", {
                     destinationType: "action",
                     buttonAction: "addToCart",

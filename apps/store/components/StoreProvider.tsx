@@ -30,6 +30,7 @@ import {
 } from "@/modules/auth/customer-auth/actions"
 import { isMockApiEnabled } from "@/lib/mock/enabled"
 import { MOCK_STORE_SLUG } from "@/lib/mock/seed"
+import { getTenantIdFromToken } from "@/lib/jwt"
 import { CheckoutDrawer } from "./checkout/CheckoutDrawer"
 import {
 	getStoreTenantId,
@@ -173,9 +174,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 				otpCode: otp,
 			})
 
-			const tenantId = tokens.tenantId || TENANT_SLUG
+			// The customer OTP response doesn't always echo `tenantId`; when it
+			// does, it may be blank. Prefer the tenant UUID embedded in the
+			// signed access-token JWT so downstream requests (checkout, list
+			// APIs via getEditorTenantId) send a real UUID — never a slug.
+			const tenantFromToken = tokens.accessToken
+				? getTenantIdFromToken(tokens.accessToken)
+				: null
+			const tenantId = tenantFromToken || tokens.tenantId || null
 
-			setCookie("sooq-tenant-id", tenantId)
+			if (tokens.accessToken) {
+				setCookie("sooq-access-token", tokens.accessToken)
+			}
+			if (tenantId) {
+				setCookie("sooq-tenant-id", tenantId)
+			}
 			setCookie("sooq-user-name", fullName)
 			setCookie("sooq-user-phone", phone)
 
@@ -257,6 +270,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 	// ─── logout ────────────────────────────────────────────────────────────────
 
 	const logout = useCallback(() => {
+		clearCookie("sooq-access-token")
 		clearCookie("sooq-tenant-id")
 		clearCookie("sooq-user-name")
 		clearCookie("sooq-user-phone")

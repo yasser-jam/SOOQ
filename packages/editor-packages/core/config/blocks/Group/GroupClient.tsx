@@ -12,6 +12,7 @@ import {
   type ProductResourceMetadata,
 } from "../../data-adapter";
 import { BoundDataProvider, useBoundData } from "../../binding";
+import { applyVariantPricing } from "../../binding/apply-variant-pricing";
 import { getBoundProductId } from "../../binding/map-collection-product-to-bound-data";
 import {
   useCollectionProductBoundData,
@@ -159,8 +160,18 @@ export function GroupClient({
     return null;
   }
 
+  const effectiveVariantId =
+    cartLine?.selectedVariant?.variantId ?? selectedVariantId;
+  const effectiveBoundData = React.useMemo(() => {
+    if (!boundData || cartLineId) return boundData;
+    return applyVariantPricing(
+      boundData as Record<string, unknown>,
+      effectiveVariantId
+    );
+  }, [boundData, cartLineId, effectiveVariantId]);
+
   const boundProviderValue = {
-    data: boundData,
+    data: effectiveBoundData,
     isLoading: cartLineId
       ? false
       : skipProductDetailFetch
@@ -169,8 +180,7 @@ export function GroupClient({
     isError: cartLineId ? false : skipProductDetailFetch ? false : isError,
     metadata: cartLine?.metadata ?? metadata ?? parentBound.metadata ?? null,
     language: cartLine?.language ?? language,
-    selectedVariantId:
-      cartLine?.selectedVariant?.variantId ?? selectedVariantId,
+    selectedVariantId: effectiveVariantId,
     setSelectedVariantId,
   };
 

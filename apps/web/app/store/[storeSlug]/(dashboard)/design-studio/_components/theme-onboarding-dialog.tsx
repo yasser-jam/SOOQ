@@ -53,7 +53,9 @@ import {
   createProductCardBlock,
   createStorefrontProductCardBlock,
   createProductsGridSection,
+  createProductDetailSection,
 } from "@/core/config/presets/products-grid"
+import { createProductsPagePresetContent } from "@/core/config/presets/products-page"
 import {
   createCartPageContent,
   FORMS_PRESETS,
@@ -715,10 +717,43 @@ function buildSiteDataFromState(state: OnboardingState): Partial<SiteData> {
       : [],
   }
 
+  const productsPage: SitePage = {
+    path: "/products",
+    slug: "/products",
+    name: "المنتجات",
+    link: "/products",
+    title: "المنتجات",
+    description: "قائمة المنتجات مع الفلاتر",
+    iconName: "Package",
+    content: createProductsPagePresetContent() as SitePage["content"],
+  }
+
+  const productDetailsPage: SitePage = {
+    path: "/products/:product-slug",
+    slug: "/products/example-product",
+    name: "تفاصيل المنتج",
+    link: "/products/example-product",
+    title: "تفاصيل المنتج",
+    description: "صفحة تفاصيل المنتج (ديناميكية)",
+    iconName: "Package",
+    dynamic: true,
+    examplePath: "/products/example-product",
+    content: [
+      createProductDetailSection() as SitePage["content"][number],
+    ],
+  }
+
   return {
     root: { props: rootProps },
     zones: {},
-    pages: [homePage, cartPage, loginPage, verifyOtpPage],
+    pages: [
+      homePage,
+      productsPage,
+      productDetailsPage,
+      cartPage,
+      loginPage,
+      verifyOtpPage,
+    ],
   }
 }
 
@@ -1418,6 +1453,8 @@ function StepHomeBlocks({ data, updateData }: StepProps) {
           <p className="text-sm font-medium">صفحات القالب الافتراضية</p>
           <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
             <li>/ — الرئيسية (هيرو + الأقسام المختارة + شبكة المنتجات)</li>
+            <li>/products — قائمة المنتجات (قالب صفحة المنتجات)</li>
+            <li>/products/:product-slug — تفاصيل المنتج (ديناميكية)</li>
             <li>/cart — السلة (قالب السلة)</li>
             <li>/login — تسجيل الدخول (نموذج الدخول)</li>
             <li>/verify-otp — التحقق من الرمز (نموذج OTP)</li>
@@ -1547,7 +1584,7 @@ function StepPreview({ data }: { data: OnboardingState }) {
       </div>
 
       <div className="mt-3 rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">
-        الصفحات: / · /cart · /login · /verify-otp
+        الصفحات: / · /products · /products/:product-slug · /cart · /login · /verify-otp
       </div>
     </div>
   )

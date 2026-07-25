@@ -6,6 +6,7 @@ import {
 import { publicApi } from "@/lib/public-api"
 import { isMockApiEnabled } from "@/lib/mock/enabled"
 import { MOCK_STORE_TENANT_ID } from "@/lib/mock/seed"
+import { getEditorTenantId } from "@/lib/tenant-context"
 
 // ─── Cookie helper (no js-cookie in this app) ─────────────────────────────────
 
@@ -23,8 +24,18 @@ const TENANT_ID_COOKIE = "sooq-tenant-id"
 const USER_NAME_COOKIE = "sooq-user-name"
 const USER_PHONE_COOKIE = "sooq-user-phone"
 
+/**
+ * Resolve the tenant UUID to send with storefront requests.
+ *
+ * Aligns with the list-API path (`getEditorTenantId`): prefer the tenant
+ * claim inside the signed access-token JWT, fall back to the `sooq-tenant-id`
+ * cookie, then the mock tenant in dev. Reading the raw cookie directly is
+ * unreliable — the storefront OTP flow can persist the tenant *slug* there
+ * (not a UUID) when the backend response omits `tenantId`, which caused
+ * checkout to POST with a slug while list APIs sent the correct UUID.
+ */
 export function getStoreTenantId(): string | null {
-	return readCookie(TENANT_ID_COOKIE)
+	return getEditorTenantId() ?? readCookie(TENANT_ID_COOKIE)
 }
 
 export function getCheckoutCustomerFromCookies(): {

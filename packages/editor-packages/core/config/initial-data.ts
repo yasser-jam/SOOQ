@@ -1,8 +1,6 @@
 import { UserData } from "./types";
 import { products } from "./data/products";
-import {
-  createDemoProductCard,
-} from "./presets/products-grid";
+import { createProductDetailSection } from "./presets/products-grid";
 import { createCartPageContent } from "./presets/cart";
 import {
   buildThemesGalleryData,
@@ -289,7 +287,9 @@ export const initialData: Record<string, UserData> = {
     content: createCartPageContent(),
   },
 
-  // ── Product details page (example slug) ───────────────────────────────────
+  // ── Product details page (dynamic /products/:product-slug) ──────────────
+  // Renderer wraps this page in <UrlBoundProductProvider slug={...}> so the
+  // product-detail section's bound blocks inherit the URL slug's product.
   "/products/example-product": {
     root: {
       props: {
@@ -300,26 +300,6 @@ export const initialData: Record<string, UserData> = {
       },
     },
     zones: {},
-    content: [
-      {
-        type: "Section",
-        props: {
-          id: "Section-product-detail",
-          paddingTop: "64px",
-          paddingBottom: "64px",
-          paddingHorizontal: "48px",
-          backgroundColor: "#ffffff",
-          theme: "light",
-          maxWidth: "1200px",
-          content: [
-            createDemoProductCard("ProductCard-detail", {
-              id: "prod-001",
-              titleAr: "Classic White Sneakers",
-              titleEn: "Classic White Sneakers",
-            }),
-          ],
-        },
-      },
-    ],
+    content: [createProductDetailSection() as UserData["content"][number]],
   },
 };

@@ -23,6 +23,7 @@ export {
   resolveBoundImageUrl,
   resolveBoundImageUrls,
 } from "./resolve-bound-images";
+export { applyVariantPricing } from "./apply-variant-pricing";
 export {
   CollectionProductsBoundProvider,
   useCollectionProductBoundData,
