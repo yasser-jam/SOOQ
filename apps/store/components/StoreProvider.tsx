@@ -28,6 +28,7 @@ import {
 	requestCustomerOtp,
 	verifyCustomerOtp,
 } from "@/modules/auth/customer-auth/actions"
+import cookiesConfig from "@/config/cookies-config"
 import { isMockApiEnabled } from "@/lib/mock/enabled"
 import { MOCK_STORE_SLUG } from "@/lib/mock/seed"
 import { getTenantIdFromToken } from "@/lib/jwt"
@@ -39,12 +40,6 @@ import {
 import { useProductsPageState } from "../lib/use-products-page-state"
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-
-const TENANT_SLUG =
-	process.env.NEXT_PUBLIC_TENANT_SLUG ??
-	(isMockApiEnabled()
-		? MOCK_STORE_SLUG
-		: "tmp-4624d73c8f49494cb8be2aedcb967e3a")
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 days
 
@@ -58,6 +53,13 @@ function readCookie(name: string): string | null {
 		),
 	)
 	return match?.[1] != null ? decodeURIComponent(match[1]) : null
+}
+
+function getStoreTenantSlug(): string {
+	const fromCookie = readCookie(cookiesConfig.tenantSlug)?.trim()
+	if (fromCookie) return fromCookie
+	if (isMockApiEnabled()) return MOCK_STORE_SLUG
+	throw new Error("لم يتم العثور على معرّف المتجر.")
 }
 
 function setCookie(name: string, value: string) {
@@ -139,9 +141,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		localStorage.setItem("sooq-login-fullName", fullName)
 
 		try {
+			const tenantSlug = getStoreTenantSlug()
 			await requestCustomerOtp({
 				phone,
-				tenantSlug: TENANT_SLUG,
+				tenantSlug,
 				fullName,
 			})
 		} catch (err) {
@@ -168,9 +171,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		setErrors((prev) => ({ ...prev, verifyOtp: null }))
 
 		try {
+			const tenantSlug = getStoreTenantSlug()
 			const tokens = await verifyCustomerOtp({
 				phone,
-				tenantSlug: TENANT_SLUG,
+				tenantSlug,
 				otpCode: otp,
 			})
 
@@ -189,6 +193,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 			if (tenantId) {
 				setCookie("sooq-tenant-id", tenantId)
 			}
+			setCookie(cookiesConfig.tenantSlug, tokens.tenantSlug ?? tenantSlug)
 			setCookie("sooq-user-name", fullName)
 			setCookie("sooq-user-phone", phone)
 
