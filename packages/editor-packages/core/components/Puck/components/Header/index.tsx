@@ -3,8 +3,8 @@ import { useAppStore, useAppStoreApi } from "../../../../store"
 import {
   ChevronDown,
   ChevronUp,
-  Globe,
   PanelRight,
+  Save,
 } from "lucide-react"
 import { Heading } from "../../../Heading"
 import { IconButton } from "../../../IconButton/IconButton"
@@ -94,6 +94,20 @@ const HeaderInner = <
   )
 
   const [menuOpen, setMenuOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = useCallback(async () => {
+    if (!onPublish || saving) return
+
+    const data = appStore.getState().state.data as G["UserData"]
+
+    setSaving(true)
+    try {
+      await onPublish(data)
+    } finally {
+      setSaving(false)
+    }
+  }, [appStore, onPublish, saving])
 
   const rootTitle = useAppStore((s) => {
     const rootData = s.state.indexes.nodes["root"]?.data as G["UserRootProps"]
@@ -175,15 +189,9 @@ const HeaderInner = <
               menuOpen={menuOpen}
               renderHeaderActions={() => (
                 <CustomHeaderActions>
-                  <Button
-                    onClick={() => {
-                      const data = appStore.getState().state
-                        .data as G["UserData"]
-                      onPublish && onPublish(data)
-                    }}
-                  >
-                    <Globe size="14px" />
-                    نشر
+                  <Button disabled={saving} onClick={() => void handleSave()}>
+                    <Save size="14px" />
+                    {saving ? "جارٍ الحفظ..." : "حفظ"}
                   </Button>
                 </CustomHeaderActions>
               )}

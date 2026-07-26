@@ -51,6 +51,10 @@ import { ThemeInjector } from "@/core/config/plugins/settings/ThemeInjector"
 import type { UserData } from "@/core/config/types"
 import type { FullThemeProps } from "@/core/config/theme"
 import { Button } from "@workspace/ui/components/button"
+import { useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
+import { saveWebDesignDraft } from "@/modules/design-studio/draft"
+import { designStudioKeys } from "@/modules/design-studio/queryKeys"
 import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell"
 import { PreviewPageShell } from "../_components/preview-page-shell"
 import { PreviewThemeProvider } from "../_components/preview-theme-provider"
@@ -488,6 +492,7 @@ export function Client({
 
   const pathname = usePathname()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const designStudioHref = useMemo(() => {
     const match = pathname?.match(/^\/store\/([^/]+)/)
     return match ? `/store/${match[1]}/design-studio` : "/"
@@ -663,6 +668,27 @@ export function Client({
     }
     router.push(previewHref)
   }, [previewHref, router, savePageData, markPageSaved, editorMode])
+
+  // The header "حفظ" button: local write (unchanged) + the draft PUT that
+  // makes the design survive this browser. Only `configJson.web` carries data
+  // today — the mobile app builder has no screens to send yet.
+  const handleSave = useCallback(
+    async (puckData: UserData) => {
+      savePageData(puckData)
+      siteDataRef.current = readSiteData(editorMode)
+      markPageSaved(puckData)
+
+      try {
+        await saveWebDesignDraft(readSiteData("desktop"))
+        await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
+        toast.success("تم حفظ التصميم")
+      } catch {
+        toast.error("تعذر حفظ التصميم على الخادم. التغييرات محفوظة محلياً فقط.")
+      }
+    },
+    [editorMode, markPageSaved, queryClient, savePageData]
+  )
+
   const handleExportJson = () => {
     if (typeof window === "undefined") return
     const blob = new Blob(
@@ -852,11 +878,7 @@ export function Client({
             exportDataRef.current = nextData
             scheduleDraftWrite(nextData)
           }}
-          onPublish={async (data) => {
-            savePageData(data as UserData)
-            siteDataRef.current = readSiteData(editorMode)
-            markPageSaved(data as UserData)
-          }}
+          onPublish={(data) => handleSave(data as UserData)}
           plugins={plugins}
           // "blocks" = drag-and-drop palette; "outline" = شجرة العناصر tree.
           // shopifyOutlinePlugin ("sections" / الأقسام) is a separate tab.

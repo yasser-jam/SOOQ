@@ -66,7 +66,8 @@ type PuckProps<
   data: Partial<G["UserData"] | Data>;
   ui?: Partial<UiState>;
   onChange?: (data: G["UserData"]) => void;
-  onPublish?: (data: G["UserData"]) => void;
+  /** Awaited by the header save button so it can show a pending state. */
+  onPublish?: (data: G["UserData"]) => void | Promise<void>;
   onAction?: OnAction<G["UserData"]>;
   permissions?: Partial<Permissions>;
   plugins?: Plugin<UserConfig>[];

@@ -30,6 +30,7 @@ import {
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { cn } from "@workspace/ui/lib/utils"
 import { useStorePath } from "@/lib/store-path"
+import { buildStoreBasePath } from "@/modules/storefront/lib/store-config"
 import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 
 import ThemeMarketplaceCard from "./_components/theme-marketplace-card"
@@ -118,12 +119,13 @@ export default function DesignStudioPage() {
   )
   const themesGalleryHref = themeEditHref
 
-  const storeSlug = settings?.slug ?? ""
+  const tenantId = settings?.tenantId ?? ""
   const shopUrl = useMemo(() => {
-    if (!storeSlug) return ""
-    if (typeof window === "undefined") return `/shop/${storeSlug}`
-    return `${window.location.origin}/shop/${storeSlug}`
-  }, [storeSlug])
+    if (!tenantId) return ""
+    const path = buildStoreBasePath(tenantId)
+    if (typeof window === "undefined") return path
+    return `${window.location.origin}${path}`
+  }, [tenantId])
 
   const hasCompletedConfig = Boolean(settings)
   const hasDraft = Boolean(draft)
