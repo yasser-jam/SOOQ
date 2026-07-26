@@ -1,18 +1,22 @@
 "use client"
 
-// Side effect: registers the axios-backed editor data adapter (shared from
-// apps/web via the @/lib alias) so bound blocks fetch live data (C2-4).
-import "@/lib/editor-data-adapter"
 import { useMemo } from "react"
+import { notFound } from "next/navigation"
 import { Render } from "@/core"
 import config from "@/core/config"
 import type { FullThemeProps } from "@/core/config/theme"
 
+// Side effect: registers the axios-backed editor data adapter (shared from
+// apps/web via the @/lib alias) so bound blocks fetch live data (C2-4).
+import "@/lib/editor-data-adapter"
+
 import { PreviewThemeProvider } from "./preview-theme-provider"
+import { StoreLoading } from "./store-loading"
 import { StoreNotFound } from "./store-not-found"
 import { StoreProvider } from "./StoreProvider"
 import { UrlBoundProductProvider } from "./UrlBoundProductProvider"
 import { STORE_FIXED_THEME_ID } from "../lib/store-config"
+import { useStoreTenant } from "../lib/store-tenant-context"
 import { useStorePathname } from "../lib/use-store-pathname"
 import { useStorefrontData } from "../lib/use-storefront-data"
 
@@ -36,6 +40,7 @@ function extractDynamicSegments(
 }
 
 export function StorefrontRenderer() {
+	const { tenantId } = useStoreTenant()
 	const path = useStorePathname()
 
 	const metadata = useMemo(
@@ -45,10 +50,12 @@ export function StorefrontRenderer() {
 		[],
 	)
 
-	const { resolvedData, isLoading, pageFound, matchedPage } = useStorefrontData({
-		path,
-		metadata,
-	})
+	const { resolvedData, isLoading, status, pageFound, matchedPage } =
+		useStorefrontData({
+			path,
+			metadata,
+			tenantId,
+		})
 
 	const productSlug = useMemo(() => {
 		if (!matchedPage?.dynamic) return null
@@ -62,12 +69,12 @@ export function StorefrontRenderer() {
 		return ("props" in root ? root.props : root) as Partial<FullThemeProps>
 	}, [resolvedData])
 
+	if (status === "not-found-tenant") {
+		notFound()
+	}
+
 	if (isLoading) {
-		return (
-			<div className="StorefrontState">
-				<p>جاري تحميل المتجر…</p>
-			</div>
-		)
+		return <StoreLoading />
 	}
 
 	if (!pageFound) {

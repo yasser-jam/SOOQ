@@ -40,6 +40,7 @@ export const EMPTY_LINK: LinkValue = { kind: "none" };
 // ─── Resolution helpers (used by render functions) ──────────────────────────
 
 import { resolveValueContextAsString } from "../../binding/resolve-value-context";
+import { withStoreBasePath } from "../../lib/store-base-path";
 
 type ResolveLinkOptions = {
   boundData?: Record<string, unknown> | null;
@@ -72,7 +73,7 @@ export function resolveLinkHref(
         }
       }
 
-      return href;
+      return withStoreBasePath(href);
     }
     case "external":
       return (link.url || "").trim() || null;
@@ -123,7 +124,7 @@ export function resolveHrefLegacy(
   if (fromLink) return fromLink;
   const trimmed = (legacyHref ?? "").trim();
   if (!trimmed || trimmed === "#") return null;
-  return trimmed;
+  return withStoreBasePath(trimmed);
 }
 
 // ─── Custom field component ────────────────────────────────────────────────

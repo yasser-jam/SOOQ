@@ -3,6 +3,7 @@ import type {
   ProductResourceMetadata,
 } from "@/modules/product/product/data-store";
 import type { ProductCardActionEventDetail } from "../binding/product-actions";
+import { withStoreBasePath } from "../lib/store-base-path";
 
 export const STORE_CART_KEY = "store-cart";
 export const STORE_CART_UPDATED_EVENT = "store-cart-updated";
@@ -183,5 +184,5 @@ export function getProductImageUrl(line: StoreCartLine): string | null {
 
 export function getProductHref(line: StoreCartLine): string {
   const slug = line.product.slug?.trim();
-  return slug ? `/products/${slug}` : "#";
+  return withStoreBasePath(slug ? `/products/${slug}` : "#") ?? "#";
 }

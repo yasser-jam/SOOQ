@@ -22,6 +22,7 @@ import {
   EMPTY_LINK,
   type LinkValue,
 } from "../../fields/LinkField";
+import { withStoreBasePath } from "../../lib/store-base-path";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import { spacingOptions } from "../../options";
 import {
@@ -500,7 +501,8 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
 
     const maybeRedirect = (submitRedirectUrl: string) => {
       if (submitRedirectUrl && typeof window !== "undefined") {
-        window.location.href = submitRedirectUrl;
+        window.location.href =
+          withStoreBasePath(submitRedirectUrl) ?? submitRedirectUrl;
       }
     };
 

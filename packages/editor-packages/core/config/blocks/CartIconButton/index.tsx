@@ -7,6 +7,7 @@ import {
   readStoreCart,
   STORE_CART_UPDATED_EVENT,
 } from "../../cart/store-cart";
+import { withStoreBasePath } from "../../lib/store-base-path";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -126,7 +127,11 @@ export const CartIconButton: ComponentConfig<CartIconButtonProps> = {
     }
 
     return (
-      <a href={href || "/cart"} style={btnStyle} aria-label="عرض السلة">
+      <a
+        href={withStoreBasePath(href || "/cart") ?? "/cart"}
+        style={btnStyle}
+        aria-label="عرض السلة"
+      >
         {inner}
       </a>
     );

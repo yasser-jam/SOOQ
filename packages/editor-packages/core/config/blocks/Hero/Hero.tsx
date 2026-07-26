@@ -4,6 +4,7 @@ import styles from "./styles.module.css";
 import { getClassNameFactory } from "@/core/lib";
 import { Button } from "@/core/components/Button";
 import { Section } from "../../components/Section";
+import { withStoreBasePath } from "../../lib/store-base-path";
 import { PuckComponent, RichText, Slot } from "@/core/types";
 import type { WithLayout } from "../../components/Layout";
 
@@ -71,7 +72,7 @@ export const Hero: PuckComponent<HeroProps> = ({
             {buttons.map((button, i) => (
               <Button
                 key={i}
-                href={button.href}
+                href={withStoreBasePath(button.href) ?? button.href}
                 variant={button.variant}
                 size="large"
                 tabIndex={puck.isEditing ? -1 : undefined}

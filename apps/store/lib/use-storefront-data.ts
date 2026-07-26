@@ -17,18 +17,32 @@ import {
 import type { UserData } from "@/core/config/types"
 import type { RootProps } from "@/core/config/root"
 import type { Components } from "@/core/config/types"
+import type { DesignPlatform } from "@/modules/design-studio/types"
 
+import { usePublishedSiteData } from "./use-published-site-data"
 import { STORE_HOME_PATH } from "./store-config"
+
+export type StorefrontStatus = "loading" | "not-found-tenant" | "ready"
+
+function hasPersistedSiteOverride(mode: "desktop" | "mobile"): boolean {
+	if (typeof window === "undefined") return false
+	return window.localStorage.getItem(getSiteStorageKey(mode)) !== null
+}
 
 export function useStorefrontData({
 	path = STORE_HOME_PATH,
 	metadata = {},
+	tenantId,
 }: {
 	path?: string
 	metadata?: Metadata
-} = {}) {
-	const [storefrontMode, setStorefrontMode] = useState(() =>
-		typeof window === "undefined" ? "desktop" : resolveStorefrontMode()
+	tenantId: string
+}) {
+	const [storefrontMode, setStorefrontMode] = useState<"desktop" | "mobile">(
+		() =>
+			typeof window === "undefined"
+				? "desktop"
+				: resolveStorefrontMode(),
 	)
 	const siteKey = getSiteStorageKey(storefrontMode)
 	const [siteRevision, setSiteRevision] = useState(0)
@@ -59,32 +73,65 @@ export function useStorefrontData({
 		}
 	}, [siteRevision])
 
-	const site = useMemo(
-		() => readStorefrontSiteData(),
-		[siteRevision, storefrontMode]
-	)
+	const hasLocalOverride = hasPersistedSiteOverride(storefrontMode)
+	// siteRevision bumps when ThemeJsonTester writes to localStorage.
+	void siteRevision
+
+	const platform: DesignPlatform =
+		storefrontMode === "mobile" ? "mobile" : "web"
+
+	const publishedQuery = usePublishedSiteData(tenantId, platform, {
+		enabled: !hasLocalOverride,
+	})
+
+	const site = hasLocalOverride
+		? readStorefrontSiteData()
+		: publishedQuery.site
+
+	const status = useMemo<StorefrontStatus>(() => {
+		if (hasLocalOverride) {
+			return site ? "ready" : "not-found-tenant"
+		}
+
+		if (publishedQuery.isLoading) return "loading"
+		if (publishedQuery.isError || !site) return "not-found-tenant"
+		return "ready"
+	}, [
+		hasLocalOverride,
+		site,
+		publishedQuery.isLoading,
+		publishedQuery.isError,
+	])
+
 	const matchedPage = useMemo<SitePage | undefined>(
-		() => findSitePage(site, path),
+		() => (site ? findSitePage(site, path) : undefined),
 		[site, path],
 	)
 
 	const data = useMemo<Partial<UserData>>(
-		() => composePuckData(site, path),
+		() => (site ? composePuckData(site, path) : { content: [], zones: {} }),
 		[site, path],
 	)
 
-	const [resolvedData, setResolvedData] = useState<Partial<UserData>>(data)
-	const [isResolving, setIsResolving] = useState(true)
+	const [resolvedSnapshot, setResolvedSnapshot] = useState<{
+		key: string
+		data: Partial<UserData>
+	} | null>(null)
+
+	const resolveKey = useMemo(
+		() => `${status}:${path}:${site?.pages?.length ?? 0}`,
+		[status, path, site],
+	)
 
 	useEffect(() => {
+		if (status !== "ready") return
+
 		let cancelled = false
 
-		setIsResolving(true)
 		resolveAllData<Components, RootProps>(data, config, metadata).then(
 			(next) => {
 				if (!cancelled) {
-					setResolvedData(next)
-					setIsResolving(false)
+					setResolvedSnapshot({ key: resolveKey, data: next })
 				}
 			},
 		)
@@ -92,7 +139,14 @@ export function useStorefrontData({
 		return () => {
 			cancelled = true
 		}
-	}, [data, metadata])
+	}, [data, metadata, status, resolveKey])
+
+	const resolvedData =
+		resolvedSnapshot?.key === resolveKey ? resolvedSnapshot.data : data
+
+	const isResolving =
+		status === "ready" &&
+		(resolvedSnapshot === null || resolvedSnapshot.key !== resolveKey)
 
 	useEffect(() => {
 		document.title = matchedPage?.title ?? matchedPage?.name ?? ""
@@ -101,7 +155,8 @@ export function useStorefrontData({
 	return {
 		data,
 		resolvedData,
-		isLoading: isResolving,
+		isLoading: status === "loading" || isResolving,
+		status,
 		pageFound: Boolean(matchedPage),
 		matchedPage,
 		siteKey,

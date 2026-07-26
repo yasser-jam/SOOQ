@@ -10,6 +10,7 @@ import {
   resolveLinkTarget,
   type LinkValue,
 } from "../../fields/LinkField";
+import { stripStoreBasePath, withStoreBasePath } from "../../lib/store-base-path";
 import responsiveStyles from "../../lib/zone-responsive.module.css";
 import {
   ZONE_ACTION_ATTR,
@@ -54,7 +55,7 @@ const NavItem = ({
 }) => {
   const navPath =
     typeof window !== "undefined"
-      ? normalizePath(window.location.pathname)
+      ? normalizePath(stripStoreBasePath(window.location.pathname))
       : "/";
 
   const resolvedHref = resolveHrefLegacy(link, href);
@@ -227,7 +228,7 @@ const Header = ({
   const brandNode = editMode ? (
     <span className={styles.logo}>{siteTitle}</span>
   ) : (
-    <a href={brandHref || "/"} className={styles.logo}>
+    <a href={withStoreBasePath(brandHref || "/") ?? "/"} className={styles.logo}>
       {siteTitle}
     </a>
   );
@@ -320,7 +321,7 @@ const Header = ({
         {editMode ? (
           <span className={styles.brand}>{siteTitle}</span>
         ) : (
-          <a href={brandHref || "/"} className={styles.brand}>
+          <a href={withStoreBasePath(brandHref || "/") ?? "/"} className={styles.brand}>
             {siteTitle}
           </a>
         )}
