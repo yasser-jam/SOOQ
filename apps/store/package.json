@@ -14,6 +14,7 @@
     "@puckeditor/core": "workspace:*",
     "@tanstack/react-query": "^5.99.0",
     "axios": "^1.15.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "^1.8.0",
     "next": "16.1.6",
     "react": "^19.2.4",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
+    "@types/leaflet": "^1.9.20",
     "@types/node": "^25.1.0",
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",

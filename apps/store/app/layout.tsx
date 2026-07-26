@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import "@/core/styles.css"
+import "leaflet/dist/leaflet.css"
 import "./globals.css"
 import { Providers } from "@/components/providers"
 

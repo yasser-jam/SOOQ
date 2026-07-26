@@ -3,6 +3,7 @@ import {
 	type StoreCart,
 	type StoreCartLine,
 } from "@/core/config/cart/store-cart"
+import { api } from "@/lib/api"
 import { publicApi } from "@/lib/public-api"
 import { isMockApiEnabled } from "@/lib/mock/enabled"
 import { MOCK_STORE_TENANT_ID } from "@/lib/mock/seed"
@@ -23,6 +24,7 @@ export function readCookie(name: string): string | null {
 const TENANT_ID_COOKIE = "sooq-tenant-id"
 const USER_NAME_COOKIE = "sooq-user-name"
 const USER_PHONE_COOKIE = "sooq-user-phone"
+const ACCESS_TOKEN_COOKIE = "sooq-access-token"
 
 /**
  * Resolve the tenant UUID to send with storefront requests.
@@ -46,6 +48,11 @@ export function getCheckoutCustomerFromCookies(): {
 		recipientName: readCookie(USER_NAME_COOKIE)?.trim() ?? "",
 		phone: readCookie(USER_PHONE_COOKIE)?.trim() ?? "",
 	}
+}
+
+/** A saved address can only be attached to an authenticated customer. */
+export function isCustomerAuthenticated(): boolean {
+	return Boolean(readCookie(ACCESS_TOKEN_COOKIE))
 }
 
 // ─── Static shipping defaults ──────────────────────────────────────────────────
@@ -141,8 +148,8 @@ export function validateCartForCheckout(cart: StoreCart): void {
 
 export type CheckoutFormValues = {
 	addressLabel: string
-	latitude: string
-	longitude: string
+	latitude: number | null
+	longitude: number | null
 }
 
 export type CheckoutFormErrors = Partial<Record<keyof CheckoutFormValues, string>>
@@ -150,8 +157,8 @@ export type CheckoutFormErrors = Partial<Record<keyof CheckoutFormValues, string
 export function defaultCheckoutFormValues(): CheckoutFormValues {
 	return {
 		addressLabel: DEFAULT_SHIPPING_ADDRESS.addressLabel,
-		latitude: String(DEFAULT_SHIPPING_ADDRESS.latitude),
-		longitude: String(DEFAULT_SHIPPING_ADDRESS.longitude),
+		latitude: DEFAULT_SHIPPING_ADDRESS.latitude,
+		longitude: DEFAULT_SHIPPING_ADDRESS.longitude,
 	}
 }
 
@@ -160,10 +167,8 @@ export function validateCheckoutForm(values: CheckoutFormValues): CheckoutFormEr
 
 	if (!values.addressLabel.trim())
 		errors.addressLabel = "وصف العنوان مطلوب"
-	if (!values.latitude || isNaN(Number(values.latitude)))
-		errors.latitude = "خط العرض مطلوب (رقم)"
-	if (!values.longitude || isNaN(Number(values.longitude)))
-		errors.longitude = "خط الطول مطلوب (رقم)"
+	if (!Number.isFinite(values.latitude) || !Number.isFinite(values.longitude))
+		errors.latitude = "حدّد موقع التوصيل على الخريطة"
 
 	return errors
 }
@@ -259,6 +264,10 @@ export async function submitCheckoutOrder(
 		throw new Error("رقم الهاتف غير متوفر. سجّل الدخول أولاً.")
 	}
 
+	if (values.latitude == null || values.longitude == null) {
+		throw new Error("حدّد موقع التوصيل على الخريطة.")
+	}
+
 	const resolvedTenantId = resolveCheckoutTenantId(tenantId)
 
 	try {
@@ -268,8 +277,8 @@ export async function submitCheckoutOrder(
 			body: {
 				items,
 				shippingAddress: {
-					latitude: Number(values.latitude),
-					longitude: Number(values.longitude),
+					latitude: values.latitude,
+					longitude: values.longitude,
 					recipientName,
 					phone,
 					addressLabel: values.addressLabel,
@@ -283,6 +292,144 @@ export async function submitCheckoutOrder(
 		throw new Error(
 			getApiErrorMessage(err, "حدث خطأ أثناء تقديم الطلب."),
 		)
+	}
+}
+
+// ─── OpenStreetMap reverse geocoding ──────────────────────────────────────────
+
+export type GeocodedAddress = {
+	governorate: string
+	city: string
+	streetAddress: string
+}
+
+type NominatimAddress = Partial<
+	Record<
+		| "state"
+		| "region"
+		| "county"
+		| "city"
+		| "town"
+		| "village"
+		| "suburb"
+		| "neighbourhood"
+		| "road"
+		| "house_number",
+		string
+	>
+>
+
+/**
+ * Turn the picked pin into governorate/city/street text.
+ *
+ * Nominatim is a third-party OSM service, not the SOOQ backend, so it is
+ * called with `fetch` instead of `api()`/`publicApi()`. Failures are silent —
+ * the customer can always type the fields by hand.
+ */
+export async function reverseGeocode(
+	latitude: number,
+	longitude: number,
+	signal?: AbortSignal,
+): Promise<GeocodedAddress | null> {
+	const url =
+		"https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18" +
+		`&accept-language=ar&lat=${latitude}&lon=${longitude}`
+
+	try {
+		const response = await fetch(url, {
+			signal,
+			headers: { Accept: "application/json" },
+		})
+		if (!response.ok) return null
+
+		const body = (await response.json()) as { address?: NominatimAddress }
+		const address = body.address ?? {}
+
+		return {
+			governorate: address.state ?? address.region ?? address.county ?? "",
+			city:
+				address.city ??
+				address.town ??
+				address.village ??
+				address.suburb ??
+				address.neighbourhood ??
+				"",
+			streetAddress: [address.road, address.house_number]
+				.filter(Boolean)
+				.join(" "),
+		}
+	} catch {
+		return null
+	}
+}
+
+// ─── Saved customer addresses ─────────────────────────────────────────────────
+
+export const ADDRESS_LABEL_OPTIONS = [
+	{ value: "HOME", label: "المنزل" },
+	{ value: "WORK", label: "العمل" },
+	{ value: "OTHER", label: "أخرى" },
+] as const
+
+export type SavedAddressFormValues = {
+	label: string
+	governorate: string
+	city: string
+	notes: string
+	isDefault: boolean
+}
+
+export function defaultSavedAddressFormValues(): SavedAddressFormValues {
+	return {
+		label: "HOME",
+		governorate: "",
+		city: "",
+		notes: "",
+		isDefault: false,
+	}
+}
+
+/** POST the currently picked checkout address to the customer's profile. */
+export async function saveCustomerAddress(
+	address: SavedAddressFormValues,
+	checkout: CheckoutFormValues,
+): Promise<void> {
+	if (!isCustomerAuthenticated()) {
+		throw new Error("سجّل الدخول أولاً لحفظ العنوان.")
+	}
+
+	const { recipientName, phone } = getCheckoutCustomerFromCookies()
+
+	if (!recipientName || !phone) {
+		throw new Error("بيانات المستلم غير متوفرة. سجّل الدخول أولاً.")
+	}
+
+	if (checkout.latitude == null || checkout.longitude == null) {
+		throw new Error("حدّد موقع العنوان على الخريطة.")
+	}
+
+	if (!address.governorate.trim()) {
+		throw new Error("المحافظة مطلوبة.")
+	}
+
+	try {
+		await api("/customer/addresses", {
+			method: "POST",
+			body: {
+				label: address.label,
+				recipientName,
+				recipientPhone: phone,
+				governorate: address.governorate.trim(),
+				city: address.city.trim() || null,
+				streetAddress: checkout.addressLabel.trim() || null,
+				notes: address.notes.trim() || null,
+				latitude: checkout.latitude,
+				longitude: checkout.longitude,
+				isDefault: address.isDefault,
+			},
+		})
+	} catch (err) {
+		throw new Error(getApiErrorMessage(err, "تعذّر حفظ العنوان."))
 	}
 }
 

@@ -12,11 +12,14 @@ import {
 import {
 	defaultCheckoutFormValues,
 	getCheckoutCustomerFromCookies,
+	isCustomerAuthenticated,
 	submitCheckoutOrder,
 	validateCheckoutForm,
 	type CheckoutFormErrors,
 	type CheckoutFormValues,
 } from "./checkout-api"
+import { CheckoutMapPicker } from "./checkout-map-picker"
+import { SaveAddressPanel } from "./save-address-panel"
 
 type CheckoutDrawerProps = {
 	open: boolean
@@ -61,6 +64,15 @@ export function CheckoutDrawer({ open, onClose, cart, tenantId }: CheckoutDrawer
 		(field: keyof CheckoutFormValues) => (value: string) => {
 			setForm((prev) => ({ ...prev, [field]: value }))
 			setErrors((prev) => ({ ...prev, [field]: undefined }))
+			setSubmitError(null)
+		},
+		[],
+	)
+
+	const setCoords = useCallback(
+		(coords: { latitude: number; longitude: number }) => {
+			setForm((prev) => ({ ...prev, ...coords }))
+			setErrors((prev) => ({ ...prev, latitude: undefined }))
 			setSubmitError(null)
 		},
 		[],
@@ -196,49 +208,29 @@ export function CheckoutDrawer({ open, onClose, cart, tenantId }: CheckoutDrawer
 							)}
 						</div>
 
-						<div className="CheckoutDrawer-grid">
-							<div className="CheckoutDrawer-field">
-								<label htmlFor="latitude" className="CheckoutDrawer-label">
-									خط العرض
-								</label>
-								<input
-									id="latitude"
-									type="number"
-									dir="ltr"
-									inputMode="decimal"
-									value={form.latitude}
-									onChange={(e) => set("latitude")(e.target.value)}
-									placeholder="33.5138"
-									className="CheckoutDrawer-input"
-								/>
-								{errors.latitude && (
-									<p className="CheckoutDrawer-error" role="alert">
-										{errors.latitude}
-									</p>
-								)}
-							</div>
-
-							<div className="CheckoutDrawer-field">
-								<label htmlFor="longitude" className="CheckoutDrawer-label">
-									خط الطول
-								</label>
-								<input
-									id="longitude"
-									type="number"
-									dir="ltr"
-									inputMode="decimal"
-									value={form.longitude}
-									onChange={(e) => set("longitude")(e.target.value)}
-									placeholder="36.2765"
-									className="CheckoutDrawer-input"
-								/>
-								{errors.longitude && (
-									<p className="CheckoutDrawer-error" role="alert">
-										{errors.longitude}
-									</p>
-								)}
-							</div>
+						<div className="CheckoutDrawer-field">
+							<span className="CheckoutDrawer-label">موقع التوصيل</span>
+							<CheckoutMapPicker
+								latitude={form.latitude}
+								longitude={form.longitude}
+								onChange={setCoords}
+							/>
+							<p className="CheckoutDrawer-hint">
+								اضغط على الخريطة أو اسحب المؤشر لتحديد موقعك بدقة.
+							</p>
+							{form.latitude != null && form.longitude != null && (
+								<p className="CheckoutDrawer-hint" dir="ltr">
+									{form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}
+								</p>
+							)}
+							{errors.latitude && (
+								<p className="CheckoutDrawer-error" role="alert">
+									{errors.latitude}
+								</p>
+							)}
 						</div>
+
+						{isCustomerAuthenticated() && <SaveAddressPanel checkout={form} />}
 
 						<p className="CheckoutDrawer-note">الدفع عند الاستلام</p>
 
