@@ -2768,11 +2768,11 @@ Stored on `SiteData.root.props`. Every field is optional — missing values fall
 
 | Prop | Type | Default | Notes |
 |---|---|---|---|
-| `bodyFont` | string (font key) | `"dm-sans"` | Base body font — CSS: `var(--theme-body-font)` |
-| `fontOption1` | string (font key) | `"space-grotesk"` | "Primary Font" slot — CSS: `var(--theme-font-1)` |
-| `fontOption2` | string (font key) | `"fraunces"` | "Secondary Font" slot — CSS: `var(--theme-font-2)` |
+| `bodyFont` | string (font key) | `"cairo"` | Base body font — CSS: `var(--theme-body-font)` |
+| `fontOption1` | string (font key) | `"tajawal"` | "Primary Font" slot — CSS: `var(--theme-font-1)` |
+| `fontOption2` | string (font key) | `"ibm-plex-sans-arabic"` | "Secondary Font" slot — CSS: `var(--theme-font-2)` |
 
-Font keys come from `FONT_OPTIONS`: `system`, `inter`, `roboto`, `open-sans`, `lato`, `poppins`, `montserrat`, `raleway`, `nunito`, `dm-sans`, `manrope`, `sora`, `playfair-display`, `merriweather`, `lora`, `space-grotesk`, `geist`, `fraunces`. Blocks reference these via the `fontFamily: "body" | "option1" | "option2"` field, resolved by `COMPONENT_FONT_CSS`.
+Font keys come from `FONT_OPTIONS` (Arabic-first): `system`, `cairo`, `tajawal`, `almarai`, `ibm-plex-sans-arabic`, `noto-sans-arabic`, `readex-pro`, `rubik`, `changa`, `el-messiri`, `amiri`, `noto-naskh-arabic`, `scheherazade-new`, plus a few Latin-only faces. Blocks reference these via the `fontFamily: "body" | "option1" | "option2"` field, resolved by `COMPONENT_FONT_CSS`. Root also exposes `data-theme-body-font` / `data-theme-font-1` / `data-theme-font-2` attributes.
 
 ### Colors (`ColorTheme`)
 

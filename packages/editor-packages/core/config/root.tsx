@@ -22,9 +22,7 @@ import {
   type SiteDrawerTrigger,
 } from "./components/SiteDrawer";
 import {
-  getFontCssValue,
-  getGoogleFontsUrl,
-  ThemeProps,
+  resolveThemeFontVars,
   DEFAULT_THEME,
   COLOR_KEYS,
   ColorTheme,
@@ -215,9 +213,6 @@ export const Root: RootConfig<{
   render: (props) => {
     const p = props as any;
     const {
-      bodyFont = DEFAULT_THEME.bodyFont,
-      fontOption1 = DEFAULT_THEME.fontOption1,
-      fontOption2 = DEFAULT_THEME.fontOption2,
       badgeShape = DEFAULT_BADGE.badgeShape,
       badgeStyle = DEFAULT_BADGE.badgeStyle,
       direction = "rtl",
@@ -230,14 +225,11 @@ export const Root: RootConfig<{
       colors[key] = (p[key] as string) ?? DEFAULT_COLORS[key];
     });
 
-    const bf = (bodyFont as string) ?? DEFAULT_THEME.bodyFont;
-    const f1 = (fontOption1 as string) ?? DEFAULT_THEME.fontOption1;
-    const f2 = (fontOption2 as string) ?? DEFAULT_THEME.fontOption2;
-
-    const bodyFontCss = getFontCssValue(bf);
-    const font1Css = getFontCssValue(f1);
-    const font2Css = getFontCssValue(f2);
-    const googleFontsUrl = getGoogleFontsUrl([bf, f1, f2]);
+    const fonts = resolveThemeFontVars({
+      bodyFont: p.bodyFont as string | undefined,
+      fontOption1: p.fontOption1 as string | undefined,
+      fontOption2: p.fontOption2 as string | undefined,
+    });
 
     const shape = badgeShape as BadgeShape;
     const bStyle = badgeStyle as BadgeStyle;
@@ -264,9 +256,7 @@ export const Root: RootConfig<{
     const responsiveLayoutCss = buildResponsiveLayoutCss(bp);
 
     const themeVars: Record<string, string> = {
-      "--theme-body-font": bodyFontCss,
-      "--theme-font-1": font1Css,
-      "--theme-font-2": font2Css,
+      ...fonts.cssVars,
       fontFamily: "var(--theme-body-font)",
       color: "var(--theme-color-text)",
       backgroundColor: "var(--theme-color-background)",
@@ -289,23 +279,13 @@ export const Root: RootConfig<{
           id="puck-responsive-layout"
           dangerouslySetInnerHTML={{ __html: responsiveLayoutCss }}
         />
-        {!isEditing && googleFontsUrl && (
-          <>
-            <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link
-              rel="preconnect"
-              href="https://fonts.gstatic.com"
-              crossOrigin="anonymous"
-            />
-            <link rel="stylesheet" href={googleFontsUrl} />
-          </>
-        )}
 
         <div
           className={rootClass}
           style={themeVars as CSSProperties}
           dir={direction}
           lang={language}
+          {...fonts.dataAttrs}
         >
           <DropZone
             zone={ZONE_HEADER}

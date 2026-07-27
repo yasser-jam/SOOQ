@@ -2,7 +2,13 @@
 
 import { getClassNameFactory } from "@/core/lib"
 import styles from "./styles.module.css"
-import { FONT_OPTIONS, DEFAULT_SCALES, ScaleThemeProps } from "../../../theme"
+import {
+  ARABIC_FONT_OPTIONS,
+  FONT_OPTIONS,
+  DEFAULT_SCALES,
+  ensureGoogleFontsLoaded,
+  ScaleThemeProps,
+} from "../../../theme"
 import type { SettingsRootProps } from "./index"
 import {
   Select,
@@ -13,7 +19,7 @@ import {
 } from "@workspace/ui/components/select"
 import { Input } from "@workspace/ui/components/input"
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 const getClassName = getClassNameFactory("SettingsPanel", styles)
 
@@ -28,15 +34,38 @@ function addUnit(value: string, unit: "rem" | "px"): string {
 
 function FontSelectItem({ font }: { font: (typeof FONT_OPTIONS)[number] }) {
   return (
-    <span className="flex w-full items-center justify-between gap-2" style={{ fontFamily: font.cssValue }}>
+    <span
+      className="flex w-full items-center justify-between gap-2"
+      style={{ fontFamily: font.cssValue }}
+      dir="rtl"
+      lang="ar"
+    >
       <span>{font.label}</span>
-      {font.supportedLocales.includes("ar") && (
-        <span className={getClassName("localeBadge")} data-supported="true">
-          يدعم اللغة العربية
+      {font.supportedLocales.includes("ar") && font.value !== "system" && (
+        <span className="text-[10px] text-muted-foreground" style={{ fontFamily: font.cssValue }}>
+          أبجد
         </span>
       )}
     </span>
   )
+}
+
+function buildFontSelectOptions(selected: string[]) {
+  const seen = new Set<string>()
+  const out: (typeof FONT_OPTIONS)[number][] = []
+  for (const font of ARABIC_FONT_OPTIONS) {
+    seen.add(font.value)
+    out.push(font)
+  }
+  for (const key of selected) {
+    if (!key || seen.has(key)) continue
+    const entry = FONT_OPTIONS.find((f) => f.value === key)
+    if (entry) {
+      seen.add(entry.value)
+      out.push(entry)
+    }
+  }
+  return out
 }
 
 const BUTTON_SIZE_GROUPS = [
@@ -51,6 +80,19 @@ export default function FontsBlock({ rootProps, updateProps }: { rootProps?: Set
   const fontOption2 = (rootProps?.fontOption2 ?? "") as string
 
   const [activeRadiusKey, setActiveRadiusKey] = useState("radiusMd")
+
+  const fontSelectOptions = useMemo(
+    () => buildFontSelectOptions([bodyFont, fontOption1, fontOption2]),
+    [bodyFont, fontOption1, fontOption2]
+  )
+
+  // Prefetch Arabic fonts so select items render with real faces.
+  useEffect(() => {
+    ensureGoogleFontsLoaded(
+      document,
+      fontSelectOptions.map((f) => f.value)
+    )
+  }, [fontSelectOptions])
 
   const radiusKeys = [
     "radiusNone",
@@ -74,7 +116,7 @@ export default function FontsBlock({ rootProps, updateProps }: { rootProps?: Set
             <SelectValue placeholder="اختر خط" />
           </SelectTrigger>
           <SelectContent>
-            {FONT_OPTIONS.map((f) => (
+            {fontSelectOptions.map((f) => (
               <SelectItem key={f.value} value={f.value}>
                 <FontSelectItem font={f} />
               </SelectItem>
@@ -90,7 +132,7 @@ export default function FontsBlock({ rootProps, updateProps }: { rootProps?: Set
             <SelectValue placeholder="اختر خط" />
           </SelectTrigger>
           <SelectContent>
-            {FONT_OPTIONS.map((f) => (
+            {fontSelectOptions.map((f) => (
               <SelectItem key={f.value} value={f.value}>
                 <FontSelectItem font={f} />
               </SelectItem>
@@ -106,7 +148,7 @@ export default function FontsBlock({ rootProps, updateProps }: { rootProps?: Set
             <SelectValue placeholder="اختر خط" />
           </SelectTrigger>
           <SelectContent>
-            {FONT_OPTIONS.map((f) => (
+            {fontSelectOptions.map((f) => (
               <SelectItem key={f.value} value={f.value}>
                 <FontSelectItem font={f} />
               </SelectItem>

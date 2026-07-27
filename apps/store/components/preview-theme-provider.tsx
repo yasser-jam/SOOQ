@@ -11,10 +11,9 @@ import {
   computeScaleThemeVars,
   DEFAULT_BADGE,
   DEFAULT_COLORS,
-  DEFAULT_THEME,
-  getFontCssValue,
-  getGoogleFontsUrl,
+  ensureGoogleFontsLoaded,
   normalizeBreakpoints,
+  resolveThemeFontVars,
   type BadgeShape,
   type BadgeStyle,
   type ColorTheme,
@@ -30,16 +29,9 @@ export function PreviewThemeProvider({
   rootProps,
   children,
 }: PreviewThemeProviderProps) {
-  const bodyFont = (rootProps?.bodyFont ?? DEFAULT_THEME.bodyFont) as string;
-  const fontOption1 = (rootProps?.fontOption1 ??
-    DEFAULT_THEME.fontOption1) as string;
-  const fontOption2 = (rootProps?.fontOption2 ??
-    DEFAULT_THEME.fontOption2) as string;
-
-  const bodyFontCss = getFontCssValue(bodyFont);
-  const font1Css = getFontCssValue(fontOption1);
-  const font2Css = getFontCssValue(fontOption2);
-  const googleFontsUrl = getGoogleFontsUrl([bodyFont, fontOption1, fontOption2]);
+  const fonts = resolveThemeFontVars(rootProps);
+  const { bodyFont, fontOption1, fontOption2, bodyFontCss, font1Css, font2Css } =
+    fonts;
 
   const colors: ColorTheme = {
     primary: rootProps?.primary ?? DEFAULT_COLORS.primary,
@@ -99,12 +91,14 @@ export function PreviewThemeProvider({
     const buttonVariantVarLines = Object.entries(buttonVariantVars)
       .map(([k, v]) => `        ${k}: ${v};`)
       .join("\n");
+    const fontVarLines = `
+        --theme-body-font: ${bodyFontCss};
+        --theme-font-1: ${font1Css};
+        --theme-font-2: ${font2Css};`;
 
     styleEl.textContent = `
       :root {
-        --theme-body-font: ${bodyFontCss};
-        --theme-font-1: ${font1Css};
-        --theme-font-2: ${font2Css};
+${fontVarLines}
 ${colorVarLines}
 ${derivedColorVarLines}
 ${badgeVarLines}
@@ -124,6 +118,11 @@ ${buttonVariantVarLines}
       }
     `;
 
+    const html = doc.documentElement;
+    html.setAttribute("data-theme-body-font", bodyFont);
+    html.setAttribute("data-theme-font-1", fontOption1);
+    html.setAttribute("data-theme-font-2", fontOption2);
+
     let responsiveEl = doc.getElementById(
       "puck-responsive-layout"
     ) as HTMLStyleElement | null;
@@ -134,33 +133,10 @@ ${buttonVariantVarLines}
     }
     responsiveEl.textContent = responsiveLayoutCss;
 
-    let linkEl = doc.getElementById("puck-theme-fonts") as HTMLLinkElement | null;
-    if (googleFontsUrl) {
-      if (!linkEl) {
-        const pre1 = doc.createElement("link");
-        pre1.id = "puck-theme-fonts-preconnect-1";
-        pre1.rel = "preconnect";
-        pre1.href = "https://fonts.googleapis.com";
-        doc.head.appendChild(pre1);
-
-        const pre2 = doc.createElement("link");
-        pre2.id = "puck-theme-fonts-preconnect-2";
-        pre2.rel = "preconnect";
-        pre2.href = "https://fonts.gstatic.com";
-        pre2.crossOrigin = "anonymous";
-        doc.head.appendChild(pre2);
-
-        linkEl = doc.createElement("link");
-        linkEl.id = "puck-theme-fonts";
-        linkEl.rel = "stylesheet";
-        doc.head.appendChild(linkEl);
-      }
-      if (linkEl.href !== googleFontsUrl) {
-        linkEl.href = googleFontsUrl;
-      }
-    }
+    ensureGoogleFontsLoaded(doc, [bodyFont, fontOption1, fontOption2]);
   }, [
     badgeVars,
+    bodyFont,
     bodyFontCss,
     buttonVariantVars,
     colors.dark,
@@ -174,7 +150,8 @@ ${buttonVariantVarLines}
     derivedColorVars,
     font1Css,
     font2Css,
-    googleFontsUrl,
+    fontOption1,
+    fontOption2,
     responsiveLayoutCss,
     scaleVars,
     bp.breakpointMobileMax,

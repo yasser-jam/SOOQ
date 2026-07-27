@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -38,6 +38,7 @@ import {
   DEFAULT_COLORS,
   DEFAULT_SHELL,
   FONT_OPTIONS,
+  ensureGoogleFontsLoaded,
   type ColorTheme,
   type ScaleThemeProps,
   type FullThemeProps,
@@ -199,12 +200,12 @@ type FontPreset = {
 }
 
 const FONT_PRESETS: FontPreset[] = [
-  { id: "default", name: "النظام الافتراضي", bodyFont: "dm-sans", fontOption1: "space-grotesk", fontOption2: "fraunces" },
-  { id: "modern", name: "عصري نظيف", bodyFont: "inter", fontOption1: "manrope", fontOption2: "sora" },
-  { id: "elegant", name: "أنيق كلاسيكي", bodyFont: "merriweather", fontOption1: "playfair-display", fontOption2: "raleway" },
-  { id: "friendly", name: "ودود مرح", bodyFont: "nunito", fontOption1: "poppins", fontOption2: "lora" },
-  { id: "minimal", name: "بسيط ومباشر", bodyFont: "open-sans", fontOption1: "montserrat", fontOption2: "roboto" },
-  { id: "tech", name: "تقني حديث", bodyFont: "geist", fontOption1: "space-grotesk", fontOption2: "inter" },
+  { id: "default", name: "القاهرة الكلاسيكي", bodyFont: "cairo", fontOption1: "tajawal", fontOption2: "almarai" },
+  { id: "modern", name: "عصري نظيف", bodyFont: "tajawal", fontOption1: "readex-pro", fontOption2: "cairo" },
+  { id: "elegant", name: "أنيق كلاسيكي", bodyFont: "amiri", fontOption1: "el-messiri", fontOption2: "noto-naskh-arabic" },
+  { id: "friendly", name: "ودود مرح", bodyFont: "almarai", fontOption1: "changa", fontOption2: "tajawal" },
+  { id: "minimal", name: "بسيط ومباشر", bodyFont: "ibm-plex-sans-arabic", fontOption1: "noto-sans-arabic", fontOption2: "cairo" },
+  { id: "tech", name: "تقني حديث", bodyFont: "readex-pro", fontOption1: "rubik", fontOption2: "ibm-plex-sans-arabic" },
 ]
 
 // ─── Sizing presets (mapped to ScaleThemeProps) ─────────────────────────────
@@ -933,11 +934,21 @@ function StepColors({ data, updateData }: StepProps) {
 // ─── Step 3: Fonts ──────────────────────────────────────────────────────────
 
 function StepFonts({ data, updateData }: StepProps) {
+  // Load every font used in the presets so Arabic previews render distinctly.
+  useEffect(() => {
+    const keys = FONT_PRESETS.flatMap((p) => [
+      p.bodyFont,
+      p.fontOption1,
+      p.fontOption2,
+    ])
+    ensureGoogleFontsLoaded(document, keys)
+  }, [])
+
   return (
     <div className="space-y-1">
       <h3 className="text-lg font-semibold">نوع الخط</h3>
       <p className="text-sm text-muted-foreground">
-        اختر مجموعة خطوط تحدد شخصية متجرك. تشمل خط الجسم والعناوين الرئيسية والثانوية.
+        اختر مجموعة خطوط عربية تحدد شخصية متجرك. تشمل خط الجسم والعناوين الرئيسية والثانوية.
       </p>
 
       <div className="grid grid-cols-2 gap-3 pt-4 lg:grid-cols-3">
@@ -966,12 +977,18 @@ function StepFonts({ data, updateData }: StepProps) {
                   عناوين: {headingEntry?.label ?? preset.fontOption1}
                 </p>
               </div>
-              <div className="mt-1 rounded-lg border bg-background p-2">
-                <p className="text-sm font-semibold" style={{ fontFamily: headingEntry?.cssValue }}>
+              <div className="mt-1 rounded-lg border bg-background p-2" dir="rtl" lang="ar">
+                <p
+                  className="text-sm font-semibold"
+                  style={{ fontFamily: headingEntry?.cssValue }}
+                >
                   عنوان تجريبي
                 </p>
-                <p className="text-xs text-muted-foreground" style={{ fontFamily: bodyEntry?.cssValue }}>
-                  نص تجريبي لمعاينة الخط
+                <p
+                  className="text-xs text-muted-foreground"
+                  style={{ fontFamily: bodyEntry?.cssValue }}
+                >
+                  نص تجريبي لمعاينة الخط العربي
                 </p>
               </div>
               {data.fontPresetId === preset.id && (

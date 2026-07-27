@@ -2,9 +2,8 @@
 import React, { ReactNode, useLayoutEffect } from "react";
 import { useAppStore } from "@/core/store";
 import {
-  getFontCssValue,
-  getGoogleFontsUrl,
-  DEFAULT_THEME,
+  ensureGoogleFontsLoaded,
+  resolveThemeFontVars,
   COLOR_KEYS,
   ColorTheme,
   DEFAULT_COLORS,
@@ -36,15 +35,10 @@ export function ThemeInjector({ children, document: iframeDoc }: ThemeInjectorPr
     (s) => s.state.data.root.props as Partial<FullThemeProps> | undefined
   );
 
-  // ── Font values ──
-  const bodyFont = (rootProps?.bodyFont ?? DEFAULT_THEME.bodyFont) as string;
-  const fontOption1 = (rootProps?.fontOption1 ?? DEFAULT_THEME.fontOption1) as string;
-  const fontOption2 = (rootProps?.fontOption2 ?? DEFAULT_THEME.fontOption2) as string;
-
-  const bodyFontCss = getFontCssValue(bodyFont);
-  const font1Css = getFontCssValue(fontOption1);
-  const font2Css = getFontCssValue(fontOption2);
-  const googleFontsUrl = getGoogleFontsUrl([bodyFont, fontOption1, fontOption2]);
+  // ── Font values (shared resolver keeps editor ↔ storefront in sync) ──
+  const fonts = resolveThemeFontVars(rootProps);
+  const { bodyFont, fontOption1, fontOption2, bodyFontCss, font1Css, font2Css } =
+    fonts;
 
   // ── Color values ──
   const colors: ColorTheme = {
@@ -158,6 +152,12 @@ export function ThemeInjector({ children, document: iframeDoc }: ThemeInjectorPr
     rootStyle.setProperty("--theme-font-1", font1Css);
     rootStyle.setProperty("--theme-font-2", font2Css);
 
+    // Bind font keys as attributes so inspector / CSS can target them
+    const html = doc.documentElement;
+    html.setAttribute("data-theme-body-font", bodyFont);
+    html.setAttribute("data-theme-font-1", fontOption1);
+    html.setAttribute("data-theme-font-2", fontOption2);
+
     COLOR_KEYS.forEach(({ key }) => {
       rootStyle.setProperty(colorVar(key), colors[key]);
     });
@@ -170,8 +170,6 @@ export function ThemeInjector({ children, document: iframeDoc }: ThemeInjectorPr
     rootStyle.setProperty("--theme-bp-mobile-max", `${bpMobile}px`);
     rootStyle.setProperty("--theme-bp-tablet-max", `${bpTablet}px`);
 
-    // ── Inject / update Google Fonts link ──
-    let linkEl = doc.getElementById("puck-theme-fonts") as HTMLLinkElement | null;
     let responsiveEl = doc.getElementById("puck-responsive-layout") as HTMLStyleElement | null;
     if (!responsiveEl) {
       responsiveEl = doc.createElement("style");
@@ -180,40 +178,15 @@ export function ThemeInjector({ children, document: iframeDoc }: ThemeInjectorPr
     }
     responsiveEl.textContent = responsiveLayoutCss;
 
-    if (googleFontsUrl) {
-      if (!linkEl) {
-        const pre1 = doc.createElement("link");
-        pre1.id = "puck-theme-fonts-preconnect-1";
-        pre1.rel = "preconnect";
-        pre1.href = "https://fonts.googleapis.com";
-        doc.head.appendChild(pre1);
-
-        const pre2 = doc.createElement("link");
-        pre2.id = "puck-theme-fonts-preconnect-2";
-        pre2.rel = "preconnect";
-        pre2.href = "https://fonts.gstatic.com";
-        (pre2 as any).crossOrigin = "anonymous";
-        doc.head.appendChild(pre2);
-
-        linkEl = doc.createElement("link");
-        linkEl.id = "puck-theme-fonts";
-        linkEl.rel = "stylesheet";
-        doc.head.appendChild(linkEl);
-      }
-      if (linkEl.href !== googleFontsUrl) {
-        linkEl.href = googleFontsUrl;
-      }
-    } else {
-      doc.getElementById("puck-theme-fonts")?.remove();
-      doc.getElementById("puck-theme-fonts-preconnect-1")?.remove();
-      doc.getElementById("puck-theme-fonts-preconnect-2")?.remove();
-    }
+    ensureGoogleFontsLoaded(doc, [bodyFont, fontOption1, fontOption2]);
   }, [
     iframeDoc,
+    bodyFont,
+    fontOption1,
+    fontOption2,
     bodyFontCss,
     font1Css,
     font2Css,
-    googleFontsUrl,
     derivedColorVarLines,
     badgeVarLines,
     // spread colors into deps

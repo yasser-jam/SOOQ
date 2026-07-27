@@ -19,7 +19,7 @@ export type ThemePresetDefinition = {
   themeProps: FullThemeProps;
 };
 
-/** Editorial / luxury direction: serif headlines, warm stone + burgundy, Merriweather body */
+/** Editorial / luxury direction: Arabic serif headlines, warm stone + burgundy */
 export const ATELIER_PRESET: ThemePresetDefinition = {
   id: "atelier",
   label: "Atelier",
@@ -27,9 +27,9 @@ export const ATELIER_PRESET: ThemePresetDefinition = {
     "Serif headings, warm neutrals, and a wine accent — clearly distinct from the default store theme.",
   previewColor: "#9f1239",
   themeProps: {
-    bodyFont: "merriweather",
-    fontOption1: "playfair-display",
-    fontOption2: "raleway",
+    bodyFont: "amiri",
+    fontOption1: "el-messiri",
+    fontOption2: "noto-naskh-arabic",
     primary: "#9f1239",
     surface: "#faf7f5",
     success: "#166534",

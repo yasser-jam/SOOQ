@@ -12,69 +12,124 @@ export type FontEntry = {
   supportedLocales: ("ar" | "en")[];
 };
 
+/**
+ * Arabic-first font registry. Latin-only faces are kept at the end for
+ * bilingual storefronts but are not offered as default onboarding presets.
+ */
 export const FONT_OPTIONS: FontEntry[] = [
   {
-    label: "System Default",
+    label: "خط النظام",
     value: "system",
     cssValue:
       "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     supportedLocales: ["ar", "en"],
   },
+  // ── Arabic / bilingual UI fonts ───────────────────────────────────────────
+  {
+    label: "Cairo",
+    value: "cairo",
+    cssValue: "'Cairo', sans-serif",
+    googleFont: "Cairo:wght@300;400;500;600;700;800",
+    supportedLocales: ["ar", "en"],
+  },
+  {
+    label: "Tajawal",
+    value: "tajawal",
+    cssValue: "'Tajawal', sans-serif",
+    googleFont: "Tajawal:wght@300;400;500;700;800",
+    supportedLocales: ["ar", "en"],
+  },
+  {
+    label: "Almarai",
+    value: "almarai",
+    cssValue: "'Almarai', sans-serif",
+    googleFont: "Almarai:wght@300;400;700;800",
+    supportedLocales: ["ar", "en"],
+  },
+  {
+    label: "IBM Plex Sans Arabic",
+    value: "ibm-plex-sans-arabic",
+    cssValue: "'IBM Plex Sans Arabic', sans-serif",
+    googleFont: "IBM+Plex+Sans+Arabic:wght@300;400;500;600;700",
+    supportedLocales: ["ar", "en"],
+  },
+  {
+    label: "Noto Sans Arabic",
+    value: "noto-sans-arabic",
+    cssValue: "'Noto Sans Arabic', sans-serif",
+    googleFont: "Noto+Sans+Arabic:wght@300;400;500;600;700",
+    supportedLocales: ["ar", "en"],
+  },
+  {
+    label: "Readex Pro",
+    value: "readex-pro",
+    cssValue: "'Readex Pro', sans-serif",
+    googleFont: "Readex+Pro:wght@300;400;500;600;700",
+    supportedLocales: ["ar", "en"],
+  },
+  {
+    label: "Rubik",
+    value: "rubik",
+    cssValue: "'Rubik', sans-serif",
+    googleFont: "Rubik:wght@300;400;500;600;700",
+    supportedLocales: ["ar", "en"],
+  },
+  {
+    label: "Changa",
+    value: "changa",
+    cssValue: "'Changa', sans-serif",
+    googleFont: "Changa:wght@300;400;500;600;700",
+    supportedLocales: ["ar", "en"],
+  },
+  {
+    label: "El Messiri",
+    value: "el-messiri",
+    cssValue: "'El Messiri', sans-serif",
+    googleFont: "El+Messiri:wght@400;500;600;700",
+    supportedLocales: ["ar", "en"],
+  },
+  {
+    label: "Amiri",
+    value: "amiri",
+    cssValue: "'Amiri', serif",
+    googleFont: "Amiri:ital,wght@0,400;0,700;1,400",
+    supportedLocales: ["ar", "en"],
+  },
+  {
+    label: "Noto Naskh Arabic",
+    value: "noto-naskh-arabic",
+    cssValue: "'Noto Naskh Arabic', serif",
+    googleFont: "Noto+Naskh+Arabic:wght@400;500;600;700",
+    supportedLocales: ["ar", "en"],
+  },
+  {
+    label: "Scheherazade New",
+    value: "scheherazade-new",
+    cssValue: "'Scheherazade New', serif",
+    googleFont: "Scheherazade+New:wght@400;500;600;700",
+    supportedLocales: ["ar", "en"],
+  },
+  // ── Latin-only (kept for bilingual / legacy themes) ───────────────────────
   {
     label: "Inter",
     value: "inter",
     cssValue: "'Inter', sans-serif",
     googleFont: "Inter:wght@300;400;500;600;700",
-    supportedLocales: ["ar", "en"],
+    supportedLocales: ["en"],
   },
   {
     label: "Roboto",
     value: "roboto",
     cssValue: "'Roboto', sans-serif",
     googleFont: "Roboto:wght@300;400;500;700",
-    supportedLocales: ["ar", "en"],
+    supportedLocales: ["en"],
   },
   {
     label: "Open Sans",
     value: "open-sans",
     cssValue: "'Open Sans', sans-serif",
     googleFont: "Open+Sans:wght@300;400;500;600;700",
-    supportedLocales: ["ar", "en"],
-  },
-  {
-    label: "Lato",
-    value: "lato",
-    cssValue: "'Lato', sans-serif",
-    googleFont: "Lato:wght@300;400;700",
     supportedLocales: ["en"],
-  },
-  {
-    label: "Poppins",
-    value: "poppins",
-    cssValue: "'Poppins', sans-serif",
-    googleFont: "Poppins:wght@300;400;500;600;700",
-    supportedLocales: ["ar", "en"],
-  },
-  {
-    label: "Montserrat",
-    value: "montserrat",
-    cssValue: "'Montserrat', sans-serif",
-    googleFont: "Montserrat:wght@300;400;500;600;700",
-    supportedLocales: ["ar", "en"],
-  },
-  {
-    label: "Raleway",
-    value: "raleway",
-    cssValue: "'Raleway', sans-serif",
-    googleFont: "Raleway:wght@300;400;500;600;700",
-    supportedLocales: ["en"],
-  },
-  {
-    label: "Nunito",
-    value: "nunito",
-    cssValue: "'Nunito', sans-serif",
-    googleFont: "Nunito:wght@300;400;500;600;700",
-    supportedLocales: ["ar", "en"],
   },
   {
     label: "DM Sans",
@@ -84,62 +139,36 @@ export const FONT_OPTIONS: FontEntry[] = [
     supportedLocales: ["en"],
   },
   {
-    label: "Manrope",
-    value: "manrope",
-    cssValue: "'Manrope', sans-serif",
-    googleFont: "Manrope:wght@300;400;500;600;700;800",
-    supportedLocales: ["ar", "en"],
-  },
-  {
-    label: "Sora",
-    value: "sora",
-    cssValue: "'Sora', sans-serif",
-    googleFont: "Sora:wght@300;400;500;600;700;800",
-    supportedLocales: ["en"],
-  },
-  {
-    label: "Playfair Display",
-    value: "playfair-display",
-    cssValue: "'Playfair Display', Georgia, serif",
-    googleFont: "Playfair+Display:ital,wght@0,400;0,600;0,700;1,400",
-    supportedLocales: ["en"],
-  },
-  {
-    label: "Merriweather",
-    value: "merriweather",
-    cssValue: "'Merriweather', Georgia, serif",
-    googleFont: "Merriweather:wght@300;400;700",
-    supportedLocales: ["en"],
-  },
-  {
-    label: "Lora",
-    value: "lora",
-    cssValue: "'Lora', Georgia, serif",
-    googleFont: "Lora:ital,wght@0,400;0,600;0,700;1,400",
-    supportedLocales: ["en"],
-  },
-  {
     label: "Space Grotesk",
     value: "space-grotesk",
     cssValue: "'Space Grotesk', sans-serif",
     googleFont: "Space+Grotesk:wght@300;400;500;600;700",
     supportedLocales: ["en"],
   },
-  {
-    label: "Geist",
-    value: "geist",
-    cssValue: "'Geist', sans-serif",
-    googleFont: "Geist:wght@300;400;500;600;700",
-    supportedLocales: ["en"],
-  },
-  {
-    label: "Fraunces",
-    value: "fraunces",
-    cssValue: "'Fraunces', serif",
-    googleFont: "Fraunces:opsz,wght@9..144,300..800",
-    supportedLocales: ["en"],
-  },
 ];
+
+/** Font keys that include Arabic glyphs — preferred in selects / presets. */
+export const ARABIC_FONT_OPTIONS = FONT_OPTIONS.filter((f) =>
+  f.supportedLocales.includes("ar")
+);
+
+// ─── Theme types ──────────────────────────────────────────────────────────────
+
+export type ThemeProps = {
+  /** Font used for all body/paragraph text (applied to the page root) */
+  bodyFont: string;
+  /** Named font slot #1 — components can select "Primary Font" */
+  fontOption1: string;
+  /** Named font slot #2 — components can select "Secondary Font" */
+  fontOption2: string;
+};
+
+/** Arabic-first defaults — Cairo / Tajawal / IBM Plex Sans Arabic. */
+export const DEFAULT_THEME: ThemeProps = {
+  bodyFont: "cairo",
+  fontOption1: "tajawal",
+  fontOption2: "ibm-plex-sans-arabic",
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -164,22 +193,98 @@ export function getGoogleFontsUrl(fontKeys: string[]): string | null {
   return `https://fonts.googleapis.com/css2?${families.map((f) => `family=${f}`).join("&")}&display=swap`;
 }
 
-// ─── Theme types ──────────────────────────────────────────────────────────────
+/**
+ * Inject / update a Google Fonts stylesheet on a document (editor iframe,
+ * storefront, or host page for onboarding / settings previews).
+ */
+export function ensureGoogleFontsLoaded(
+  doc: Document,
+  fontKeys: string[]
+): void {
+  const googleFontsUrl = getGoogleFontsUrl(fontKeys);
+  let linkEl = doc.getElementById("puck-theme-fonts") as HTMLLinkElement | null;
 
-export type ThemeProps = {
-  /** Font used for all body/paragraph text (applied to the page root) */
+  if (!googleFontsUrl) {
+    linkEl?.remove();
+    doc.getElementById("puck-theme-fonts-preconnect-1")?.remove();
+    doc.getElementById("puck-theme-fonts-preconnect-2")?.remove();
+    return;
+  }
+
+  if (!linkEl) {
+    if (!doc.getElementById("puck-theme-fonts-preconnect-1")) {
+      const pre1 = doc.createElement("link");
+      pre1.id = "puck-theme-fonts-preconnect-1";
+      pre1.rel = "preconnect";
+      pre1.href = "https://fonts.googleapis.com";
+      doc.head.appendChild(pre1);
+    }
+
+    if (!doc.getElementById("puck-theme-fonts-preconnect-2")) {
+      const pre2 = doc.createElement("link");
+      pre2.id = "puck-theme-fonts-preconnect-2";
+      pre2.rel = "preconnect";
+      pre2.href = "https://fonts.gstatic.com";
+      pre2.crossOrigin = "anonymous";
+      doc.head.appendChild(pre2);
+    }
+
+    linkEl = doc.createElement("link");
+    linkEl.id = "puck-theme-fonts";
+    linkEl.rel = "stylesheet";
+    doc.head.appendChild(linkEl);
+  }
+
+  if (linkEl.href !== googleFontsUrl) {
+    linkEl.href = googleFontsUrl;
+  }
+}
+
+/** Resolve theme font keys → CSS custom properties for editor + renderer. */
+export function resolveThemeFontVars(props?: {
+  bodyFont?: string;
+  fontOption1?: string;
+  fontOption2?: string;
+}): {
   bodyFont: string;
-  /** Named font slot #1 — components can select "Primary Font" */
   fontOption1: string;
-  /** Named font slot #2 — components can select "Secondary Font" */
   fontOption2: string;
-};
+  bodyFontCss: string;
+  font1Css: string;
+  font2Css: string;
+  cssVars: Record<string, string>;
+  dataAttrs: {
+    "data-theme-body-font": string;
+    "data-theme-font-1": string;
+    "data-theme-font-2": string;
+  };
+} {
+  const bodyFont = props?.bodyFont ?? DEFAULT_THEME.bodyFont;
+  const fontOption1 = props?.fontOption1 ?? DEFAULT_THEME.fontOption1;
+  const fontOption2 = props?.fontOption2 ?? DEFAULT_THEME.fontOption2;
+  const bodyFontCss = getFontCssValue(bodyFont);
+  const font1Css = getFontCssValue(fontOption1);
+  const font2Css = getFontCssValue(fontOption2);
 
-export const DEFAULT_THEME: ThemeProps = {
-  bodyFont: "dm-sans",
-  fontOption1: "space-grotesk",
-  fontOption2: "fraunces",
-};
+  return {
+    bodyFont,
+    fontOption1,
+    fontOption2,
+    bodyFontCss,
+    font1Css,
+    font2Css,
+    cssVars: {
+      "--theme-body-font": bodyFontCss,
+      "--theme-font-1": font1Css,
+      "--theme-font-2": font2Css,
+    },
+    dataAttrs: {
+      "data-theme-body-font": bodyFont,
+      "data-theme-font-1": fontOption1,
+      "data-theme-font-2": fontOption2,
+    },
+  };
+}
 
 // ─── Component font-family field ─────────────────────────────────────────────
 // Components (Heading, Text, ProductCard) reference theme CSS vars rather than
