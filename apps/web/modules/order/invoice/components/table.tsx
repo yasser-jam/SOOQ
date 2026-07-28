@@ -8,6 +8,7 @@ import { Download, Receipt } from "lucide-react"
 
 import DataTable from "@/components/system/table"
 import EmptyState from "@/components/system/empty-state"
+import { resolveMediaUrl } from "@/lib/media"
 import { useStorePath } from "@/lib/store-path"
 import { formatOrderDateTime } from "@/modules/order/order/utils"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
@@ -66,15 +67,15 @@ export function InvoicesTable() {
 			enableSorting: false,
 			header: () => <div></div>,
 			cell: ({ row }) => {
-				const pdfUrl = row.original.pdfUrl
+				const pdfHref = resolveMediaUrl(row.original.pdfUrl)
 
-				if (!pdfUrl) {
+				if (!pdfHref) {
 					return <span className="text-muted-foreground">—</span>
 				}
 
 				return (
 					<Button variant="outline" size="sm" asChild>
-						<a href={pdfUrl} target="_blank" rel="noopener noreferrer">
+						<a href={pdfHref} target="_blank" rel="noopener noreferrer">
 							تنزيل
 							<Download data-icon="inline-end" />
 						</a>

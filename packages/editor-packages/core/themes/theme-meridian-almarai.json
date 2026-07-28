@@ -6,11 +6,9 @@
       "language": "ar",
       "currency": "SYP",
       "enableHtmlRichTextBlock": false,
-
       "bodyFont": "almarai",
       "fontOption1": "almarai",
       "fontOption2": "tajawal",
-
       "primary": "#7c3aed",
       "surface": "#ffffff",
       "success": "#10b981",
@@ -19,48 +17,39 @@
       "dark": "#1e1b4b",
       "text": "#1f2937",
       "neutral": "#6b7280",
-
       "badgeShape": "pill",
       "badgeStyle": "soft",
-
       "headerVariant": "commerce",
       "footerVariant": "commerce",
-
       "spacingVerticalNarrow": "24px",
       "spacingVerticalMedium": "56px",
       "spacingVerticalWide": "96px",
       "spacingSideNarrow": "16px",
       "spacingSideMedium": "24px",
       "spacingSideWide": "48px",
-
       "breakpointMobileMax": 767,
       "breakpointTabletMax": 1023,
-
       "textSizeXs": "0.8125rem",
       "textSizeSm": "0.9375rem",
       "textSizeMd": "1.0625rem",
       "textSizeLg": "1.375rem",
       "textSizeXl": "1.875rem",
       "textSize2xl": "2.5rem",
-
       "radiusNone": "0",
       "radiusSm": "10px",
       "radiusMd": "16px",
       "radiusLg": "24px",
       "radiusXl": "32px",
       "radiusFull": "9999px",
-
       "fontWeightLight": "400",
       "fontWeightNormal": "400",
       "fontWeightMedium": "700",
       "fontWeightSemibold": "700",
       "fontWeightBold": "800",
       "fontWeightBolder": "800",
-
       "lineHeightTight": "1.35",
       "lineHeightNormal": "1.7",
       "lineHeightRelaxed": "1.9",
-
       "buttonMdHeight": "48px",
       "buttonMdPaddingX": "24px",
       "buttonMdPaddingY": "10px",
@@ -69,7 +58,6 @@
       "buttonLgPaddingX": "32px",
       "buttonLgPaddingY": "14px",
       "buttonLgFontSize": "1.125rem",
-
       "buttonVariantPrimaryBg": "#7c3aed",
       "buttonVariantPrimaryFg": "#ffffff",
       "buttonVariantPrimaryRadius": "999px",
@@ -84,7 +72,6 @@
       "buttonVariantErrorSize": "md"
     }
   },
-
   "zones": {
     "root:zone-header": [
       {
@@ -98,9 +85,30 @@
           "is_mobile_only": false,
           "brandHref": "/",
           "links": [
-            { "label": "Home", "labelAr": "الرئيسية", "link": { "kind": "page", "pageId": "/" } },
-            { "label": "Products", "labelAr": "المنتجات", "link": { "kind": "page", "pageId": "/products" } },
-            { "label": "Cart", "labelAr": "السلة", "link": { "kind": "page", "pageId": "/cart" } }
+            {
+              "label": "Home",
+              "labelAr": "الرئيسية",
+              "link": {
+                "kind": "page",
+                "pageId": "/"
+              }
+            },
+            {
+              "label": "Products",
+              "labelAr": "المنتجات",
+              "link": {
+                "kind": "page",
+                "pageId": "/products"
+              }
+            },
+            {
+              "label": "Cart",
+              "labelAr": "السلة",
+              "link": {
+                "kind": "page",
+                "pageId": "/cart"
+              }
+            }
           ],
           "backgroundColor": "#ffffff",
           "textColor": "#1f2937",
@@ -129,7 +137,10 @@
                 "align": "center",
                 "destinationType": "link",
                 "buttonAction": "link",
-                "link": { "kind": "page", "pageId": "/login" },
+                "link": {
+                  "kind": "page",
+                  "pageId": "/login"
+                },
                 "buttonVariantMode": "variant",
                 "buttonVariant": "primary",
                 "buttonVariantSize": "sm",
@@ -144,7 +155,6 @@
         }
       }
     ],
-
     "root:zone-footer": [
       {
         "type": "SiteFooter",
@@ -165,37 +175,92 @@
               "title": "Shop",
               "titleAr": "التسوق",
               "links": [
-                { "label": "Products", "labelAr": "كل المنتجات", "link": { "kind": "page", "pageId": "/products" } },
-                { "label": "Cart", "labelAr": "سلة التسوق", "link": { "kind": "page", "pageId": "/cart" } }
+                {
+                  "label": "Products",
+                  "labelAr": "كل المنتجات",
+                  "link": {
+                    "kind": "page",
+                    "pageId": "/products"
+                  }
+                },
+                {
+                  "label": "Cart",
+                  "labelAr": "سلة التسوق",
+                  "link": {
+                    "kind": "page",
+                    "pageId": "/cart"
+                  }
+                }
               ]
             },
             {
               "title": "Account",
               "titleAr": "حسابي",
               "links": [
-                { "label": "Login", "labelAr": "تسجيل الدخول", "link": { "kind": "page", "pageId": "/login" } },
-                { "label": "Verify", "labelAr": "تأكيد الرمز", "link": { "kind": "page", "pageId": "/verify-otp" } }
+                {
+                  "label": "Login",
+                  "labelAr": "تسجيل الدخول",
+                  "link": {
+                    "kind": "page",
+                    "pageId": "/login"
+                  }
+                },
+                {
+                  "label": "Verify",
+                  "labelAr": "تأكيد الرمز",
+                  "link": {
+                    "kind": "page",
+                    "pageId": "/verify-otp"
+                  }
+                }
               ]
             },
             {
               "title": "Help",
               "titleAr": "المساعدة",
               "links": [
-                { "label": "FAQ", "labelAr": "الأسئلة الشائعة", "link": { "kind": "anchor", "hash": "faq" } },
-                { "label": "Home", "labelAr": "الرئيسية", "link": { "kind": "page", "pageId": "/" } }
+                {
+                  "label": "FAQ",
+                  "labelAr": "الأسئلة الشائعة",
+                  "link": {
+                    "kind": "anchor",
+                    "hash": "faq"
+                  }
+                },
+                {
+                  "label": "Home",
+                  "labelAr": "الرئيسية",
+                  "link": {
+                    "kind": "page",
+                    "pageId": "/"
+                  }
+                }
               ]
             }
           ],
           "bottomLinks": [
-            { "label": "Privacy", "labelAr": "سياسة الخصوصية", "link": { "kind": "anchor", "hash": "privacy" } },
-            { "label": "Terms", "labelAr": "الشروط والأحكام", "link": { "kind": "anchor", "hash": "terms" } }
+            {
+              "label": "Privacy",
+              "labelAr": "سياسة الخصوصية",
+              "link": {
+                "kind": "anchor",
+                "hash": "privacy"
+              }
+            },
+            {
+              "label": "Terms",
+              "labelAr": "الشروط والأحكام",
+              "link": {
+                "kind": "anchor",
+                "hash": "terms"
+              }
+            }
           ],
           "backgroundColor": "#1e1b4b",
           "textColor": "#e9d5ff"
         }
       }
     ],
-
     "root:zone-drawer": [
       {
         "type": "ZoneDrawer",
@@ -233,10 +298,46 @@
                 "variant": "pill",
                 "activePath": "/",
                 "items": [
-                  { "label": { "ar": "الرئيسية", "en": "Home" }, "link": { "kind": "page", "pageId": "/" } },
-                  { "label": { "ar": "المنتجات", "en": "Products" }, "link": { "kind": "page", "pageId": "/products" } },
-                  { "label": { "ar": "سلة التسوق", "en": "Cart" }, "link": { "kind": "page", "pageId": "/cart" } },
-                  { "label": { "ar": "تسجيل الدخول", "en": "Login" }, "link": { "kind": "page", "pageId": "/login" } }
+                  {
+                    "label": {
+                      "ar": "الرئيسية",
+                      "en": "Home"
+                    },
+                    "link": {
+                      "kind": "page",
+                      "pageId": "/"
+                    }
+                  },
+                  {
+                    "label": {
+                      "ar": "المنتجات",
+                      "en": "Products"
+                    },
+                    "link": {
+                      "kind": "page",
+                      "pageId": "/products"
+                    }
+                  },
+                  {
+                    "label": {
+                      "ar": "سلة التسوق",
+                      "en": "Cart"
+                    },
+                    "link": {
+                      "kind": "page",
+                      "pageId": "/cart"
+                    }
+                  },
+                  {
+                    "label": {
+                      "ar": "تسجيل الدخول",
+                      "en": "Login"
+                    },
+                    "link": {
+                      "kind": "page",
+                      "pageId": "/login"
+                    }
+                  }
                 ]
               }
             },
@@ -268,7 +369,6 @@
         }
       }
     ],
-
     "root:zone-popup": [
       {
         "type": "ZonePopup",
@@ -322,7 +422,10 @@
                 "align": "center",
                 "destinationType": "link",
                 "buttonAction": "link",
-                "link": { "kind": "page", "pageId": "/login" },
+                "link": {
+                  "kind": "page",
+                  "pageId": "/login"
+                },
                 "buttonVariantMode": "variant",
                 "buttonVariant": "primary",
                 "buttonVariantSize": "md",
@@ -337,7 +440,6 @@
         }
       }
     ],
-
     "root:zone-bottom-sheet": [
       {
         "type": "ZoneBottomSheet",
@@ -376,7 +478,10 @@
                 "align": "center",
                 "destinationType": "link",
                 "buttonAction": "link",
-                "link": { "kind": "page", "pageId": "/cart" },
+                "link": {
+                  "kind": "page",
+                  "pageId": "/cart"
+                },
                 "buttonVariantMode": "variant",
                 "buttonVariant": "primary",
                 "buttonVariantSize": "md",
@@ -392,7 +497,6 @@
       }
     ]
   },
-
   "pages": [
     {
       "path": "/",
@@ -492,7 +596,10 @@
                               "align": "center",
                               "destinationType": "link",
                               "buttonAction": "link",
-                              "link": { "kind": "page", "pageId": "/products" },
+                              "link": {
+                                "kind": "page",
+                                "pageId": "/products"
+                              },
                               "buttonVariantMode": "variant",
                               "buttonVariant": "primary",
                               "buttonVariantSize": "lg",
@@ -511,7 +618,10 @@
                               "align": "center",
                               "destinationType": "link",
                               "buttonAction": "link",
-                              "link": { "kind": "anchor", "hash": "faq" },
+                              "link": {
+                                "kind": "anchor",
+                                "hash": "faq"
+                              },
                               "buttonVariantMode": "variant",
                               "buttonVariant": "secondary",
                               "buttonVariantSize": "lg",
@@ -564,7 +674,9 @@
                   "fontStyle": "normal",
                   "textTransform": "none",
                   "color": "theme-text",
-                  "layout": { "spanCol": 3 }
+                  "layout": {
+                    "spanCol": 3
+                  }
                 }
               },
               {
@@ -831,7 +943,9 @@
                   "columnsMobile": 2,
                   "gridGap": "24px",
                   "sectionKind": "products-page",
-                  "metadata": { "preset": "products-page" },
+                  "metadata": {
+                    "preset": "products-page"
+                  },
                   "content": [
                     {
                       "type": "Group",
@@ -852,7 +966,12 @@
                         "padding": "18px",
                         "borderRadius": "theme-lg",
                         "boxShadow": "md",
-                        "layout": { "grow": true, "spanCol": 1, "spanRow": 1, "padding": "0px" },
+                        "layout": {
+                          "grow": true,
+                          "spanCol": 1,
+                          "spanRow": 1,
+                          "padding": "0px"
+                        },
                         "content": [
                           {
                             "type": "ContentImage",
@@ -864,8 +983,12 @@
                               "objectFit": "cover",
                               "radius": "theme-lg",
                               "maxWidth": "100%",
-                              "altValueContext": { "path": "product.title" },
-                              "valueContext": { "path": "images[0].url" }
+                              "altValueContext": {
+                                "path": "product.title"
+                              },
+                              "valueContext": {
+                                "path": "images[0].url"
+                              }
                             }
                           },
                           {
@@ -882,7 +1005,9 @@
                               "fontStyle": "normal",
                               "textTransform": "none",
                               "color": "theme-text",
-                              "valueContext": { "path": "product.title" }
+                              "valueContext": {
+                                "path": "product.title"
+                              }
                             }
                           },
                           {
@@ -898,7 +1023,122 @@
                               "fontStyle": "normal",
                               "textTransform": "none",
                               "color": "theme-primary",
-                              "valueContext": { "path": "pricing.displayPrice" }
+                              "valueContext": {
+                                "path": "pricing.displayPrice"
+                              }
+                            }
+                          },
+                          {
+                            "type": "ContentButton",
+                            "props": {
+                              "id": "Button-featured-card",
+                              "label": "عرض التفاصيل",
+                              "align": "center",
+                              "destinationType": "link",
+                              "buttonAction": "link",
+                              "link": {
+                                "kind": "page",
+                                "pageId": "/products/:product-slug",
+                                "dynamicSegment": {
+                                  "param": "product-slug",
+                                  "valueContext": "product.slug"
+                                }
+                              },
+                              "buttonVariantMode": "variant",
+                              "buttonVariant": "primary",
+                              "buttonVariantSize": "md",
+                              "radius": "theme-full",
+                              "bgColor": "theme-primary",
+                              "textColor": "theme-surface",
+                              "buttonSize": "theme-md",
+                              "submitRedirectUrl": "",
+                              "fullWidth": true
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "cardTemplate": [
+                    {
+                      "type": "Group",
+                      "props": {
+                        "id": "Group-featured-card-template",
+                        "direction": "column",
+                        "gap": 14,
+                        "alignItems": "stretch",
+                        "justifyContent": "flex-start",
+                        "wrap": "nowrap",
+                        "product": null,
+                        "metadata": null,
+                        "skipProductDetailFetch": true,
+                        "language": "ar",
+                        "backgroundColor": "#faf5ff",
+                        "backgroundImage": "",
+                        "backgroundOverlayColor": "",
+                        "padding": "18px",
+                        "borderRadius": "theme-lg",
+                        "boxShadow": "md",
+                        "layout": {
+                          "grow": true,
+                          "spanCol": 1,
+                          "spanRow": 1,
+                          "padding": "0px"
+                        },
+                        "content": [
+                          {
+                            "type": "ContentImage",
+                            "props": {
+                              "id": "Image-featured-card",
+                              "src": "https://placehold.co/400x400/ede9fe/7c3aed?text=Product",
+                              "alt": "",
+                              "align": "center",
+                              "objectFit": "cover",
+                              "radius": "theme-lg",
+                              "maxWidth": "100%",
+                              "altValueContext": {
+                                "path": "product.title"
+                              },
+                              "valueContext": {
+                                "path": "images[0].url"
+                              }
+                            }
+                          },
+                          {
+                            "type": "ContentHeading",
+                            "props": {
+                              "id": "Heading-featured-card",
+                              "text": "عنوان المنتج",
+                              "level": "3",
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-bold",
+                              "lineHeight": "theme-tight",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "product.title"
+                              }
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-featured-card-price",
+                              "text": "0.00 SYP",
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-lg",
+                              "fontWeight": "theme-bold",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-primary",
+                              "valueContext": {
+                                "path": "pricing.displayPrice"
+                              }
                             }
                           },
                           {
@@ -939,7 +1179,10 @@
                 "props": {
                   "id": "Link-featured-all",
                   "title": "عرض كل المنتجات",
-                  "link": { "kind": "page", "pageId": "/products" },
+                  "link": {
+                    "kind": "page",
+                    "pageId": "/products"
+                  },
                   "align": "center",
                   "color": "theme-primary",
                   "hoverEffect": "underline",
@@ -1051,10 +1294,26 @@
                   "backgroundColor": "",
                   "textColor": "",
                   "items": [
-                    { "title": "كم يستغرق التوصيل؟", "body": "معظم الطلبات تصل خلال ٢-٤ أيام عمل حسب المدينة.", "open": true },
-                    { "title": "هل الدفع عند الاستلام متاح؟", "body": "نعم، الدفع عند الاستلام متاح لجميع المناطق المؤهلة.", "open": false },
-                    { "title": "هل يمكنني إرجاع المنتج؟", "body": "يمكنك طلب الإرجاع خلال ٧ أيام للمنتجات غير المستخدمة بحالتها الأصلية.", "open": false },
-                    { "title": "كيف أتابع حالة طلبي؟", "body": "بعد تسجيل الدخول ستصلك رسالة بحالة الطلب وتفاصيل الشحن أولاً بأول.", "open": false }
+                    {
+                      "title": "كم يستغرق التوصيل؟",
+                      "body": "معظم الطلبات تصل خلال ٢-٤ أيام عمل حسب المدينة.",
+                      "open": true
+                    },
+                    {
+                      "title": "هل الدفع عند الاستلام متاح؟",
+                      "body": "نعم، الدفع عند الاستلام متاح لجميع المناطق المؤهلة.",
+                      "open": false
+                    },
+                    {
+                      "title": "هل يمكنني إرجاع المنتج؟",
+                      "body": "يمكنك طلب الإرجاع خلال ٧ أيام للمنتجات غير المستخدمة بحالتها الأصلية.",
+                      "open": false
+                    },
+                    {
+                      "title": "كيف أتابع حالة طلبي؟",
+                      "body": "بعد تسجيل الدخول ستصلك رسالة بحالة الطلب وتفاصيل الشحن أولاً بأول.",
+                      "open": false
+                    }
                   ]
                 }
               }
@@ -1119,7 +1378,10 @@
                   "align": "center",
                   "destinationType": "link",
                   "buttonAction": "link",
-                  "link": { "kind": "page", "pageId": "/login" },
+                  "link": {
+                    "kind": "page",
+                    "pageId": "/login"
+                  },
                   "buttonVariantMode": "fixed",
                   "buttonVariant": "primary",
                   "buttonVariantSize": "lg",
@@ -1135,7 +1397,6 @@
         }
       ]
     },
-
     {
       "path": "/login",
       "slug": "/login",
@@ -1260,7 +1521,9 @@
                         "align": "center",
                         "destinationType": "action",
                         "buttonAction": "login",
-                        "link": { "kind": "none" },
+                        "link": {
+                          "kind": "none"
+                        },
                         "buttonVariantMode": "variant",
                         "buttonVariant": "primary",
                         "buttonVariantSize": "lg",
@@ -1285,7 +1548,10 @@
                       "props": {
                         "id": "Link-login-products",
                         "title": "المتابعة كزائر وتصفح المنتجات",
-                        "link": { "kind": "page", "pageId": "/products" },
+                        "link": {
+                          "kind": "page",
+                          "pageId": "/products"
+                        },
                         "align": "center",
                         "color": "theme-primary",
                         "hoverEffect": "underline",
@@ -1303,7 +1569,6 @@
         }
       ]
     },
-
     {
       "path": "/verify-otp",
       "slug": "/verify-otp",
@@ -1415,7 +1680,9 @@
                         "align": "center",
                         "destinationType": "action",
                         "buttonAction": "verifyOtp",
-                        "link": { "kind": "none" },
+                        "link": {
+                          "kind": "none"
+                        },
                         "buttonVariantMode": "variant",
                         "buttonVariant": "primary",
                         "buttonVariantSize": "lg",
@@ -1431,7 +1698,10 @@
                       "props": {
                         "id": "Link-otp-resend",
                         "title": "لم يصلك الرمز؟ العودة لتسجيل الدخول",
-                        "link": { "kind": "page", "pageId": "/login" },
+                        "link": {
+                          "kind": "page",
+                          "pageId": "/login"
+                        },
                         "align": "center",
                         "color": "theme-primary",
                         "hoverEffect": "underline",
@@ -1449,7 +1719,6 @@
         }
       ]
     },
-
     {
       "path": "/products",
       "slug": "/products",
@@ -1567,7 +1836,9 @@
                   "columnsMobile": 2,
                   "gridGap": "24px",
                   "sectionKind": "products-page",
-                  "metadata": { "preset": "products-page" },
+                  "metadata": {
+                    "preset": "products-page"
+                  },
                   "content": [
                     {
                       "type": "Group",
@@ -1588,7 +1859,12 @@
                         "padding": "18px",
                         "borderRadius": "theme-lg",
                         "boxShadow": "md",
-                        "layout": { "grow": true, "spanCol": 1, "spanRow": 1, "padding": "0px" },
+                        "layout": {
+                          "grow": true,
+                          "spanCol": 1,
+                          "spanRow": 1,
+                          "padding": "0px"
+                        },
                         "content": [
                           {
                             "type": "ContentImage",
@@ -1600,8 +1876,12 @@
                               "objectFit": "cover",
                               "radius": "theme-lg",
                               "maxWidth": "100%",
-                              "altValueContext": { "path": "product.title" },
-                              "valueContext": { "path": "images[0].url" }
+                              "altValueContext": {
+                                "path": "product.title"
+                              },
+                              "valueContext": {
+                                "path": "images[0].url"
+                              }
                             }
                           },
                           {
@@ -1614,7 +1894,9 @@
                               "size": "sm",
                               "gap": 6,
                               "maxItems": 3,
-                              "listValueContext": { "path": "product.tags" }
+                              "listValueContext": {
+                                "path": "product.tags"
+                              }
                             }
                           },
                           {
@@ -1631,7 +1913,9 @@
                               "fontStyle": "normal",
                               "textTransform": "none",
                               "color": "theme-text",
-                              "valueContext": { "path": "product.title" }
+                              "valueContext": {
+                                "path": "product.title"
+                              }
                             }
                           },
                           {
@@ -1647,7 +1931,137 @@
                               "fontStyle": "normal",
                               "textTransform": "none",
                               "color": "theme-primary",
-                              "valueContext": { "path": "pricing.displayPrice" }
+                              "valueContext": {
+                                "path": "pricing.displayPrice"
+                              }
+                            }
+                          },
+                          {
+                            "type": "ContentButton",
+                            "props": {
+                              "id": "Button-products-card",
+                              "label": "عرض التفاصيل",
+                              "align": "center",
+                              "destinationType": "link",
+                              "buttonAction": "link",
+                              "link": {
+                                "kind": "page",
+                                "pageId": "/products/:product-slug",
+                                "dynamicSegment": {
+                                  "param": "product-slug",
+                                  "valueContext": "product.slug"
+                                }
+                              },
+                              "buttonVariantMode": "variant",
+                              "buttonVariant": "primary",
+                              "buttonVariantSize": "md",
+                              "radius": "theme-full",
+                              "bgColor": "theme-primary",
+                              "textColor": "theme-surface",
+                              "buttonSize": "theme-md",
+                              "submitRedirectUrl": "",
+                              "fullWidth": true
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "cardTemplate": [
+                    {
+                      "type": "Group",
+                      "props": {
+                        "id": "Group-products-card-template",
+                        "direction": "column",
+                        "gap": 14,
+                        "alignItems": "stretch",
+                        "justifyContent": "flex-start",
+                        "wrap": "nowrap",
+                        "product": null,
+                        "metadata": null,
+                        "skipProductDetailFetch": true,
+                        "language": "ar",
+                        "backgroundColor": "#ffffff",
+                        "backgroundImage": "",
+                        "backgroundOverlayColor": "",
+                        "padding": "18px",
+                        "borderRadius": "theme-lg",
+                        "boxShadow": "md",
+                        "layout": {
+                          "grow": true,
+                          "spanCol": 1,
+                          "spanRow": 1,
+                          "padding": "0px"
+                        },
+                        "content": [
+                          {
+                            "type": "ContentImage",
+                            "props": {
+                              "id": "Image-products-card",
+                              "src": "https://placehold.co/400x400/ede9fe/7c3aed?text=Product",
+                              "alt": "",
+                              "align": "center",
+                              "objectFit": "cover",
+                              "radius": "theme-lg",
+                              "maxWidth": "100%",
+                              "altValueContext": {
+                                "path": "product.title"
+                              },
+                              "valueContext": {
+                                "path": "images[0].url"
+                              }
+                            }
+                          },
+                          {
+                            "type": "Chip",
+                            "props": {
+                              "id": "Chip-products-card-tags",
+                              "chipVariantMode": "theme",
+                              "chipVariant": "primary",
+                              "shape": "pill",
+                              "size": "sm",
+                              "gap": 6,
+                              "maxItems": 3,
+                              "listValueContext": {
+                                "path": "product.tags"
+                              }
+                            }
+                          },
+                          {
+                            "type": "ContentHeading",
+                            "props": {
+                              "id": "Heading-products-card",
+                              "text": "عنوان المنتج",
+                              "level": "3",
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-bold",
+                              "lineHeight": "theme-tight",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "product.title"
+                              }
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-products-card-price",
+                              "text": "0.00 SYP",
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-lg",
+                              "fontWeight": "theme-bold",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-primary",
+                              "valueContext": {
+                                "path": "pricing.displayPrice"
+                              }
                             }
                           },
                           {
@@ -1710,7 +2124,6 @@
         }
       ]
     },
-
     {
       "path": "/products/:product-slug",
       "slug": "/products/example-product",
@@ -1773,7 +2186,9 @@
                         "padding": "0px",
                         "borderRadius": "theme-none",
                         "boxShadow": "none",
-                        "layout": { "grow": true },
+                        "layout": {
+                          "grow": true
+                        },
                         "content": [
                           {
                             "type": "ProductImageCarousel",
@@ -1802,7 +2217,9 @@
                         "padding": "28px",
                         "borderRadius": "theme-lg",
                         "boxShadow": "sm",
-                        "layout": { "grow": true },
+                        "layout": {
+                          "grow": true
+                        },
                         "content": [
                           {
                             "type": "Chip",
@@ -1814,7 +2231,9 @@
                               "size": "sm",
                               "gap": 8,
                               "maxItems": 6,
-                              "listValueContext": { "path": "product.categories" }
+                              "listValueContext": {
+                                "path": "product.categories"
+                              }
                             }
                           },
                           {
@@ -1831,7 +2250,9 @@
                               "fontStyle": "normal",
                               "textTransform": "none",
                               "color": "theme-text",
-                              "valueContext": { "path": "product.title" }
+                              "valueContext": {
+                                "path": "product.title"
+                              }
                             }
                           },
                           {
@@ -1847,7 +2268,9 @@
                               "fontStyle": "normal",
                               "textTransform": "none",
                               "color": "theme-primary",
-                              "valueContext": { "path": "pricing.displayPrice" }
+                              "valueContext": {
+                                "path": "pricing.displayPrice"
+                              }
                             }
                           },
                           {
@@ -1863,7 +2286,9 @@
                               "fontStyle": "normal",
                               "textTransform": "none",
                               "color": "theme-neutral",
-                              "valueContext": { "path": "pricing.displayCompareAt" }
+                              "valueContext": {
+                                "path": "pricing.displayCompareAt"
+                              }
                             }
                           },
                           {
@@ -1879,7 +2304,9 @@
                               "fontStyle": "normal",
                               "textTransform": "none",
                               "color": "theme-neutral",
-                              "valueContext": { "path": "product.description" }
+                              "valueContext": {
+                                "path": "product.description"
+                              }
                             }
                           },
                           {
@@ -1907,7 +2334,9 @@
                               "align": "center",
                               "destinationType": "action",
                               "buttonAction": "addToCart",
-                              "link": { "kind": "none" },
+                              "link": {
+                                "kind": "none"
+                              },
                               "buttonVariantMode": "variant",
                               "buttonVariant": "primary",
                               "buttonVariantSize": "lg",
@@ -1926,7 +2355,10 @@
                               "align": "center",
                               "destinationType": "link",
                               "buttonAction": "link",
-                              "link": { "kind": "page", "pageId": "/cart" },
+                              "link": {
+                                "kind": "page",
+                                "pageId": "/cart"
+                              },
                               "buttonVariantMode": "variant",
                               "buttonVariant": "secondary",
                               "buttonVariantSize": "md",
@@ -2000,7 +2432,9 @@
                   "columnsMobile": 2,
                   "gridGap": "24px",
                   "sectionKind": "products-page",
-                  "metadata": { "preset": "products-page" },
+                  "metadata": {
+                    "preset": "products-page"
+                  },
                   "content": [
                     {
                       "type": "Group",
@@ -2021,7 +2455,12 @@
                         "padding": "18px",
                         "borderRadius": "theme-lg",
                         "boxShadow": "md",
-                        "layout": { "grow": true, "spanCol": 1, "spanRow": 1, "padding": "0px" },
+                        "layout": {
+                          "grow": true,
+                          "spanCol": 1,
+                          "spanRow": 1,
+                          "padding": "0px"
+                        },
                         "content": [
                           {
                             "type": "ContentImage",
@@ -2033,8 +2472,12 @@
                               "objectFit": "cover",
                               "radius": "theme-lg",
                               "maxWidth": "100%",
-                              "altValueContext": { "path": "product.title" },
-                              "valueContext": { "path": "images[0].url" }
+                              "altValueContext": {
+                                "path": "product.title"
+                              },
+                              "valueContext": {
+                                "path": "images[0].url"
+                              }
                             }
                           },
                           {
@@ -2051,7 +2494,9 @@
                               "fontStyle": "normal",
                               "textTransform": "none",
                               "color": "theme-text",
-                              "valueContext": { "path": "product.title" }
+                              "valueContext": {
+                                "path": "product.title"
+                              }
                             }
                           },
                           {
@@ -2067,7 +2512,122 @@
                               "fontStyle": "normal",
                               "textTransform": "none",
                               "color": "theme-primary",
-                              "valueContext": { "path": "pricing.displayPrice" }
+                              "valueContext": {
+                                "path": "pricing.displayPrice"
+                              }
+                            }
+                          },
+                          {
+                            "type": "ContentButton",
+                            "props": {
+                              "id": "Button-related-card",
+                              "label": "عرض التفاصيل",
+                              "align": "center",
+                              "destinationType": "link",
+                              "buttonAction": "link",
+                              "link": {
+                                "kind": "page",
+                                "pageId": "/products/:product-slug",
+                                "dynamicSegment": {
+                                  "param": "product-slug",
+                                  "valueContext": "product.slug"
+                                }
+                              },
+                              "buttonVariantMode": "variant",
+                              "buttonVariant": "primary",
+                              "buttonVariantSize": "md",
+                              "radius": "theme-full",
+                              "bgColor": "theme-primary",
+                              "textColor": "theme-surface",
+                              "buttonSize": "theme-md",
+                              "submitRedirectUrl": "",
+                              "fullWidth": true
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "cardTemplate": [
+                    {
+                      "type": "Group",
+                      "props": {
+                        "id": "Group-related-card-template",
+                        "direction": "column",
+                        "gap": 14,
+                        "alignItems": "stretch",
+                        "justifyContent": "flex-start",
+                        "wrap": "nowrap",
+                        "product": null,
+                        "metadata": null,
+                        "skipProductDetailFetch": true,
+                        "language": "ar",
+                        "backgroundColor": "#ffffff",
+                        "backgroundImage": "",
+                        "backgroundOverlayColor": "",
+                        "padding": "18px",
+                        "borderRadius": "theme-lg",
+                        "boxShadow": "md",
+                        "layout": {
+                          "grow": true,
+                          "spanCol": 1,
+                          "spanRow": 1,
+                          "padding": "0px"
+                        },
+                        "content": [
+                          {
+                            "type": "ContentImage",
+                            "props": {
+                              "id": "Image-related-card",
+                              "src": "https://placehold.co/400x400/ede9fe/7c3aed?text=Product",
+                              "alt": "",
+                              "align": "center",
+                              "objectFit": "cover",
+                              "radius": "theme-lg",
+                              "maxWidth": "100%",
+                              "altValueContext": {
+                                "path": "product.title"
+                              },
+                              "valueContext": {
+                                "path": "images[0].url"
+                              }
+                            }
+                          },
+                          {
+                            "type": "ContentHeading",
+                            "props": {
+                              "id": "Heading-related-card",
+                              "text": "عنوان المنتج",
+                              "level": "3",
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-bold",
+                              "lineHeight": "theme-tight",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "product.title"
+                              }
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-related-card-price",
+                              "text": "0.00 SYP",
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-lg",
+                              "fontWeight": "theme-bold",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-primary",
+                              "valueContext": {
+                                "path": "pricing.displayPrice"
+                              }
                             }
                           },
                           {
@@ -2108,7 +2668,6 @@
         }
       ]
     },
-
     {
       "path": "/cart",
       "slug": "/cart",
@@ -2137,7 +2696,9 @@
             "columnsMobile": 1,
             "gridGap": "20px",
             "sectionKind": "shopping-cart",
-            "metadata": { "preset": "shopping-cart" },
+            "metadata": {
+              "preset": "shopping-cart"
+            },
             "cartSlotItems": [],
             "content": [
               {
@@ -2179,7 +2740,9 @@
                   "align": "center",
                   "destinationType": "action",
                   "buttonAction": "makeOrder",
-                  "link": { "kind": "none" },
+                  "link": {
+                    "kind": "none"
+                  },
                   "buttonVariantMode": "variant",
                   "buttonVariant": "primary",
                   "buttonVariantSize": "lg",
@@ -2195,7 +2758,10 @@
                 "props": {
                   "id": "Link-cart-continue",
                   "title": "متابعة التسوق",
-                  "link": { "kind": "page", "pageId": "/products" },
+                  "link": {
+                    "kind": "page",
+                    "pageId": "/products"
+                  },
                   "align": "center",
                   "color": "theme-primary",
                   "hoverEffect": "underline",
