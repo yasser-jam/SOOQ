@@ -82,13 +82,26 @@ export const OrdersIconButton: ComponentConfig<OrdersIconButtonProps> = {
     onlyWhenSignedIn: true,
   },
 
-  render: ({ href, label, iconSize, onlyWhenSignedIn, puck }) => {
+  render: ({ href, label, iconSize, onlyWhenSignedIn, showCondition, puck }: any) => {
     const signedIn = useCustomerSignedIn();
+
+    // Prefer the shared Site JSON `showCondition` when set; fall back to the
+    // legacy `onlyWhenSignedIn` flag for older payloads.
+    const condition =
+      showCondition ?? (onlyWhenSignedIn ? "loggedIn" : "always");
 
     // In the editor the button always shows — a merchant has to be able to
     // select and style it regardless of their own session. `PuckComponent`
     // must return an element, so hiding means rendering an empty fragment.
-    if (!puck.isEditing && onlyWhenSignedIn && !signedIn) {
+    // (withShowCondition also gates this; keep the legacy path for safety.)
+    if (
+      !puck.isEditing &&
+      condition === "loggedIn" &&
+      !signedIn
+    ) {
+      return <></>;
+    }
+    if (!puck.isEditing && condition === "loggedOut" && signedIn) {
       return <></>;
     }
 

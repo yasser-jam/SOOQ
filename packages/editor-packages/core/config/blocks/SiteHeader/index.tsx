@@ -9,8 +9,10 @@ import {
   type HeaderDrawerIcon,
   type HeaderLink,
 } from "../../components/Header";
+import type { ShellVariant } from "../../theme";
 import { ZONE_BLOCK_PERMISSIONS, ZONE_BLOCK_TYPES } from "../../shell-zones";
 import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
+import { showConditionField } from "../../lib/show-condition";
 
 export type SiteHeaderProps = {
   title: string;
@@ -89,11 +91,13 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
         label: { type: "text", label: "التسمية (إنجليزي)" },
         labelAr: { type: "text", label: "التسمية (عربي)" },
         link: linkField({ label: "الوجهة" }),
+        showCondition: showConditionField,
       },
       defaultItemProps: {
         label: "New link",
         labelAr: "عنصر",
         link: EMPTY_LINK,
+        showCondition: "always",
       },
       getItemSummary: (item: { label?: string; href?: string }) =>
         item?.label || item?.href || "Link",

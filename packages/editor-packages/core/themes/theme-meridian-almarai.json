@@ -91,7 +91,8 @@
               "link": {
                 "kind": "page",
                 "pageId": "/"
-              }
+              },
+              "showCondition": "always"
             },
             {
               "label": "Products",
@@ -99,15 +100,35 @@
               "link": {
                 "kind": "page",
                 "pageId": "/products"
-              }
+              },
+              "showCondition": "always"
             },
             {
-              "label": "Cart",
-              "labelAr": "السلة",
+              "label": "Settings",
+              "labelAr": "الإعدادات",
               "link": {
                 "kind": "page",
-                "pageId": "/cart"
-              }
+                "pageId": "/settings"
+              },
+              "showCondition": "loggedIn"
+            },
+            {
+              "label": "About us",
+              "labelAr": "من نحن",
+              "link": {
+                "kind": "page",
+                "pageId": "/about"
+              },
+              "showCondition": "always"
+            },
+            {
+              "label": "Orders",
+              "labelAr": "طلباتي",
+              "link": {
+                "kind": "page",
+                "pageId": "/orders"
+              },
+              "showCondition": "loggedIn"
             }
           ],
           "backgroundColor": "#ffffff",
@@ -126,7 +147,8 @@
                 "href": "/cart",
                 "iconSize": 22,
                 "badgeColor": "#7c3aed",
-                "badgeTextColor": "#ffffff"
+                "badgeTextColor": "#ffffff",
+                "showCondition": "loggedIn"
               }
             },
             {
@@ -148,7 +170,8 @@
                 "bgColor": "theme-primary",
                 "textColor": "theme-surface",
                 "buttonSize": "theme-sm",
-                "submitRedirectUrl": ""
+                "submitRedirectUrl": "",
+                "showCondition": "loggedOut"
               }
             }
           ]
@@ -306,7 +329,8 @@
                     "link": {
                       "kind": "page",
                       "pageId": "/"
-                    }
+                    },
+                    "showCondition": "always"
                   },
                   {
                     "label": {
@@ -316,17 +340,41 @@
                     "link": {
                       "kind": "page",
                       "pageId": "/products"
-                    }
+                    },
+                    "showCondition": "always"
                   },
                   {
                     "label": {
-                      "ar": "سلة التسوق",
-                      "en": "Cart"
+                      "ar": "الإعدادات",
+                      "en": "Settings"
                     },
                     "link": {
                       "kind": "page",
-                      "pageId": "/cart"
-                    }
+                      "pageId": "/settings"
+                    },
+                    "showCondition": "loggedIn"
+                  },
+                  {
+                    "label": {
+                      "ar": "من نحن",
+                      "en": "About us"
+                    },
+                    "link": {
+                      "kind": "page",
+                      "pageId": "/about"
+                    },
+                    "showCondition": "always"
+                  },
+                  {
+                    "label": {
+                      "ar": "طلباتي",
+                      "en": "Orders"
+                    },
+                    "link": {
+                      "kind": "page",
+                      "pageId": "/orders"
+                    },
+                    "showCondition": "loggedIn"
                   },
                   {
                     "label": {
@@ -336,7 +384,8 @@
                     "link": {
                       "kind": "page",
                       "pageId": "/login"
-                    }
+                    },
+                    "showCondition": "loggedOut"
                   }
                 ]
               }
@@ -2769,6 +2818,343 @@
                   "fontSize": "theme-sm",
                   "icon": "arrow-left",
                   "iconPosition": "end"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "path": "/about",
+      "slug": "/about",
+      "name": "من نحن",
+      "link": "/about",
+      "title": "ميريديان — من نحن",
+      "description": "تعرّف على قصة ميريديان ورؤيتنا وقيمنا.",
+      "iconName": "FileText",
+      "content": [
+        {
+          "type": "Section",
+          "props": {
+            "id": "Section-about-hero",
+            "name": "هيرو من نحن",
+            "anchorId": "about-hero",
+            "visible": true,
+            "paddingTop": "120px",
+            "paddingBottom": "120px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#1e1b4b",
+            "backgroundImage": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1920&q=80",
+            "backgroundOverlayColor": "rgba(30, 27, 75, 0.78)",
+            "theme": "light",
+            "maxWidth": "100%",
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-about-hero",
+                  "direction": "column",
+                  "gap": 20,
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "wrap": "nowrap",
+                  "backgroundColor": "",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none",
+                  "boxShadow": "none",
+                  "product": null,
+                  "metadata": null,
+                  "language": "ar",
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "Heading-about-hero",
+                        "text": "نصنع تجربة تسوّق تليق بك",
+                        "level": "1",
+                        "textAlign": "center",
+                        "fontFamily": "body",
+                        "fontSize": "theme-2xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "#ffffff"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-about-hero",
+                        "text": "ميريديان متجر عربي يضع الجودة والثقة في المقدمة — منتجات مختارة، أسعار واضحة، وتوصيل يصل إلى بابك.",
+                        "textAlign": "center",
+                        "fontFamily": "body",
+                        "fontSize": "theme-lg",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "#e9d5ff"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "id": "Section-about-story",
+            "name": "قصتنا",
+            "anchorId": "story",
+            "visible": true,
+            "paddingTop": "80px",
+            "paddingBottom": "80px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#ffffff",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "theme": "dark",
+            "maxWidth": "1100px",
+            "columns": 2,
+            "columnsMobile": 1,
+            "gridGap": "48px",
+            "content": [
+              {
+                "type": "ContentImage",
+                "props": {
+                  "id": "Image-about-story",
+                  "src": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=1000&q=80",
+                  "alt": "فريق ميريديان",
+                  "align": "center",
+                  "objectFit": "cover",
+                  "radius": "theme-lg",
+                  "maxWidth": "100%"
+                }
+              },
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-about-story",
+                  "direction": "column",
+                  "gap": 16,
+                  "alignItems": "flex-start",
+                  "justifyContent": "center",
+                  "wrap": "nowrap",
+                  "backgroundColor": "",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none",
+                  "boxShadow": "none",
+                  "product": null,
+                  "metadata": null,
+                  "language": "ar",
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "Heading-about-story",
+                        "text": "قصتنا",
+                        "level": "2",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-about-story-1",
+                        "text": "بدأنا من فكرة بسيطة: أن يحصل كل عميل على منتجات يستحقها دون تعقيد، مع دفع عند الاستلام وخدمة قريبة من احتياجاته.",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-neutral"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-about-story-2",
+                        "text": "نختار بعناية، نوضح التفاصيل، ونهتم بما بعد الطلب — لأن الثقة تُبنى في كل خطوة.",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-neutral"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "id": "Section-about-values",
+            "name": "قيمنا",
+            "anchorId": "values",
+            "visible": true,
+            "paddingTop": "72px",
+            "paddingBottom": "72px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#f8fafc",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "theme": "dark",
+            "maxWidth": "1100px",
+            "columns": 3,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "content": [
+              {
+                "type": "Card",
+                "props": {
+                  "id": "Card-about-quality",
+                  "title": "جودة مختارة",
+                  "description": "نراجع كل منتج قبل إدراجه لنضمن معايير واضحة تناسب توقعاتك.",
+                  "icon": "sparkles",
+                  "mode": "flat"
+                }
+              },
+              {
+                "type": "Card",
+                "props": {
+                  "id": "Card-about-delivery",
+                  "title": "توصيل موثوق",
+                  "description": "نصل إلى المحافظات خلال أيام عمل قليلة مع متابعة واضحة لحالة الطلب.",
+                  "icon": "truck",
+                  "mode": "flat"
+                }
+              },
+              {
+                "type": "Card",
+                "props": {
+                  "id": "Card-about-support",
+                  "title": "خدمة قريبة",
+                  "description": "فريقنا جاهز لمساعدتك قبل الشراء وبعده — بأسئلة بسيطة وإجابات سريعة.",
+                  "icon": "headphones",
+                  "mode": "flat"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "id": "Section-about-cta",
+            "name": "ابدأ التسوق",
+            "anchorId": "cta",
+            "visible": true,
+            "paddingTop": "88px",
+            "paddingBottom": "96px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#7c3aed",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "theme": "light",
+            "maxWidth": "900px",
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "20px",
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-about-cta",
+                  "direction": "column",
+                  "gap": 20,
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "wrap": "nowrap",
+                  "backgroundColor": "",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none",
+                  "boxShadow": "none",
+                  "product": null,
+                  "metadata": null,
+                  "language": "ar",
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "Heading-about-cta",
+                        "text": "جاهز لاستكشاف التشكيلة؟",
+                        "level": "2",
+                        "textAlign": "center",
+                        "fontFamily": "body",
+                        "fontSize": "theme-xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "#ffffff"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-about-cta",
+                        "text": "تصفّح المنتجات وابدأ طلبك بخطوات بسيطة — الدفع عند الاستلام متاح.",
+                        "textAlign": "center",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "#ede9fe"
+                      }
+                    },
+                    {
+                      "type": "ContentButton",
+                      "props": {
+                        "id": "Button-about-cta",
+                        "label": "تسوّق الآن",
+                        "align": "center",
+                        "destinationType": "link",
+                        "buttonAction": "link",
+                        "link": {
+                          "kind": "page",
+                          "pageId": "/products"
+                        },
+                        "buttonVariantMode": "variant",
+                        "buttonVariant": "secondary",
+                        "buttonVariantSize": "md",
+                        "radius": "theme-full",
+                        "bgColor": "theme-surface",
+                        "textColor": "theme-primary",
+                        "buttonSize": "theme-md",
+                        "submitRedirectUrl": ""
+                      }
+                    }
+                  ]
                 }
               }
             ]

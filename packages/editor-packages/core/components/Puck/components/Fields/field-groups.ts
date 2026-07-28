@@ -141,6 +141,8 @@ const ADVANCED_FIELD_NAMES = new Set([
   "enableCaptcha",
   "showDataHints",
   "editMode",
+  "showCondition",
+  "onlyWhenSignedIn",
 ]);
 
 export function resolveFieldGroup(

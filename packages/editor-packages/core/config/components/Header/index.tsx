@@ -19,6 +19,11 @@ import {
 
 import { useZonePreviewSelected } from "../../lib/use-zone-preview-selected";
 import selectionStyles from "../../lib/zone-selection.module.css";
+import { useStore } from "../../store-context";
+import {
+  shouldShowForCondition,
+  type ShowCondition,
+} from "../../lib/show-condition";
 
 import styles from "./styles.module.css";
 
@@ -105,6 +110,8 @@ export type HeaderLink = {
   link?: LinkValue;
   /** Legacy field kept for older persisted JSON payloads. */
   href?: string;
+  /** Auth visibility — persisted in Site JSON (`loggedIn` / `loggedOut` / `always`). */
+  showCondition?: ShowCondition;
 };
 
 // Sensible defaults that match the demo: any new store sees something
@@ -193,11 +200,15 @@ const Header = ({
   componentId,
 }: HeaderProps) => {
   const previewSelected = useZonePreviewSelected(componentId);
+  const { auth } = useStore();
   if (!visible && !previewSelected) return null;
 
   const deviceClass = isMobileOnly ? responsiveStyles.hideOnDesktop : "";
   const resolvedLinks =
     Array.isArray(links) && links.length > 0 ? links : DEFAULT_HEADER_LINKS;
+  const visibleLinks = resolvedLinks.filter((l) =>
+    shouldShowForCondition(l.showCondition, auth.isLoggedIn, editMode)
+  );
 
   const isTransparent =
     typeof backgroundColor === "string" &&
@@ -243,7 +254,7 @@ const Header = ({
           styles.itemsAlignStart
       )}
     >
-      {resolvedLinks.map((l, i) => (
+      {visibleLinks.map((l, i) => (
         <NavItem
           key={`${resolveHrefLegacy(l.link, l.href) ?? "none"}-${i}`}
           label={pickLabel(l, language)}
@@ -326,7 +337,7 @@ const Header = ({
           </a>
         )}
         <nav className={styles.navCommerce}>
-          {resolvedLinks.map((l, i) => (
+          {visibleLinks.map((l, i) => (
             <NavItem
               key={`${resolveHrefLegacy(l.link, l.href) ?? "none"}-${i}`}
               label={pickLabel(l, language)}

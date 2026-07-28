@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { ComponentConfig } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";
@@ -15,6 +17,12 @@ import {
   EMPTY_LINK,
   type LinkValue,
 } from "../../fields/LinkField";
+import { useStore } from "../../store-context";
+import {
+  showConditionField,
+  shouldShowForCondition,
+  type ShowCondition,
+} from "../../lib/show-condition";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("NavMenu", styles);
@@ -48,6 +56,8 @@ const getClassName = getClassNameFactory("NavMenu", styles);
 export type NavMenuItem = {
   label: BilingualString;
   link: LinkValue;
+  /** Auth visibility — persisted in Site JSON. */
+  showCondition?: ShowCondition;
 };
 
 export type NavMenuProps = WithLayout<{
@@ -68,10 +78,12 @@ const itemField = {
   arrayFields: {
     label: bilingualTextField({ label: "Label" }),
     link: linkField({ label: "الوجهة" }),
+    showCondition: showConditionField,
   },
   defaultItemProps: {
     label: { ar: "عنصر", en: "Item" } as BilingualString,
     link: EMPTY_LINK as LinkValue,
+    showCondition: "always" as ShowCondition,
   },
   getItemSummary: (item: NavMenuItem) => pickLang(item.label) || "Item",
 };
@@ -118,8 +130,16 @@ const NavMenuInternal: ComponentConfig<NavMenuProps> = {
       },
     ],
   },
-  render: ({ orientation, variant, activePath, items }) => {
+  render: ({ orientation, variant, activePath, items, puck }) => {
     const isVertical = orientation === "vertical";
+    const { auth } = useStore();
+    const visibleItems = (items ?? []).filter((item) =>
+      shouldShowForCondition(
+        item.showCondition,
+        auth.isLoggedIn,
+        !!puck?.isEditing
+      )
+    );
 
     return (
       <nav
@@ -129,7 +149,7 @@ const NavMenuInternal: ComponentConfig<NavMenuProps> = {
             : getClassName("horizontal")
         }`}
       >
-        {items?.map((item, idx) => {
+        {visibleItems.map((item, idx) => {
           const href = resolveLinkHref(item.link);
           const target = resolveLinkTarget(item.link);
           const rel = resolveLinkRel(item.link);

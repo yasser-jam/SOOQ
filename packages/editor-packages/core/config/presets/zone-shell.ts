@@ -102,6 +102,7 @@ export const CART_ICON_BUTTON = {
     iconSize: 22,
     badgeColor: "#ef4444",
     badgeTextColor: "#ffffff",
+    showCondition: "loggedIn",
   },
 };
 
@@ -117,6 +118,7 @@ export const ORDERS_ICON_BUTTON = {
     label: "طلباتي",
     iconSize: 20,
     onlyWhenSignedIn: true,
+    showCondition: "loggedIn",
   },
 };
 
