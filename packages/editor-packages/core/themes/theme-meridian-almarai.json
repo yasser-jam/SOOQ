@@ -141,13 +141,48 @@
           "drawerName": "site-drawer",
           "rightSlot": [
             {
-              "type": "CartIconButton",
+              "type": "ContentButton",
               "props": {
-                "id": "CartIconButton-header",
-                "href": "/cart",
-                "iconSize": 22,
-                "badgeColor": "#7c3aed",
-                "badgeTextColor": "#ffffff",
+                "id": "ContentButton-header-orders",
+                "label": "طلباتي",
+                "align": "center",
+                "destinationType": "link",
+                "buttonAction": "link",
+                "link": {
+                  "kind": "page",
+                  "pageId": "/orders"
+                },
+                "buttonVariantMode": "variant",
+                "buttonVariant": "secondary",
+                "buttonVariantSize": "sm",
+                "radius": "theme-md",
+                "bgColor": "theme-surface",
+                "textColor": "theme-text",
+                "buttonSize": "theme-sm",
+                "submitRedirectUrl": "",
+                "showCondition": "loggedIn"
+              }
+            },
+            {
+              "type": "ContentButton",
+              "props": {
+                "id": "ContentButton-header-cart",
+                "label": "السلة",
+                "align": "center",
+                "destinationType": "link",
+                "buttonAction": "link",
+                "link": {
+                  "kind": "page",
+                  "pageId": "/cart"
+                },
+                "buttonVariantMode": "variant",
+                "buttonVariant": "secondary",
+                "buttonVariantSize": "sm",
+                "radius": "theme-md",
+                "bgColor": "theme-surface",
+                "textColor": "theme-text",
+                "buttonSize": "theme-sm",
+                "submitRedirectUrl": "",
                 "showCondition": "loggedIn"
               }
             },

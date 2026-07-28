@@ -9,12 +9,12 @@ Each block is described with its **properties**, accepted **values**, and a read
 > Blocks registered in the editor are grouped as:
 > - **layout** — `Section`, `Group`, `RowGroup`
 > - **blocks** — `ContentHeading`, `ContentParagraph`, `ContentImage`, `ContentButton`, `Chip`, `ButtonGroup`, `ContentLink`, `ContentInput`, `ContentDivider`, `Space`, `ImageGallery`, `VideoEmbed`, `Accordion`
-> - **storeBlocks** — currently `Testimonials` is the only entry surfaced in the palette; `ProductImageCarousel`, `ProductVariants`, `CategoryListMenu`, `CheckoutForm`, `ProductSearchMenu`, `OrderHistory`, `Wishlist`, `ContactForm` are all registered but commented out of the visible palette (used inside presets or bound `Group` slots)
+> - **storeBlocks** — currently `Testimonials` is the only entry surfaced in the palette; `ProductImageCarousel`, `ProductVariants`, `CategoryListMenu`, `CheckoutForm`, `ProductSearchMenu`, `OrderHistory`, `Wishlist`, `ContactForm` are all registered but commented out of the visible palette (used inside presets or bound `Group` slots). Header cart / orders use `ContentButton` presets — legacy `CartIconButton` / `OrdersIconButton` are in **legacy**.
 > - **legacy** — hidden from picker; still resolvable so old `store_config.json` payloads render
 >
 > **Site zones** (`SiteHeader`, `SiteFooter`, `ZoneDrawer`, `ZonePopup`, `ZoneBottomSheet`, plus the legacy `SiteDrawerShell`) are managed via the **المناطق** sidebar plugin — not the blocks palette. They also carry fixed permissions `{ insert: false, duplicate: false, drag: false, delete: false }`. See [ZONES.md](./ZONES.md).
 >
-> **Legacy blocks** (registered but hidden from the picker; kept so old `store_config.json` still loads): `CartSection`, `CartList`, `CartItem`, `CartQuantity`, `CartIconButton`, `ProductCard`, `SiteDrawerShell`, `SideDrawer`, `Heading`, `Text`, `RichText`, `Button`, `Card`, `Grid`, `Flex`, `Hero`, `Logos`, `Stats`, `Template`, `NavMenu`, `ContentIcon`, `ContentHtml`, `ProductImage`, `ProductInfo`. `ProductsGrid` is fully removed — replaced by the Products Grid section preset.
+> **Legacy blocks** (registered but hidden from the picker; kept so old `store_config.json` still loads): `CartSection`, `CartList`, `CartItem`, `CartQuantity`, `CartIconButton`, `OrdersIconButton`, `ProductCard`, `SiteDrawerShell`, `SideDrawer`, `Heading`, `Text`, `RichText`, `Button`, `Card`, `Grid`, `Flex`, `Hero`, `Logos`, `Stats`, `Template`, `NavMenu`, `ContentIcon`, `ContentHtml`, `ProductImage`, `ProductInfo`. `ProductsGrid` is fully removed — replaced by the Products Grid section preset.
 
 > **Runtime metadata & data binding**  
 > Commerce sections use **`Group`** blocks as binding roots — not standalone `ProductCard` / `ProductsGrid` blocks. When a product is picked on a Group, the editor auto-populates read-only `metadata` with `apiUrl`. Child blocks (`ContentHeading`, `ContentParagraph`, `ContentImage`, `ContentButton`) resolve live values via optional `valueContext.path` against the Group's bound data. Mobile converters should fetch from `metadata.apiUrl` at render time rather than embedding product payloads in JSON.
@@ -468,6 +468,47 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 }
 ```
 
+### JSON Example (header cart — replaces legacy `CartIconButton`)
+
+```json
+{
+  "type": "ContentButton",
+  "props": {
+    "label": "السلة",
+    "align": "center",
+    "destinationType": "link",
+    "buttonAction": "link",
+    "link": { "kind": "page", "pageId": "/cart" },
+    "buttonVariantMode": "variant",
+    "buttonVariant": "secondary",
+    "buttonVariantSize": "sm",
+    "showCondition": "loggedIn"
+  }
+}
+```
+
+### JSON Example (header orders — replaces legacy `OrdersIconButton`)
+
+`/orders` is a real `apps/store` route (`app/store/[tenantId]/orders`), not a Site JSON page. `link.kind: "page"` still works — `resolveLinkHref` prefixes the tenant base path via `withStoreBasePath`. See `docs/customer-orders-flow.md`.
+
+```json
+{
+  "type": "ContentButton",
+  "props": {
+    "label": "طلباتي",
+    "align": "center",
+    "destinationType": "link",
+    "buttonAction": "link",
+    "link": { "kind": "page", "pageId": "/orders" },
+    "buttonVariantMode": "variant",
+    "buttonVariant": "secondary",
+    "buttonVariantSize": "sm",
+    "showCondition": "loggedIn"
+  }
+}
+```
+
+Canonical header presets: `config/presets/zone-shell.ts` (`CART_ICON_BUTTON`, `ORDERS_ICON_BUTTON`).
 ---
 
 ## ButtonGroup
@@ -2231,7 +2272,7 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 | `showDrawerButton` | `boolean` | Show hamburger button | `false` |
 | `drawerButtonIcon` | `"menu" \| "filter" \| "cart" \| "user" \| "none"` | Icon type | `"menu"` |
 | `drawerName` | `string` | Target zone/drawer key for menu button | `"site-drawer"` |
-| `rightSlot` | `Slot` | Nested blocks (e.g. `CartIconButton`, `LoginButton`) at header end | `[]` |
+| `rightSlot` | `Slot` | Nested blocks (e.g. `ContentButton` cart / orders / login) at header end | `[]` |
 
 ### JSON Example
 
@@ -2267,10 +2308,10 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 
 ## CartIconButton
 
-> **Legacy in block picker** — still used inside `SiteHeader.rightSlot` in existing configs.
+> **Legacy** — new stores use a `ContentButton` linking to `/cart` (see [ContentButton](#contentbutton) header-cart example and `config/presets/zone-shell.ts::CART_ICON_BUTTON`). Kept so old `store_config.json` still loads. Hidden from the block picker.
 
 **Label:** زر السلة  
-**Description:** Cart icon with live item-count badge. Used inside `SiteHeader.rightSlot`. Listens to `store-cart-updated` events and reads `localStorage` key `store-cart`. Displays "99+" when the item count exceeds 99.
+**Description:** Cart icon with live item-count badge. Used inside `SiteHeader.rightSlot`. Listens to `store-cart-updated` events and reads `localStorage` key `store-cart`. Displays "99+" when the item count exceeds 99. The ContentButton replacement does **not** show a live count badge — only the link + label.
 
 | Property | Type | Default | Notes |
 |---|---|---|---|
@@ -2297,8 +2338,10 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 
 ## OrdersIconButton
 
+> **Legacy** — new stores use a `ContentButton` linking to `/orders` (see [ContentButton](#contentbutton) header-orders example and `config/presets/zone-shell.ts::ORDERS_ICON_BUTTON`). Kept so old `store_config.json` still loads. Hidden from the block picker.
+
 **Label:** زر طلباتي  
-**Description:** Link to the customer order history. Sits inside `SiteHeader.rightSlot` next to `CartIconButton`. `/orders` is a **real `apps/store` route** (`app/store/[tenantId]/orders`), not a Site JSON page — a static segment that shadows the storefront catch-all — so it never shows up in the pages menu and can't be deleted from the pages panel. The href is prefixed with the tenant base path at render time via `withStoreBasePath`. See `docs/customer-orders-flow.md`.
+**Description:** Link to the customer order history. Sits inside `SiteHeader.rightSlot` next to the cart control. `/orders` is a **real `apps/store` route** (`app/store/[tenantId]/orders`), not a Site JSON page — a static segment that shadows the storefront catch-all — so it never shows up in the pages menu and can't be deleted from the pages panel. The href is prefixed with the tenant base path at render time via `withStoreBasePath`. See `docs/customer-orders-flow.md`.
 
 | Property | Type | Default | Notes |
 |---|---|---|---|
@@ -2405,8 +2448,13 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 
 ---
 
-> **Note — login button**  
-> There is **no `LoginButton` block**. The "login" behaviour is a preset — a `ContentButton` with `destinationType: "action"`, `buttonAction: "login"` (or `logout` / `verifyOtp`). See `config/presets/header-layouts.ts::createHeaderLoginButton` for the canonical shape.
+> **Note — header account buttons**  
+> There is **no `LoginButton`**, **`CartButton`**, or **`MyOrdersButton`** block for new stores. Use `ContentButton` presets instead:
+> - **Login:** `destinationType: "action"`, `buttonAction: "login"` (or `logout` / `verifyOtp`) — see `config/presets/header-layouts.ts::createHeaderLoginButton`
+> - **Cart:** `destinationType: "link"`, `link: { kind: "page", pageId: "/cart" }`, `showCondition: "loggedIn"` — see `config/presets/zone-shell.ts::CART_ICON_BUTTON`
+> - **Orders:** `destinationType: "link"`, `link: { kind: "page", pageId: "/orders" }`, `showCondition: "loggedIn"` — see `config/presets/zone-shell.ts::ORDERS_ICON_BUTTON`
+>
+> Legacy `CartIconButton` / `OrdersIconButton` remain registered (hidden from picker) for old payloads.
 
 ---
 

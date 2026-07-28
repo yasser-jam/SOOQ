@@ -33,7 +33,7 @@ export type SiteHeaderProps = {
   showDrawerButton: boolean;
   drawerButtonIcon: HeaderDrawerIcon;
   drawerName: string;
-  /** Optional action buttons (e.g. CartIconButton) rendered at the end of the header */
+  /** Optional action buttons (e.g. ContentButton cart / orders / login) rendered at the end of the header */
   rightSlot: Slot;
 };
 

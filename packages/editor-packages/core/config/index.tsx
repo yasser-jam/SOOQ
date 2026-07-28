@@ -110,7 +110,6 @@ export const conf: UserConfig = {
         // "ProductSearchMenu",    // IGNORED
         // "OrderHistory",         // IGNORED
         // "Wishlist",             // IGNORED
-        "OrdersIconButton",
         "Testimonials",
         // "ContactForm",          // IGNORED
       ],
@@ -120,11 +119,13 @@ export const conf: UserConfig = {
       visible: false,
       components: [
         // Cart — use Shopping Cart section preset (Section + Group) instead.
+        // Header cart/orders — use ContentButton presets (CART_ICON_BUTTON / ORDERS_ICON_BUTTON).
         "CartSection",
         "CartList",
         "CartItem",
         "CartQuantity",
         "CartIconButton",
+        "OrdersIconButton",
         // ProductCard alias — old configs; insert product cards as Group + product picker.
         "ProductCard",
         // Legacy drawer shell — use ZoneDrawer for new stores.
@@ -186,7 +187,7 @@ export const conf: UserConfig = {
     CartItem: withShowCondition(CartItem),
     CartQuantity: withShowCondition(CartQuantity),
     CartIconButton: withShowCondition(CartIconButton),
-    // Customer account entry points (real apps/store routes, not Site JSON pages)
+    // Legacy — prefer ContentButton presets (CART_ICON_BUTTON / ORDERS_ICON_BUTTON)
     OrdersIconButton: withShowCondition(OrdersIconButton),
     // Content (DSN-004 a–j)
     ContentHeading: withShowCondition(ContentHeading),

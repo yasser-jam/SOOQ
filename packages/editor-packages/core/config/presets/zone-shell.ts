@@ -95,13 +95,26 @@ export function createHeaderNavMenu(
   return createHeaderNavLinksGroup(mappedVariant, overrides);
 }
 
+/**
+ * Header cart entry — `ContentButton` linking to the Site JSON `/cart` page.
+ * Prefer this over the legacy `CartIconButton` block (no live count badge).
+ */
 export const CART_ICON_BUTTON = {
-  type: "CartIconButton" as const,
+  type: "ContentButton" as const,
   props: {
-    href: "/cart",
-    iconSize: 22,
-    badgeColor: "#ef4444",
-    badgeTextColor: "#ffffff",
+    label: "السلة",
+    align: "center",
+    destinationType: "link",
+    buttonAction: "link",
+    link: { kind: "page", pageId: "/cart" },
+    buttonVariantMode: "variant",
+    buttonVariant: "secondary",
+    buttonVariantSize: "sm",
+    radius: "theme-md",
+    bgColor: "theme-surface",
+    textColor: "theme-text",
+    buttonSize: "theme-sm",
+    submitRedirectUrl: "",
     showCondition: "loggedIn",
   },
 };
@@ -110,14 +123,24 @@ export const CART_ICON_BUTTON = {
  * Link to the customer order history. `/orders` is a real apps/store route
  * rather than a Site JSON page, so it is seeded here instead of appearing in
  * the pages menu. Hidden for signed-out visitors by default.
+ * Prefer this over the legacy `OrdersIconButton` block.
  */
 export const ORDERS_ICON_BUTTON = {
-  type: "OrdersIconButton" as const,
+  type: "ContentButton" as const,
   props: {
-    href: "/orders",
     label: "طلباتي",
-    iconSize: 20,
-    onlyWhenSignedIn: true,
+    align: "center",
+    destinationType: "link",
+    buttonAction: "link",
+    link: { kind: "page", pageId: "/orders" },
+    buttonVariantMode: "variant",
+    buttonVariant: "secondary",
+    buttonVariantSize: "sm",
+    radius: "theme-md",
+    bgColor: "theme-surface",
+    textColor: "theme-text",
+    buttonSize: "theme-sm",
+    submitRedirectUrl: "",
     showCondition: "loggedIn",
   },
 };
