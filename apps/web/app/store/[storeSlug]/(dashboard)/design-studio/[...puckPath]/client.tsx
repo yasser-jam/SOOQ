@@ -67,6 +67,7 @@ import {
   withEditorMode,
 } from "@/lib/design-studio-paths"
 import { useSelectedPage } from "@/core/config/lib/use-selected-page"
+import { PAGES_UPDATED_EVENT } from "@/core/config/page-registry"
 
 // shopifyOutlinePlugin registers as "sections" (الأقسام); built-in outline
 // stays as "شجرة العناصر". Both tabs remain visible in the left sidebar.
@@ -658,6 +659,19 @@ export function Client({
     siteDataRef.current = readSiteData(editorMode)
     exportDataRef.current = null
   }, [path, editorMode])
+
+  // The pages panel can add or delete pages without changing `path`, which
+  // would leave this snapshot (used by the JSON viewer / export) describing a
+  // site that no longer exists.
+  useEffect(() => {
+    const refreshSiteSnapshot = () => {
+      siteDataRef.current = readSiteData(editorMode)
+    }
+
+    window.addEventListener(PAGES_UPDATED_EVENT, refreshSiteSnapshot)
+    return () =>
+      window.removeEventListener(PAGES_UPDATED_EVENT, refreshSiteSnapshot)
+  }, [editorMode])
 
   const handleOpenPreview = useCallback(() => {
     const puckData = exportDataRef.current ?? latestDataRef.current

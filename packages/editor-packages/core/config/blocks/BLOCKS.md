@@ -2295,6 +2295,34 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 
 ---
 
+## OrdersIconButton
+
+**Label:** زر طلباتي  
+**Description:** Link to the customer order history. Sits inside `SiteHeader.rightSlot` next to `CartIconButton`. `/orders` is a **real `apps/store` route** (`app/store/[tenantId]/orders`), not a Site JSON page — a static segment that shadows the storefront catch-all — so it never shows up in the pages menu and can't be deleted from the pages panel. The href is prefixed with the tenant base path at render time via `withStoreBasePath`. See `docs/customer-orders-flow.md`.
+
+| Property | Type | Default | Notes |
+|---|---|---|---|
+| `href` | `string` | `"/orders"` | Storefront-relative; base path added at render |
+| `label` | `string` | `"طلباتي"` | Empty = icon only |
+| `iconSize` | `number` | `20` | 14–48 |
+| `onlyWhenSignedIn` | `boolean` | `true` | Hidden for signed-out visitors; always visible in the editor |
+
+### JSON Example
+
+```json
+{
+  "type": "OrdersIconButton",
+  "props": {
+    "href": "/orders",
+    "label": "طلباتي",
+    "iconSize": 20,
+    "onlyWhenSignedIn": true
+  }
+}
+```
+
+---
+
 ## CartItem
 
 > **Legacy** — kept as an alias for cart-row `Group`. New stores use `Group` with `cartLineId` (via the Shopping Cart section preset).

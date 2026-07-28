@@ -18,6 +18,7 @@ import { CartList } from "./blocks/CartList";
 import { CartItem } from "./blocks/CartItem";
 import { CartQuantity } from "./blocks/CartQuantity";
 import { CartIconButton } from "./blocks/CartIconButton";
+import { OrdersIconButton } from "./blocks/OrdersIconButton";
 import { CheckoutForm } from "./blocks/CheckoutForm";
 import { ProductSearchMenu } from "./blocks/ProductSearchMenu";
 import { CategoryListMenu } from "./blocks/CategoryListMenu";
@@ -108,6 +109,7 @@ export const conf: UserConfig = {
         // "ProductSearchMenu",    // IGNORED
         // "OrderHistory",         // IGNORED
         // "Wishlist",             // IGNORED
+        "OrdersIconButton",
         "Testimonials",
         // "ContactForm",          // IGNORED
       ],
@@ -183,6 +185,8 @@ export const conf: UserConfig = {
     CartItem,
     CartQuantity,
     CartIconButton,
+    // Customer account entry points (real apps/store routes, not Site JSON pages)
+    OrdersIconButton,
     // Content (DSN-004 a–j)
     ContentHeading,
     ContentParagraph,

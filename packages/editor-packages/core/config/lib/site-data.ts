@@ -713,3 +713,24 @@ export function addSitePage(
     ],
   });
 }
+
+/**
+ * Delete a merchant-created page (and its content) by route pattern.
+ *
+ * Built-in pages are refused: the storefront routes, the pages menu and
+ * `buildInitialSiteData` all assume `/`, `/cart`, `/products/:product-slug` &
+ * co. exist, and `normalizeSiteData` would re-seed them anyway. Returns the
+ * same `site` reference when nothing was removed, so callers can skip the
+ * write.
+ */
+export function removeSitePage(site: SiteData, path: string): SiteData {
+  const normalized = normalizePagePath(path) ?? path;
+
+  const target = site.pages.find((page) => page.path === normalized);
+  if (!target || !target.isCustom) return site;
+
+  return normalizeSiteData({
+    ...site,
+    pages: site.pages.filter((page) => page.path !== normalized),
+  });
+}

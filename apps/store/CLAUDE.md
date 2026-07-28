@@ -21,6 +21,22 @@ app/[[...slug]]/page.tsx            # catch-all route
 - `components/checkout/` — checkout drawer + `checkout-api.ts` (public API calls).
 - `components/theme-json-tester.tsx` — dev utility to paste/test Site JSON.
 
+## Pages outside the renderer
+
+Static route segments beat the storefront catch-all, so some pages are plain Next.js routes
+that never touch Puck. Today that is the customer order history:
+
+```
+app/store/[tenantId]/orders/page.tsx             # list  → components/orders/orders-view.tsx
+app/store/[tenantId]/orders/[orderId]/page.tsx   # detail → components/orders/order-detail-view.tsx
+```
+
+backed by `lib/customer-orders-api.ts` (`/customer/orders**` — Bearer-authenticated, no
+`X-Tenant-Id`). They still sit under `app/store/[tenantId]/layout.tsx`, so they get tenant
+validation + `StoreTenantProvider`, but **not** `StoreProvider` or the theme provider — hence
+the cookie-based session check and the `.Orders*` styles in `app/globals.css`.
+See `docs/customer-orders-flow.md`.
+
 ## Critical current limitation
 
 Site JSON is read from **localStorage** (`readSiteData` from

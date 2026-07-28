@@ -9,6 +9,7 @@ import {
   Palette,
   Plus,
   ShoppingCart,
+  Trash2,
 } from "lucide-react"
 import { getClassNameFactory } from "@/core/lib"
 import { useAppStoreApi } from "@/core/store"
@@ -24,6 +25,7 @@ import {
 import {
   addSitePage,
   readSiteData,
+  removeSitePage,
   writeSiteData,
 } from "../../../lib/site-data"
 import { syncPagesMenuZones } from "../../../lib/sync-pages-menu"
@@ -123,15 +125,19 @@ function PageCard({
   isActive,
   editHref,
   onSelect,
+  onDelete,
 }: {
   page: PageDefinition
   isActive: boolean
   editHref: string
   onSelect: (page: PageDefinition) => void
+  /** Omitted for built-in pages, which cannot be deleted. */
+  onDelete?: (page: PageDefinition) => void
 }) {
   const IconComponent = ICON_MAP[page.iconName]
   const accent = ICON_ACCENT[page.iconName]
   const displayPath = page.dynamic ? page.path : getEditPath(page)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   const handleClick = useCallback(() => {
     onSelect(page)
@@ -140,6 +146,12 @@ function PageCard({
     }
     window.location.href = editHref
   }, [editHref, onSelect, page])
+
+  // The whole card is a click target, so every control inside it has to stop
+  // the event from bubbling up into the "switch to this page" navigation.
+  const stopCardClick = useCallback((event: React.MouseEvent) => {
+    event.stopPropagation()
+  }, [])
 
   return (
     <div onClick={handleClick} className="block no-underline">
@@ -176,6 +188,22 @@ function PageCard({
           </div>
 
           <CardAction className="flex flex-col items-end gap-1.5">
+            {onDelete ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={`حذف صفحة ${page.label}`}
+                title="حذف الصفحة"
+                className="size-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                onClick={(event) => {
+                  stopCardClick(event)
+                  setConfirmingDelete(true)
+                }}
+              >
+                <Trash2 size={14} />
+              </Button>
+            ) : null}
             {page.dynamic ? (
               <Badge variant="secondary-tonal" className="text-[10px]">
                 ديناميكية
@@ -200,7 +228,41 @@ function PageCard({
           </CardAction>
         </CardHeader>
 
-        {page.description ? (
+        {confirmingDelete && onDelete ? (
+          <CardContent className="pt-0" onClick={stopCardClick}>
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-2.5">
+              <p className="text-xs leading-relaxed text-foreground">
+                حذف «{page.label}» نهائيًا؟ سيُحذف محتوى الصفحة ولا يمكن التراجع.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="h-7 flex-1 text-xs"
+                  onClick={(event) => {
+                    stopCardClick(event)
+                    onDelete(page)
+                  }}
+                >
+                  حذف
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 flex-1 text-xs"
+                  onClick={(event) => {
+                    stopCardClick(event)
+                    setConfirmingDelete(false)
+                  }}
+                >
+                  تراجع
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        ) : page.description ? (
           <CardContent className="pt-0">
             <p className="text-xs leading-relaxed text-muted-foreground">
               {page.description}
@@ -243,6 +305,30 @@ export function PagesPanel() {
   const handleSelectPage = useCallback((page: PageDefinition) => {
     applySelectedPage(getEditPath(page))
   }, [])
+
+  const handleDeletePage = useCallback(
+    (page: PageDefinition) => {
+      if (typeof window === "undefined") return
+
+      const site = readSiteData()
+      const nextSite = removeSitePage(site, page.path)
+
+      // Built-in pages are refused by removeSitePage, which returns the same
+      // reference — nothing to persist.
+      if (nextSite === site) return
+
+      writeSiteData(nextSite)
+      setFormError(null)
+
+      // The editor renders whichever page is selected and `applyPuckSave`
+      // re-creates an unknown edit path on the next save — so a deleted page
+      // must not stay selected, or it would come straight back.
+      if (selectedPagePath === getEditPath(page)) {
+        applySelectedPage("/")
+      }
+    },
+    [selectedPagePath]
+  )
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -404,6 +490,7 @@ export function PagesPanel() {
                 isActive={selectedPagePath === getEditPath(page)}
                 editHref={editHref}
                 onSelect={handleSelectPage}
+                onDelete={page.isCustom ? handleDeletePage : undefined}
               />
             )
           })}
@@ -488,6 +575,7 @@ export function PagesPanel() {
 
       <p className={getClassName("hint")}>
         انقر على أي صفحة للتبديل إليها داخل المحرر. لكل صفحة محتواها المستقل.
+        يمكن حذف الصفحات المخصصة فقط؛ الصفحات الأساسية جزء من بنية المتجر.
       </p>
     </div>
   )

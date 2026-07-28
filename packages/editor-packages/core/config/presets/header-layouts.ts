@@ -3,6 +3,7 @@ import type { HeaderPresetLayout, ZonePreset } from "./types";
 import { createPrimaryButton } from "./shared";
 import {
   CART_ICON_BUTTON,
+  ORDERS_ICON_BUTTON,
   createBurgerButton,
   createHeaderBrandTitle,
   createHeaderNavLinksGroup,
@@ -143,7 +144,7 @@ export function buildHeaderZoneSection(
       rowContent = [
         brand,
         desktopLinks,
-        createHeaderSlotGroup([CART_ICON_BUTTON, burger]),
+        createHeaderSlotGroup([ORDERS_ICON_BUTTON, CART_ICON_BUTTON, burger]),
       ];
       break;
     }

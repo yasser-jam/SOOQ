@@ -24,6 +24,7 @@ export type BuiltinThemeSummary = {
 
 const builtinThemeLoaders: Record<string, () => Promise<unknown>> = {
   "builtin-sooq-modern": () => import("./theme-sooq-modern.json"),
+  "builtin-meridian-almarai": () => import("./theme-meridian-almarai.json"),
 };
 
 export const builtinThemeCatalog: BuiltinThemeSummary[] = [
@@ -34,6 +35,14 @@ export const builtinThemeCatalog: BuiltinThemeSummary[] = [
       "قالب متعدد الصفحات بتصميم عصري — صفحة رئيسية، منتجات، تفاصيل منتج، سلة، وتسجيل دخول.",
     previewImageUrl:
       "https://placehold.co/400x250/1f2937/f9fafb?text=%D8%B3%D9%88%D9%82",
+  },
+  {
+    templateKey: "builtin-meridian-almarai",
+    templateName: "ميريديان",
+    description:
+      "قالب بنفسجي ملوّن بخط المراعي — هيرو بصورة، مزايا، صفحة منتجات بالبحث والفئات، تفاصيل منتج، سلة، وتسجيل دخول.",
+    previewImageUrl:
+      "https://placehold.co/400x250/7c3aed/ffffff?text=%D9%85%D9%8A%D8%B1%D9%8A%D8%AF%D9%8A%D8%A7%D9%86",
   },
 ];
 

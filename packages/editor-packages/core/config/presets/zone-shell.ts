@@ -106,6 +106,21 @@ export const CART_ICON_BUTTON = {
 };
 
 /**
+ * Link to the customer order history. `/orders` is a real apps/store route
+ * rather than a Site JSON page, so it is seeded here instead of appearing in
+ * the pages menu. Hidden for signed-out visitors by default.
+ */
+export const ORDERS_ICON_BUTTON = {
+  type: "OrdersIconButton" as const,
+  props: {
+    href: "/orders",
+    label: "طلباتي",
+    iconSize: 20,
+    onlyWhenSignedIn: true,
+  },
+};
+
+/**
  * A ContentButton wired to toggle a zone, styled as a compact icon-only
  * trigger. Hides on desktop by default so it appears only on mobile.
  */

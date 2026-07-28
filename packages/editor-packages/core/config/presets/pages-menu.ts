@@ -8,6 +8,7 @@ import {
   createHeaderRowSection,
   createHeaderSlotGroup,
   CART_ICON_BUTTON,
+  ORDERS_ICON_BUTTON,
   HEADER_GROUP_DEFAULTS,
 } from "./zone-shell";
 
@@ -131,7 +132,11 @@ function buildResponsivePagesMenuHeaderSection(): ComponentDataOptionalId {
       backgroundColor: "#ffffff",
       theme: "dark",
     },
-    [brand, pagesMenu, createHeaderSlotGroup([CART_ICON_BUTTON, burger])]
+    [
+      brand,
+      pagesMenu,
+      createHeaderSlotGroup([ORDERS_ICON_BUTTON, CART_ICON_BUTTON, burger]),
+    ]
   );
 }
 

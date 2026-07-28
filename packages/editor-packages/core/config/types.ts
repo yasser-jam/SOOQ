@@ -53,6 +53,7 @@ import { ZoneDrawerProps } from "./blocks/ZoneDrawer";
 import { ZonePopupProps } from "./blocks/ZonePopup";
 import { ZoneBottomSheetProps } from "./blocks/ZoneBottomSheet";
 import type { CartIconButtonProps } from "./blocks/CartIconButton";
+import type { OrdersIconButtonProps } from "./blocks/OrdersIconButton";
 
 export type { RootProps } from "./root";
 
@@ -86,6 +87,7 @@ export type Components = {
   CartItem: GroupProps;
   CartQuantity: CartQuantityProps;
   CartIconButton: CartIconButtonProps;
+  OrdersIconButton: OrdersIconButtonProps;
   CheckoutForm: CheckoutFormProps;
   ProductSearchMenu: ProductSearchMenuProps;
   CategoryListMenu: CategoryListMenuProps;
