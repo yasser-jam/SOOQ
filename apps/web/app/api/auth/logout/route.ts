@@ -6,7 +6,7 @@ import { decodeJwt } from "@/lib/auth/jwt"
 
 export async function POST() {
   const store = await cookies()
-  const accessToken = store.get(cookiesConfig.accessToken)?.value
+  const accessToken = store.get(cookiesConfig.adminAccessToken)?.value
   const backendBase = process.env.NEXT_PUBLIC_API_URL
 
   const useMock = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
@@ -27,7 +27,7 @@ export async function POST() {
     }
   }
 
-  store.delete(cookiesConfig.accessToken)
+  store.delete(cookiesConfig.adminAccessToken)
   store.delete(cookiesConfig.refreshToken)
   store.delete(cookiesConfig.tenantSlug)
 

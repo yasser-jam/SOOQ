@@ -20,7 +20,7 @@ export const useLogout = () => {
     try {
       await logoutSession().catch(() => undefined)
     } finally {
-      removeCookie(cookiesConfig.accessToken)
+      removeCookie(cookiesConfig.adminAccessToken)
       removeCookie(cookiesConfig.tenantSlug)
       queryClient.removeQueries({ queryKey: authKeys.currentUser })
       queryClient.clear()

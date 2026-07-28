@@ -1,5 +1,8 @@
 const cookiesConfig = {
-  accessToken: "sooq-access-token",
+  /** Merchant / platform dashboard session (apps/web admin). */
+  adminAccessToken: "sooq-admin-access-token",
+  /** Storefront customer session (OTP login on the published store). */
+  storeAccessToken: "sooq-store-access-token",
   refreshToken: "sooq-refresh-token",
   tenantSlug: "sooq-tenant-slug",
   tenantId: "sooq-tenant-id",

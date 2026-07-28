@@ -24,7 +24,7 @@ export function readCookie(name: string): string | null {
 const TENANT_ID_COOKIE = "sooq-tenant-id"
 const USER_NAME_COOKIE = "sooq-user-name"
 const USER_PHONE_COOKIE = "sooq-user-phone"
-const ACCESS_TOKEN_COOKIE = "sooq-access-token"
+const ACCESS_TOKEN_COOKIE = "sooq-store-access-token"
 
 /**
  * Resolve the tenant UUID to send with storefront requests.

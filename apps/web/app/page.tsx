@@ -22,7 +22,7 @@ import { REGISTRATION_HUB_SLUG } from "@/modules/auth/auth/types"
  */
 export default async function RootPage() {
   const cookieStore = await cookies()
-  const accessToken = cookieStore.get(cookiesConfig.accessToken)?.value
+  const accessToken = cookieStore.get(cookiesConfig.adminAccessToken)?.value
   const payload = accessToken ? decodeJwtPayload(accessToken) : null
 
   if (!accessToken || !payload) {

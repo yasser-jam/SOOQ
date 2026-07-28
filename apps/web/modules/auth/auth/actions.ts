@@ -70,7 +70,7 @@ export const loginWithGoogle = async (
 }
 
 const readCurrentUser = (): CurrentUser | null => {
-  const token = getCookie(cookiesConfig.accessToken)
+  const token = getCookie(cookiesConfig.adminAccessToken)
   const payload = decodeJwt(token)
   if (!payload) return null
 

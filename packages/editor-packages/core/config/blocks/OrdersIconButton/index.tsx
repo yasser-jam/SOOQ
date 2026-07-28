@@ -23,7 +23,7 @@ export type OrdersIconButtonProps = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const ACCESS_TOKEN_COOKIE = "sooq-access-token";
+const ACCESS_TOKEN_COOKIE = "sooq-store-access-token";
 
 function hasCustomerSession(): boolean {
   if (typeof document === "undefined") return false;

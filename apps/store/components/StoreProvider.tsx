@@ -188,7 +188,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 			const tenantId = tenantFromToken || tokens.tenantId || null
 
 			if (tokens.accessToken) {
-				setCookie("sooq-access-token", tokens.accessToken)
+				setCookie(cookiesConfig.storeAccessToken, tokens.accessToken)
 			}
 			if (tenantId) {
 				setCookie("sooq-tenant-id", tenantId)
@@ -275,7 +275,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 	// ─── logout ────────────────────────────────────────────────────────────────
 
 	const logout = useCallback(() => {
-		clearCookie("sooq-access-token")
+		clearCookie(cookiesConfig.storeAccessToken)
 		clearCookie("sooq-tenant-id")
 		clearCookie("sooq-user-name")
 		clearCookie("sooq-user-phone")

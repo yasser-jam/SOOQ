@@ -2,7 +2,7 @@
  * Customer order history — API layer for the `/store/[tenantId]/orders` pages.
  *
  * These are the *customer-facing* order endpoints (`/customer/orders/**`),
- * authenticated with the storefront customer's `sooq-access-token` cookie —
+ * authenticated with the storefront customer's `sooq-store-access-token` cookie —
  * not the merchant `/admin/orders/**` endpoints used by apps/web. All calls go
  * through `api()` (aliased from apps/web) so the Bearer header, the 401
  * refresh-and-retry, and mock mode keep working.
@@ -151,7 +151,7 @@ export const customerOrderKeys = {
  * `StoreProvider` — they check the same cookie the OTP flow writes.
  */
 export const hasCustomerSession = (): boolean =>
-	Boolean(getCookie(cookiesConfig.accessToken))
+	Boolean(getCookie(cookiesConfig.storeAccessToken))
 
 // ─── Formatting ───────────────────────────────────────────────────────────────
 

@@ -67,7 +67,7 @@ export function middleware(request: NextRequest) {
 		return NextResponse.next()
 	}
 
-	const accessToken = request.cookies.get(cookiesConfig.accessToken)?.value
+	const accessToken = request.cookies.get(cookiesConfig.adminAccessToken)?.value
 	const refreshToken = request.cookies.get(cookiesConfig.refreshToken)?.value
 
 	return NextResponse.next()

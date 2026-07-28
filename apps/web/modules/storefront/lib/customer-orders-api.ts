@@ -4,7 +4,7 @@
  * `/store/<tenantId>/orders` URL through the middleware rewrite).
  *
  * These are the *customer-facing* order endpoints (`/customer/orders/**`),
- * authenticated with the storefront customer's `sooq-access-token` cookie —
+ * authenticated with the storefront customer's `sooq-store-access-token` cookie —
  * not the merchant `/admin/orders/**` endpoints behind the dashboard. All
  * calls go through `api()` so the Bearer header, the 401 refresh-and-retry,
  * and mock mode keep working.
@@ -157,7 +157,7 @@ export const customerOrderKeys = {
  * `StoreProvider` — they check the same cookie the OTP flow writes.
  */
 export const hasCustomerSession = (): boolean =>
-	Boolean(getCookie(cookiesConfig.accessToken))
+	Boolean(getCookie(cookiesConfig.storeAccessToken))
 
 // ─── Formatting ───────────────────────────────────────────────────────────────
 

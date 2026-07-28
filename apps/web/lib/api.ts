@@ -35,9 +35,22 @@ const isInternalAuthRequest = (url?: string): boolean => {
   )
 }
 
+const isCustomerApiRequest = (url?: string): boolean => {
+  if (!url) return false
+  return url.includes("/customer/")
+}
+
+/** Admin JWT for merchant APIs; storefront customer JWT for `/customer/**`. */
+const resolveBearerToken = (url?: string): string | undefined => {
+  if (isCustomerApiRequest(url)) {
+    return getCookie(cookiesConfig.storeAccessToken)
+  }
+  return getCookie(cookiesConfig.adminAccessToken)
+}
+
 apiInstance.interceptors.request.use(
   (config) => {
-    const token = getCookie(cookiesConfig.accessToken)
+    const token = resolveBearerToken(config.url)
     if (token) {
       config.headers.set("Authorization", `Bearer ${token}`)
     }
@@ -53,7 +66,7 @@ const triggerRefresh = (): Promise<string | null> => {
     refreshPromise = refreshSession()
       .then((result) => {
         if (!result?.accessToken) return null
-        addCookie(cookiesConfig.accessToken, result.accessToken)
+        addCookie(cookiesConfig.adminAccessToken, result.accessToken)
         return result.accessToken
       })
       .catch(() => null)
@@ -66,12 +79,12 @@ const triggerRefresh = (): Promise<string | null> => {
 
 const redirectToLogin = () => {
   if (typeof window === "undefined") return
-  // Only redirect when a merchant session exists. Without an access token the
-  // caller was never authenticated (e.g. a storefront visitor in apps/store),
-  // so there is no need to redirect to the OTP login page.
-  const hadSession = !!getCookie(cookiesConfig.accessToken)
+  // Only redirect when a merchant session exists. Without an admin access
+  // token the caller was never authenticated as a merchant (e.g. a
+  // storefront visitor in apps/store), so skip the OTP login redirect.
+  const hadSession = !!getCookie(cookiesConfig.adminAccessToken)
   if (!hadSession) return
-  removeCookie(cookiesConfig.accessToken)
+  removeCookie(cookiesConfig.adminAccessToken)
   removeCookie(cookiesConfig.tenantSlug)
   window.location.href = "/request-otp"
 }
@@ -86,7 +99,10 @@ apiInstance.interceptors.response.use(
       (status === 401 || status == 403) &&
       original &&
       !original._retry &&
-      !isInternalAuthRequest(original.url)
+      !isInternalAuthRequest(original.url) &&
+      // Customer storefront sessions have no merchant refresh cookie — don't
+      // run the admin refresh/logout loop for `/customer/**` 401s.
+      !isCustomerApiRequest(original.url)
     ) {
       original._retry = true
 

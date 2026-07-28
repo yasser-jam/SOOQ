@@ -43,7 +43,7 @@ export const getAdminCustomer = async (
 export const exportAdminCustomersCsv = async (
   params: AdminCustomerSearchRequest
 ): Promise<void> => {
-  const token = getCookie(cookiesConfig.accessToken)
+  const token = getCookie(cookiesConfig.adminAccessToken)
   const qs = buildCustomerSearchParams(
     params as Record<string, unknown>
   ).toString()

@@ -24,9 +24,9 @@ export async function POST(request: Request) {
 
   const store = await cookies()
   store.set(
-    cookiesConfig.accessToken,
+    cookiesConfig.adminAccessToken,
     accessToken,
-    serverCookieOptions(cookiesConfig.accessToken)
+    serverCookieOptions(cookiesConfig.adminAccessToken)
   )
   store.set(
     cookiesConfig.refreshToken,

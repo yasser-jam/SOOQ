@@ -21,7 +21,9 @@ export function setTenantIdOverride(id: string | null) {
 export function getEditorTenantId(): string | null {
 	if (tenantIdOverride) return tenantIdOverride
 
-	const token = getCookie(cookiesConfig.accessToken)
+	const token =
+		getCookie(cookiesConfig.adminAccessToken) ??
+		getCookie(cookiesConfig.storeAccessToken)
 	if (token) {
 		const fromToken = getTenantIdFromToken(token)
 		if (fromToken) return fromToken

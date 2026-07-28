@@ -21,7 +21,7 @@ type BackendRefreshEnvelope = {
 
 const clearCookies = async () => {
   const store = await cookies()
-  store.delete(cookiesConfig.accessToken)
+  store.delete(cookiesConfig.adminAccessToken)
   store.delete(cookiesConfig.refreshToken)
 }
 
@@ -45,7 +45,7 @@ export async function POST() {
     }
 
     const tenantSlugCookie = store.get(cookiesConfig.tenantSlug)?.value
-    const accessPayload = decodeJwt(store.get(cookiesConfig.accessToken)?.value)
+    const accessPayload = decodeJwt(store.get(cookiesConfig.adminAccessToken)?.value)
     const phone =
       (typeof accessPayload?.phone === "string" && accessPayload.phone) ||
       (typeof accessPayload?.username === "string" && accessPayload.username) ||
@@ -60,9 +60,9 @@ export async function POST() {
     })
 
     store.set(
-      cookiesConfig.accessToken,
+      cookiesConfig.adminAccessToken,
       tokens.accessToken,
-      serverCookieOptions(cookiesConfig.accessToken)
+      serverCookieOptions(cookiesConfig.adminAccessToken)
     )
     store.set(
       cookiesConfig.refreshToken,
@@ -119,9 +119,9 @@ export async function POST() {
   const { accessToken: newAccess, refreshToken: newRefresh, expiresAt } = payload.data
 
   store.set(
-    cookiesConfig.accessToken,
+    cookiesConfig.adminAccessToken,
     newAccess,
-    serverCookieOptions(cookiesConfig.accessToken)
+    serverCookieOptions(cookiesConfig.adminAccessToken)
   )
   store.set(
     cookiesConfig.refreshToken,
