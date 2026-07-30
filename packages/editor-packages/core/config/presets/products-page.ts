@@ -2,7 +2,11 @@ import type { ComponentDataOptionalId } from "@/core/types";
 import { buildProductsPageSectionProps } from "../blocks/Section/section-preset-kinds";
 import type { SectionPreset } from "./types";
 import { createSection } from "./shared";
-import { createStorefrontProductCardBlock } from "./products-grid";
+import {
+  createProductsFilterBar,
+  createProductsSearchInput,
+  createStorefrontProductCardBlock,
+} from "./products-grid";
 
 export function createProductsPageInnerSection(
   overrides: Record<string, unknown> = {}
@@ -33,19 +37,8 @@ export function createProductsPagePresetContent(): ComponentDataOptionalId[] {
       paddingHorizontal: "24px",
       maxWidth: "1280px",
       content: [
-        {
-          type: "ContentInput",
-          props: {
-            label: "",
-            name: "search",
-            inputType: "search",
-            placeholder: "ابحث عن منتج…",
-            required: false,
-            prependIcon: "search",
-            inputAction: "search_products",
-            debounceMs: 250,
-          },
-        },
+        createProductsSearchInput(),
+        createProductsFilterBar(),
         {
           type: "ButtonGroup",
           props: {

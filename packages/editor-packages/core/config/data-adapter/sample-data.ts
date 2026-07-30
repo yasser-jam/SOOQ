@@ -38,6 +38,7 @@ export const SAMPLE_COLLECTION_PRODUCTS: CollectionProductRef[] = [
     displayPrice: "85,000 SYP",
     status: "ACTIVE",
     primaryImageUrl: sampleImage("عطر", "#7c5cbf"),
+    inStock: true,
     tags: [
       { id: "t1", name: "جديد" },
       { id: "t2", name: "مميز" },
@@ -55,6 +56,7 @@ export const SAMPLE_COLLECTION_PRODUCTS: CollectionProductRef[] = [
     displayPrice: "145,000 SYP",
     status: "ACTIVE",
     primaryImageUrl: sampleImage("حقيبة", "#b8763e"),
+    inStock: true,
     tags: [{ id: "t3", name: "حصري" }],
   },
   {
@@ -70,6 +72,7 @@ export const SAMPLE_COLLECTION_PRODUCTS: CollectionProductRef[] = [
     displayPrice: "230,000 SYP",
     status: "ACTIVE",
     primaryImageUrl: sampleImage("ساعة", "#3e6bb8"),
+    inStock: false,
     tags: [
       { id: "t4", name: "كلاسيكي" },
       { id: "t5", name: "أناقة" },
@@ -87,6 +90,7 @@ export const SAMPLE_COLLECTION_PRODUCTS: CollectionProductRef[] = [
     displayPrice: "120,000 SYP",
     status: "ACTIVE",
     primaryImageUrl: sampleImage("حذاء", "#3f9d6e"),
+    inStock: true,
     tags: [{ id: "t6", name: "رياضي" }],
   },
 ];
@@ -159,13 +163,36 @@ function matchesSearch(
   );
 }
 
+function matchesPrice(
+  product: CollectionProductRef,
+  minPrice: number | null | undefined,
+  maxPrice: number | null | undefined
+): boolean {
+  const price = product.basePrice;
+  if (price == null) return true;
+  if (minPrice != null && price < minPrice) return false;
+  if (maxPrice != null && price > maxPrice) return false;
+  return true;
+}
+
+function matchesStock(
+  product: CollectionProductRef,
+  inStockOnly: boolean | undefined
+): boolean {
+  if (!inStockOnly) return true;
+  // Unknown stock is optimistic — the API is the authority at runtime.
+  return product.inStock !== false;
+}
+
 export function filterAndPaginateSampleProducts(
   query: ProductsPageQuery
 ): ProductsPageResult {
   const filtered = SAMPLE_COLLECTION_PRODUCTS.filter(
     (product) =>
       matchesCategory(product, query.categorySlug) &&
-      matchesSearch(product, query.search)
+      matchesSearch(product, query.search) &&
+      matchesPrice(product, query.minPrice, query.maxPrice) &&
+      matchesStock(product, query.inStockOnly)
   );
   const totalItems = filtered.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / query.size));

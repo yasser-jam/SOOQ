@@ -1902,6 +1902,75 @@
                 }
               },
               {
+                "type": "Group",
+                "props": {
+                  "id": "Group-products-filters",
+                  "direction": "row",
+                  "gap": 12,
+                  "alignItems": "flex-end",
+                  "justifyContent": "flex-start",
+                  "wrap": "wrap",
+                  "product": null,
+                  "metadata": null,
+                  "skipProductDetailFetch": true,
+                  "language": "ar",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "16px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "sm",
+                  "content": [
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "id": "Input-products-min-price",
+                        "label": "أقل سعر",
+                        "name": "min-price",
+                        "inputType": "number",
+                        "placeholder": "0",
+                        "required": false,
+                        "prependIcon": "none",
+                        "inputAction": "filter_min_price",
+                        "debounceMs": 350,
+                        "layout": {
+                          "grow": true
+                        }
+                      }
+                    },
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "id": "Input-products-max-price",
+                        "label": "أعلى سعر",
+                        "name": "max-price",
+                        "inputType": "number",
+                        "placeholder": "بدون حد",
+                        "required": false,
+                        "prependIcon": "none",
+                        "inputAction": "filter_max_price",
+                        "debounceMs": 350,
+                        "layout": {
+                          "grow": true
+                        }
+                      }
+                    },
+                    {
+                      "type": "ContentSwitch",
+                      "props": {
+                        "id": "Switch-products-in-stock",
+                        "label": "المتوفر فقط",
+                        "name": "in-stock-only",
+                        "helperText": "",
+                        "defaultChecked": false,
+                        "labelPosition": "start",
+                        "switchAction": "filter_in_stock_only"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
                 "type": "Section",
                 "props": {
                   "id": "Section-products-grid",

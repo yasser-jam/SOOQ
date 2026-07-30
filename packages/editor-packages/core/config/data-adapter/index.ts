@@ -115,15 +115,27 @@ export const sampleEditorDataAdapter: EditorDataAdapter = {
       size: String(query.size),
       ...(query.categorySlug ? { categorySlug: query.categorySlug } : {}),
       ...(query.search ? { search: query.search } : {}),
+      ...(query.minPrice != null ? { minPrice: String(query.minPrice) } : {}),
+      ...(query.maxPrice != null ? { maxPrice: String(query.maxPrice) } : {}),
+      ...(query.inStockOnly ? { inStockOnly: "true" } : {}),
     }).toString()}`,
   fetchProductsPage: async (apiUrl) => {
     const queryString = apiUrl.includes("?") ? (apiUrl.split("?")[1] ?? "") : "";
     const params = new URLSearchParams(queryString);
+    const numberParam = (key: string): number | null => {
+      const raw = params.get(key);
+      if (raw == null || raw === "") return null;
+      const parsed = Number(raw);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
     const query: ProductsPageQuery = {
       page: Number(params.get("page") ?? 0),
       size: Number(params.get("size") ?? 12),
       categorySlug: params.get("categorySlug"),
       search: params.get("search") ?? undefined,
+      minPrice: numberParam("minPrice"),
+      maxPrice: numberParam("maxPrice"),
+      inStockOnly: params.get("inStockOnly") === "true",
     };
     return filterAndPaginateSampleProducts(query);
   },

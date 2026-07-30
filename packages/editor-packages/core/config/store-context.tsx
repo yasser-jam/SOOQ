@@ -44,6 +44,12 @@ export type ProductsPageState = {
   categories: CategoryRef[];
   selectedCategorySlug: string | null;
   search: string;
+  /** Inclusive price floor; `null` = no lower bound. */
+  minPrice: number | null;
+  /** Inclusive price ceiling; `null` = no upper bound. */
+  maxPrice: number | null;
+  /** Hide out-of-stock products. */
+  inStockOnly: boolean;
   page: number;
   pageSize: number;
   totalPages: number;
@@ -55,6 +61,9 @@ export type ProductsPageState = {
 export type ProductsPageActions = {
   setCategory: (slug: string | null) => void;
   setSearch: (query: string) => void;
+  setMinPrice: (value: number | null) => void;
+  setMaxPrice: (value: number | null) => void;
+  setInStockOnly: (value: boolean) => void;
   setPage: (page: number) => void;
   resetProductsPage: () => void;
 };
@@ -99,6 +108,9 @@ const defaultProductsPageState: ProductsPageState = {
   categories: [],
   selectedCategorySlug: null,
   search: "",
+  minPrice: null,
+  maxPrice: null,
+  inStockOnly: false,
   page: 1,
   pageSize: 12,
   totalPages: 0,
@@ -110,6 +122,9 @@ const defaultProductsPageState: ProductsPageState = {
 const defaultProductsPageActions: ProductsPageActions = {
   setCategory: noop,
   setSearch: noop,
+  setMinPrice: noop,
+  setMaxPrice: noop,
+  setInStockOnly: noop,
   setPage: noop,
   resetProductsPage: noop,
 };

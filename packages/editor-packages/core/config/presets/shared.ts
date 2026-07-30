@@ -71,6 +71,25 @@ export function createInput(
   };
 }
 
+export function createSwitch(
+  label: string,
+  name: string,
+  overrides: Record<string, unknown> = {}
+) {
+  return {
+    type: "ContentSwitch" as const,
+    props: {
+      label,
+      name,
+      helperText: "",
+      defaultChecked: false,
+      labelPosition: "start",
+      switchAction: "",
+      ...overrides,
+    },
+  };
+}
+
 export function createPrimaryButton(
   label: string,
   overrides: Record<string, unknown> = {}

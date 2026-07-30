@@ -8,6 +8,7 @@ import { WithLayout, withLayout } from "../../components/Layout";
 import { SOOQ_INPUT_ATTR } from "../../lib/login-events";
 import {
   INPUT_ACTION_OPTIONS,
+  isPriceFilterInputAction,
   type InputAction,
 } from "../../content/input-actions";
 import { useStore } from "../../store-context";
@@ -20,7 +21,7 @@ export type ContentInputPrependIcon = "none" | "search";
 export type ContentInputProps = WithLayout<{
   label: string;
   name: string;
-  inputType: "text" | "email" | "password" | "tel" | "search";
+  inputType: "text" | "number" | "email" | "password" | "tel" | "search";
   placeholder: string;
   required: boolean;
   prependIcon: ContentInputPrependIcon;
@@ -33,6 +34,13 @@ const PREPEND_ICON_OPTIONS = [
   { label: "بحث", value: "search" },
 ];
 
+/** `""` clears the filter; anything unparseable leaves the last value alone. */
+function parsePriceInput(raw: string): number | null | undefined {
+  if (!raw.trim()) return null;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
+}
+
 const ContentInputInner: ComponentConfig<ContentInputProps> = {
   label: "حقل إدخال",
 
@@ -44,6 +52,7 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
       label: "النوع",
       options: [
         { label: "نص", value: "text" },
+        { label: "رقم", value: "number" },
         { label: "بحث", value: "search" },
         { label: "بريد إلكتروني", value: "email" },
         { label: "كلمة مرور", value: "password" },
@@ -99,34 +108,61 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
   }) => {
     const { productsPage, actions } = useStore();
     const isSearchProducts = inputAction === "search_products";
-    const [localValue, setLocalValue] = useState(
-      isSearchProducts ? productsPage.search : ""
-    );
+    const isPriceFilter = isPriceFilterInputAction(inputAction);
+    const isBound = isSearchProducts || isPriceFilter;
+
+    // The store value this input mirrors, as a string.
+    const boundValue = isSearchProducts
+      ? productsPage.search
+      : inputAction === "filter_min_price"
+        ? (productsPage.minPrice?.toString() ?? "")
+        : inputAction === "filter_max_price"
+          ? (productsPage.maxPrice?.toString() ?? "")
+          : "";
+
+    const [localValue, setLocalValue] = useState(boundValue);
+
+    // Re-sync when the store changes underneath us (URL hydration, reset…).
+    useEffect(() => {
+      if (!isBound) return;
+      setLocalValue(boundValue);
+    }, [isBound, boundValue]);
 
     useEffect(() => {
-      if (!isSearchProducts) return;
-      setLocalValue(productsPage.search);
-    }, [isSearchProducts, productsPage.search]);
+      if (!isBound || puck.isEditing) return;
+      if (localValue === boundValue) return;
 
-    useEffect(() => {
-      if (!isSearchProducts || puck.isEditing) return;
       const timer = setTimeout(() => {
-        if (localValue !== productsPage.search) {
+        if (isSearchProducts) {
           actions.searchProducts(localValue);
+          return;
+        }
+        const parsed = parsePriceInput(localValue);
+        if (parsed === undefined) return;
+        if (inputAction === "filter_min_price") {
+          actions.productsPage.setMinPrice(parsed);
+        } else {
+          actions.productsPage.setMaxPrice(parsed);
         }
       }, debounceMs);
+
       return () => clearTimeout(timer);
     }, [
       actions,
+      boundValue,
       debounceMs,
+      inputAction,
+      isBound,
       isSearchProducts,
       localValue,
-      productsPage.search,
       puck.isEditing,
     ]);
 
-    const resolvedType =
-      inputType === "search" || isSearchProducts ? "search" : inputType;
+    const resolvedType = isSearchProducts
+      ? "search"
+      : isPriceFilter
+        ? "number"
+        : inputType;
     const showPrepend = prependIcon === "search";
     const inputClassName = showPrepend
       ? `${getClassName("input")} ${getClassName("inputWithIcon")}`
@@ -142,13 +178,17 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
         required={required}
         disabled={puck.isEditing}
         dir={
-          inputType === "email" || inputType === "tel" ? "ltr" : undefined
-        }
-        value={isSearchProducts ? localValue : undefined}
-        onChange={
-          isSearchProducts
-            ? (event) => setLocalValue(event.target.value)
+          resolvedType === "email" ||
+          resolvedType === "tel" ||
+          resolvedType === "number"
+            ? "ltr"
             : undefined
+        }
+        min={isPriceFilter ? 0 : undefined}
+        inputMode={isPriceFilter ? "numeric" : undefined}
+        value={isBound ? localValue : undefined}
+        onChange={
+          isBound ? (event) => setLocalValue(event.target.value) : undefined
         }
         aria-label={!label.trim() ? placeholder || label : undefined}
         {...{ [SOOQ_INPUT_ATTR]: "" }}
@@ -195,8 +235,13 @@ export const ContentInput: typeof WithLayoutContentInput = {
 
     const apply = (f: Record<string, unknown>) => {
       const next = { ...f };
-      if (inputAction !== "search_products") {
+      // `debounceMs` only matters for the store-bound actions.
+      if (inputAction === "") {
         delete next.debounceMs;
+      }
+      // Price filters force `type="number"`; the picker would be a lie.
+      if (isPriceFilterInputAction(inputAction)) {
+        delete next.inputType;
       }
       return next as Fields<WithLayout<ContentInputProps>>;
     };

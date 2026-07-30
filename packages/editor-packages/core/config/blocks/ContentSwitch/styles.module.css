@@ -1,0 +1,88 @@
+.ContentSwitch {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--theme-body-font, inherit);
+}
+
+.ContentSwitch-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ContentSwitch--labelEnd .ContentSwitch-row {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+.ContentSwitch-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-color-text, #111827);
+}
+
+.ContentSwitch-helper {
+  font-size: 12px;
+  color: var(--theme-color-text-muted, #9ca3af);
+}
+
+/* The track is the visual switch; the checkbox itself is layered on top so
+   native focus/keyboard/labelling behaviour is preserved. */
+.ContentSwitch-track {
+  position: relative;
+  flex: none;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--theme-color-border, #d1d5db);
+  transition: background-color 0.18s ease;
+}
+
+.ContentSwitch-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.ContentSwitch-thumb {
+  position: absolute;
+  top: 3px;
+  inset-inline-start: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.18s ease;
+}
+
+.ContentSwitch-input:checked ~ .ContentSwitch-thumb {
+  /* RTL-safe: flip direction so the thumb always travels to the "on" end. */
+  transform: translateX(20px);
+}
+
+[dir="rtl"] .ContentSwitch-input:checked ~ .ContentSwitch-thumb {
+  transform: translateX(-20px);
+}
+
+.ContentSwitch-track:has(.ContentSwitch-input:checked) {
+  background: var(--theme-color-primary, #3b82f6);
+}
+
+.ContentSwitch-track:has(.ContentSwitch-input:focus-visible) {
+  outline: 2px solid var(--theme-color-primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+.ContentSwitch-track:has(.ContentSwitch-input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

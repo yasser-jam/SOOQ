@@ -11,6 +11,14 @@ const envelope = <T>(data: T) => ({
 const primaryImageUrl = (product: MockProductRecord): string | undefined =>
   product.media[0]?.url ?? product.media[0]?.thumbnailUrl
 
+/** Mirrors the backend rule: a product is in stock if any variant has stock. */
+const isProductInStock = (product: MockProductRecord): boolean => {
+  if (product.allowOversell) return true
+  const variants = product.variants ?? []
+  if (variants.length === 0) return true
+  return variants.some((variant) => (variant.stockQty ?? 0) > 0)
+}
+
 const toListItem = (product: MockProductRecord) => ({
   productId: product.productId,
   titleAr: product.titleAr,
@@ -27,6 +35,7 @@ const toListItem = (product: MockProductRecord) => ({
   allowOversell: product.allowOversell,
   media: product.media,
   primaryImageUrl: primaryImageUrl(product),
+  inStock: isProductInStock(product),
   createdAt: product.createdAt,
   updatedAt: product.updatedAt,
 })
@@ -199,20 +208,41 @@ const pagedEnvelope = <T>(
   }
 }
 
+const parseNumberParam = (raw: string | null): number | undefined => {
+  if (raw == null || raw.trim() === "") return undefined
+  const parsed = Number(raw)
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
 const parseProductsPageParams = (url: string) => {
   const params = new URLSearchParams(url.split("?")[1] ?? "")
   return {
     page: Number(params.get("page") ?? 0),
     size: Number(params.get("size") ?? 12),
     categorySlug: params.get("categorySlug") ?? undefined,
-    search: params.get("search") ?? undefined,
+    // Browse uses `search`; the search endpoint uses `q`.
+    search: params.get("q") ?? params.get("search") ?? undefined,
+    minPrice: parseNumberParam(params.get("minPrice")),
+    maxPrice: parseNumberParam(params.get("maxPrice")),
+    inStockOnly: params.get("inStockOnly") === "true",
   }
 }
 
-const filterPublicProducts = (
-  categorySlug?: string,
+type PublicProductFilters = {
+  categorySlug?: string
   search?: string
-): MockProductRecord[] => {
+  minPrice?: number
+  maxPrice?: number
+  inStockOnly?: boolean
+}
+
+const filterPublicProducts = ({
+  categorySlug,
+  search,
+  minPrice,
+  maxPrice,
+  inStockOnly,
+}: PublicProductFilters): MockProductRecord[] => {
   const db = getMockDb()
   const categoryById = new Map(
     db.categories.map((category) => [category.categoryId, category])
@@ -239,6 +269,10 @@ const filterPublicProducts = (
       if (!haystack.includes(q)) return false
     }
 
+    if (minPrice != null && product.basePrice < minPrice) return false
+    if (maxPrice != null && product.basePrice > maxPrice) return false
+    if (inStockOnly && !isProductInStock(product)) return false
+
     return true
   })
 }
@@ -249,9 +283,12 @@ export const handleProductsMock = async (
   const method = request.method.toUpperCase()
   const path = request.url.split("?")[0] ?? request.url
 
-  if (method === "GET" && path === "/public/products") {
-    const { page, size, categorySlug, search } = parseProductsPageParams(request.url)
-    const filtered = filterPublicProducts(categorySlug, search)
+  if (
+    method === "GET" &&
+    (path === "/public/products" || path === "/public/products/search")
+  ) {
+    const { page, size, ...filters } = parseProductsPageParams(request.url)
+    const filtered = filterPublicProducts(filters)
     const items = filtered.map(toListItem)
     return { handled: true, data: pagedEnvelope(items, page, size) }
   }

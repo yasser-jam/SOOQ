@@ -37,7 +37,7 @@ import {
 	getStoreTenantId,
 	validateCartForCheckout,
 } from "./checkout/checkout-api"
-import { useProductsPageState } from "../lib/use-products-page-state"
+import { useProductsPageState } from "@/modules/storefront/lib/use-products-page-state"
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 

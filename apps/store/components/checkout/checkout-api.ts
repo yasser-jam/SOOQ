@@ -269,11 +269,15 @@ export async function submitCheckoutOrder(
 	}
 
 	const resolvedTenantId = resolveCheckoutTenantId(tenantId)
+	const accessToken = readCookie(ACCESS_TOKEN_COOKIE)
 
 	try {
 		await publicApi("/public/checkout", {
 			method: "POST",
 			tenantId: resolvedTenantId,
+			headers: accessToken
+				? { Authorization: `Bearer ${accessToken}` }
+				: undefined,
 			body: {
 				items,
 				shippingAddress: {
@@ -284,7 +288,7 @@ export async function submitCheckoutOrder(
 					addressLabel: values.addressLabel,
 				},
 				paymentMethod: "COD",
-				checkoutToken: "a26fa499-66a0-4d34-b9a7-18dca9a1e817",
+				checkoutToken: crypto.randomUUID(),
 				guestEmail: DEFAULT_GUEST_EMAIL,
 			},
 		})

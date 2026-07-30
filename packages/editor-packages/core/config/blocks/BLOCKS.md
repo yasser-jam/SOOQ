@@ -8,7 +8,7 @@ Each block is described with its **properties**, accepted **values**, and a read
 > **Block registry** (`config/index.tsx`)  
 > Blocks registered in the editor are grouped as:
 > - **layout** — `Section`, `Group`, `RowGroup`
-> - **blocks** — `ContentHeading`, `ContentParagraph`, `ContentImage`, `ContentButton`, `Chip`, `ButtonGroup`, `ContentLink`, `ContentInput`, `ContentDivider`, `Space`, `ImageGallery`, `VideoEmbed`, `Accordion`
+> - **blocks** — `ContentHeading`, `ContentParagraph`, `ContentImage`, `ContentButton`, `Chip`, `ButtonGroup`, `ContentLink`, `ContentInput`, `ContentSwitch`, `ContentDivider`, `Space`, `ImageGallery`, `VideoEmbed`, `Accordion`
 > - **storeBlocks** — currently `Testimonials` is the only entry surfaced in the palette; `ProductImageCarousel`, `ProductVariants`, `CategoryListMenu`, `CheckoutForm`, `ProductSearchMenu`, `OrderHistory`, `Wishlist`, `ContactForm` are all registered but commented out of the visible palette (used inside presets or bound `Group` slots). Header cart / orders use `ContentButton` presets — legacy `CartIconButton` / `OrdersIconButton` are in **legacy**.
 > - **legacy** — hidden from picker; still resolvable so old `store_config.json` payloads render
 >
@@ -49,39 +49,40 @@ Each block is described with its **properties**, accepted **values**, and a read
 21. [ContentInput](#contentinput)
 22. [ContentLink](#contentlink)
 23. [ContentParagraph](#contentparagraph)
-24. [Flex](#flex)
-25. [Grid](#grid)
-26. [Group](#group)
-27. [Heading](#heading)
-28. [Hero](#hero)
-29. [ImageGallery](#imagegallery)
-30. [Logos](#logos)
-31. [NavMenu](#navmenu)
-32. [OrderHistory](#orderhistory)
-33. [ProductCard](#productcard)
-34. [ProductImage](#productimage)
-35. [ProductImageCarousel](#productimagecarousel)
-36. [ProductInfo](#productinfo)
-37. [ProductSearchMenu](#productsearchmenu)
-38. [ProductVariants](#productvariants)
-39. [RichText](#richtext)
-40. [RowGroup](#rowgroup)
-41. [Section](#section)
-42. [Sidebar](#sidebar)
-43. [SideDrawer](#sidedrawer)
-44. [SiteDrawerShell](#sitedrawershell) *(legacy)*
-45. [SiteFooter](#sitefooter)
-46. [SiteHeader](#siteheader)
-47. [Space](#space)
-48. [Stats](#stats)
-49. [Template](#template)
-50. [Testimonials](#testimonials)
-51. [Text](#text)
-52. [VideoEmbed](#videoembed)
-53. [Wishlist](#wishlist)
-54. [ZoneBottomSheet](#zonebottomsheet)
-55. [ZoneDrawer](#zonedrawer)
-56. [ZonePopup](#zonepopup)
+24. [ContentSwitch](#contentswitch)
+25. [Flex](#flex)
+26. [Grid](#grid)
+27. [Group](#group)
+28. [Heading](#heading)
+29. [Hero](#hero)
+30. [ImageGallery](#imagegallery)
+31. [Logos](#logos)
+32. [NavMenu](#navmenu)
+33. [OrderHistory](#orderhistory)
+34. [ProductCard](#productcard)
+35. [ProductImage](#productimage)
+36. [ProductImageCarousel](#productimagecarousel)
+37. [ProductInfo](#productinfo)
+38. [ProductSearchMenu](#productsearchmenu)
+39. [ProductVariants](#productvariants)
+40. [RichText](#richtext)
+41. [RowGroup](#rowgroup)
+42. [Section](#section)
+43. [Sidebar](#sidebar)
+44. [SideDrawer](#sidedrawer)
+45. [SiteDrawerShell](#sitedrawershell) *(legacy)*
+46. [SiteFooter](#sitefooter)
+47. [SiteHeader](#siteheader)
+48. [Space](#space)
+49. [Stats](#stats)
+50. [Template](#template)
+51. [Testimonials](#testimonials)
+52. [Text](#text)
+53. [VideoEmbed](#videoembed)
+54. [Wishlist](#wishlist)
+55. [ZoneBottomSheet](#zonebottomsheet)
+56. [ZoneDrawer](#zonedrawer)
+57. [ZonePopup](#zonepopup)
 
 **Site-wide reference sections**
 
@@ -89,6 +90,7 @@ Each block is described with its **properties**, accepted **values**, and a read
 - [Pages (`SitePage`)](#pages-sitepage)
 - [Theme root props (`FullThemeProps`)](#theme-root-props-fullthemeprops)
 - [Section preset catalog](#section-preset-catalog)
+- [Products page filters](#products-page-filters)
 - [Shared concepts (data binding, LinkValue, tokens…)](#shared-concepts)
 
 ---
@@ -705,18 +707,27 @@ The `radius` / `bgColor` / `textColor` fields are only exposed in `"custom"` mod
 |---|---|---|---|
 | `label` | `string` | Field label (empty = search-bar layout with no label) | `"حقل"` |
 | `name` | `string` | Input `name` attribute (form submission) | `"field"` |
-| `inputType` | `"text" \| "search" \| "email" \| "password" \| "tel"` | HTML input type | `"text"` |
+| `inputType` | `"text" \| "number" \| "search" \| "email" \| "password" \| "tel"` | HTML input type. Hidden (and forced to `number`) for the price-filter actions | `"text"` |
 | `placeholder` | `string` | Placeholder text | `""` |
 | `required` | `boolean` | Mark input as required | `false` |
 | `prependIcon` | `"none" \| "search"` | Leading icon inside the field | `"none"` |
-| `inputAction` | `"" \| "search_products"` | Wired store action (`""` = none) | `""` |
-| `debounceMs` | `number` | Debounce for `search_products` action (only shown when `inputAction = "search_products"`) | `250` |
+| `inputAction` | `"" \| "search_products" \| "filter_min_price" \| "filter_max_price"` | Wired store action (`""` = none) | `""` |
+| `debounceMs` | `number` | Debounce for the wired action (hidden when `inputAction = ""`) | `250` |
 
 ### Behavior
 
-- **`inputAction: "search_products"`** — debounces keystrokes, calls `actions.searchProducts(query)` on `StoreContext`, which `StoreProvider` maps to `productsPage.setSearch`. The input's value is controlled by `productsPage.search` so external filters stay in sync.
-- **Any other action / no action** — behaves as a plain uncontrolled input; the value is submitted with its parent form.
-- **Editor**: input is disabled (`puck.isEditing`).
+All three actions bind to the shared `productsPage` slice on `StoreContext`; the storefront turns that slice into query params on `GET /public/products/search`. See [Products page filters](#products-page-filters).
+
+| `inputAction` | Reads | Writes | Query param |
+|---|---|---|---|
+| `search_products` | `productsPage.search` | `actions.searchProducts(q)` | `q` |
+| `filter_min_price` | `productsPage.minPrice` | `actions.productsPage.setMinPrice(n)` | `minPrice` |
+| `filter_max_price` | `productsPage.maxPrice` | `actions.productsPage.setMaxPrice(n)` | `maxPrice` |
+
+- Bound inputs are **controlled** by store state, so URL hydration and `resetProductsPage()` stay in sync; keystrokes are debounced by `debounceMs` before they hit the store.
+- **Price filters** — an empty field clears the filter (`null`); a negative or unparseable value is ignored and the previous filter stays. Rendered as `type="number"`, `dir="ltr"`, `inputMode="numeric"`, `min="0"`.
+- **No action** — behaves as a plain uncontrolled input; the value is submitted with its parent form.
+- **Editor**: input is disabled (`puck.isEditing`) and never writes to the store.
 - Sets `data-sooq-input` (`SOOQ_INPUT_ATTR`) for storefront event delegation.
 
 ### JSON Example (products search bar)
@@ -736,6 +747,25 @@ The `radius` / `bgColor` / `textColor` fields are only exposed in `"custom"` mod
 }
 ```
 
+### JSON Example (price filter)
+
+```json
+{
+  "type": "ContentInput",
+  "props": {
+    "label": "أقل سعر",
+    "name": "min-price",
+    "inputType": "number",
+    "placeholder": "0",
+    "required": false,
+    "prependIcon": "none",
+    "inputAction": "filter_min_price",
+    "debounceMs": 350,
+    "layout": { "grow": true }
+  }
+}
+```
+
 ### JSON Example (form field)
 
 ```json
@@ -749,6 +779,64 @@ The `radius` / `bgColor` / `textColor` fields are only exposed in `"custom"` mod
     "required": true,
     "prependIcon": "none",
     "inputAction": ""
+  }
+}
+```
+
+---
+
+## ContentSwitch
+
+**Label:** مفتاح تبديل  
+**Description:** An accessible on/off toggle (`role="switch"`). Renders as a plain form control, or as a bound storefront filter when `switchAction` is set.
+
+### Properties
+
+| Property | Type | Values / Notes | Default |
+|---|---|---|---|
+| `label` | `string` | Text beside the switch (empty = unlabelled, falls back to `name` for a11y) | `"المتوفر فقط"` |
+| `name` | `string` | Input `name` attribute (form submission) | `"in-stock-only"` |
+| `helperText` | `string` | Small hint below the row (empty = hidden) | `""` |
+| `defaultChecked` | `boolean` | Initial state when **not** bound to a store action | `false` |
+| `labelPosition` | `"start" \| "end"` | Label before or after the switch (RTL-aware) | `"start"` |
+| `switchAction` | `"" \| "filter_in_stock_only"` | Wired store action (`""` = none) | `""` |
+
+### Behavior
+
+- **`switchAction: "filter_in_stock_only"`** — reads `productsPage.inStockOnly` and writes `actions.productsPage.setInStockOnly(checked)`. Applied immediately (no debounce — it's a discrete choice) and sent as `inStockOnly=true`. `defaultChecked` is ignored while bound; store state wins.
+- **No action** — an uncontrolled toggle seeded from `defaultChecked`, submitted with its parent form.
+- **Editor**: disabled (`puck.isEditing`); toggling never writes to the store.
+- The checkbox is a real `<input type="checkbox" role="switch">` layered over the track, so keyboard focus, `aria-describedby` and label association all behave natively.
+- Sets `data-sooq-input` (`SOOQ_INPUT_ATTR`) for storefront event delegation.
+
+### JSON Example (products filter)
+
+```json
+{
+  "type": "ContentSwitch",
+  "props": {
+    "label": "المتوفر فقط",
+    "name": "in-stock-only",
+    "helperText": "",
+    "defaultChecked": false,
+    "labelPosition": "start",
+    "switchAction": "filter_in_stock_only"
+  }
+}
+```
+
+### JSON Example (form toggle)
+
+```json
+{
+  "type": "ContentSwitch",
+  "props": {
+    "label": "أوافق على تلقّي العروض",
+    "name": "marketing-opt-in",
+    "helperText": "يمكنك إلغاء الاشتراك في أي وقت.",
+    "defaultChecked": false,
+    "labelPosition": "end",
+    "switchAction": ""
   }
 }
 ```
@@ -3011,6 +3099,51 @@ import {
 The commerce presets (`products-grid`, `shopping-cart`) rely on `Section.props.metadata.preset` for storefront resolution — see [Section — Products Grid preset](#section-products-grid-preset) and [Section — Shopping Cart preset](#section-shopping-cart-preset).
 
 For zone presets (header / footer / drawer / popup / bottom sheet), see [ZONES.md — Zone presets](./ZONES.md#zone-presets).
+
+---
+
+## Products page filters
+
+The **صفحة المنتجات** preset (`createProductsPagePreset()`) ships with a full filter set. Every control is an ordinary editable block — merchants can restyle, reorder, or delete any of them; what makes a block a *filter* is its `inputAction` / `switchAction` / `bindingMode` binding, not its position.
+
+### Blocks in the preset
+
+| Block | Binding | Factory |
+|---|---|---|
+| `ContentInput` | `inputAction: "search_products"` | `createProductsSearchInput()` |
+| `ButtonGroup` | `bindingMode: "categories"` | inline in `products-page.ts` |
+| `ContentInput` | `inputAction: "filter_min_price"` | `createProductsFilterBar()` |
+| `ContentInput` | `inputAction: "filter_max_price"` | `createProductsFilterBar()` |
+| `ContentSwitch` | `switchAction: "filter_in_stock_only"` | `createProductsFilterBar()` |
+| `Section` | `metadata.preset: "products-page"` | `createProductsPageInnerSection()` |
+| `ButtonGroup` | `bindingMode: "pagination"` | inline in `products-page.ts` |
+
+The price + availability controls are grouped into one wrapping row by `createProductsFilterBar()` in [`config/presets/products-grid.ts`](../presets/products-grid.ts).
+
+### Shared state
+
+All of them read and write one slice — `productsPage` on `StoreContext` (`config/store-context.tsx`), implemented by `useProductsPageState()` in `apps/web/modules/storefront/lib/use-products-page-state.ts` (shared by `apps/store`).
+
+| State | Action | URL param | API param |
+|---|---|---|---|
+| `search` | `searchProducts` | `search` | `q` |
+| `selectedCategorySlug` | `productsPage.setCategory` | `category` | `categorySlug` |
+| `minPrice` | `productsPage.setMinPrice` | `minPrice` | `minPrice` |
+| `maxPrice` | `productsPage.setMaxPrice` | `maxPrice` | `maxPrice` |
+| `inStockOnly` | `productsPage.setInStockOnly` | `inStock` | `inStockOnly` |
+| `page` / `pageSize` | `productsPage.setPage` | `page` (1-based) | `page` (0-based) / `size` |
+
+Changing **any** filter resets `page` to 1. Typed filters (search + prices) are debounced before they reach the API and the URL; category, stock and pagination apply immediately.
+
+### Endpoints
+
+The storefront picks the endpoint from the active filters (`getProductsPageApiPath()` in `apps/web/modules/product/product/public-data-store.ts`):
+
+- No search/price/stock filter → `GET /public/products?categorySlug=&page=&size=`
+- Otherwise → `GET /public/products/search?q=&minPrice=&maxPrice=&inStockOnly=&page=&size=`
+  (`q` is sent even when empty, for filter-only requests).
+
+The edit canvas never hits either — it filters the in-memory sample catalog through `filterAndPaginateSampleProducts()`.
 
 ---
 

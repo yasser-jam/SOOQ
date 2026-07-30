@@ -18,6 +18,7 @@ import {
 import { useCustomerSession } from "../../lib/use-customer-session"
 import { useStoreTenant } from "../../lib/store-tenant-context"
 import { OrderActions } from "./order-actions"
+import { OrderItemsSection } from "./order-items-section"
 import { OrderStatusBadge, PaymentStatusBadge } from "./order-status-badge"
 import { getOrdersErrorMessage } from "./orders-error"
 import { OrdersMessage, OrdersSignInRequired } from "./orders-states"
@@ -76,7 +77,6 @@ function ShippingAddressSection({
 
 function OrderContent({ order }: { order: CustomerOrder }) {
 	const currency = order.currencyCode
-	const items = order.items ?? []
 	const timeline = order.timeline ?? []
 
 	return (
@@ -98,36 +98,7 @@ function OrderContent({ order }: { order: CustomerOrder }) {
 
 			<OrderActions order={order} />
 
-			<section className="OrderSection">
-				<h2 className="OrderSection-title">المنتجات</h2>
-				{items.length === 0 ? (
-					<p className="OrderSection-empty">لا توجد منتجات في هذا الطلب.</p>
-				) : (
-					<ul className="OrderItems">
-						{items.map((item, index) => (
-							<li className="OrderItem" key={item.orderItemId ?? index}>
-								<div className="OrderItem-main">
-									<span className="OrderItem-title">
-										{item.productTitle ?? item.variantTitle ?? "منتج"}
-									</span>
-									{item.sku && (
-										<span className="OrderItem-sku">{item.sku}</span>
-									)}
-								</div>
-								<div className="OrderItem-numbers">
-									<span className="OrderItem-qty">
-										{item.quantity ?? 0} ×{" "}
-										{formatOrderMoney(item.unitPrice, currency)}
-									</span>
-									<span className="OrderItem-total">
-										{formatOrderMoney(item.totalPrice, currency)}
-									</span>
-								</div>
-							</li>
-						))}
-					</ul>
-				)}
-			</section>
+			<OrderItemsSection order={order} />
 
 			<section className="OrderSection">
 				<h2 className="OrderSection-title">ملخّص الدفع</h2>

@@ -52,6 +52,8 @@ export type CollectionProductRef = {
   descriptionAr?: string;
   descriptionEn?: string;
   tags?: Array<{ id: string; name?: string }>;
+  /** Undefined when the source doesn't report stock — treated as in stock. */
+  inStock?: boolean;
 };
 
 export type ProductCardVariant = {
@@ -97,10 +99,26 @@ export type CategoryRef = {
 export type ProductsPageQuery = {
   categorySlug?: string | null;
   search?: string;
+  /** Inclusive lower bound on price (`minPrice` on the search endpoint). */
+  minPrice?: number | null;
+  /** Inclusive upper bound on price (`maxPrice` on the search endpoint). */
+  maxPrice?: number | null;
+  /** Hide out-of-stock products (`inStockOnly` on the search endpoint). */
+  inStockOnly?: boolean;
   /** 0-based page index sent to `/public/products` (UI may show page + 1). */
   page: number;
   size: number;
 };
+
+/** True when the query needs `/public/products/search` rather than plain browse. */
+export function hasProductsPageFilters(query: ProductsPageQuery): boolean {
+  return Boolean(
+    query.search?.trim() ||
+      query.minPrice != null ||
+      query.maxPrice != null ||
+      query.inStockOnly
+  );
+}
 
 export type ProductsPageResult = {
   items: CollectionProductRef[];

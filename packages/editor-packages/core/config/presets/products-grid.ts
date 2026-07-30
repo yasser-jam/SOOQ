@@ -3,10 +3,76 @@ import { buildProductsGridSectionProps } from "../blocks/Section/section-preset-
 import type { SectionPreset } from "./types";
 import {
   createHeading,
+  createInput,
   createParagraph,
   createPrimaryButton,
   createSection,
+  createSwitch,
 } from "./shared";
+
+/**
+ * Products-page filter controls. Every one of these is an ordinary, editable
+ * block — merchants can restyle, reorder or delete them. What makes them
+ * filters is the `inputAction` / `switchAction` binding into the shared
+ * `productsPage` slice on StoreContext (see `config/store-context.tsx`);
+ * the storefront turns that slice into `/public/products/search` query params.
+ */
+
+/** Debounced search box → `productsPage.search` (sent as `q`). */
+export function createProductsSearchInput(
+  overrides: Record<string, unknown> = {}
+): ComponentDataOptionalId {
+  return createInput("", "search", {
+    inputType: "search",
+    placeholder: "ابحث عن منتج…",
+    prependIcon: "search",
+    inputAction: "search_products",
+    debounceMs: 250,
+    ...overrides,
+  });
+}
+
+/** Price + availability filters, laid out as one responsive row. */
+export function createProductsFilterBar(
+  overrides: Record<string, unknown> = {}
+): ComponentDataOptionalId {
+  return {
+    type: "Group",
+    props: {
+      direction: "row",
+      gap: 12,
+      alignItems: "flex-end",
+      justifyContent: "flex-start",
+      wrap: "wrap",
+      product: null,
+      metadata: null,
+      skipProductDetailFetch: true,
+      language: "ar",
+      padding: "0px",
+      content: [
+        createInput("أقل سعر", "min-price", {
+          inputType: "number",
+          placeholder: "0",
+          inputAction: "filter_min_price",
+          debounceMs: 350,
+          layout: { grow: true },
+        }),
+        createInput("أعلى سعر", "max-price", {
+          inputType: "number",
+          placeholder: "بدون حد",
+          inputAction: "filter_max_price",
+          debounceMs: 350,
+          layout: { grow: true },
+        }),
+        createSwitch("المتوفر فقط", "in-stock-only", {
+          switchAction: "filter_in_stock_only",
+          labelPosition: "start",
+        }),
+      ],
+      ...overrides,
+    },
+  };
+}
 
 export function createProductCardGroup(
   overrides: Record<string, unknown> = {}
