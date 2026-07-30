@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
@@ -28,6 +28,9 @@ type SelectedItem = {
 	condition: ReturnItemCondition
 }
 
+/** Fixed return reason — no free-text prompt on the client. */
+const RETURN_REASON = "DEFECTIVE"
+
 /** `orderItemId` is what the returns endpoint keys on — items without one can't be returned. */
 const itemKey = (item: CustomerOrderItem, index: number): string =>
 	item.orderItemId ?? `no-id-${index}`
@@ -39,8 +42,6 @@ export function OrderItemsSection({ order }: { order: CustomerOrder }) {
 	const items = useMemo(() => order.items ?? [], [order.items])
 
 	const [selection, setSelection] = useState<Record<string, SelectedItem>>({})
-	const [dialogOpen, setDialogOpen] = useState(false)
-	const [reason, setReason] = useState("")
 	const [submitted, setSubmitted] = useState(false)
 
 	const returnable = isOrderReturnable(order.orderStatus)
@@ -73,7 +74,7 @@ export function OrderItemsSection({ order }: { order: CustomerOrder }) {
 		mutationFn: () =>
 			createCustomerReturn({
 				orderId: order.orderId,
-				reason: reason.trim(),
+				reason: RETURN_REASON,
 				items: selectedIds.map<CreateReturnItemPayload>((id) => ({
 					orderItemId: id,
 					quantity: selection[id]!.quantity,
@@ -81,8 +82,6 @@ export function OrderItemsSection({ order }: { order: CustomerOrder }) {
 				})),
 			}),
 		onSuccess: async () => {
-			setDialogOpen(false)
-			setReason("")
 			setSelection({})
 			setSubmitted(true)
 			await Promise.all([
@@ -93,21 +92,6 @@ export function OrderItemsSection({ order }: { order: CustomerOrder }) {
 			])
 		},
 	})
-
-	const closeDialog = useCallback(() => {
-		if (submit.isPending) return
-		setDialogOpen(false)
-		submit.reset()
-	}, [submit])
-
-	useEffect(() => {
-		if (!dialogOpen) return
-		const onKeyDown = (e: KeyboardEvent) => {
-			if (e.key === "Escape") closeDialog()
-		}
-		window.addEventListener("keydown", onKeyDown)
-		return () => window.removeEventListener("keydown", onKeyDown)
-	}, [dialogOpen, closeDialog])
 
 	return (
 		<section className="OrderSection">
@@ -212,13 +196,19 @@ export function OrderItemsSection({ order }: { order: CustomerOrder }) {
 						className="OrdersButton OrdersButton--primary"
 						onClick={() => {
 							setSubmitted(false)
-							setDialogOpen(true)
+							submit.mutate()
 						}}
-						disabled={selectedIds.length === 0}
+						disabled={selectedIds.length === 0 || submit.isPending}
 					>
-						طلب إرجاع المنتجات
+						{submit.isPending ? "جارٍ الإرسال…" : "طلب إرجاع المنتجات"}
 					</button>
 				</div>
+			)}
+
+			{submit.error && (
+				<p className="OrdersError" role="alert">
+					{getOrdersErrorMessage(submit.error, "تعذّر إرسال طلب الإرجاع.")}
+				</p>
 			)}
 
 			{submitted && (
@@ -226,64 +216,6 @@ export function OrderItemsSection({ order }: { order: CustomerOrder }) {
 					تم إرسال طلب الإرجاع.{" "}
 					<Link href={`${basePath}/returns`}>عرض مرتجعاتي</Link>
 				</p>
-			)}
-
-			{dialogOpen && (
-				<div
-					className="OrdersDialog-overlay"
-					role="dialog"
-					aria-modal="true"
-					aria-label="طلب إرجاع المنتجات"
-					onClick={closeDialog}
-				>
-					<div
-						className="OrdersDialog"
-						onClick={(event) => event.stopPropagation()}
-					>
-						<h2 className="OrdersDialog-title">طلب إرجاع المنتجات</h2>
-						<p className="OrdersDialog-text">
-							سيتم إرسال طلب إرجاع لـ {selectedIds.length} منتج من الطلب{" "}
-							{order.orderNumber ?? order.orderId}.
-						</p>
-
-						<label className="OrdersDialog-label" htmlFor="return-reason">
-							سبب الإرجاع
-						</label>
-						<textarea
-							id="return-reason"
-							className="OrdersDialog-textarea"
-							value={reason}
-							onChange={(event) => setReason(event.target.value)}
-							rows={3}
-							placeholder="مثال: المنتج وصل تالفاً"
-						/>
-
-						{submit.error && (
-							<p className="OrdersError" role="alert">
-								{getOrdersErrorMessage(submit.error, "تعذّر إرسال طلب الإرجاع.")}
-							</p>
-						)}
-
-						<div className="OrdersDialog-actions">
-							<button
-								type="button"
-								className="OrdersButton"
-								onClick={closeDialog}
-								disabled={submit.isPending}
-							>
-								تراجع
-							</button>
-							<button
-								type="button"
-								className="OrdersButton OrdersButton--primary"
-								onClick={() => submit.mutate()}
-								disabled={submit.isPending || reason.trim().length === 0}
-							>
-								{submit.isPending ? "جارٍ الإرسال…" : "إرسال الطلب"}
-							</button>
-						</div>
-					</div>
-				</div>
 			)}
 		</section>
 	)

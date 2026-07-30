@@ -12,6 +12,7 @@ import cookiesConfig from "@/config/cookies-config"
 import { api } from "@/lib/api"
 import { getCookie } from "@/lib/cookies"
 import type { OrderStatus, PaymentMethod, PaymentStatus } from "@/lib/domain-enums"
+import { resolveMediaUrl } from "@/lib/media"
 import {
 	buildPageParams,
 	normalizePage,
@@ -224,38 +225,42 @@ export const getCustomerOrder = async (
 	return response.data
 }
 
-const INVOICE_EXTENSION_BY_MIME: Record<string, string> = {
-	"application/pdf": "pdf",
-	"text/html": "html",
-	"text/csv": "csv",
-	"application/json": "json",
+/** Payload of `GET /customer/orders/{orderId}/invoice`. */
+export type CustomerOrderInvoice = {
+	invoiceId: string
+	orderId: string
+	invoiceNumber?: string
+	pdfUrl?: string | null
+	generatedAt?: string
 }
 
 /**
- * `GET /customer/orders/{orderId}/invoice` — returns the invoice file itself,
- * so it's fetched as a Blob and handed to the browser as a download. The
- * response headers (and therefore `Content-Disposition`) aren't reachable
- * through `api()`, so the filename is rebuilt from the order number.
+ * `GET /customer/orders/{orderId}/invoice` — returns invoice metadata with a
+ * relative `pdfUrl`. Resolve it against `NEXT_PUBLIC_MEDIA_URL` and trigger
+ * a browser download.
  */
 export const downloadOrderInvoice = async (
 	orderId: string,
 	orderNumber?: string | null,
 ): Promise<void> => {
-	const blob = await api<Blob>(`/customer/orders/${orderId}/invoice`, {
-		responseType: "blob",
-	})
+	const response = await api<ApiResponse<CustomerOrderInvoice>>(
+		`/customer/orders/${orderId}/invoice`,
+	)
 
-	const extension = INVOICE_EXTENSION_BY_MIME[blob.type] ?? "pdf"
-	const url = URL.createObjectURL(blob)
+	const pdfUrl = resolveMediaUrl(response.data?.pdfUrl)
+	if (!pdfUrl) {
+		throw new Error("تعذّر العثور على ملف الفاتورة.")
+	}
+
+	const filename = `invoice-${response.data?.invoiceNumber || orderNumber || orderId}.pdf`
 	const link = document.createElement("a")
-	link.href = url
-	link.download = `invoice-${orderNumber || orderId}.${extension}`
+	link.href = pdfUrl
+	link.download = filename
+	link.target = "_blank"
+	link.rel = "noopener noreferrer"
 	document.body.appendChild(link)
 	link.click()
 	link.remove()
-
-	// Revoking synchronously can abort the download in some browsers.
-	setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 /** `POST /customer/orders/{orderId}/cancel` — `reason` is optional. */
