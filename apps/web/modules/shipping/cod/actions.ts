@@ -1,48 +1,47 @@
 import { api } from "@/lib/api"
-import type { ApiResponse } from "@/lib/types"
+import type { ApiResponse, Page } from "@/lib/types"
 
 import type {
   CodCollectionEntry,
   CodReconciliationBatch,
+  CodReconciliationBatchPage,
   CreateCodReconciliationBatchPayload,
   ListCodReconciliationBatchesParams,
-  PaginatedApiResponse,
   UpdateCodReconciliationStatusInput,
 } from "./types"
 
-type CodReconciliationBatchApiResponse = CodReconciliationBatch & {
+type CodReconciliationBatchApiModel = CodReconciliationBatch & {
   batchId: string
 }
 
-const normalizeBatch = (batch: CodReconciliationBatchApiResponse): CodReconciliationBatch => ({
+const normalizeBatch = (
+  batch: CodReconciliationBatchApiModel
+): CodReconciliationBatch => ({
   ...batch,
   id: batch.batchId,
 })
 
 export const listCodReconciliationBatches = async (
   params: ListCodReconciliationBatchesParams = {}
-): Promise<PaginatedApiResponse<CodReconciliationBatch>> => {
+): Promise<CodReconciliationBatchPage> => {
   const response = await api<
-    ApiResponse<PaginatedApiResponse<CodReconciliationBatchApiResponse>>
+    ApiResponse<Page<CodReconciliationBatchApiModel>>
   >("/admin/shipping/cod/reconciliation", {
     params,
   })
 
   const page = response.data ?? {}
-  const items =
-    page.content?.map(normalizeBatch) ?? page.items?.map(normalizeBatch) ?? []
 
   return {
     ...page,
-    content: items,
-    items,
+    content: page.content?.map(normalizeBatch) ?? [],
   }
 }
 
 export const createCodReconciliationBatch = async (
   payload: CreateCodReconciliationBatchPayload
 ): Promise<CodReconciliationBatch> => {
-  const response = await api<ApiResponse<CodReconciliationBatchApiResponse>>(
+  const response = await api<ApiResponse<CodReconciliationBatchApiModel>>(
     "/admin/shipping/cod/reconciliation",
     {
       method: "POST",
@@ -57,13 +56,14 @@ export const updateCodReconciliationStatus = async ({
   id,
   data,
 }: UpdateCodReconciliationStatusInput): Promise<CodReconciliationBatch> => {
-  const response = await api<ApiResponse<CodReconciliationBatchApiResponse>>(
+  const response = await api<ApiResponse<CodReconciliationBatchApiModel>>(
     `/admin/shipping/cod/reconciliation/${id}/status`,
     {
       method: "PUT",
       body: data,
     }
   )
+
   return normalizeBatch(response.data!)
 }
 
@@ -74,8 +74,8 @@ export const getCodReconciliationBatch = async (
   // batch in the response. Batches per provider are low-cardinality so this
   // remains cheap; if it ever isn't we can add server-side filtering.
   const page = await listCodReconciliationBatches({ page: 0, size: 200 })
-  const items = page.content ?? page.items ?? []
-  return items.find((batch) => batch.id === id) ?? null
+
+  return page.content?.find((batch) => batch.id === id) ?? null
 }
 
 export const listCodEntriesByShipment = async (
@@ -84,5 +84,6 @@ export const listCodEntriesByShipment = async (
   const response = await api<ApiResponse<CodCollectionEntry[]>>(
     `/admin/shipping/cod/entries/${shipmentId}`
   )
+
   return response.data ?? []
 }

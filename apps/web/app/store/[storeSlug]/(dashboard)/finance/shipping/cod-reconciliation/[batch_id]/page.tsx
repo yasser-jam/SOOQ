@@ -1,4 +1,4 @@
-import CodBatchDetailPageView from "@/modules/shipping/cod/components/cod-batch-detail-page"
+import CodBatchDetailPageView from "@/modules/shipping/cod/components/batch-detail-view"
 
 export default async function CodBatchDetailPage({
   params,

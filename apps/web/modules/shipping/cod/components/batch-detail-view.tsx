@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import ConfirmAlert from "@/components/system/confirm-alert"
 import DataTable from "@/components/system/table"
 import EmptyState from "@/components/system/empty-state"
+import { SETTLEMENT_STATUS_META } from "@/lib/domain-enums"
 import { formatSyp } from "@/lib/money"
 import { useStorePath } from "@/lib/store-path"
 import { listShipments } from "@/modules/shipping/shipment/actions"
@@ -32,10 +33,7 @@ import {
   updateCodReconciliationStatus,
 } from "../actions"
 import { initCodReconciliationStatusUpdate } from "../init"
-import {
-  COD_SETTLEMENT_STATUS_META,
-  COD_SETTLEMENT_STATUS_TRANSITIONS,
-} from "../model"
+import { COD_SETTLEMENT_STATUS_TRANSITIONS } from "../model"
 import { codReconciliationQueryKeys } from "../queryKeys"
 import type { CodSettlementStatus } from "../types"
 
@@ -74,7 +72,7 @@ export default function CodBatchDetailPageView({
         queryKey: codReconciliationQueryKeys.all,
       })
       toast.success(
-        `تم التحويل إلى: ${COD_SETTLEMENT_STATUS_META[variables.data.status].label}`
+        `تم التحويل إلى: ${SETTLEMENT_STATUS_META[variables.data.status].label}`
       )
       setPendingTransition(null)
     },
@@ -82,7 +80,7 @@ export default function CodBatchDetailPageView({
 
   const status = batch?.settlementStatus
   const transitions = status ? COD_SETTLEMENT_STATUS_TRANSITIONS[status] : []
-  const statusMeta = status ? COD_SETTLEMENT_STATUS_META[status] : null
+  const statusMeta = status ? SETTLEMENT_STATUS_META[status] : null
 
   // Backend has no GET /reconciliation/{batchId}/shipments endpoint, so we
   // approximate: load all shipments (cache shared with the shipments list
@@ -215,7 +213,7 @@ export default function CodBatchDetailPageView({
                 disabled={isUpdatingStatus}
                 onClick={() => setPendingTransition(target)}
               >
-                تحويل إلى: {COD_SETTLEMENT_STATUS_META[target].label}
+                تحويل إلى: {SETTLEMENT_STATUS_META[target].label}
               </Button>
             ))}
           </div>
@@ -330,7 +328,7 @@ export default function CodBatchDetailPageView({
         }}
         title={
           pendingTransition
-            ? `تحويل إلى: ${COD_SETTLEMENT_STATUS_META[pendingTransition].label}`
+            ? `تحويل إلى: ${SETTLEMENT_STATUS_META[pendingTransition].label}`
             : ""
         }
         description="هذا الإجراء يُحدّث حالة دفعة التسوية. هل تريد المتابعة؟"

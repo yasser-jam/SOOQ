@@ -1,19 +1,26 @@
 "use client"
 
-import { useEffect } from "react"
+import { useCallback } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
-import PageDialog from "@/components/system/page-dialog"
 import DatePickerField from "@/components/system/date-picker"
 import Field from "@/components/system/Field"
+import PageDialog from "@/components/system/page-dialog"
 import TextareaField from "@/components/system/textarea"
 import { useStorePath } from "@/lib/store-path"
+import { listShippingProviders } from "@/modules/shipping/provider/actions"
+import { shippingProviderQueryKeys } from "@/modules/shipping/provider/queryKeys"
 import { Button } from "@workspace/ui/components/button"
 import { DialogClose } from "@workspace/ui/components/dialog"
+import {
+  Field as UiField,
+  FieldError,
+  FieldLabel,
+} from "@workspace/ui/components/field"
 import {
   Select,
   SelectContent,
@@ -21,52 +28,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import {
-  Field as UiField,
-  FieldError,
-  FieldLabel,
-} from "@workspace/ui/components/field"
 
-import { listShippingProviders } from "../../provider/actions"
-import { shippingProviderQueryKeys } from "../../provider/queryKeys"
 import { createCodReconciliationBatch } from "../actions"
 import {
-  initCreateCodReconciliationBatch,
-  toLocalDateInput,
+  buildCreateCodReconciliationBatchPayload,
+  initCodReconciliationBatchFormValues,
 } from "../init"
-import { createCodReconciliationBatchSchema } from "../schema"
 import { codReconciliationQueryKeys } from "../queryKeys"
-
-type CreateFormValues = {
-  shippingProviderId: string
-  providerFeePercentage: number
-  settlementDate: string
-  notes?: string
-}
+import { createCodReconciliationBatchSchema } from "../schema"
+import type { CodReconciliationBatchFormValues } from "../types"
 
 export default function CodReconciliationCreatePageView() {
   const router = useRouter()
   const storePath = useStorePath()
   const queryClient = useQueryClient()
 
-  const form = useForm<CreateFormValues>({
+  const form = useForm<CodReconciliationBatchFormValues>({
     resolver: zodResolver(createCodReconciliationBatchSchema) as never,
-    defaultValues: {
-      shippingProviderId: "",
-      providerFeePercentage: 5,
-      settlementDate: toLocalDateInput(),
-      notes: "",
-    },
+    defaultValues: initCodReconciliationBatchFormValues(),
   })
-
-  useEffect(() => {
-    form.reset({
-      shippingProviderId: "",
-      providerFeePercentage: 5,
-      settlementDate: toLocalDateInput(),
-      notes: "",
-    })
-  }, [form])
 
   const { data: providers, isLoading: isProvidersLoading } = useQuery({
     queryKey: shippingProviderQueryKeys.all,
@@ -84,6 +64,13 @@ export default function CodReconciliationCreatePageView() {
     },
   })
 
+  const handleSubmit = useCallback(
+    (values: CodReconciliationBatchFormValues) => {
+      create(buildCreateCodReconciliationBatchPayload(values))
+    },
+    [create]
+  )
+
   const isSubmitting = isProvidersLoading || isCreating
 
   return (
@@ -97,16 +84,15 @@ export default function CodReconciliationCreatePageView() {
       actions={
         <>
           <DialogClose asChild>
-            <Button variant="outline">إلغاء</Button>
+            <Button variant="ghost">إلغاء</Button>
           </DialogClose>
 
           <Button
             type="submit"
             form="cod-reconciliation-form"
-            variant="secondary"
             disabled={isSubmitting}
           >
-            إنشاء
+            حفظ
           </Button>
         </>
       }
@@ -114,28 +100,29 @@ export default function CodReconciliationCreatePageView() {
       <form
         id="cod-reconciliation-form"
         className="grid gap-4"
-        onSubmit={form.handleSubmit((values) =>
-          create(initCreateCodReconciliationBatch(values))
-        )}
+        onSubmit={form.handleSubmit(handleSubmit)}
       >
         <Controller
           name="shippingProviderId"
           control={form.control}
           render={({ field, fieldState }) => (
             <UiField data-invalid={fieldState.invalid}>
-              <FieldLabel>مزود الشحن</FieldLabel>
+              <FieldLabel htmlFor="shippingProviderId">مزود الشحن</FieldLabel>
               <Select
                 value={field.value}
                 onValueChange={field.onChange}
                 disabled={isSubmitting}
               >
-                <SelectTrigger>
+                <SelectTrigger
+                  id="shippingProviderId"
+                  aria-invalid={fieldState.invalid || undefined}
+                >
                   <SelectValue placeholder="اختر مزود الشحن" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(providers ?? []).map((p) => (
-                    <SelectItem key={p.id} value={p.id ?? ""}>
-                      {p.providerName ?? p.providerCode ?? "-"}
+                  {providers?.map((provider) => (
+                    <SelectItem key={provider.id} value={provider.id ?? ""}>
+                      {provider.providerName ?? provider.providerCode ?? "-"}
                     </SelectItem>
                   ))}
                 </SelectContent>

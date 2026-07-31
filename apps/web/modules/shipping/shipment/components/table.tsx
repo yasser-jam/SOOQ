@@ -189,7 +189,7 @@ export default function ShipmentsTable({ filters, searchQuery = "" }: ShipmentsT
   }, [pageCount])
 
   // Reset to first page whenever filters change so the user always sees the
-  // start of the filtered list. (Same pattern as cod-reconciliation-table —
+  // start of the filtered list. (Same pattern as the COD reconciliation table —
   // a known react-hooks/set-state-in-effect warning we accept consistently.)
   useEffect(() => {
     setPageIndex(0)

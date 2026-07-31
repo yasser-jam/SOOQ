@@ -10,26 +10,23 @@ import { toast } from "sonner"
 import EmptyState from "@/components/system/empty-state"
 import DataTable from "@/components/system/table"
 import TableActions from "@/components/system/table-actions"
+import { SETTLEMENT_STATUS_META } from "@/lib/domain-enums"
 import { formatSyp } from "@/lib/money"
 import { useStorePath } from "@/lib/store-path"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 
-import type {
-  CodReconciliationBatch,
-  CodReconciliationFilters,
-  CodSettlementStatus,
-} from "../types"
 import {
   listCodReconciliationBatches,
   updateCodReconciliationStatus,
 } from "../actions"
 import { initCodReconciliationStatusUpdate } from "../init"
+import { COD_SETTLEMENT_STATUS_TRANSITIONS } from "../model"
 import { codReconciliationQueryKeys } from "../queryKeys"
-import {
-  COD_SETTLEMENT_STATUS_META,
-  COD_SETTLEMENT_STATUS_TRANSITIONS,
-} from "../model"
+import type {
+  CodReconciliationBatch,
+  CodReconciliationFilters,
+} from "../types"
 
 interface CodReconciliationTableProps {
   filters?: CodReconciliationFilters
@@ -50,24 +47,21 @@ export default function CodReconciliationTable({
 
   const [pageIndex, setPageIndex] = useState(0)
 
-  const fetchParams = useMemo(
-    () => ({ page: 0, size: FETCH_SIZE }),
-    []
-  )
+  const fetchParams = useMemo(() => ({ page: 0, size: FETCH_SIZE }), [])
 
   const { data, isPending } = useQuery({
     queryKey: codReconciliationQueryKeys.list(fetchParams),
     queryFn: () => listCodReconciliationBatches(fetchParams),
   })
 
-  const allBatches = data?.content ?? data?.items ?? []
-
   const filteredBatches = useMemo(() => {
-    if (!filters) return allBatches
+    const batches = data?.content ?? []
+
+    if (!filters) return batches
 
     const { shippingProviderId, settlementDateFrom, settlementDateTo } = filters
 
-    return allBatches.filter((batch) => {
+    return batches.filter((batch) => {
       if (
         shippingProviderId &&
         batch.shippingProviderId !== shippingProviderId
@@ -92,13 +86,10 @@ export default function CodReconciliationTable({
       }
       return true
     })
-  }, [allBatches, filters])
+  }, [data, filters])
 
-  const totalElements = filteredBatches.length
-  const pageCount = Math.max(1, Math.ceil(totalElements / PAGE_SIZE))
+  const pageCount = Math.max(1, Math.ceil(filteredBatches.length / PAGE_SIZE))
 
-  // Reset to first page whenever filters change or the row count shrinks
-  // below the current page.
   useEffect(() => {
     setPageIndex(0)
   }, [
@@ -127,7 +118,7 @@ export default function CodReconciliationTable({
         queryKey: codReconciliationQueryKeys.all,
       })
       toast.success(
-        `تم التحويل إلى: ${COD_SETTLEMENT_STATUS_META[variables.data.status].label}`
+        `تم التحويل إلى: ${SETTLEMENT_STATUS_META[variables.data.status].label}`
       )
     },
   })
@@ -138,6 +129,7 @@ export default function CodReconciliationTable({
       header: "المزود",
       cell: ({ row }) => {
         const batch = row.original
+
         return (
           <div className="flex flex-col gap-0.5">
             <span>{batch.providerName ?? "-"}</span>
@@ -194,34 +186,33 @@ export default function CodReconciliationTable({
       cell: ({ row }) => {
         const status = row.original.settlementStatus
         if (!status) return "-"
-        const meta = COD_SETTLEMENT_STATUS_META[status]
+
+        const meta = SETTLEMENT_STATUS_META[status]
+
         return <Badge variant={meta.badgeVariant}>{meta.label}</Badge>
       },
     },
     {
       id: "actions",
       enableSorting: false,
-      header: () => <div />,
+      header: () => <div></div>,
       cell: ({ row }) => {
-        const id = row.original.id
+        const batchId = row.original.id
         const status = row.original.settlementStatus
-        const transitions = status
-          ? COD_SETTLEMENT_STATUS_TRANSITIONS[status]
-          : []
-
-        const firstTransition = transitions[0]
+        const nextStatus = status
+          ? COD_SETTLEMENT_STATUS_TRANSITIONS[status][0]
+          : undefined
 
         return (
           <TableActions
             onUpdate={() => {
-              if (!id) return
+              if (!batchId) return
               router.push(
-                storePath(`/finance/shipping/cod-reconciliation/${id}`)
+                storePath(`/finance/shipping/cod-reconciliation/${batchId}`)
               )
             }}
-            onDelete={undefined}
           >
-            {id && status && firstTransition ? (
+            {batchId && nextStatus ? (
               <Button
                 type="button"
                 variant="outline"
@@ -229,14 +220,11 @@ export default function CodReconciliationTable({
                 disabled={isUpdatingStatus}
                 onClick={() =>
                   updateStatus(
-                    initCodReconciliationStatusUpdate(
-                      id,
-                      firstTransition as CodSettlementStatus
-                    )
+                    initCodReconciliationStatusUpdate(batchId, nextStatus)
                   )
                 }
               >
-                تحويل إلى: {COD_SETTLEMENT_STATUS_META[firstTransition].label}
+                تحويل إلى: {SETTLEMENT_STATUS_META[nextStatus].label}
               </Button>
             ) : null}
           </TableActions>

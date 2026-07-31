@@ -1,4 +1,4 @@
-import CodShipmentEntriesPageView from "@/modules/shipping/cod/components/cod-shipment-entries-page"
+import CodShipmentEntriesPageView from "@/modules/shipping/cod/components/shipment-entries-view"
 
 export default async function ShipmentCodEntriesPage({
   params,

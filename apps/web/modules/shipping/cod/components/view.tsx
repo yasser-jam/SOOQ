@@ -9,12 +9,12 @@ import { useStorePath } from "@/lib/store-path"
 import { Button } from "@workspace/ui/components/button"
 
 import type { CodReconciliationFilters } from "../types"
-import CodReconciliationFiltersBar from "./cod-reconciliation-filters"
-import CodReconciliationTable from "./cod-reconciliation-table"
+import CodReconciliationFiltersBar from "./filters"
+import CodReconciliationTable from "./table"
 
 export default function CodReconciliationPageView() {
-  const storePath = useStorePath()
   const router = useRouter()
+  const storePath = useStorePath()
   const [filters, setFilters] = useState<CodReconciliationFilters>({})
 
   return (
@@ -34,7 +34,9 @@ export default function CodReconciliationPageView() {
             size="md"
             variant="secondary"
             onClick={() =>
-              router.push(storePath("/finance/shipping/cod-reconciliation/create"))
+              router.push(
+                storePath("/finance/shipping/cod-reconciliation/create")
+              )
             }
           >
             إنشاء دفعة تسوية

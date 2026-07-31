@@ -1,4 +1,20 @@
-export type CodSettlementStatus = "PENDING" | "SETTLED" | "DISPUTED"
+import type * as z from "zod"
+
+import type { SettlementStatus } from "@/lib/domain-enums"
+import type { Page } from "@/lib/types"
+
+import type { createCodReconciliationBatchSchema } from "./schema"
+
+/** Settlement lifecycle shared with orders/shipments (`lib/domain-enums`). */
+export type CodSettlementStatus = SettlementStatus
+
+export type CodReconciliationBatchFormValues = z.input<
+  typeof createCodReconciliationBatchSchema
+>
+
+export type CreateCodReconciliationBatchPayload = z.output<
+  typeof createCodReconciliationBatchSchema
+>
 
 export interface CodReconciliationBatch {
   id?: string
@@ -19,16 +35,7 @@ export interface CodReconciliationBatch {
   notes?: string
 }
 
-export interface PaginatedApiResponse<T> {
-  content?: T[]
-  items?: T[]
-  totalElements?: number
-  totalItems?: number
-  totalPages?: number
-  page?: number
-  number?: number
-  size?: number
-}
+export type CodReconciliationBatchPage = Page<CodReconciliationBatch>
 
 export type ListCodReconciliationBatchesParams = {
   page?: number
@@ -46,13 +53,6 @@ export interface CodReconciliationFilters {
   shippingProviderId?: string
   settlementDateFrom?: string
   settlementDateTo?: string
-}
-
-export type CreateCodReconciliationBatchPayload = {
-  shippingProviderId: string
-  providerFeePercentage: number
-  settlementDate: string
-  notes?: string
 }
 
 export type UpdateCodReconciliationStatusPayload = {

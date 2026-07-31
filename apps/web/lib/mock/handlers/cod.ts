@@ -74,17 +74,19 @@ export const handleCodMock = (request: MockRequest): MockHandlerResult => {
     const all = getMockDb().codReconciliationBatches.map(toApi)
     const start = page * size
     const content = all.slice(start, start + size)
+    const totalPages = Math.max(1, Math.ceil(all.length / size))
+
     return {
       handled: true,
       data: envelope({
         content,
-        items: content,
         totalElements: all.length,
-        totalItems: all.length,
-        totalPages: Math.max(1, Math.ceil(all.length / size)),
-        page,
+        totalPages,
         number: page,
         size,
+        first: page === 0,
+        last: page >= totalPages - 1,
+        empty: content.length === 0,
       }),
     }
   }
