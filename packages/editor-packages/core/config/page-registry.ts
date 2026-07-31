@@ -158,6 +158,13 @@ export const PAGES: PageDefinition[] = [
     description: "About the store",
     iconName: "FileText",
   },
+  {
+    path: "/settings",
+    label: "Account Settings",
+    description:
+      "Customer profile, marketing preferences and saved addresses",
+    iconName: "FileText",
+  },
 ];
 
 /** Returns the path used for the editor URL (substitutes dynamic segments) */

@@ -5,9 +5,12 @@
  * Provides real implementations of all StoreContext actions to the block tree.
  */
 
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import {
 	StoreContext,
+	defaultCustomerState,
+	type CustomerAddressDraft,
+	type CustomerState,
 	type StoreAuthState,
 	type StoreContextValue,
 	type StoreLoadingState,
@@ -35,8 +38,19 @@ import { getTenantIdFromToken } from "@/lib/jwt"
 import { CheckoutDrawer } from "./checkout/CheckoutDrawer"
 import {
 	getStoreTenantId,
+	reverseGeocode,
 	validateCartForCheckout,
 } from "./checkout/checkout-api"
+import {
+	createCustomerAddress,
+	deleteCustomerAddress,
+	getCustomerPreferences,
+	getCustomerProfile,
+	listCustomerAddresses,
+	setDefaultCustomerAddress,
+	updateCustomerProfile,
+	updateMarketingPreferences,
+} from "@/lib/customer-account-api"
 import { useProductsPageState } from "@/modules/storefront/lib/use-products-page-state"
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -93,6 +107,10 @@ function getErrorMessage(err: unknown, fallback: string): string {
 	return fallback
 }
 
+function emptyAddressDraft(): CustomerAddressDraft {
+	return { ...defaultCustomerState.addressDraft }
+}
+
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
@@ -108,12 +126,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		login: false,
 		verifyOtp: false,
 		makeOrder: false,
+		profile: false,
+		preferences: false,
+		address: false,
 	})
 
 	const [errors, setErrors] = useState<StoreErrorState>({
 		login: null,
 		verifyOtp: null,
 		makeOrder: null,
+		profile: null,
+		preferences: null,
+		address: null,
+	})
+
+	const [customer, setCustomer] = useState<CustomerState>(defaultCustomerState)
+	const addressDraftEditedRef = useRef({
+		governorate: false,
+		city: false,
+		streetAddress: false,
 	})
 
 	const [checkoutOpen, setCheckoutOpen] = useState(false)
@@ -127,6 +158,46 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		registerAddProductCartListener()
 	}, [])
+
+	const refreshCustomer = useCallback(async () => {
+		setCustomer((prev) => ({ ...prev, isLoading: true, isError: false }))
+
+		try {
+			const [profile, preferences, addresses] = await Promise.all([
+				getCustomerProfile(),
+				getCustomerPreferences(),
+				listCustomerAddresses(),
+			])
+
+			setCustomer((prev) => ({
+				...prev,
+				profile,
+				preferences,
+				addresses,
+				profileDraft: { fullName: profile.fullName },
+				isLoading: false,
+				isError: false,
+			}))
+		} catch (err) {
+			setCustomer((prev) => ({
+				...prev,
+				isLoading: false,
+				isError: true,
+			}))
+			throw err
+		}
+	}, [])
+
+	useEffect(() => {
+		if (!auth.isLoggedIn) {
+			setCustomer(defaultCustomerState)
+			return
+		}
+
+		void refreshCustomer().catch((err) => {
+			console.error("[customer]", err)
+		})
+	}, [auth.isLoggedIn, refreshCustomer])
 
 	// ─── login ─────────────────────────────────────────────────────────────────
 
@@ -280,6 +351,209 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		clearCookie("sooq-user-name")
 		clearCookie("sooq-user-phone")
 		setAuth({ isLoggedIn: false, customerName: null, customerPhone: null })
+		setCustomer(defaultCustomerState)
+		addressDraftEditedRef.current = {
+			governorate: false,
+			city: false,
+			streetAddress: false,
+		}
+	}, [])
+
+	const setProfileDraftField = useCallback(
+		(field: "fullName", value: string) => {
+			setCustomer((prev) => ({
+				...prev,
+				profileDraft: { ...prev.profileDraft, [field]: value },
+			}))
+		},
+		[],
+	)
+
+	const saveProfile = useCallback(async () => {
+		setLoading((prev) => ({ ...prev, profile: true }))
+		setErrors((prev) => ({ ...prev, profile: null }))
+
+		try {
+			const profile = await updateCustomerProfile({
+				fullName: customer.profileDraft.fullName.trim(),
+			})
+			setCustomer((prev) => ({
+				...prev,
+				profile,
+				profileDraft: { fullName: profile.fullName },
+			}))
+		} catch (err) {
+			const msg = getErrorMessage(err, "تعذّر حفظ التغييرات، حاول مجدداً.")
+			setErrors((prev) => ({ ...prev, profile: msg }))
+			throw err
+		} finally {
+			setLoading((prev) => ({ ...prev, profile: false }))
+		}
+	}, [customer.profileDraft.fullName])
+
+	const setMarketingPref = useCallback(
+		async (channel: "email" | "sms", value: boolean) => {
+			const previous = customer.preferences
+			const nextPreferences = {
+				emailOptIn:
+					channel === "email" ? value : (previous?.emailOptIn ?? false),
+				smsOptIn: channel === "sms" ? value : (previous?.smsOptIn ?? false),
+			}
+
+			setCustomer((prev) => ({
+				...prev,
+				preferences: prev.preferences
+					? { ...prev.preferences, ...nextPreferences }
+					: {
+							...nextPreferences,
+							emailConsentedAt: null,
+							smsConsentedAt: null,
+						},
+			}))
+
+			setLoading((prev) => ({ ...prev, preferences: true }))
+			setErrors((prev) => ({ ...prev, preferences: null }))
+
+			try {
+				const preferences = await updateMarketingPreferences(nextPreferences)
+				setCustomer((prev) => ({ ...prev, preferences }))
+			} catch (err) {
+				setCustomer((prev) => ({ ...prev, preferences: previous }))
+				const msg = getErrorMessage(
+					err,
+					"تعذّر حفظ تفضيلات التسويق، حاول مجدداً.",
+				)
+				setErrors((prev) => ({ ...prev, preferences: msg }))
+				throw err
+			} finally {
+				setLoading((prev) => ({ ...prev, preferences: false }))
+			}
+		},
+		[customer.preferences],
+	)
+
+	const setAddressDraftField = useCallback(
+		(
+			field: keyof CustomerAddressDraft,
+			value: string | number | boolean | null,
+		) => {
+			if (field === "governorate") addressDraftEditedRef.current.governorate = true
+			if (field === "city") addressDraftEditedRef.current.city = true
+			if (field === "streetAddress") {
+				addressDraftEditedRef.current.streetAddress = true
+			}
+
+			setCustomer((prev) => ({
+				...prev,
+				addressDraft: {
+					...prev.addressDraft,
+					[field]: value,
+				},
+			}))
+		},
+		[],
+	)
+
+	const setAddressDraftLocation = useCallback(
+		(latitude: number, longitude: number) => {
+			setCustomer((prev) => ({
+				...prev,
+				addressDraft: {
+					...prev.addressDraft,
+					latitude,
+					longitude,
+				},
+			}))
+
+			void (async () => {
+				const result = await reverseGeocode(latitude, longitude)
+				if (!result) return
+
+				setCustomer((prev) => ({
+					...prev,
+					addressDraft: {
+						...prev.addressDraft,
+						governorate:
+							addressDraftEditedRef.current.governorate || !result.governorate
+								? prev.addressDraft.governorate
+								: result.governorate,
+						city:
+							addressDraftEditedRef.current.city || !result.city
+								? prev.addressDraft.city
+								: result.city,
+						streetAddress:
+							addressDraftEditedRef.current.streetAddress ||
+							!result.streetAddress
+								? prev.addressDraft.streetAddress
+								: result.streetAddress,
+					},
+				}))
+			})()
+		},
+		[],
+	)
+
+	const createAddress = useCallback(async () => {
+		setLoading((prev) => ({ ...prev, address: true }))
+		setErrors((prev) => ({ ...prev, address: null }))
+
+		try {
+			await createCustomerAddress(customer.addressDraft)
+			const addresses = await listCustomerAddresses()
+			addressDraftEditedRef.current = {
+				governorate: false,
+				city: false,
+				streetAddress: false,
+			}
+			setCustomer((prev) => ({
+				...prev,
+				addresses,
+				addressDraft: emptyAddressDraft(),
+			}))
+		} catch (err) {
+			const msg = getErrorMessage(err, "تعذّر حفظ العنوان، حاول مجدداً.")
+			setErrors((prev) => ({ ...prev, address: msg }))
+			throw err
+		} finally {
+			setLoading((prev) => ({ ...prev, address: false }))
+		}
+	}, [customer.addressDraft])
+
+	const setDefaultAddress = useCallback(async (addressId: string) => {
+		setLoading((prev) => ({ ...prev, address: true }))
+		setErrors((prev) => ({ ...prev, address: null }))
+
+		try {
+			await setDefaultCustomerAddress(addressId)
+			const addresses = await listCustomerAddresses()
+			setCustomer((prev) => ({ ...prev, addresses }))
+		} catch (err) {
+			const msg = getErrorMessage(
+				err,
+				"تعذّر تعيين العنوان الافتراضي، حاول مجدداً.",
+			)
+			setErrors((prev) => ({ ...prev, address: msg }))
+			throw err
+		} finally {
+			setLoading((prev) => ({ ...prev, address: false }))
+		}
+	}, [])
+
+	const deleteAddress = useCallback(async (addressId: string) => {
+		setLoading((prev) => ({ ...prev, address: true }))
+		setErrors((prev) => ({ ...prev, address: null }))
+
+		try {
+			await deleteCustomerAddress(addressId)
+			const addresses = await listCustomerAddresses()
+			setCustomer((prev) => ({ ...prev, addresses }))
+		} catch (err) {
+			const msg = getErrorMessage(err, "تعذّر حذف العنوان، حاول مجدداً.")
+			setErrors((prev) => ({ ...prev, address: msg }))
+			throw err
+		} finally {
+			setLoading((prev) => ({ ...prev, address: false }))
+		}
 	}, [])
 
 	const searchProducts = useCallback(
@@ -296,6 +570,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 		loading,
 		errors,
 		productsPage,
+		customer,
 		actions: {
 			login,
 			verifyOtp,
@@ -305,6 +580,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 			logout,
 			searchProducts,
 			productsPage: productsPageActions,
+			customer: {
+				setProfileDraftField,
+				saveProfile,
+				setMarketingPref,
+				setAddressDraftField,
+				setAddressDraftLocation,
+				createAddress,
+				setDefaultAddress,
+				deleteAddress,
+				refreshCustomer,
+			},
 		},
 	}
 

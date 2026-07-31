@@ -1,0 +1,25 @@
+.ContentMap {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ContentMap-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.ContentMap-map {
+  width: 100%;
+  border-radius: 8px;
+}

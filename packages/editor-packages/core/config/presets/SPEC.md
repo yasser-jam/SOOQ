@@ -172,6 +172,7 @@ Defined in `config/presets/index.ts`. Inserted via `insertPresetSection()` → P
 | `header` | empty (coming soon) |
 | `footer` | empty (coming soon) |
 | `products-grid` | Products grid, product card, product detail, **products page** presets |
+| `account` | Profile, marketing preferences, saved addresses, add-address form (`customer-account` / `customer-addresses` section kinds) |
 
 ### Preset: `image-text-two-columns`
 

@@ -10,6 +10,10 @@ export const BUTTON_ACTIONS = [
   "verifyOtp",
   "cartQtyIncrease",
   "cartQtyDecrease",
+  "saveProfile",
+  "createAddress",
+  "setDefaultAddress",
+  "deleteAddress",
 ] as const;
 
 export type ButtonAction = (typeof BUTTON_ACTIONS)[number];
@@ -24,6 +28,10 @@ export const BUTTON_ACTION_OPTIONS: { label: string; value: ButtonAction }[] = [
   { label: "تحقق من الرمز", value: "verifyOtp" },
   { label: "زيادة الكمية", value: "cartQtyIncrease" },
   { label: "تقليل الكمية", value: "cartQtyDecrease" },
+  { label: "حفظ الملف الشخصي", value: "saveProfile" },
+  { label: "حفظ العنوان", value: "createAddress" },
+  { label: "تعيين كعنوان افتراضي", value: "setDefaultAddress" },
+  { label: "حذف العنوان", value: "deleteAddress" },
 ];
 
 export const BUTTON_FUNCTIONAL_ACTION_OPTIONS = BUTTON_ACTION_OPTIONS.filter(
@@ -42,6 +50,10 @@ export function buttonActionLabel(action: ButtonAction): string {
     verifyOtp: "تحقق من الرمز",
     cartQtyIncrease: "زيادة الكمية",
     cartQtyDecrease: "تقليل الكمية",
+    saveProfile: "حفظ الملف الشخصي",
+    createAddress: "حفظ العنوان",
+    setDefaultAddress: "تعيين كعنوان افتراضي",
+    deleteAddress: "حذف العنوان",
   };
   return map[action];
 }

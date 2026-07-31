@@ -6,6 +6,7 @@ import { StorefrontProviders } from "@/modules/storefront/components/storefront-
 
 import "@/core/styles.css"
 import "@/modules/storefront/styles/storefront.css"
+import "leaflet/dist/leaflet.css"
 
 type PublishedStoreLayoutProps = {
 	children: React.ReactNode

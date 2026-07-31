@@ -3265,6 +3265,820 @@
           }
         }
       ]
+    },
+    {
+      "path": "/settings",
+      "slug": "/settings",
+      "link": "/settings",
+      "title": "/settings",
+      "name": "الإعدادات",
+      "iconName": "FileText",
+      "isCustom": false,
+      "description": "إدارة الملف الشخصي والعناوين وتفضيلات التسويق.",
+      "content": [
+        {
+          "type": "Section",
+          "props": {
+            "id": "Section-settings-signedout",
+            "name": "تسجيل الدخول",
+            "anchorId": "settings-signedout",
+            "visible": true,
+            "showCondition": "loggedOut",
+            "paddingTop": "48px",
+            "paddingBottom": "24px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#faf5ff",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "theme": "dark",
+            "maxWidth": "640px",
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-settings-signedout",
+                  "direction": "column",
+                  "gap": 18,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "language": "ar",
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "Heading-settings-signedout",
+                        "text": "سجّل دخولك لعرض إعدادات حسابك.",
+                        "level": "1",
+                        "textAlign": "center",
+                        "fontFamily": "body",
+                        "fontSize": "theme-xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-settings-signedout",
+                        "text": "يمكنك تسجيل الدخول برقم هاتفك لمتابعة طلباتك وإدارة حسابك.",
+                        "textAlign": "center",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-normal",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-neutral"
+                      }
+                    },
+                    {
+                      "type": "ContentLink",
+                      "props": {
+                        "id": "Link-settings-login",
+                        "title": "تسجيل الدخول",
+                        "link": {
+                          "kind": "page",
+                          "pageId": "/login"
+                        },
+                        "align": "center",
+                        "color": "theme-primary",
+                        "hoverEffect": "underline",
+                        "hoverColor": "theme-text",
+                        "fontSize": "theme-sm",
+                        "icon": "arrow-left",
+                        "iconPosition": "end"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "id": "Section-settings-profile",
+            "name": "الملف الشخصي",
+            "anchorId": "settings-profile",
+            "visible": true,
+            "showCondition": "loggedIn",
+            "paddingTop": "24px",
+            "paddingBottom": "24px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#faf5ff",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "theme": "dark",
+            "maxWidth": "720px",
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "sectionKind": "customer-account",
+            "metadata": {
+              "preset": "customer-account"
+            },
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-settings-profile-card",
+                  "direction": "column",
+                  "gap": 18,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "language": "ar",
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "Heading-settings-profile",
+                        "text": "المعلومات الشخصية",
+                        "level": "2",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "id": "RowGroup-settings-order-count",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-settings-order-label",
+                              "text": "عدد الطلبات",
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-light",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-neutral"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-settings-order-value",
+                              "text": "",
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-light",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-neutral",
+                              "valueContext": {
+                                "path": "profile.orderCount"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "id": "RowGroup-settings-spend",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-settings-spend-label",
+                              "text": "إجمالي الإنفاق",
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-light",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-neutral"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-settings-spend-value",
+                              "text": "",
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-light",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-neutral",
+                              "valueContext": {
+                                "path": "profile.totalSpendSyp"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "id": "Input-settings-full-name",
+                        "label": "الاسم الكامل",
+                        "name": "fullName",
+                        "inputType": "text",
+                        "placeholder": "أدخل اسمك",
+                        "required": true,
+                        "prependIcon": "none",
+                        "inputAction": "profile_full_name"
+                      }
+                    },
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "id": "Input-settings-phone",
+                        "label": "رقم الهاتف",
+                        "name": "phone",
+                        "inputType": "tel",
+                        "placeholder": "+963...",
+                        "required": false,
+                        "prependIcon": "none",
+                        "inputAction": "",
+                        "valueContext": {
+                          "path": "profile.phone"
+                        }
+                      }
+                    },
+                    {
+                      "type": "ContentButton",
+                      "props": {
+                        "id": "Button-settings-save-profile",
+                        "label": "حفظ التغييرات",
+                        "align": "center",
+                        "destinationType": "action",
+                        "buttonAction": "saveProfile",
+                        "link": {
+                          "kind": "none"
+                        },
+                        "zoneKey": "popup-main",
+                        "zoneAction": "open",
+                        "buttonVariantMode": "variant",
+                        "buttonVariant": "primary",
+                        "buttonVariantSize": "lg",
+                        "radius": "theme-full",
+                        "bgColor": "theme-primary",
+                        "textColor": "theme-surface",
+                        "buttonSize": "theme-lg",
+                        "submitRedirectUrl": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "id": "Section-settings-marketing",
+            "name": "تفضيلات التسويق",
+            "anchorId": "settings-marketing",
+            "visible": true,
+            "showCondition": "loggedIn",
+            "paddingTop": "24px",
+            "paddingBottom": "24px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#faf5ff",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "theme": "dark",
+            "maxWidth": "720px",
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "sectionKind": "customer-account",
+            "metadata": {
+              "preset": "customer-account"
+            },
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-settings-marketing",
+                  "direction": "column",
+                  "gap": 18,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "language": "ar",
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "Heading-settings-marketing",
+                        "text": "تفضيلات التسويق",
+                        "level": "2",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-settings-marketing",
+                        "text": "اختر كيف تحب أن نصلك بالعروض.",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-normal",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-neutral"
+                      }
+                    },
+                    {
+                      "type": "ContentSwitch",
+                      "props": {
+                        "id": "Switch-settings-email",
+                        "label": "رسائل البريد الإلكتروني",
+                        "name": "email-opt-in",
+                        "helperText": "",
+                        "defaultChecked": false,
+                        "labelPosition": "start",
+                        "switchAction": "marketing_email_opt_in"
+                      }
+                    },
+                    {
+                      "type": "ContentSwitch",
+                      "props": {
+                        "id": "Switch-settings-sms",
+                        "label": "الرسائل النصية",
+                        "name": "sms-opt-in",
+                        "helperText": "",
+                        "defaultChecked": false,
+                        "labelPosition": "start",
+                        "switchAction": "marketing_sms_opt_in"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "id": "Section-settings-addresses",
+            "name": "عناويني",
+            "anchorId": "settings-addresses",
+            "visible": true,
+            "showCondition": "loggedIn",
+            "paddingTop": "24px",
+            "paddingBottom": "24px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#faf5ff",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "theme": "dark",
+            "maxWidth": "720px",
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "sectionKind": "customer-addresses",
+            "metadata": {
+              "preset": "customer-addresses"
+            },
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-settings-address-row",
+                  "direction": "column",
+                  "gap": 18,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "language": "ar",
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "Heading-settings-address-label",
+                        "text": "",
+                        "level": "3",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "address.label"
+                        }
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-settings-address-governorate",
+                        "text": "",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-normal",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-neutral",
+                        "valueContext": {
+                          "path": "address.governorate"
+                        }
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-settings-address-city",
+                        "text": "",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-normal",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-neutral",
+                        "valueContext": {
+                          "path": "address.city"
+                        }
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-settings-address-street",
+                        "text": "",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-normal",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-neutral",
+                        "valueContext": {
+                          "path": "address.streetAddress"
+                        }
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "id": "RowGroup-settings-address-actions",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none",
+                        "content": [
+                          {
+                            "type": "ContentButton",
+                            "props": {
+                              "id": "Button-settings-set-default",
+                              "label": "تعيين كافتراضي",
+                              "align": "center",
+                              "destinationType": "action",
+                              "buttonAction": "setDefaultAddress",
+                              "link": {
+                                "kind": "none"
+                              },
+                              "zoneKey": "popup-main",
+                              "zoneAction": "open",
+                              "buttonVariantMode": "variant",
+                              "buttonVariant": "secondary",
+                              "buttonVariantSize": "lg",
+                              "radius": "theme-full",
+                              "bgColor": "theme-primary",
+                              "textColor": "theme-surface",
+                              "buttonSize": "theme-lg",
+                              "submitRedirectUrl": ""
+                            }
+                          },
+                          {
+                            "type": "ContentButton",
+                            "props": {
+                              "id": "Button-settings-delete-address",
+                              "label": "حذف",
+                              "align": "center",
+                              "destinationType": "action",
+                              "buttonAction": "deleteAddress",
+                              "link": {
+                                "kind": "none"
+                              },
+                              "zoneKey": "popup-main",
+                              "zoneAction": "open",
+                              "buttonVariantMode": "variant",
+                              "buttonVariant": "error",
+                              "buttonVariantSize": "lg",
+                              "radius": "theme-full",
+                              "bgColor": "theme-primary",
+                              "textColor": "theme-surface",
+                              "buttonSize": "theme-lg",
+                              "submitRedirectUrl": ""
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "id": "Section-settings-address-form",
+            "name": "إضافة عنوان جديد",
+            "anchorId": "settings-address-form",
+            "visible": true,
+            "showCondition": "loggedIn",
+            "paddingTop": "24px",
+            "paddingBottom": "48px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#faf5ff",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "theme": "dark",
+            "maxWidth": "720px",
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "sectionKind": "customer-account",
+            "metadata": {
+              "preset": "customer-account"
+            },
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-settings-address-form",
+                  "direction": "column",
+                  "gap": 18,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "language": "ar",
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "Heading-settings-address-form",
+                        "text": "إضافة عنوان جديد",
+                        "level": "2",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text"
+                      }
+                    },
+                    {
+                      "type": "ContentMap",
+                      "props": {
+                        "id": "Map-settings-address",
+                        "heightPx": 260,
+                        "zoom": 13,
+                        "defaultLat": 33.5138,
+                        "defaultLng": 36.2765,
+                        "interactive": true,
+                        "mapAction": "address_draft_location"
+                      }
+                    },
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "id": "Input-settings-address-label",
+                        "label": "التسمية",
+                        "name": "address-label",
+                        "inputType": "text",
+                        "placeholder": "",
+                        "required": false,
+                        "prependIcon": "none",
+                        "inputAction": "address_label"
+                      }
+                    },
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "id": "Input-settings-address-recipient-name",
+                        "label": "اسم المستلم",
+                        "name": "address-recipient-name",
+                        "inputType": "text",
+                        "placeholder": "",
+                        "required": false,
+                        "prependIcon": "none",
+                        "inputAction": "address_recipient_name"
+                      }
+                    },
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "id": "Input-settings-address-recipient-phone",
+                        "label": "رقم هاتف المستلم",
+                        "name": "address-recipient-phone",
+                        "inputType": "tel",
+                        "placeholder": "+963...",
+                        "required": false,
+                        "prependIcon": "none",
+                        "inputAction": "address_recipient_phone"
+                      }
+                    },
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "id": "Input-settings-address-governorate",
+                        "label": "المحافظة",
+                        "name": "address-governorate",
+                        "inputType": "text",
+                        "placeholder": "",
+                        "required": false,
+                        "prependIcon": "none",
+                        "inputAction": "address_governorate"
+                      }
+                    },
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "id": "Input-settings-address-city",
+                        "label": "المدينة",
+                        "name": "address-city",
+                        "inputType": "text",
+                        "placeholder": "",
+                        "required": false,
+                        "prependIcon": "none",
+                        "inputAction": "address_city"
+                      }
+                    },
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "id": "Input-settings-address-street",
+                        "label": "العنوان التفصيلي",
+                        "name": "address-street",
+                        "inputType": "text",
+                        "placeholder": "",
+                        "required": false,
+                        "prependIcon": "none",
+                        "inputAction": "address_street"
+                      }
+                    },
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "id": "Input-settings-address-notes",
+                        "label": "ملاحظات",
+                        "name": "address-notes",
+                        "inputType": "text",
+                        "placeholder": "",
+                        "required": false,
+                        "prependIcon": "none",
+                        "inputAction": "address_notes"
+                      }
+                    },
+                    {
+                      "type": "ContentSwitch",
+                      "props": {
+                        "id": "Switch-settings-address-default",
+                        "label": "تعيين كعنوان افتراضي",
+                        "name": "address-is-default",
+                        "helperText": "",
+                        "defaultChecked": false,
+                        "labelPosition": "start",
+                        "switchAction": "address_is_default"
+                      }
+                    },
+                    {
+                      "type": "ContentButton",
+                      "props": {
+                        "id": "Button-settings-create-address",
+                        "label": "حفظ العنوان",
+                        "align": "center",
+                        "destinationType": "action",
+                        "buttonAction": "createAddress",
+                        "link": {
+                          "kind": "none"
+                        },
+                        "zoneKey": "popup-main",
+                        "zoneAction": "open",
+                        "buttonVariantMode": "variant",
+                        "buttonVariant": "primary",
+                        "buttonVariantSize": "lg",
+                        "radius": "theme-full",
+                        "bgColor": "theme-primary",
+                        "textColor": "theme-surface",
+                        "buttonSize": "theme-lg",
+                        "submitRedirectUrl": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
     }
   ]
 }

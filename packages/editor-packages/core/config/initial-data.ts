@@ -2,6 +2,7 @@ import { UserData } from "./types";
 import { products } from "./data/products";
 import { createProductDetailSection } from "./presets/products-grid";
 import { createCartPageContent } from "./presets/cart";
+import { createSettingsPageContent } from "./presets/account";
 import {
   buildThemesGalleryData,
   buildAllThemeDemoInitialEntries,
@@ -285,6 +286,19 @@ export const initialData: Record<string, UserData> = {
     },
     zones: {},
     content: createCartPageContent(),
+  },
+
+  "/settings": {
+    root: {
+      props: {
+        title: "Account Settings",
+        bodyFont: "system",
+        fontOption1: "system",
+        fontOption2: "system",
+      },
+    },
+    zones: {},
+    content: createSettingsPageContent(),
   },
 
   // ── Product details page (dynamic /products/:product-slug) ──────────────

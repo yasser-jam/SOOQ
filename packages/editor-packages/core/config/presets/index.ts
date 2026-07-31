@@ -1,3 +1,4 @@
+import { ACCOUNT_PRESETS } from "./account";
 import { CART_PRESETS } from "./cart";
 import { FOOTER_PRESETS, ZONE_FOOTER_PRESETS } from "./footer";
 import { FORMS_PRESETS } from "./forms";
@@ -30,6 +31,7 @@ export const PRESET_CATEGORY_LABELS: Record<SectionPresetCategory, string> = {
   "products-grid": "شبكة المنتجات",
   forms: "استبيانات",
   cart: "السلة",
+  account: "الحساب",
 };
 
 export const PRESET_CATEGORY_ORDER: SectionPresetCategory[] = [
@@ -38,6 +40,7 @@ export const PRESET_CATEGORY_ORDER: SectionPresetCategory[] = [
   "products-grid",
   "forms",
   "cart",
+  "account",
 ];
 
 export const ZONE_PRESET_CATEGORY_LABELS: Record<ZonePresetCategory, string> = {
@@ -63,6 +66,7 @@ export const SECTION_PRESETS: SectionPreset[] = [
   ...PRODUCTS_PAGE_PRESETS,
   ...FORMS_PRESETS,
   ...CART_PRESETS,
+  ...ACCOUNT_PRESETS,
 ];
 
 export const ZONE_PRESETS: ZonePreset[] = [
@@ -92,6 +96,7 @@ export function getHeaderPresetById(id: string): ZonePreset | undefined {
 export { applyHeaderZonePreset } from "../lib/apply-zone-preset";
 
 export {
+  ACCOUNT_PRESETS,
   CART_PRESETS,
   FORMS_PRESETS,
   GENERAL_PRESETS,
@@ -132,3 +137,4 @@ export {
   createCartSectionPreset,
   createCartPageContent,
 } from "./cart";
+export { createSettingsPageContent } from "./account";

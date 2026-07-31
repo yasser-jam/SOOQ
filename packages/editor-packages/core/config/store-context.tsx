@@ -30,12 +30,18 @@ export type StoreLoadingState = {
   login: boolean;
   verifyOtp: boolean;
   makeOrder: boolean;
+  profile: boolean;
+  preferences: boolean;
+  address: boolean;
 };
 
 export type StoreErrorState = {
   login: string | null;
   verifyOtp: string | null;
   makeOrder: string | null;
+  profile: string | null;
+  preferences: string | null;
+  address: string | null;
 };
 
 // ─── Products page (searchable listing) ───────────────────────────────────────
@@ -68,6 +74,81 @@ export type ProductsPageActions = {
   resetProductsPage: () => void;
 };
 
+// ─── Customer account (settings page) ─────────────────────────────────────────
+
+export type CustomerProfile = {
+  customerId: string;
+  fullName: string;
+  phone: string;
+  totalSpendSyp: number;
+  orderCount: number;
+  lastOrderAt: string | null;
+  createdAt: string | null;
+};
+
+export type CustomerPreferences = {
+  emailOptIn: boolean;
+  smsOptIn: boolean;
+  emailConsentedAt: string | null;
+  smsConsentedAt: string | null;
+};
+
+export type CustomerAddress = {
+  addressId: string;
+  label: string | null;
+  recipientName: string | null;
+  recipientPhone: string | null;
+  governorate: string;
+  city: string | null;
+  streetAddress: string | null;
+  notes: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  isDefault: boolean;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+/** Working copy for the "add address" form; each field is written by one inputAction. */
+export type CustomerAddressDraft = {
+  label: string;
+  recipientName: string;
+  recipientPhone: string;
+  governorate: string;
+  city: string;
+  streetAddress: string;
+  notes: string;
+  latitude: number | null;
+  longitude: number | null;
+  isDefault: boolean;
+};
+
+export type CustomerState = {
+  profile: CustomerProfile | null;
+  preferences: CustomerPreferences | null;
+  addresses: CustomerAddress[];
+  profileDraft: { fullName: string };
+  addressDraft: CustomerAddressDraft;
+  isLoading: boolean;
+  isError: boolean;
+};
+
+export type CustomerActions = {
+  setProfileDraftField: (field: "fullName", value: string) => void;
+  saveProfile: () => Promise<void>;
+  setMarketingPref: (channel: "email" | "sms", value: boolean) => Promise<void>;
+  setAddressDraftField: (
+    field: keyof CustomerAddressDraft,
+    value: string | number | boolean | null
+  ) => void;
+  /** Called by ContentMap; the provider reverse-geocodes and fills governorate/city/street. */
+  setAddressDraftLocation: (latitude: number, longitude: number) => void;
+  createAddress: () => Promise<void>;
+  setDefaultAddress: (addressId: string) => Promise<void>;
+  deleteAddress: (addressId: string) => Promise<void>;
+  refreshCustomer: () => Promise<void>;
+};
+
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
 export type StoreContextActions = {
@@ -94,8 +175,10 @@ export type StoreContextValue = {
   loading: StoreLoadingState;
   errors: StoreErrorState;
   productsPage: ProductsPageState;
+  customer: CustomerState;
   actions: StoreContextActions & {
     productsPage: ProductsPageActions;
+    customer: CustomerActions;
   };
 };
 
@@ -129,6 +212,39 @@ const defaultProductsPageActions: ProductsPageActions = {
   resetProductsPage: noop,
 };
 
+export const defaultCustomerState: CustomerState = {
+  profile: null,
+  preferences: null,
+  addresses: [],
+  profileDraft: { fullName: "" },
+  addressDraft: {
+    label: "",
+    recipientName: "",
+    recipientPhone: "",
+    governorate: "",
+    city: "",
+    streetAddress: "",
+    notes: "",
+    latitude: null,
+    longitude: null,
+    isDefault: false,
+  },
+  isLoading: false,
+  isError: false,
+};
+
+const defaultCustomerActions: CustomerActions = {
+  setProfileDraftField: noop,
+  saveProfile: noopAsync,
+  setMarketingPref: noopAsync,
+  setAddressDraftField: noop,
+  setAddressDraftLocation: noop,
+  createAddress: noopAsync,
+  setDefaultAddress: noopAsync,
+  deleteAddress: noopAsync,
+  refreshCustomer: noopAsync,
+};
+
 const defaultValue: StoreContextValue = {
   auth: {
     isLoggedIn: false,
@@ -139,13 +255,20 @@ const defaultValue: StoreContextValue = {
     login: false,
     verifyOtp: false,
     makeOrder: false,
+    profile: false,
+    preferences: false,
+    address: false,
   },
   errors: {
     login: null,
     verifyOtp: null,
     makeOrder: null,
+    profile: null,
+    preferences: null,
+    address: null,
   },
   productsPage: defaultProductsPageState,
+  customer: defaultCustomerState,
   actions: {
     login: noopAsync,
     verifyOtp: noopAsync,
@@ -155,6 +278,7 @@ const defaultValue: StoreContextValue = {
     logout: noop,
     searchProducts: noop,
     productsPage: defaultProductsPageActions,
+    customer: defaultCustomerActions,
   },
 };
 

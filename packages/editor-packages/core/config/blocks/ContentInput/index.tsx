@@ -7,10 +7,14 @@ import { getClassNameFactory } from "@/core/lib";
 import { WithLayout, withLayout } from "../../components/Layout";
 import { SOOQ_INPUT_ATTR } from "../../lib/login-events";
 import {
+  ADDRESS_DRAFT_FIELD_BY_ACTION,
   INPUT_ACTION_OPTIONS,
+  isAddressDraftInputAction,
   isPriceFilterInputAction,
   type InputAction,
 } from "../../content/input-actions";
+import type { ValueContext } from "../../binding";
+import { useBoundValue } from "../../binding";
 import { useStore } from "../../store-context";
 import styles from "./styles.module.css";
 
@@ -27,6 +31,7 @@ export type ContentInputProps = WithLayout<{
   prependIcon: ContentInputPrependIcon;
   inputAction: InputAction | "";
   debounceMs: number;
+  valueContext?: ValueContext | null;
 }>;
 
 const PREPEND_ICON_OPTIONS = [
@@ -104,32 +109,50 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
     prependIcon = "none",
     inputAction = "",
     debounceMs = 250,
+    valueContext,
     puck,
   }) => {
-    const { productsPage, actions } = useStore();
+    const { productsPage, customer, actions } = useStore();
+    const contextBoundValue = useBoundValue(placeholder || "", valueContext);
+
     const isSearchProducts = inputAction === "search_products";
     const isPriceFilter = isPriceFilterInputAction(inputAction);
-    const isBound = isSearchProducts || isPriceFilter;
+    const isProfileFullName = inputAction === "profile_full_name";
+    const isAddressDraft = isAddressDraftInputAction(inputAction);
+    const isCustomerDraft = isProfileFullName || isAddressDraft;
+    const isContextDisplay =
+      inputAction === "" && Boolean(valueContext?.path);
+    const isDebouncedBound = isSearchProducts || isPriceFilter;
+    const isImmediateBound = isCustomerDraft || isContextDisplay;
+    const isBound = isDebouncedBound || isImmediateBound;
 
-    // The store value this input mirrors, as a string.
+    const addressDraftField = isAddressDraft
+      ? ADDRESS_DRAFT_FIELD_BY_ACTION[inputAction]
+      : null;
+
     const boundValue = isSearchProducts
       ? productsPage.search
       : inputAction === "filter_min_price"
         ? (productsPage.minPrice?.toString() ?? "")
         : inputAction === "filter_max_price"
           ? (productsPage.maxPrice?.toString() ?? "")
-          : "";
+          : isProfileFullName
+            ? customer.profileDraft.fullName
+            : addressDraftField
+              ? String(customer.addressDraft[addressDraftField] ?? "")
+              : isContextDisplay
+                ? contextBoundValue
+                : "";
 
     const [localValue, setLocalValue] = useState(boundValue);
 
-    // Re-sync when the store changes underneath us (URL hydration, reset…).
     useEffect(() => {
       if (!isBound) return;
       setLocalValue(boundValue);
     }, [isBound, boundValue]);
 
     useEffect(() => {
-      if (!isBound || puck.isEditing) return;
+      if (!isDebouncedBound || puck.isEditing) return;
       if (localValue === boundValue) return;
 
       const timer = setTimeout(() => {
@@ -152,11 +175,25 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
       boundValue,
       debounceMs,
       inputAction,
-      isBound,
+      isDebouncedBound,
       isSearchProducts,
       localValue,
       puck.isEditing,
     ]);
+
+    const handleChange = (next: string) => {
+      setLocalValue(next);
+      if (puck.isEditing || isContextDisplay) return;
+
+      if (isProfileFullName) {
+        actions.customer.setProfileDraftField("fullName", next);
+        return;
+      }
+
+      if (addressDraftField) {
+        actions.customer.setAddressDraftField(addressDraftField, next);
+      }
+    };
 
     const resolvedType = isSearchProducts
       ? "search"
@@ -177,6 +214,7 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
         placeholder={placeholder}
         required={required}
         disabled={puck.isEditing}
+        readOnly={isContextDisplay && !puck.isEditing}
         dir={
           resolvedType === "email" ||
           resolvedType === "tel" ||
@@ -188,7 +226,9 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
         inputMode={isPriceFilter ? "numeric" : undefined}
         value={isBound ? localValue : undefined}
         onChange={
-          isBound ? (event) => setLocalValue(event.target.value) : undefined
+          isBound && !isContextDisplay
+            ? (event) => handleChange(event.target.value)
+            : undefined
         }
         aria-label={!label.trim() ? placeholder || label : undefined}
         {...{ [SOOQ_INPUT_ATTR]: "" }}
@@ -222,6 +262,14 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
 
 const WithLayoutContentInput = withLayout(ContentInputInner);
 
+function shouldHideDebounceMs(inputAction: InputAction | ""): boolean {
+  return (
+    inputAction === "" ||
+    inputAction === "profile_full_name" ||
+    isAddressDraftInputAction(inputAction)
+  );
+}
+
 export const ContentInput: typeof WithLayoutContentInput = {
   ...WithLayoutContentInput,
   resolveFields: (data, params) => {
@@ -235,11 +283,9 @@ export const ContentInput: typeof WithLayoutContentInput = {
 
     const apply = (f: Record<string, unknown>) => {
       const next = { ...f };
-      // `debounceMs` only matters for the store-bound actions.
-      if (inputAction === "") {
+      if (shouldHideDebounceMs(inputAction)) {
         delete next.debounceMs;
       }
-      // Price filters force `type="number"`; the picker would be a lie.
       if (isPriceFilterInputAction(inputAction)) {
         delete next.inputType;
       }

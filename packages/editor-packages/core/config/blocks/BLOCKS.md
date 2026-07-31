@@ -711,8 +711,9 @@ The `radius` / `bgColor` / `textColor` fields are only exposed in `"custom"` mod
 | `placeholder` | `string` | Placeholder text | `""` |
 | `required` | `boolean` | Mark input as required | `false` |
 | `prependIcon` | `"none" \| "search"` | Leading icon inside the field | `"none"` |
-| `inputAction` | `"" \| "search_products" \| "filter_min_price" \| "filter_max_price"` | Wired store action (`""` = none) | `""` |
-| `debounceMs` | `number` | Debounce for the wired action (hidden when `inputAction = ""`) | `250` |
+| `inputAction` | `"" \| "search_products" \| "filter_min_price" \| "filter_max_price" \| "profile_full_name" \| "address_*"` | Wired store action (`""` = none) | `""` |
+| `valueContext` | `ValueContext \| null` | When set with `inputAction = ""`, resolves the displayed value from bound data (read-only) | `null` |
+| `debounceMs` | `number` | Debounce for search/price actions only (hidden for profile/address actions) | `250` |
 
 ### Behavior
 
@@ -799,7 +800,8 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 | `helperText` | `string` | Small hint below the row (empty = hidden) | `""` |
 | `defaultChecked` | `boolean` | Initial state when **not** bound to a store action | `false` |
 | `labelPosition` | `"start" \| "end"` | Label before or after the switch (RTL-aware) | `"start"` |
-| `switchAction` | `"" \| "filter_in_stock_only"` | Wired store action (`""` = none) | `""` |
+| `switchAction` | `"" \| "filter_in_stock_only" \| "marketing_email_opt_in" \| "marketing_sms_opt_in" \| "address_is_default"` | Wired store action (`""` = none) | `""` |
+| `checkedValueContext` | `ValueContext \| null` | When set, resolves checked state from bound data (`=== "true"`) | `null` |
 
 ### Behavior
 
@@ -840,6 +842,23 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
   }
 }
 ```
+
+---
+
+## ContentMap
+
+**Label:** خريطة  
+**Description:** Interactive OpenStreetMap picker for address drafts. Renders a dashed placeholder in the editor canvas and during SSR; loads Leaflet dynamically on the published storefront only.
+
+### Properties
+
+| Property | Type | Values / Notes | Default |
+|---|---|---|---|
+| `heightPx` | `number` | Map height in pixels | `260` |
+| `zoom` | `number` | Initial zoom level | `13` |
+| `defaultLat` / `defaultLng` | `number` | Default center (Damascus) | `33.5138` / `36.2765` |
+| `interactive` | `boolean` | Allow click/drag pin | `true` |
+| `mapAction` | `"" \| "address_draft_location"` | Writes coords to `actions.customer.setAddressDraftLocation` | `""` |
 
 ---
 

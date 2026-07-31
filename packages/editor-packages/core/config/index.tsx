@@ -36,6 +36,7 @@ import { Chip } from "./blocks/Chip";
 import { ButtonGroup } from "./blocks/ButtonGroup";
 import { ContentLink } from "./blocks/ContentLink";
 import { ContentInput } from "./blocks/ContentInput";
+import { ContentMap } from "./blocks/ContentMap";
 import { ContentSwitch } from "./blocks/ContentSwitch";
 import { ContentDivider } from "./blocks/ContentDivider";
 import { ImageGallery } from "./blocks/ImageGallery";
@@ -94,6 +95,7 @@ export const conf: UserConfig = {
         "ContentLink",
         "ContentInput",
         "ContentSwitch",
+        "ContentMap",
         "ContentDivider",
         "Space",
         "ImageGallery",
@@ -201,6 +203,7 @@ export const conf: UserConfig = {
     ButtonGroup: withShowCondition(ButtonGroup),
     ContentLink: withShowCondition(ContentLink),
     ContentInput: withShowCondition(ContentInput),
+    ContentMap: withShowCondition(ContentMap),
     ContentSwitch: withShowCondition(ContentSwitch),
     ContentDivider: withShowCondition(ContentDivider),
     Space: withShowCondition(Space),

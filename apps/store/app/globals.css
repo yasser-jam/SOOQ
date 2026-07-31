@@ -337,22 +337,6 @@ body {
   font-weight: 600;
 }
 
-/* ── Customer settings (/store/[tenantId]/settings) ───────────────────────── */
-
-.SettingsPage {
-  max-width: 56rem;
-  margin: 0 auto;
-  padding: 2rem 1rem 4rem;
-  font-family: system-ui, sans-serif;
-  color: #0f172a;
-}
-
-.SettingsPage-title {
-  margin: 0 0 1.5rem;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
 .OrdersBack {
   display: inline-block;
   margin-bottom: 1rem;

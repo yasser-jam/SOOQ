@@ -9,6 +9,8 @@ import {
   SWITCH_ACTION_OPTIONS,
   type SwitchAction,
 } from "../../content/switch-actions";
+import type { ValueContext } from "../../binding";
+import { useBoundValue } from "../../binding";
 import { useStore } from "../../store-context";
 import styles from "./styles.module.css";
 
@@ -21,6 +23,7 @@ export type ContentSwitchProps = WithLayout<{
   defaultChecked: boolean;
   labelPosition: "start" | "end";
   switchAction: SwitchAction | "";
+  checkedValueContext?: ValueContext | null;
 }>;
 
 const ContentSwitchInner: ComponentConfig<ContentSwitchProps> = {
@@ -69,23 +72,59 @@ const ContentSwitchInner: ComponentConfig<ContentSwitchProps> = {
     defaultChecked,
     labelPosition = "start",
     switchAction = "",
+    checkedValueContext,
     puck,
   }) => {
-    const { productsPage, actions } = useStore();
+    const { productsPage, customer, actions } = useStore();
+    const contextChecked = useBoundValue("", checkedValueContext) === "true";
+
     const isInStockFilter = switchAction === "filter_in_stock_only";
-    const [localChecked, setLocalChecked] = useState(
-      isInStockFilter ? productsPage.inStockOnly : defaultChecked
-    );
+    const isMarketingEmail = switchAction === "marketing_email_opt_in";
+    const isMarketingSms = switchAction === "marketing_sms_opt_in";
+    const isAddressDefault = switchAction === "address_is_default";
+    const isSwitchActionBound =
+      isInStockFilter || isMarketingEmail || isMarketingSms || isAddressDefault;
+
+    const boundChecked = isInStockFilter
+      ? productsPage.inStockOnly
+      : isMarketingEmail
+        ? (customer.preferences?.emailOptIn ?? false)
+        : isMarketingSms
+          ? (customer.preferences?.smsOptIn ?? false)
+          : isAddressDefault
+            ? customer.addressDraft.isDefault
+            : checkedValueContext?.path
+              ? contextChecked
+              : defaultChecked;
+
+    const [localChecked, setLocalChecked] = useState(boundChecked);
 
     useEffect(() => {
-      if (!isInStockFilter) return;
-      setLocalChecked(productsPage.inStockOnly);
-    }, [isInStockFilter, productsPage.inStockOnly]);
+      if (!isSwitchActionBound && !checkedValueContext?.path) return;
+      setLocalChecked(boundChecked);
+    }, [boundChecked, checkedValueContext?.path, isSwitchActionBound]);
 
-    const handleChange = (checked: boolean) => {
+    const handleChange = async (checked: boolean) => {
       setLocalChecked(checked);
-      if (isInStockFilter && !puck.isEditing) {
+      if (puck.isEditing) return;
+
+      if (isInStockFilter) {
         actions.productsPage.setInStockOnly(checked);
+        return;
+      }
+
+      if (isMarketingEmail) {
+        await actions.customer.setMarketingPref("email", checked);
+        return;
+      }
+
+      if (isMarketingSms) {
+        await actions.customer.setMarketingPref("sms", checked);
+        return;
+      }
+
+      if (isAddressDefault) {
+        actions.customer.setAddressDraftField("isDefault", checked);
       }
     };
 
@@ -109,7 +148,7 @@ const ContentSwitchInner: ComponentConfig<ContentSwitchProps> = {
               disabled={puck.isEditing}
               aria-describedby={helperId}
               aria-label={!label.trim() ? name : undefined}
-              onChange={(event) => handleChange(event.target.checked)}
+              onChange={(event) => void handleChange(event.target.checked)}
               {...{ [SOOQ_INPUT_ATTR]: "" }}
             />
             <span className={getClassName("thumb")} aria-hidden="true" />

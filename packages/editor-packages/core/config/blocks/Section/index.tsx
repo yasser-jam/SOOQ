@@ -32,6 +32,13 @@ import {
 } from "./products-page-section";
 import { ProductsGridTemplateRepeater } from "./ProductsGridTemplateRepeater";
 import { ProductsPageTemplateRepeater } from "./ProductsPageTemplateRepeater";
+import { CustomerAddressesTemplateRepeater } from "./CustomerAddressesTemplateRepeater";
+import {
+  isCustomerAccountSection,
+  isCustomerAddressesSection,
+  SECTION_KIND_CUSTOMER_ACCOUNT,
+  SECTION_KIND_CUSTOMER_ADDRESSES,
+} from "./customer-account-section";
 import {
   isCartSection,
   resolveCartSectionContent,
@@ -50,6 +57,9 @@ import {
   readMobileBreakpointPx,
   type BreakpointThemeProps,
 } from "../../theme";
+import { BoundDataProvider } from "../../binding/BoundDataContext";
+import { useSampleDataInEditor } from "../../data-adapter";
+import { useStore } from "../../store-context";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("Section", styles);
@@ -146,7 +156,13 @@ export type SectionProps = WithLayout<{
   /** Color overlay on top of background image (supports rgba for transparency) */
   backgroundOverlayColor?: string;
   /** @deprecated Prefer `metadata.preset`. Kept for older saved configs. */
-  sectionKind?: typeof SECTION_KIND_PRODUCTS_GRID | typeof SECTION_KIND_PRODUCTS_PAGE | typeof SECTION_KIND_CART | null;
+  sectionKind?:
+    | typeof SECTION_KIND_PRODUCTS_GRID
+    | typeof SECTION_KIND_PRODUCTS_PAGE
+    | typeof SECTION_KIND_CART
+    | typeof SECTION_KIND_CUSTOMER_ACCOUNT
+    | typeof SECTION_KIND_CUSTOMER_ADDRESSES
+    | null;
   /** Identifies preset-driven sections (e.g. products-grid) in store_config.json. */
   metadata?: SectionPresetMetadata | null;
   /** Selected collection — available on every section; drives products-grid fill. */
@@ -469,6 +485,42 @@ function SectionView({
     metadata: sectionMetadata,
   });
 
+  const isCustomerAccount = isCustomerAccountSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const isCustomerAddresses = isCustomerAddressesSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const { customer } = useStore();
+  const sampleMode = isEditing && useSampleDataInEditor();
+
+  const customerAccountBoundData = sampleMode
+    ? {
+        profile: {
+          customerId: "sample-customer",
+          fullName: "أحمد محمد",
+          phone: "+963991234567",
+          totalSpendSyp: 125000,
+          orderCount: 7,
+          lastOrderAt: "2026-01-15T10:00:00Z",
+          createdAt: "2025-06-01T08:00:00Z",
+        },
+        preferences: {
+          emailOptIn: true,
+          smsOptIn: false,
+          emailConsentedAt: "2025-06-01T08:00:00Z",
+          smsConsentedAt: null,
+        },
+      }
+    : {
+        profile: customer.profile,
+        preferences: customer.preferences,
+      };
+
   const productsGridRender = isProductsGrid ? (
     <ProductsGridTemplateRepeater
       // Puck types `content: Slot` on props but transforms it into a
@@ -497,12 +549,48 @@ function SectionView({
     />
   ) : null;
 
+  const customerAddressesRender = isCustomerAddresses ? (
+    <CustomerAddressesTemplateRepeater
+      editableSlot={Content as unknown as SlotComponent}
+      cardTemplate={cardTemplate?.[0] ?? undefined}
+      sectionId={id}
+      isEditing={isEditing}
+      activeCols={activeCols}
+      gap={gap}
+      gridClassName={gridClassName}
+    />
+  ) : null;
+
+  const defaultSectionContent = (
+    <Content className={gridClassName} style={gridStyle} />
+  );
+
+  const customerAccountContent = isCustomerAccount ? (
+    <BoundDataProvider
+      value={{
+        data: customerAccountBoundData,
+        isLoading: false,
+        isError: false,
+        metadata: null,
+        language: "ar",
+        selectedVariantId: null,
+        setSelectedVariantId: () => {},
+      }}
+    >
+      {defaultSectionContent}
+    </BoundDataProvider>
+  ) : (
+    defaultSectionContent
+  );
+
   const sectionGridContent = isProductsGrid ? (
     productsGridRender
   ) : isProductsPage ? (
     productsPageRender
+  ) : isCustomerAddresses ? (
+    customerAddressesRender
   ) : (
-    <Content className={gridClassName} style={gridStyle} />
+    customerAccountContent
   );
 
   const wrappedSectionGridContent = sectionGridContent;
@@ -518,9 +606,13 @@ function SectionView({
             ? SECTION_KIND_PRODUCTS_PAGE
           : isCartSection({ sectionKind, metadata: sectionMetadata })
             ? SECTION_KIND_CART
-            : isZoneHeaderSection({ sectionKind, metadata: sectionMetadata })
-              ? SECTION_KIND_ZONE_HEADER
-              : undefined
+            : isCustomerAccountSection({ sectionKind, metadata: sectionMetadata })
+              ? SECTION_KIND_CUSTOMER_ACCOUNT
+              : isCustomerAddressesSection({ sectionKind, metadata: sectionMetadata })
+                ? SECTION_KIND_CUSTOMER_ADDRESSES
+                : isZoneHeaderSection({ sectionKind, metadata: sectionMetadata })
+                  ? SECTION_KIND_ZONE_HEADER
+                  : undefined
       }
       className={getClassName({ hidden: isHidden })}
       style={{

@@ -246,7 +246,11 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       destType === "action" &&
       ((action === "login" && loading.login) ||
         (action === "verifyOtp" && loading.verifyOtp) ||
-        (action === "makeOrder" && loading.makeOrder));
+        (action === "makeOrder" && loading.makeOrder) ||
+        (action === "saveProfile" && loading.profile) ||
+        (action === "createAddress" && loading.address) ||
+        (action === "setDefaultAddress" && loading.address) ||
+        (action === "deleteAddress" && loading.address));
 
     const onZoneClick = (e: MouseEvent) => {
       e.preventDefault();
@@ -394,6 +398,68 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       if (action === "logout") {
         actions.logout();
         maybeRedirect();
+        return;
+      }
+
+      if (action === "saveProfile") {
+        try {
+          await actions.customer.saveProfile();
+          maybeRedirect();
+        } catch (err) {
+          window.alert(
+            err instanceof Error ? err.message : "تعذّر حفظ التغييرات، حاول مجدداً."
+          );
+        }
+        return;
+      }
+
+      if (action === "createAddress") {
+        try {
+          await actions.customer.createAddress();
+          maybeRedirect();
+        } catch (err) {
+          window.alert(
+            err instanceof Error ? err.message : "تعذّر حفظ العنوان، حاول مجدداً."
+          );
+        }
+        return;
+      }
+
+      if (action === "setDefaultAddress") {
+        const addressId =
+          typeof boundData?.address === "object" &&
+          boundData.address != null &&
+          "addressId" in boundData.address
+            ? String((boundData.address as { addressId: string }).addressId)
+            : "";
+        if (!addressId) return;
+        try {
+          await actions.customer.setDefaultAddress(addressId);
+        } catch (err) {
+          window.alert(
+            err instanceof Error
+              ? err.message
+              : "تعذّر تعيين العنوان الافتراضي، حاول مجدداً."
+          );
+        }
+        return;
+      }
+
+      if (action === "deleteAddress") {
+        const addressId =
+          typeof boundData?.address === "object" &&
+          boundData.address != null &&
+          "addressId" in boundData.address
+            ? String((boundData.address as { addressId: string }).addressId)
+            : "";
+        if (!addressId) return;
+        try {
+          await actions.customer.deleteAddress(addressId);
+        } catch (err) {
+          window.alert(
+            err instanceof Error ? err.message : "تعذّر حذف العنوان، حاول مجدداً."
+          );
+        }
         return;
       }
     };
