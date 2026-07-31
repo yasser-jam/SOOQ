@@ -1,5 +1,6 @@
 import { api } from "@/lib/api"
-import type { ApiResponse, Page } from "@/lib/types"
+import { normalizePage } from "@/lib/pagination"
+import type { ApiResponse, Page, PagedApiResponse } from "@/lib/types"
 
 import type {
   CodCollectionEntry,
@@ -25,16 +26,28 @@ export const listCodReconciliationBatches = async (
   params: ListCodReconciliationBatchesParams = {}
 ): Promise<CodReconciliationBatchPage> => {
   const response = await api<
-    ApiResponse<Page<CodReconciliationBatchApiModel>>
+    | PagedApiResponse<CodReconciliationBatchApiModel>
+    | ApiResponse<Page<CodReconciliationBatchApiModel>>
   >("/admin/shipping/cod/reconciliation", {
     params,
   })
 
-  const page = response.data ?? {}
+  // Real backend: { data: T[], meta }. Mock: { data: { content: T[] } }.
+  const pageInput = Array.isArray(response.data)
+    ? response
+    : (response.data ?? {})
+
+  const normalized = normalizePage(pageInput, params.size ?? 20)
 
   return {
-    ...page,
-    content: page.content?.map(normalizeBatch) ?? [],
+    content: normalized.items.map(normalizeBatch),
+    totalElements: normalized.totalItems,
+    totalPages: normalized.totalPages,
+    number: normalized.pageIndex,
+    size: normalized.pageSize,
+    first: !normalized.hasPrev,
+    last: !normalized.hasNext,
+    empty: normalized.items.length === 0,
   }
 }
 
