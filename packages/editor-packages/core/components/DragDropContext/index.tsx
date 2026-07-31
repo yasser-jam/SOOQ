@@ -39,8 +39,20 @@ import { useSensors } from "../../lib/dnd/use-sensors";
 import { useSafeId } from "../../lib/use-safe-id";
 import { getFrame } from "../../lib/get-frame";
 import { effect } from "@dnd-kit/state";
+import { recoverDragOperation } from "../../lib/dnd/recover-drag-operation";
 
 const DEBUG = false;
+
+/**
+ * How long to wait for dnd-kit's drop animation to report back before assuming
+ * it will never finish and forcing the operation back to idle.
+ *
+ * The animation itself is 250ms (`duration: moved ? 250 : 0` in the Feedback
+ * plugin) and is scheduled behind `manager.renderer.rendering`, so a healthy
+ * drop settles well inside a second. See `recover-drag-operation.ts` for why
+ * the unhappy path never settles at all.
+ */
+const DROP_WATCHDOG_MS = 1500;
 
 type Events = DragDropEvents<Draggable, Droppable, DragDropManager>;
 type DragCbs = Partial<{ [eventName in keyof Events]: Events[eventName][] }>;
@@ -417,15 +429,51 @@ const DragDropContextClient = ({
             });
           };
 
-          // Delay insert until animation has finished
-          let dispose: () => void | undefined;
+          // Delay insert until animation has finished.
+          //
+          // `effect` runs its body synchronously on creation, so `settle` can
+          // fire before `dispose`/`watchdog` are assigned — hence the flag and
+          // the hoisted bindings. Without them the effect leaks: the old code
+          // called `dispose?.()` while `dispose` was still undefined, leaving a
+          // live subscription that re-ran `onAnimationEnd` (and its stale
+          // dispatches) on every later status change of that draggable.
+          let dispose: (() => void) | undefined;
+          let watchdog: ReturnType<typeof setTimeout> | undefined;
+          let settled = false;
+
+          const settle = () => {
+            if (settled) return;
+            settled = true;
+
+            if (watchdog !== undefined) clearTimeout(watchdog);
+            dispose?.();
+
+            onAnimationEnd();
+          };
 
           dispose = effect(() => {
             if (source.status === "idle") {
-              onAnimationEnd();
-              dispose?.();
+              settle();
             }
           });
+
+          if (!settled) {
+            // dnd-kit can strand the operation at "dropped" if its drop
+            // animation promise rejects — the cursor stays stuck as a closed
+            // hand and every subsequent drag throws. Force it back to idle so
+            // the editor stays usable.
+            watchdog = setTimeout(() => {
+              const wasStuck = recoverDragOperation(manager);
+
+              if (wasStuck) {
+                console.warn(
+                  "[puck] Drop never completed; forced the drag operation back to idle. This is a dnd-kit recovery path, not a normal drop."
+                );
+              }
+
+              settle();
+            }, DROP_WATCHDOG_MS);
+          }
         }}
         onDragOver={(event, manager) => {
           // Prevent the optimistic re-ordering

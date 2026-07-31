@@ -1,0 +1,1211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOOQ Editor — Code Roadmap &amp; Audit</title>
+<style>
+  :root {
+    --bg: #fbfbfa; --panel: #ffffff; --ink: #1c1c1a; --muted: #6b6b64;
+    --line: #e4e2dc; --accent: #2f5fd0; --accent-soft: #eaf0fd;
+    --red: #b32d2d; --red-soft: #fdeceb; --amber: #9a6210; --amber-soft: #fdf3e2;
+    --green: #1f6b45; --green-soft: #e9f5ee; --code-bg: #f4f3f0;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  html { color-scheme: light dark; }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16171a; --panel: #1e2024; --ink: #e8e8e6; --muted: #9a9a94;
+      --line: #32343a; --accent: #7ba3f5; --accent-soft: #1e2a44;
+      --red: #f08a84; --red-soft: #3a1f1e; --amber: #e0b166; --amber-soft: #362a17;
+      --green: #79ceA1; --green-soft: #17301f; --code-bg: #24262b;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #fbfbfa; --panel: #ffffff; --ink: #1c1c1a; --muted: #6b6b64;
+    --line: #e4e2dc; --accent: #2f5fd0; --accent-soft: #eaf0fd;
+    --red: #b32d2d; --red-soft: #fdeceb; --amber: #9a6210; --amber-soft: #fdf3e2;
+    --green: #1f6b45; --green-soft: #e9f5ee; --code-bg: #f4f3f0;
+  }
+  :root[data-theme="dark"] {
+    --bg: #16171a; --panel: #1e2024; --ink: #e8e8e6; --muted: #9a9a94;
+    --line: #32343a; --accent: #7ba3f5; --accent-soft: #1e2a44;
+    --red: #f08a84; --red-soft: #3a1f1e; --amber: #e0b166; --amber-soft: #362a17;
+    --green: #79ceA1; --green-soft: #17301f; --code-bg: #24262b;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { display: grid; grid-template-columns: 246px minmax(0, 1fr); gap: 44px;
+          max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; gap: 0; } nav.toc { position: static !important; height: auto !important; border-right: 0 !important; padding: 20px 0 !important; } }
+
+  nav.toc {
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    padding: 34px 18px 40px 0; border-right: 1px solid var(--line); font-size: 13px;
+  }
+  nav.toc .brand { font-weight: 700; letter-spacing: -0.01em; margin-bottom: 4px; font-size: 14px; }
+  nav.toc .sub { color: var(--muted); font-size: 11.5px; margin-bottom: 22px; }
+  nav.toc a { display: block; color: var(--muted); text-decoration: none;
+              padding: 4px 0 4px 10px; border-left: 2px solid transparent; }
+  nav.toc a:hover { color: var(--ink); border-left-color: var(--accent); }
+  nav.toc a.lvl2 { padding-left: 22px; font-size: 12.5px; }
+  nav.toc .grp { margin-top: 16px; font-size: 10.5px; text-transform: uppercase;
+                 letter-spacing: .09em; color: var(--muted); opacity: .75; padding-left: 10px; }
+
+  main { padding: 40px 0 120px; min-width: 0; }
+  h1 { font-size: 30px; letter-spacing: -0.025em; margin: 0 0 8px; line-height: 1.2; }
+  h2 { font-size: 21px; letter-spacing: -0.02em; margin: 54px 0 14px;
+       padding-bottom: 9px; border-bottom: 1px solid var(--line); scroll-margin-top: 20px; }
+  h3 { font-size: 16px; margin: 30px 0 10px; letter-spacing: -0.01em; scroll-margin-top: 20px; }
+  h4 { font-size: 13.5px; margin: 20px 0 8px; color: var(--muted);
+       text-transform: uppercase; letter-spacing: .06em; }
+  p { margin: 0 0 13px; }
+  ul, ol { margin: 0 0 13px; padding-left: 22px; }
+  li { margin-bottom: 5px; }
+  a { color: var(--accent); }
+
+  code { font-family: var(--mono); font-size: .87em; background: var(--code-bg);
+         padding: 1.5px 5px; border-radius: 4px; }
+  pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+        padding: 14px 16px; overflow-x: auto; font-family: var(--mono);
+        font-size: 12.5px; line-height: 1.6; margin: 0 0 16px; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  .lede { font-size: 16.5px; color: var(--muted); margin-bottom: 26px; line-height: 1.6; }
+  .meta { font-size: 12px; color: var(--muted); font-family: var(--mono);
+          padding-bottom: 22px; border-bottom: 1px solid var(--line); margin-bottom: 30px; }
+
+  .card { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 10px; padding: 18px 20px; margin: 0 0 16px; }
+  .card > :last-child { margin-bottom: 0; }
+  .card.red { border-left: 3px solid var(--red); background: var(--red-soft); }
+  .card.amber { border-left: 3px solid var(--amber); background: var(--amber-soft); }
+  .card.green { border-left: 3px solid var(--green); background: var(--green-soft); }
+  .card.accent { border-left: 3px solid var(--accent); background: var(--accent-soft); }
+  .card h4 { margin-top: 0; }
+
+  .tbl-scroll { overflow-x: auto; margin: 0 0 18px;
+                border: 1px solid var(--line); border-radius: 9px; background: var(--panel); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th { text-align: left; font-weight: 600; padding: 9px 13px; white-space: nowrap;
+       border-bottom: 1px solid var(--line); color: var(--muted);
+       font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  td { padding: 9px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td code { white-space: nowrap; }
+
+  .pill { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 2px 8px;
+          border-radius: 999px; letter-spacing: .04em; text-transform: uppercase;
+          white-space: nowrap; }
+  .p-crit { background: var(--red-soft); color: var(--red); box-shadow: inset 0 0 0 1px currentColor; }
+  .p-high { background: var(--amber-soft); color: var(--amber); box-shadow: inset 0 0 0 1px currentColor; }
+  .p-med  { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 1px currentColor; }
+  .p-low  { background: var(--code-bg); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }
+  .p-done { background: var(--green-soft); color: var(--green); box-shadow: inset 0 0 0 1px currentColor; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+           gap: 10px; margin: 0 0 22px; }
+  .stat { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 9px; padding: 13px 15px; }
+  .stat .n { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; display: block; }
+  .stat .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+  .flow { font-family: var(--mono); font-size: 12px; line-height: 1.75; white-space: pre;
+          overflow-x: auto; background: var(--panel); border: 1px solid var(--line);
+          border-radius: 9px; padding: 18px; margin: 0 0 18px; color: var(--ink); }
+  /* Wide content (ASCII diagrams, code, tables) must scroll inside its own box
+     so the page body never scrolls horizontally. `min-width: 0` on the grid
+     column is what actually lets these shrink below their intrinsic width. */
+  main, .wrap { min-width: 0; }
+  main > *, main .card { max-width: 100%; }
+  .flow, pre, .tbl-scroll { max-width: 100%; min-width: 0; }
+  html, body { overflow-x: hidden; }
+
+  hr { border: 0; border-top: 1px solid var(--line); margin: 40px 0; }
+  .fp { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .kicker { font-size: 11px; text-transform: uppercase; letter-spacing: .1em;
+            color: var(--muted); font-weight: 700; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<nav class="toc">
+  <div class="brand">SOOQ Editor</div>
+  <div class="sub">Code roadmap &amp; audit</div>
+
+  <div class="grp">Orientation</div>
+  <a href="#tldr">0. Executive summary</a>
+
+  <div class="grp">Part I — Roadmap</div>
+  <a href="#map">1. Package map</a>
+  <a href="#layers">2. Runtime layers</a>
+  <a href="#dataflow">3. Data flow &amp; Site JSON</a>
+  <a href="#store">4. State: the app store</a>
+  <a href="#dnd">5. The drag-and-drop engine</a>
+  <a href="#blocks">6. Blocks &amp; the registry</a>
+  <a href="#plugins">7. Plugins</a>
+  <a href="#binding">8. Binding &amp; data adapter</a>
+  <a href="#zones">9. Shell zones &amp; pages</a>
+  <a href="#theme">10. Theme &amp; settings</a>
+  <a href="#storefront">11. Storefront coupling</a>
+
+  <div class="grp">Part II — The bug</div>
+  <a href="#bug">12. The DnD freeze</a>
+  <a href="#bug-chain" class="lvl2">12.1 Failure chain</a>
+  <a href="#bug-trigger" class="lvl2">12.2 What triggers it</a>
+  <a href="#bug-fix" class="lvl2">12.3 The fix (applied)</a>
+  <a href="#bug-verify" class="lvl2">12.4 How to verify</a>
+
+  <div class="grp">Part III — Audit</div>
+  <a href="#smells">13. Code smells</a>
+  <a href="#perf">14. Performance</a>
+  <a href="#dead">15. Dead code</a>
+
+  <div class="grp">Part IV — Plan</div>
+  <a href="#plan">16. Remediation plan</a>
+  <a href="#appendix">17. Appendix</a>
+</nav>
+
+<main>
+
+<h1>SOOQ Editor — Code Roadmap &amp; Audit</h1>
+<p class="lede">
+  A file-level map of <code>packages/editor-packages</code> (the vendored Puck fork that powers
+  Design Studio and the storefront renderer), plus a ranked audit of its code smells, performance
+  traps and dead code — and the root cause of the drag-and-drop freeze.
+</p>
+<div class="meta">
+  Generated 2026-07-31 &nbsp;·&nbsp; branch <code>dsn-temp</code> @ <code>7b32497</code><br>
+  Scope: <code>packages/editor-packages/**</code>, <code>apps/web/app/store/[storeSlug]/(dashboard)/design-studio/**</code>,
+  <code>apps/store/**</code>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="tldr">0. Executive summary</h2>
+
+<div class="stats">
+  <div class="stat"><span class="n">566</span><span class="l">TS/TSX files in core</span></div>
+  <div class="stat"><span class="n">~52k</span><span class="l">LOC in core</span></div>
+  <div class="stat"><span class="n">62</span><span class="l">block folders</span></div>
+  <div class="stat"><span class="n">58</span><span class="l">registered blocks</span></div>
+  <div class="stat"><span class="n">7</span><span class="l">first-party plugins</span></div>
+  <div class="stat"><span class="n">377</span><span class="l">passing tests</span></div>
+</div>
+
+<div class="card red">
+  <h4>The drag-and-drop freeze — root cause found</h4>
+  <p>
+    dnd-kit 0.1.18 completes a drop through <strong>one un-guarded promise chain</strong> with no
+    <code>.catch</code> and no timeout
+    (<span class="fp">@dnd-kit/dom/index.js:901</span>). If that promise rejects or throws, the
+    drag source is stranded at status <code>"dropping"</code> forever. Every downstream consumer
+    then wedges: the <code>Cursor</code> plugin's injected
+    <code>* { cursor: grabbing !important }</code> stylesheet is never removed (the closed-hand
+    cursor you see), <code>actions.start()</code> throws on every subsequent drag, and
+    <code>stop()</code> early-returns on its aborted controller so <em>nothing can recover it</em>
+    short of a page reload. Puck's own <code>onDragEnd</code> waits on the same never-arriving
+    signal, so <code>ui.isDragging</code> also stays <code>true</code>.
+  </p>
+  <p style="margin-bottom:0">
+    <strong>Fixed</strong> in this pass with a watchdog + forced recovery
+    (<a href="#bug-fix">§12.3</a>), plus a leaked-effect fix in the same handler that was
+    accumulating stale dispatch callbacks over a long session.
+  </p>
+</div>
+
+<div class="card amber">
+  <h4>The three structural problems behind everything else</h4>
+  <ol style="margin-bottom:0">
+    <li><strong>The barrel cycle.</strong> <code>components/AutoField/.../ArrayField</code> imports
+      from the package's own public barrel (<code>bundle/index.ts</code>), which re-exports
+      <code>config/index.tsx</code>, which eagerly imports all 62 blocks. Editing one block
+      recompiles the entire editor. <a href="#perf-bundle">§14.1</a></li>
+    <li><strong>Type checking is off.</strong> Both Next configs set
+      <code>typescript.ignoreBuildErrors: true</code>, and the fork's own <code>tsconfig.json</code>
+      cannot resolve its own aliases. 648 type errors are currently invisible.
+      <a href="#smell-types">§13.1</a></li>
+    <li><strong>16 files are byte-identical duplicates</strong> between <code>apps/store</code> and
+      <code>apps/web/modules/storefront</code>. <a href="#dead-dupes">§15.3</a></li>
+  </ol>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="map">1. Package map</h2>
+
+<p>Five packages live under <code>packages/editor-packages/</code>. Only <code>core</code> is
+   substantial; the rest are thin.</p>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Package</th><th>Role</th><th>Size</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><code>core</code></td><td>The fork of Puck 0.21.1 (<code>@puckeditor/core</code>). Editor shell, DnD, block registry, plugins, Site JSON.</td><td>566 files / ~52k LOC</td><td><span class="pill p-done">live</span></td></tr>
+<tr><td><code>plugin-heading-analyzer</code></td><td>Puck plugin: outline of headings in the canvas. Imported by the design-studio client, then filtered out of the visible plugin list.</td><td>2 files / 320 LOC</td><td><span class="pill p-low">loaded, hidden</span></td></tr>
+<tr><td><code>plugin-emotion-cache</code></td><td>Emotion SSR cache for the iframe.</td><td>1 file</td><td><span class="pill p-crit">dead</span> — declared in <code>apps/web/package.json</code>, imported nowhere</td></tr>
+<tr><td><code>tsconfig</code>, <code>tsup-config</code>, <code>eslint-config-custom</code></td><td>Build configs inherited from the Puck repo. Only meaningful if the fork is ever published as a package.</td><td>—</td><td><span class="pill p-low">vestigial</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Inside <code>core/</code></h3>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Directory</th><th>Files</th><th>LOC</th><th>Provenance</th><th>What it is</th></tr></thead>
+<tbody>
+<tr><td><code>config/blocks</code></td><td>96</td><td>14,742</td><td><span class="pill p-med">SOOQ</span></td><td>62 block folders — the storefront vocabulary.</td></tr>
+<tr><td><code>components</code></td><td>113</td><td>12,746</td><td><span class="pill p-low">upstream</span></td><td>Editor shell, DnD components, iframe, fields, rich text.</td></tr>
+<tr><td><code>config/plugins</code></td><td>33</td><td>6,152</td><td><span class="pill p-med">SOOQ</span></td><td>7 first-party plugins (pages, zones, themes, settings, shopify-editor, canvas-interactions, html-block-palette).</td></tr>
+<tr><td><code>lib</code></td><td>98</td><td>4,990</td><td><span class="pill p-low">upstream</span></td><td>DnD helpers, data walkers, hooks, collision detection.</td></tr>
+<tr><td><code>config/presets</code></td><td>19</td><td>2,987</td><td><span class="pill p-med">SOOQ</span></td><td>Prebuilt section/zone/page trees.</td></tr>
+<tr><td><code>config/lib</code></td><td>24</td><td>2,896</td><td><span class="pill p-med">SOOQ</span></td><td>Site JSON contract, page drafts, editor mode, zone registry.</td></tr>
+<tr><td><code>config/fields</code></td><td>14</td><td>2,386</td><td><span class="pill p-med">SOOQ</span></td><td>Custom Puck field types (colour, spacing, link, pickers).</td></tr>
+<tr><td><code>reducer</code></td><td>14</td><td>1,096</td><td><span class="pill p-low">upstream</span></td><td>Action reducers over <code>AppState</code>.</td></tr>
+<tr><td><code>store</code></td><td>6</td><td>1,025</td><td><span class="pill p-low">upstream</span></td><td>Zustand store + history/nodes/permissions/fields slices.</td></tr>
+<tr><td><code>types</code></td><td>13</td><td>985</td><td><span class="pill p-low">upstream</span></td><td>Public type surface.</td></tr>
+<tr><td><code>config/binding</code></td><td>11</td><td>674</td><td><span class="pill p-med">SOOQ</span></td><td><code>useBoundData</code> / <code>useBoundValue</code> — binds props to live product data.</td></tr>
+<tr><td><code>config/data-adapter</code></td><td>3</td><td>574</td><td><span class="pill p-med">SOOQ</span></td><td>Adapter interface + sample catalogue.</td></tr>
+</tbody>
+</table>
+</div>
+
+<p class="fp">
+  Rule of thumb: <code>components/</code> + <code>lib/</code> + <code>store/</code> +
+  <code>reducer/</code> + <code>types/</code> ≈ upstream Puck (edit reluctantly, diffs get harder);
+  everything under <code>config/</code> is ours.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="layers">2. Runtime layers</h2>
+
+<p>Bottom to top, the editor is six layers. Each one only knows about the one below it.</p>
+
+<div class="flow">┌─ 6  HOST          apps/web  design-studio/[...puckPath]/client.tsx        (965 LOC)
+│                  owns SiteData ⇄ localStorage, page routing, save/publish
+│
+├─ 5  SHELL        components/Puck/index.tsx → components/Puck/components/Layout
+│                  header · left sidebar (plugins) · canvas · right sidebar (fields)
+│
+├─ 4  PLUGINS      config/plugins/*  — inject sidebar tabs + overrides + fieldTransforms
+│
+├─ 3  CANVAS       components/Puck/components/Canvas → components/AutoFrame (iframe)
+│                  mirrors host &lt;style&gt;/&lt;link&gt; nodes into the iframe document
+│
+├─ 2  DND          components/DragDropContext  (the @dnd-kit manager + plugins)
+│       │            └─ lib/dnd/NestedDroppablePlugin   deepest-zone resolution
+│       │            └─ lib/dnd/collision/dynamic       direction-aware collisions
+│       └─ components/DropZone → DraggableComponent → block render
+│
+└─ 1  STATE        store/index.ts (zustand)  +  reducer/  +  state.indexes
+                   indexes.nodes[id] / indexes.zones[compound] are the hot path
+</div>
+
+<h3>Key files by layer</h3>
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>File</th><th>LOC</th><th>Responsibility</th></tr></thead>
+<tbody>
+<tr><td><code>components/Drawer/index.tsx</code></td><td>1037</td><td>Block palette drawer + drawer-item draggables (source of "new component" drags).</td></tr>
+<tr><td><code>components/DraggableComponent/index.tsx</code></td><td>903</td><td>Per-block sortable wrapper, selection overlay, action bar, position sync.</td></tr>
+<tr><td><code>components/DropZone/index.tsx</code></td><td>806</td><td>Droppable container; renders children in edit mode and in render mode.</td></tr>
+<tr><td><code>components/DragDropContext/index.tsx</code></td><td>~680</td><td>The <code>DragDropProvider</code>: drag lifecycle, preview index, zone-depth resolution.</td></tr>
+<tr><td><code>config/theme.ts</code></td><td>863</td><td><code>FullThemeProps</code> model + field definitions.</td></tr>
+<tr><td><code>config/lib/site-data.ts</code></td><td>736</td><td><strong>The Site JSON contract.</strong> Read/write/normalise/compose.</td></tr>
+<tr><td><code>config/plugins/shopify-editor/section-catalog.tsx</code></td><td>731</td><td>Section library shown in the Add-Section modal.</td></tr>
+<tr><td><code>config/blocks/Section/index.tsx</code></td><td>713</td><td>The page-band primitive — the most-used block.</td></tr>
+<tr><td><code>config/lib/normalize-editor-data.ts</code></td><td>697</td><td>Migrations + defaulting over the whole tree.</td></tr>
+<tr><td><code>components/AutoFrame/index.tsx</code></td><td>395</td><td>Canvas iframe + host→iframe stylesheet mirroring.</td></tr>
+<tr><td><code>store/index.ts</code></td><td>355</td><td>Zustand store factory.</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="dataflow">3. Data flow &amp; Site JSON</h2>
+
+<p><code>SiteData</code> is the single persisted artefact. Everything else is derived.</p>
+
+<pre><code>type SiteData = {
+  root:  UserData["root"];   // theme, locale, shell settings — shared by every page
+  zones: ZoneMap;            // site-wide shell zones (header/footer/drawer/popup rails)
+  pages: SitePage[];         // each with a route pattern + its own Puck `content`
+};
+
+type SitePage = {
+  path: string;      // route pattern, e.g. "/products/:product-slug"
+  slug: string;      // storage + routing key
+  link: string;      // concrete public URL
+  dynamic?: boolean;
+  content: UserData["content"];
+};</code></pre>
+
+<div class="flow">EDIT                                    PUBLISH / RENDER
+────                                    ────────────────
+&lt;Puck config data plugins&gt;              readSiteData(mode)
+   │  user edits                           │
+   ▼                                       ▼
+appState.data  (content + zones)        findSitePage(site, path)
+   │  onPublish / autosave                 │
+   ▼                                       ▼
+applyPuckSave(site, page, data)         composePuckData(site, path)
+   │                                       │   merges root + zones + page.content
+   ▼                                       ▼
+normalizeSiteData()                     resolveAllData(config)
+   │                                       │
+   ▼                                       ▼
+localStorage                            &lt;Render config data /&gt;
+  "puck-demo:&lt;componentKey&gt;:site"          (apps/store, same block registry)
+  "puck-demo:&lt;componentKey&gt;:site:mobile"</div>
+
+<div class="card amber">
+  <h4>Persistence is still localStorage-only</h4>
+  <p style="margin-bottom:0">
+    <code>site-data.ts</code> reads and writes <code>window.localStorage</code> directly
+    (<span class="fp">site-data.ts:485, :528, :553</span>). There is no backend write path — a
+    merchant switching device or clearing site data loses the whole storefront design.
+    <code>apps/web/modules/design-studio/draft.ts</code> exists and calls
+    <code>saveWebDesignDraft</code>, so the seam is there; the read path has not been moved.
+    Tracked in <a href="#plan">§16, Phase D</a>.
+  </p>
+</div>
+
+<h3>Editor modes (desktop / mobile)</h3>
+<p>
+  <code>config/lib/editor-mode.ts</code> + <code>mobile-sync.ts</code> implement a second
+  <code>SiteData</code> instance under the <code>:site:mobile</code> key. The host picks
+  <code>EDITOR_METADATA_DESKTOP</code> or <code>EDITOR_METADATA_MOBILE</code> — these are
+  module-level constants specifically because <em>changing the <code>metadata</code> identity
+  rebuilds the whole Puck store</em>
+  (<span class="fp">design-studio/[...puckPath]/client.tsx:78-90</span>). Keep them stable.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="store">4. State: the app store</h2>
+
+<p>A single zustand store (<code>store/index.ts</code>) created per <code>&lt;Puck&gt;</code> mount,
+   exposed via <code>appStoreContext</code>. Four slices hang off it.</p>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Slice</th><th>File</th><th>Holds</th></tr></thead>
+<tbody>
+<tr><td><code>history</code></td><td><code>store/slices/history.ts</code></td><td>Undo/redo stack; <code>record()</code> is called from the reducer.</td></tr>
+<tr><td><code>nodes</code></td><td><code>store/slices/nodes.ts</code></td><td><code>registerNode(id, {methods, element})</code> — the imperative escape hatch DraggableComponent uses for <code>sync()</code>/<code>showOverlay()</code>.</td></tr>
+<tr><td><code>permissions</code></td><td><code>store/slices/permissions.ts</code></td><td>Per-item <code>drag/duplicate/delete/edit</code> resolution.</td></tr>
+<tr><td><code>fields</code></td><td><code>store/slices/fields.ts</code></td><td>Resolved field definitions for the selected item.</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>
+  The performance-critical part is <code>state.indexes</code>, rebuilt by
+  <code>lib/data/walk-app-state.ts</code> on every dispatch:
+  <code>indexes.nodes[id] → {data, flatData, path, parentId, zone}</code> and
+  <code>indexes.zones[compound] → {contentIds, type}</code>. Components subscribe to narrow
+  slices of these with <code>useShallow</code> so a single-block edit doesn't re-render the tree.
+  <strong>Any new selector must follow that discipline</strong> — a selector that returns a fresh
+  object without <code>useShallow</code> re-renders on every keystroke.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="dnd">5. The drag-and-drop engine</h2>
+
+<p>This is where the freeze lives, so it is worth understanding in full.</p>
+
+<h3>The pieces</h3>
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Piece</th><th>File</th><th>Job</th></tr></thead>
+<tbody>
+<tr><td>Manager</td><td><code>components/DragDropContext/index.tsx</code></td><td>Hosts <code>&lt;DragDropProvider&gt;</code>; owns the <code>zoneStore</code> (preview index, zone depth, enabled index); translates dnd-kit events into reducer dispatches.</td></tr>
+<tr><td>Zone resolution</td><td><code>lib/dnd/NestedDroppablePlugin.ts</code></td><td>A capture-phase <code>pointermove</code> listener on <code>document.body</code>, throttled to 50 ms, that runs <code>elementsFromPoint</code> and picks the deepest legal drop zone. Crosses into the canvas iframe.</td></tr>
+<tr><td>Collision</td><td><code>lib/dnd/collision/dynamic/*</code></td><td>Direction-aware "before/after" detection with a module-level movement-interval cache.</td></tr>
+<tr><td>Sensors</td><td><code>lib/dnd/use-sensors.ts</code></td><td>Pointer sensor: mouse/pen 80 ms delay + 6 px distance; touch 200 ms delay.</td></tr>
+<tr><td>Sortable</td><td><code>components/DraggableComponent</code></td><td><code>useSortable</code> per block, <code>feedback: "clone"</code>.</td></tr>
+<tr><td>Droppable</td><td><code>components/DropZone</code></td><td><code>useDroppable</code> per zone, with a live preview list from <code>use-content-with-preview.ts</code>.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>The lifecycle</h3>
+<div class="flow">onBeforeDragStart   dragMode = "new" | "existing"
+                    zoneStore.draggedItem = source
+                    ui.isDragging = true
+                    [data-puck-entry] gets data-puck-dragging   → CSS shows drop targets
+
+onDragStart         seed previewIndex[sourceZone] with a "move" preview
+
+onDragOver (×N)     event.preventDefault()   ← suppresses dnd-kit's own reordering
+                    compute targetZone/targetIndex from collision direction + RTL dir
+                    write previewIndex → DropZone re-renders with a ghost at the target
+
+pointermove (×N)    NestedDroppablePlugin → onChange → zoneStore.zoneDepthIndex
+                    (debounced 100 ms; fallback collisions disabled for 100 ms after a switch)
+
+onDragEnd           ▶ WAIT for source.status === "idle"        ◀── THE FREEZE POINT
+                    then: insertComponent() | dispatch("move")
+                          ui.isDragging = false
+                          remove data-puck-dragging</div>
+
+<p>
+  Note the deliberate inversion: Puck <em>suppresses</em> dnd-kit's optimistic reordering
+  (<code>event.preventDefault()</code> in <code>onDragOver</code>) and instead maintains its own
+  <code>previewIndex</code>, applying the real mutation only once the drop animation has finished.
+  That is why a stalled animation doesn't just look wrong — it loses the edit entirely.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="blocks">6. Blocks &amp; the registry</h2>
+
+<p>
+  <code>config/index.tsx</code> is the single registry: 58 <code>ComponentConfig</code>s, each
+  wrapped in <code>withShowCondition</code>, plus a <code>categories</code> map that drives the
+  palette.
+</p>
+
+<div class="card amber">
+  <h4>14 blocks are registered but reachable from no palette category</h4>
+  <p>
+    They are eagerly imported, bundled and type-checked, but a merchant cannot insert them.
+    Nine are explicitly commented out in <code>categories.storeBlocks</code> with
+    <code>// IGNORED</code>:
+  </p>
+  <p class="fp" style="margin-bottom:8px">
+    ProductImageCarousel · ProductVariants · CategoryListMenu · CheckoutForm ·
+    ProductSearchMenu · OrderHistory · Wishlist · ContactForm · Sidebar
+  </p>
+  <p style="margin-bottom:0">
+    The other five (<code>SiteHeader</code>, <code>SiteFooter</code>, <code>ZoneDrawer</code>,
+    <code>ZonePopup</code>, <code>ZoneBottomSheet</code>) are <em>intentionally</em> absent —
+    they are placed by the zones plugin, not the palette. Leave those.
+  </p>
+</div>
+
+<p>
+  Categories: <code>layout</code> (3) · <code>blocks</code> (15) · <code>storeBlocks</code> (1
+  visible) · <code>legacy</code> (25, <code>visible: false</code>) · <code>other</code>.
+  The <code>legacy</code> bucket exists so old <code>store_config.json</code> payloads still render.
+  <code>config/__tests__/registry-consistency.spec.ts</code> guards presets/palette/fixtures against
+  unregistered types — keep it green.
+</p>
+
+<h3>Block contract</h3>
+<p>Every block must render safely in three contexts: the editor iframe, the client
+  <code>&lt;Render&gt;</code>, and RSC. Practically that means: no <code>window</code> at module
+  scope, all browser work behind <code>useEffect</code>, and a
+  <code>*Client.tsx</code> split when the block needs state (see
+  <code>CategoryListMenu/CategoryListMenuClient.tsx</code> for the pattern).</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="plugins">7. Plugins</h2>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Plugin</th><th>Surface</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code>pages</code></td><td>Left sidebar tab</td><td>Page manager over <code>SiteData.pages</code>; listens for <code>PAGES_UPDATED_EVENT</code>. <span class="fp">PagesPanel 582 LOC</span></td></tr>
+<tr><td><code>zones</code></td><td>Left sidebar tab</td><td>Shell zones: drawers, popups, bottom sheets. <span class="fp">ZonesPanel 412 LOC</span></td></tr>
+<tr><td><code>themes</code></td><td>Hidden</td><td>Theme presets + marketplace. Filtered out of the visible tab list by <code>hiddenPluginNames</code>.</td></tr>
+<tr><td><code>settings</code></td><td>Left sidebar tab</td><td>Root/theme fields + <code>ThemeInjector</code> (writes CSS custom properties into the iframe).</td></tr>
+<tr><td><code>shopify-editor</code></td><td>Left sidebar tab ("الأقسام")</td><td>Shopify-style outline + Add-Section modal. The largest plugin. <span class="fp">1,600+ LOC across 3 files</span></td></tr>
+<tr><td><code>canvas-interactions</code></td><td>Canvas overrides</td><td>Right-click menu, canvas keyboard shortcuts, menu dismissal.</td></tr>
+<tr><td><code>html-block-palette</code></td><td>Palette filter</td><td>Swaps the content palette between <code>CONTENT_PALETTE_BASE</code> and <code>…_WITH_HTML</code>.</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>
+  Plugins are assembled in the host at
+  <span class="fp">design-studio/[...puckPath]/client.tsx</span>. A plugin contributes any of:
+  <code>overrides</code> (replace shell components), <code>fieldTransforms</code> (wrap field
+  rendering), and a named left-sidebar tab.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="binding">8. Binding &amp; the data adapter</h2>
+
+<p>
+  <code>config/binding/</code> (<code>useBoundData</code>, <code>useBoundValue</code>) lets a block
+  prop point at live product/collection data instead of a literal. It is fully spec-covered and
+  <strong>imports nothing from <code>apps/web</code></strong> — a test enforces that boundary.
+  Keep it.
+</p>
+<p>
+  <code>config/data-adapter/</code> defines the <code>EditorDataAdapter</code> interface and ships a
+  sample catalogue. <code>apps/web/lib/editor-data-adapter.ts</code> registers the axios-backed
+  implementation at startup. <strong>The edit canvas always renders instant sample data</strong>
+  (no network); preview and the storefront fetch live. That asymmetry is deliberate — do not
+  "fix" it by making the canvas fetch.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="zones">9. Shell zones &amp; pages</h2>
+
+<p>
+  <code>config/shell-zones.ts</code> defines <code>SITE_ZONE_KEYS</code>; the zone blocks
+  (<code>ZoneDrawer</code>, <code>ZonePopup</code>, <code>ZoneBottomSheet</code>,
+  <code>SiteHeader</code>, <code>SiteFooter</code>) render into <code>SiteData.zones</code> rather
+  than page content, so they persist across pages. <code>config/lib/zone-events.ts</code>
+  (<code>openZone</code>/<code>closeZone</code>/<code>toggleZone</code>) and
+  <code>zone-registry.ts</code> wire runtime open/close.
+</p>
+<p>
+  <code>config/page-registry.ts</code> holds the built-in page definitions and dispatches
+  <code>PAGES_UPDATED_EVENT</code>; <code>config/pages.ts</code> handles custom pages. Route
+  patterns support dynamic segments (<code>/products/:product-slug</code>) resolved by
+  <code>findSitePage</code>.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="theme">10. Theme &amp; settings</h2>
+
+<p>
+  <code>config/theme.ts</code> (863 LOC) defines <code>FullThemeProps</code> — colours, typography,
+  spacing scale, button variants, badges, shell. <code>config/theme-presets.ts</code> (500 LOC)
+  ships ready-made themes. <code>settings/ThemeInjector.tsx</code> serialises the active theme into
+  CSS custom properties and injects them into the canvas iframe document; the storefront does the
+  same at render time via <code>PreviewThemeProvider</code>.
+</p>
+<p>
+  Custom field types under <code>config/fields/</code> (<code>ThemeColorField</code>,
+  <code>SpacingField</code>, <code>BorderField</code>, <code>LinkField</code>,
+  <code>ProductPickerField</code>, <code>CollectionPickerField</code>…) are what make the right
+  sidebar feel bespoke rather than generic Puck.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="storefront">11. Storefront coupling</h2>
+
+<div class="flow">apps/store/app/store/[tenantId]/[[...slug]]/page.tsx
+   └─ apps/store/lib/use-storefront-data.ts
+        ├─ readSiteData(mode)         ← @/core/config/lib/site-data
+        ├─ findSitePage(site, path)
+        └─ composePuckData(site, path)
+             └─ resolveAllData(config) → &lt;Render config data /&gt;    (same registry)</div>
+
+<div class="card red">
+  <h4>The store⇄web coupling is currently copy-paste, not shared code</h4>
+  <p style="margin-bottom:0">
+    <code>apps/store</code>'s tsconfig aliases <code>@/modules/*</code>, <code>@/lib/*</code> and
+    <code>@/config/*</code> into <code>apps/web</code> — but <strong>16 files are still
+    byte-identical copies</strong> maintained in both trees. See <a href="#dead-dupes">§15.3</a>
+    for the list. Any storefront bug fixed in one tree silently persists in the other.
+  </p>
+</div>
+
+<hr>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="bug">12. The drag-and-drop freeze</h2>
+
+<p class="kicker">Symptom</p>
+<p>
+  After working in the editor for a while, drag and drop stops responding and the cursor is stuck
+  as a closed hand (<code>grabbing</code>) everywhere on the page — including over text and
+  sidebars. Only a reload fixes it.
+</p>
+
+<div class="card accent">
+  <h4>Why "cursor stuck grabbing" is a precise diagnostic, not a vague symptom</h4>
+  <p style="margin-bottom:0">
+    dnd-kit's <code>Cursor</code> plugin does exactly one thing
+    (<span class="fp">@dnd-kit/dom/index.js:299-321</span>): while
+    <code>dragOperation.status.initialized</code> is true, it appends
+    <code>&lt;style&gt;* { cursor: grabbing !important; }&lt;/style&gt;</code> to the document head,
+    and removes it when that flips false. A permanently-grabbing cursor therefore means one thing
+    and only one thing: <strong><code>status.initialized</code> never went back to false</strong>.
+    <code>initialized</code> is <code>value !== "idle" &amp;&amp; value !== "initialization-pending"</code>
+    — so the operation is stranded mid-flight.
+  </p>
+</div>
+
+<h3 id="bug-chain">12.1 The failure chain</h3>
+
+<p>Tracing backwards from a stranded operation, through <code>@dnd-kit/abstract</code> and
+   <code>@dnd-kit/dom</code> 0.1.18:</p>
+
+<pre><code>// @dnd-kit/dom — Feedback plugin, drop animation (index.js:~901)
+animateTransform({ element: feedbackElement, keyframes, options })
+  .then(() =&gt; {
+    feedbackElement.removeAttribute(DROPPING_ATTRIBUTE);
+    animation?.finish();     // ← CAN THROW: InvalidStateError on an
+                             //   infinite / unresolved-duration animation
+    onComplete?.();          // ← the ONLY thing that sets source.status = "idle"
+    requestAnimationFrame(restoreFocus);
+  });
+  // no .catch — no timeout — no fallback
+
+// where animateTransform is literally:
+function animateTransform({element, keyframes, options}) {
+  return element.animate(keyframes, options).finished;   // ← rejects on cancel()
+}</code></pre>
+
+<p>If that promise rejects or the body throws, this cascade follows:</p>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>#</th><th>Where</th><th>What stays wrong</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Feedback plugin <code>cleanup()</code></td><td>Never runs. <code>source.status</code> stays <code>"dropping"</code>. The real element keeps <code>[data-dnd-dragging]</code>, <code>position: fixed</code>, popover top-layer promotion and <code>--dnd-*</code> vars — <em>glued to the cursor</em>. Its clone <code>[data-dnd-placeholder]</code> stays in the layout flow.</td></tr>
+<tr><td>2</td><td><code>abstract/index.js:816-836</code></td><td><code>stop()</code> is waiting inside <code>effect(() =&gt; { if (source.status === "idle") cleanup() })</code>. That effect never fires, so <code>dragOperation.reset()</code> never runs and <code>status</code> stays <code>"dropped"</code>.</td></tr>
+<tr><td>3</td><td><code>Cursor</code> plugin</td><td><code>status.initialized</code> is still true → the <code>* { cursor: grabbing !important }</code> stylesheet is never removed. <strong>This is the visible symptom.</strong></td></tr>
+<tr><td>4</td><td><code>abstract/index.js:699</code></td><td><code>actions.start()</code> now <strong>throws</strong> <code>"Cannot start a drag operation while another is active"</code> on every subsequent drag attempt. <em>Look for this in the console — it confirms the diagnosis.</em></td></tr>
+<tr><td>5</td><td><code>abstract/index.js:798</code></td><td><code>stop()</code> early-returns on <code>controller.signal.aborted</code>. So Escape, blur, clicking, <code>manager.destroy()</code> — <strong>nothing can recover it.</strong></td></tr>
+<tr><td>6</td><td><code>DragDropContext.onDragEnd</code></td><td>Puck waits on the same <code>source.status === "idle"</code> signal, so <code>onAnimationEnd()</code> never runs: the dropped block is never inserted/moved, <code>previewIndex</code> is never cleared, and <code>ui.isDragging</code> stays <code>true</code> — which keeps every DropZone in "drop target" styling.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="bug-trigger">12.2 What makes the promise fail — and why it gets likelier over a session</h3>
+
+<p>Three independent paths, all reachable in this codebase:</p>
+
+<ol>
+  <li>
+    <strong><code>animation.finish()</code> throws.</strong> <code>getFinalKeyframe()</code> picks up
+    any <em>running</em> animation on the dragged element whose keyframes contain
+    <code>translate</code>, pauses it, then calls <code>.finish()</code> on it inside the
+    <code>.then</code>. <code>Animation.finish()</code> raises <code>InvalidStateError</code> when
+    the effect has an infinite or unresolved end time. The editor ships several
+    <code>… infinite</code> CSS animations
+    (<span class="fp">ProductsGridTemplateRepeater.tsx:56, ProductsPageTemplateRepeater.tsx:39, SiteDrawer/styles.module.css:237, Loader/styles.module.css:19</span>).
+  </li>
+  <li>
+    <strong>The WAAPI animation is cancelled.</strong> <code>.finished</code> rejects with
+    <code>AbortError</code> if the animation is cancelled — which happens when the element is
+    detached or replaced mid-drop. The 250 ms drop window is exactly when Puck's React tree is
+    churning hardest.
+  </li>
+  <li>
+    <strong>The iframe re-creates its document.</strong> The feedback element usually lives in the
+    canvas iframe; an <code>AutoFrame</code> remount during the drop cancels everything in it.
+  </li>
+</ol>
+
+<p>Two SOOQ-side amplifiers make (2) far more likely the longer a session runs:</p>
+
+<div class="card amber">
+<p><strong>A per-frame <code>requestAnimationFrame</code> loop that re-renders during the drop.</strong>
+  <span class="fp">DraggableComponent/index.tsx:384-409, 664-668</span> — while a block's overlay is
+  visible, <code>watchPosition()</code> polls <code>getBoundingClientRect()</code> <em>every
+  frame</em> and calls <code>sync()</code> → <code>setState</code> whenever the element moved. During
+  a drop animation the element moves every single frame, so this fires a React state update ~60×/s
+  into the exact subtree that owns the animating element.</p>
+<p style="margin-bottom:0"><strong>Nested timeouts that re-render just after the drop.</strong>
+  <span class="fp">DropZone/lib/use-min-empty-height.ts:47-70</span> — a 100 ms timeout that calls
+  <code>node.methods.sync()</code> on every sibling, nesting a further 200 ms timeout for the
+  selected item. Both land inside the 250 ms animation window.</p>
+</div>
+
+<p>
+  And a third factor explains "<em>after working for some time</em>" specifically — a leaked
+  subscription in Puck's own handler:
+</p>
+
+<pre><code>// BEFORE — components/DragDropContext/index.tsx
+let dispose: () =&gt; void | undefined;
+
+dispose = effect(() =&gt; {              // @dnd-kit/state effect() runs its body
+  if (source.status === "idle") {     // SYNCHRONOUSLY on creation
+    onAnimationEnd();
+    dispose?.();                      // ← `dispose` is still `undefined` here
+  }                                   //   on that first synchronous run
+});</code></pre>
+
+<p>
+  Whenever <code>source.status</code> is already <code>"idle"</code> at <code>dragend</code> (a
+  cancelled drag, a zero-distance drop), the effect fires immediately, <code>dispose?.()</code>
+  no-ops, and the subscription is <strong>never released</strong>. It stays live for the rest of the
+  session and re-runs <code>onAnimationEnd()</code> — with its stale captured
+  <code>thisPreview</code>, <code>initialSelector</code> and <code>dragListeners</code> — on every
+  later status change of that draggable. These accumulate one per affected drag, producing phantom
+  <code>move</code>/<code>insert</code> dispatches and <code>isDragging</code> flapping that grow
+  worse the longer the editor stays open.
+</p>
+
+<h3 id="bug-fix">12.3 The fix (applied)</h3>
+
+<p class="kicker">Two changes, both in the fork</p>
+
+<div class="card green">
+  <h4>1 · <code>lib/dnd/recover-drag-operation.ts</code> <span class="pill p-done">new</span></h4>
+  <p>
+    <code>recoverDragOperation(manager)</code> forces a wedged operation back to idle by doing what
+    the interrupted <code>cleanup()</code> would have done:
+  </p>
+  <ul style="margin-bottom:0">
+    <li>set <code>source.status = "idle"</code> — the signal dnd-kit's own <code>stop()</code> is
+      blocked on, so its normal teardown gets a chance to run first;</li>
+    <li>if that didn't take (aborted controller), clear <code>operation.controller</code> and call
+      <code>operation.reset()</code> directly — this flips <code>status.initialized</code> false,
+      which is what makes the <code>Cursor</code> plugin drop its <code>grabbing</code> stylesheet;</li>
+    <li>in both the host document and the canvas iframe: strip <code>[data-dnd-dragging]</code>,
+      <code>[data-dnd-dropping]</code>, the <code>popover</code> attribute and the
+      <code>--dnd-*</code> custom properties from the stranded element, and remove the leftover
+      <code>[data-dnd-placeholder]</code> clone.</li>
+  </ul>
+</div>
+
+<div class="card green">
+  <h4>2 · <code>components/DragDropContext/index.tsx</code> — watchdog + effect-leak fix</h4>
+  <pre style="margin-bottom:0"><code>let dispose: (() =&gt; void) | undefined;
+let watchdog: ReturnType&lt;typeof setTimeout&gt; | undefined;
+let settled = false;
+
+const settle = () =&gt; {
+  if (settled) return;                 // idempotent — fixes the double-fire
+  settled = true;
+  if (watchdog !== undefined) clearTimeout(watchdog);
+  dispose?.();                         // hoisted, so this actually disposes
+  onAnimationEnd();
+};
+
+dispose = effect(() =&gt; {
+  if (source.status === "idle") settle();
+});
+
+if (!settled) {
+  watchdog = setTimeout(() =&gt; {
+    if (recoverDragOperation(manager)) {
+      console.warn("[puck] Drop never completed; forced the drag operation back to idle. …");
+    }
+    settle();                          // still applies the user's edit
+  }, DROP_WATCHDOG_MS);                // 1500ms — drop animation is 250ms
+}</code></pre>
+</div>
+
+<p>
+  <strong>Why 1500 ms:</strong> the drop animation is <code>duration: moved ? 250 : 0</code> and is
+  scheduled behind <code>manager.renderer.rendering</code>, so a healthy drop settles far inside a
+  second. 1500 ms leaves generous headroom on a slow machine while keeping the recovery
+  imperceptible. The <code>settled</code> flag guarantees the happy path is never affected — the
+  watchdog is cleared the instant the real signal arrives.
+</p>
+
+<p>
+  <strong>Crucially, the watchdog still calls <code>settle()</code></strong>, so the user's edit is
+  applied even on the recovery path. The drop is not lost; it just completes without the animation.
+</p>
+
+<h4>Residual risk (worth knowing)</h4>
+<p>
+  The watchdog is armed from <code>dragend</code>. If an operation were ever to wedge <em>before</em>
+  <code>dragend</code> is dispatched (stuck at <code>initializing</code>), nothing arms it. That path
+  has not been observed and no code path in the fork produces it, but if the freeze ever recurs
+  <em>without</em> the <code>[puck]</code> warning in the console, that is where to look next — the
+  fix would be a pointerup-based net in <code>use-sensors.ts</code>.
+</p>
+
+<h3 id="bug-verify">12.4 How to verify</h3>
+
+<p class="kicker">Automated</p>
+<p>
+  <code>lib/dnd/__tests__/recover-drag-operation.spec.ts</code> — 4 tests covering: healthy
+  operation untouched; stranded <code>dropped</code>/<code>dropping</code> forced to idle;
+  recovery with a destroyed draggable; DOM restoration of the stranded feedback element and
+  placeholder. All pass. Full suite: <strong>377 passing</strong>, unchanged from baseline (one
+  suite fails to load both before and after — see <a href="#perf-bundle">§14.1</a>).
+</p>
+
+<p class="kicker">Manual, in the browser</p>
+<ol>
+  <li>Open Design Studio and drag blocks around for a few minutes, including into and out of nested
+    Sections and shell zones.</li>
+  <li>Watch the console. The fix is <em>working</em> if you see
+    <code>[puck] Drop never completed; forced the drag operation back to idle</code> — that is a
+    freeze that was caught and repaired. Zero occurrences means no wedge happened.</li>
+  <li>The bug is <em>gone</em> if you never again see a permanently-grabbing cursor, and never see
+    <code>Cannot start a drag operation while another is active</code>.</li>
+</ol>
+<p class="fp">
+  Note: this could not be exercised in-session — the Browser pane renders the editor without
+  <code>requestAnimationFrame</code>/screenshots, so drop animations don't run there. The static
+  chain above is traced line-by-line through the installed dnd-kit 0.1.18 sources, and the
+  recovery logic is unit-tested; the end-to-end confirmation is yours to make.
+</p>
+
+<hr>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="smells">13. Code smells &amp; bad patterns</h2>
+
+<h3 id="smell-types">13.1 <span class="pill p-crit">critical</span> Type checking is disabled</h3>
+<p>
+  <code>apps/web/next.config.mjs</code> and <code>apps/store/next.config.ts</code> both set
+  <code>typescript: { ignoreBuildErrors: true }</code>. Running
+  <code>tsc --noEmit -p apps/web/tsconfig.json</code> today reports <strong>648 errors</strong>.
+  Separately, the fork's own <code>packages/editor-packages/core/tsconfig.json</code> cannot resolve
+  <code>@workspace/ui/*</code> or <code>@/core</code> at all (wrong <code>moduleResolution</code>),
+  so the package is <em>not independently type-checkable</em>. There are also <strong>66
+  <code>as any</code></strong> casts in the editor.
+</p>
+
+<h3>13.2 <span class="pill p-crit">critical</span> Unbounded module-level caches</h3>
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Where</th><th>Problem</th></tr></thead>
+<tbody>
+<tr><td><span class="fp">lib/resolve-component-data.ts:14</span></td><td><code>export const cache = { lastChange: {} }</code> — keyed by component id, never evicted. Every block ever resolved (including deleted ones, across page switches) retains a full copy of its props for the life of the tab.</td></tr>
+<tr><td><span class="fp">store/index.ts:203, 226, 232</span></td><td><strong>Key mismatch.</strong> The timeout is stored as <code>pendingLoadTimeouts[id]</code> but deleted as <code>delete pendingLoadTimeouts[loadId]</code>. The delete never matches, so the map grows without bound and concurrent loads on the same id silently overwrite each other's handles.</td></tr>
+<tr><td><span class="fp">DropZone/index.tsx:585-590</span></td><td><code>zoneStore.enabledIndex</code> gains an entry per zone on mount but <strong>no entry is ever removed on unmount</strong>. Every page switch adds more; every <code>DraggableComponent</code> subscribes to this store.</td></tr>
+<tr><td><span class="fp">lib/use-hotkey.ts:174-185</span></td><td><code>useHotkey</code> writes a trigger into a <em>module-level</em> zustand store and never unregisters on unmount. Callbacks with stale closures survive the component that created them.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>13.3 <span class="pill p-high">high</span> The barrel cycle</h3>
+<p>
+  <span class="fp">components/AutoField/fields/ArrayField/index.tsx:33</span> does
+  <code>import { setDeep } from "../../../../bundle"</code> — a core UI component importing the
+  package's own <em>public</em> entry point. That barrel re-exports <code>config/index.tsx</code>,
+  which eagerly imports all 62 blocks. Meanwhile ~10 files under <code>config/blocks/</code> and
+  <code>config/plugins/</code> import types from <code>@/core</code>, closing the loop the other way.
+  This is what makes one jest suite fail to even load, and what makes every edit recompile
+  everything. Fix: import <code>setDeep</code> from <code>lib/data/set-deep</code> directly, and
+  switch <code>config/**</code> to deep type imports.
+</p>
+
+<h3>13.4 <span class="pill p-high">high</span> Duplicated storefront code across apps</h3>
+<p>See <a href="#dead-dupes">§15.3</a> — 16 byte-identical files. This is the highest-churn
+   correctness risk in the repo: a fix applied to one copy leaves the other broken.</p>
+
+<h3>13.5 <span class="pill p-med">medium</span> Imperative DOM escape hatches</h3>
+<p>
+  <code>DraggableComponent</code> reaches around React in several places: it mutates
+  <code>el.style.position</code>, sets/removes <code>data-puck-*</code> attributes by hand
+  (<span class="fp">:624-637</span>), registers imperative <code>sync()</code>/<code>showOverlay()</code>
+  methods into the store, and mutates <code>sortable.droppable.disabled</code> directly from an
+  effect (<span class="fp">:253-273</span>). Each is defensible in isolation; together they mean
+  component state and DOM state can diverge, and there is no single place to reason about
+  "is this block draggable right now".
+</p>
+
+<h3>13.6 <span class="pill p-med">medium</span> Debug scaffolding left in shipped code</h3>
+<p>
+  <code>const DEBUG = false</code> / <code>RENDER_DEBUG = false</code> constants gate dead branches
+  in <code>DragDropContext</code>, <code>DraggableComponent</code> and <code>DropZone</code>
+  (including a <code>getRandomColor()</code> helper that only ever runs when
+  <code>RENDER_DEBUG</code> is flipped). 11 <code>console.log</code> calls remain in
+  <code>lib/migrate.ts</code>, <code>components/AutoFrame</code> and <code>lib/plugin-debug.tsx</code>.
+</p>
+
+<h3>13.7 <span class="pill p-med">medium</span> Timing constants as coordination</h3>
+<p>
+  The DnD path coordinates itself with hand-tuned delays rather than state:
+  <code>AREA_CHANGE_DEBOUNCE_MS = 100</code>, <code>tempDisableFallback(100)</code>,
+  <code>setTimeout(forceUpdate, 50)</code> (<span class="fp">DragDropContext:190-195</span>),
+  <code>throttle(handleMove, 50)</code> (<span class="fp">NestedDroppablePlugin:274</span>),
+  and the nested 100 ms/200 ms pair in <code>use-min-empty-height</code>. A comment at
+  <span class="fp">DragDropContext:269</span> even concedes "<em>we always cancel the debounce if the
+  params change, so we could just use a timer</em>". These are mostly inherited from upstream, but
+  they are why zone switching feels non-deterministic under load.
+</p>
+
+<h3>13.8 <span class="pill p-low">low</span> Stale deprecation still wired up</h3>
+<p>
+  <code>DropZone/index.tsx:488-496</code> warns that DropZones are deprecated in favour of slot
+  fields and links to a Puck migration guide. <code>lib/migrate.ts</code> implements that migration
+  but is not run anywhere. Either run it once over the fixtures and delete both, or drop the warning.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="perf">14. Performance</h2>
+
+<h3 id="perf-bundle">14.1 <span class="pill p-crit">critical</span> Eager block imports + transpilePackages</h3>
+<p>
+  <code>config/index.tsx:1-58</code> statically imports all 62 blocks. Combined with
+  <code>transpilePackages: ["@puckeditor/core"]</code> in both apps and the barrel cycle above,
+  <strong>every edit to any block recompiles the entire editor</strong>, and every consumer of
+  <code>@/core</code> — including <code>apps/store</code>'s storefront pages — pulls the whole
+  registry into its bundle. Leaflet, TipTap and Embla all ride along.
+</p>
+<p><strong>Fix:</strong> break the cycle (§13.3) first, then make the registry lazy —
+   <code>components: { Section: () =&gt; import("./blocks/Section") }</code> resolved at render —
+   or at minimum split the 9 <code>// IGNORED</code> blocks out.</p>
+
+<h3>14.2 <span class="pill p-high">high</span> Per-frame rAF position polling</h3>
+<p>
+  <span class="fp">DraggableComponent/index.tsx:384-409</span>. While any block's overlay is visible
+  (hover or selection), a <code>requestAnimationFrame</code> loop calls
+  <code>getBoundingClientRect()</code> every frame, forever, and triggers a React
+  <code>setState</code> whenever the element moved. It runs for the hovered block <em>and</em> the
+  selected block simultaneously, inside the iframe, and never stops while the selection persists.
+</p>
+<p><strong>Fix:</strong> replace with a <code>PositionObserver</code>/<code>IntersectionObserver</code>
+  pair, or at minimum gate the loop off while <code>ui.isDragging</code> is true — which also removes
+  one of the freeze amplifiers from <a href="#bug-trigger">§12.2</a>.</p>
+
+<h3>14.3 <span class="pill p-high">high</span> <code>elementsFromPoint</code> on every pointermove</h3>
+<p>
+  <span class="fp">NestedDroppablePlugin.ts:250-282</span> installs a capture-phase
+  <code>pointermove</code> listener on <code>document.body</code> that runs
+  <code>document.elementsFromPoint()</code> <em>and then</em>
+  <code>frame.elementsFromPoint()</code>, iterates every hit element, and calls
+  <code>getBoundingClientRect()</code> on each candidate. Throttled to 50 ms — so up to 20×/s during
+  a drag, each pass forcing synchronous layout in two documents.
+</p>
+<p><strong>Fix:</strong> cache the frame lookup (<code>getFrame()</code> runs a
+  <code>querySelector</code> per call), bail early when the pointer hasn't crossed an element
+  boundary, and cache bounding boxes for the duration of a drag.</p>
+
+<h3>14.4 <span class="pill p-med">medium</span> <code>normalizeSiteData</code> deep-clones the tree</h3>
+<p>
+  <code>config/lib/normalize-editor-data.ts:43-47</code> uses <code>structuredClone</code> (good — the
+  recursive fallback is ~10× slower), but it still clones the <em>entire</em> site on every call, and
+  <code>site-data.ts:510</code> does a <code>JSON.parse(JSON.stringify(...))</code> of the whole
+  desktop site for the mobile fork. Neither belongs in a hot path — audit the call sites.
+</p>
+
+<h3>14.5 <span class="pill p-med">medium</span> localStorage on the render path</h3>
+<p>
+  97 <code>localStorage</code> call sites across the editor and both apps. <code>site-data.ts</code>
+  parses the full site JSON synchronously on every <code>readSiteData()</code>, and several hooks
+  call it inside render or in a <code>storage</code>-event handler. Memoise per mode and invalidate
+  on write.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="dead">15. Dead code</h2>
+
+<p class="fp">
+  Method: full import-graph resolution across <code>packages/editor-packages</code>,
+  <code>packages/ui</code>, <code>apps/web</code>, <code>apps/store</code> (1,133 source files,
+  5,738 import edges), with the repo's path aliases applied. Test files excluded as importers.
+  Confidence is marked per row — verify the <span class="pill p-med">check</span> rows before deleting.
+</p>
+
+<h3>15.1 Files with no importer</h3>
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>File</th><th>LOC</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td><code>config/plugins/settings/SettingsPanel/ColorPicker.tsx</code></td><td>472</td><td><span class="pill p-crit">delete</span> superseded by <code>fields/ThemeColorField</code>'s own picker</td></tr>
+<tr><td><code>config/blocks/Blank/index.tsx</code></td><td>~30</td><td><span class="pill p-crit">delete</span> not registered, not referenced</td></tr>
+<tr><td><code>plugin-emotion-cache/</code> (whole package)</td><td>~40</td><td><span class="pill p-crit">delete</span> + drop from <code>apps/web/package.json</code> and <code>next.config.mjs</code> <code>transpilePackages</code></td></tr>
+<tr><td><code>lib/use-why-render.ts</code></td><td>~20</td><td><span class="pill p-crit">delete</span> upstream dev helper</td></tr>
+<tr><td><code>lib/use-parent.ts</code></td><td>~15</td><td><span class="pill p-crit">delete</span> upstream leftover</td></tr>
+<tr><td><code>lib/use-on-value-change.ts</code></td><td>~20</td><td><span class="pill p-crit">delete</span> upstream leftover</td></tr>
+<tr><td><code>lib/use-frame.ts</code></td><td>~15</td><td><span class="pill p-crit">delete</span> superseded by <code>lib/get-frame.ts</code></td></tr>
+<tr><td><code>lib/is-ios.ts</code></td><td>~8</td><td><span class="pill p-crit">delete</span></td></tr>
+<tr><td><code>lib/plugin-debug.tsx</code></td><td>~45</td><td><span class="pill p-crit">delete</span> debug plugin, never registered (2 of the 11 stray <code>console.log</code>s)</td></tr>
+<tr><td><code>components/RichTextEditor/index.ts</code></td><td>1</td><td><span class="pill p-crit">delete</span> broken barrel — re-exports <code>./Editor</code>, which does not exist</td></tr>
+<tr><td><code>bundle/rsc.tsx</code>, <code>bundle/no-external.ts</code>, <code>bundle/internal.ts</code></td><td>~60</td><td><span class="pill p-med">check</span> tsup entry points for publishing <code>@puckeditor/core</code>. The fork is consumed via path alias and <code>dist/</code> has never been built. Delete along with <code>tsup.config.ts</code> and the <code>exports</code>/<code>files</code>/<code>prepare</code> keys in <code>package.json</code> <em>if</em> publishing is off the table.</td></tr>
+<tr><td><code>lib/migrate.ts</code></td><td>~160</td><td><span class="pill p-med">check</span> DropZone→slot migration, never invoked. See §13.8.</td></tr>
+<tr><td><code>plugins/outline/</code></td><td>0</td><td><span class="pill p-crit">delete</span> <strong>empty directory</strong></td></tr>
+<tr><td><code>plugins/legacy-side-bar/index.tsx</code></td><td>~110</td><td><span class="pill p-med">check</span> <code>legacySideBarPlugin</code> is exported but referenced nowhere; superseded by <code>config/plugins/shopify-editor</code>. Confirm no host names it before deleting.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>15.2 Unregistered / unreachable blocks</h3>
+<p>
+  Nine blocks are commented out of the palette with <code>// IGNORED</code> but still registered and
+  eagerly imported (see <a href="#blocks">§6</a>). They cost bundle size and compile time for zero
+  merchant-facing value. <strong>Decision needed:</strong> if they are coming back, move them behind
+  a lazy import; if not, delete the folders and their registry entries.
+</p>
+<p class="fp">
+  ProductImageCarousel (147) · ProductVariants (303) · CategoryListMenu (357) ·
+  CheckoutForm (325) · ProductSearchMenu (293) · OrderHistory (171) · Wishlist (156) ·
+  ContactForm (244) · Sidebar (276) &nbsp;=&nbsp;<strong>2,272 LOC</strong>
+</p>
+
+<h3 id="dead-dupes">15.3 Byte-identical duplicates between <code>apps/store</code> and <code>apps/web</code></h3>
+<p>
+  <code>apps/store</code>'s tsconfig already aliases into <code>apps/web</code>, so these can simply
+  become imports. All 16 verified identical with <code>diff</code>:
+</p>
+<div class="tbl-scroll">
+<table>
+<thead><tr><th><code>apps/store/…</code></th><th>duplicate of <code>apps/web/modules/storefront/…</code></th></tr></thead>
+<tbody>
+<tr><td><code>lib/use-published-site-data.ts</code></td><td><code>lib/use-published-site-data.ts</code></td></tr>
+<tr><td><code>lib/use-store-pathname.ts</code></td><td><code>lib/use-store-pathname.ts</code></td></tr>
+<tr><td><code>lib/use-customer-session.ts</code></td><td><code>lib/use-customer-session.ts</code></td></tr>
+<tr><td><code>components/store-loading.tsx</code></td><td><code>components/store-loading.tsx</code></td></tr>
+<tr><td><code>components/store-not-found.tsx</code></td><td><code>components/store-not-found.tsx</code></td></tr>
+<tr><td><code>components/theme-json-tester.tsx</code></td><td><code>components/theme-json-tester.tsx</code></td></tr>
+<tr><td><code>components/UrlBoundProductProvider.tsx</code></td><td><code>components/UrlBoundProductProvider.tsx</code></td></tr>
+<tr><td><code>components/orders/orders-view.tsx</code></td><td><code>components/orders/orders-view.tsx</code></td></tr>
+<tr><td><code>components/orders/orders-error.ts</code></td><td><code>components/orders/orders-error.ts</code></td></tr>
+<tr><td><code>components/orders/orders-states.tsx</code></td><td><code>components/orders/orders-states.tsx</code></td></tr>
+<tr><td><code>components/orders/order-status-badge.tsx</code></td><td><code>components/orders/order-status-badge.tsx</code></td></tr>
+<tr><td><code>components/orders/order-actions.tsx</code></td><td><code>components/orders/order-actions.tsx</code></td></tr>
+<tr><td><code>components/checkout/checkout-api.ts</code></td><td><code>components/checkout/checkout-api.ts</code></td></tr>
+<tr><td><code>components/checkout/CheckoutDrawer.tsx</code></td><td><code>components/checkout/CheckoutDrawer.tsx</code></td></tr>
+<tr><td><code>components/checkout/save-address-panel.tsx</code></td><td><code>components/checkout/save-address-panel.tsx</code></td></tr>
+<tr><td><code>components/checkout/checkout-map-picker.tsx</code></td><td><code>components/checkout/checkout-map-picker.tsx</code></td></tr>
+</tbody>
+</table>
+</div>
+<p class="fp">
+  Near-duplicate (6 differing lines, worth reconciling rather than deleting):
+  <code>apps/store/lib/use-storefront-data.ts</code> vs
+  <code>apps/web/modules/storefront/lib/use-storefront-data.ts</code>.
+</p>
+
+<h3>15.4 Unused exports</h3>
+<p>
+  186 exported symbols in <code>packages/editor-packages</code> are referenced in no other file.
+  Most are types and constants exported "just in case". They are cheap to leave but they inflate the
+  public surface of a fork you are trying to keep diffable. Highest-value clusters to prune:
+</p>
+<ul>
+  <li><code>config/content/*</code> — <code>BUTTON_ACTIONS</code>, <code>INPUT_ACTIONS</code>,
+    <code>SWITCH_ACTIONS</code>, <code>MODE_OPTIONS</code>, <code>COLOR_SELECT_OPTIONS</code>
+    and their label helpers: five files whose every export is unreferenced.</li>
+  <li><code>config/cart/make-order.ts</code> — all four exports
+    (<code>MAKE_ORDER_EVENT</code>, <code>dispatchMakeOrderEvent</code>, …) unused.</li>
+  <li><code>config/data/cart.ts</code>, <code>config/data/checkout.ts</code> — mock cart/checkout
+    fixtures superseded by <code>config/data-adapter/sample-data.ts</code>.</li>
+  <li><code>config/lib/login-events.ts</code>, <code>config/lib/zone-events.ts</code> (the
+    <code>openZone</code>/<code>closeZone</code>/<code>toggleZone</code> trio) — verify these
+    aren't dispatched by string from a block before deleting.</li>
+</ul>
+<p class="fp">
+  Full list regenerable with the import-graph script; treat it as a worklist, not a delete list —
+  event-based indirection (<code>window.dispatchEvent(new CustomEvent(…))</code>) is used heavily in
+  this codebase and defeats static analysis.
+</p>
+
+<hr>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="plan">16. Remediation plan</h2>
+
+<p>
+  Ordered so each phase is independently shippable and testable, and so the cheap safety nets land
+  before the risky refactors.
+</p>
+
+<h3>Phase 0 — Stop the bleeding <span class="pill p-done">done</span></h3>
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Task</th><th>Files</th><th>Verify</th></tr></thead>
+<tbody>
+<tr><td>DnD freeze watchdog + recovery</td><td><code>lib/dnd/recover-drag-operation.ts</code> (new), <code>components/DragDropContext/index.tsx</code></td><td>4 new unit tests; 377 suite green</td></tr>
+<tr><td>Fix the leaked <code>effect</code> in <code>onDragEnd</code></td><td><code>components/DragDropContext/index.tsx</code></td><td>same</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Phase A — Safety nets (½ day, no behaviour change)</h3>
+<ol>
+  <li>Turn on type checking for the editor. Fix <code>core/tsconfig.json</code>
+    (<code>moduleResolution: "bundler"</code> + the <code>@/core</code> / <code>@workspace/ui</code>
+    paths) so the package type-checks standalone. Add
+    <code>pnpm --filter @puckeditor/core typecheck</code> to CI as <em>non-blocking</em> first, to
+    get a baseline number.</li>
+  <li>Fix the three unbounded caches — <code>resolve-component-data.ts</code> cache eviction,
+    the <code>pendingLoadTimeouts</code> key mismatch, and <code>enabledIndex</code> cleanup on
+    DropZone unmount. All three are small, local, and independently testable.</li>
+  <li>Unregister hotkey triggers on unmount in <code>lib/use-hotkey.ts</code>.</li>
+</ol>
+<p class="fp">Exit criterion: baseline type-error count recorded; no new leaks under a 10-minute
+   editing session in DevTools' memory profiler.</p>
+
+<h3>Phase B — Delete (½ day)</h3>
+<ol>
+  <li>Delete every <span class="pill p-crit">delete</span> row from <a href="#dead">§15.1</a>
+    (~700 LOC + one package).</li>
+  <li>Decide on the 9 <code>// IGNORED</code> blocks (<a href="#dead">§15.2</a>, ~2,350 LOC).
+    <strong>This is a product decision, not a technical one</strong> — ask before deleting.</li>
+  <li>Strip the <code>DEBUG</code>/<code>RENDER_DEBUG</code> branches and the 11 stray
+    <code>console.log</code>s.</li>
+</ol>
+<p class="fp">Exit criterion: <code>registry-consistency.spec.ts</code> still green; both apps build.</p>
+
+<h3>Phase C — De-duplicate the storefront (1 day)</h3>
+<ol>
+  <li>Replace the 16 identical <code>apps/store</code> files with re-exports from
+    <code>@/modules/storefront/…</code> (the alias already resolves).</li>
+  <li>Reconcile the two <code>use-storefront-data.ts</code> into one.</li>
+  <li>Add a CI check that fails on byte-identical files across the two apps, so this cannot regress.</li>
+</ol>
+<p class="fp">Exit criterion: <code>apps/store</code> builds and renders a seeded store identically
+   to before.</p>
+
+<h3>Phase D — Break the barrel cycle &amp; lazy-load blocks (2–3 days)</h3>
+<ol>
+  <li><code>ArrayField</code>: import <code>setDeep</code> from its real module, not
+    <code>../../../../bundle</code>. This alone should un-break the failing jest suite.</li>
+  <li>Convert <code>config/**</code>'s <code>@/core</code> imports to deep paths
+    (<code>@/core/types</code>, <code>@/core/components/…</code>).</li>
+  <li>Add a lint rule (<code>import/no-cycle</code>) to keep it broken.</li>
+  <li>Make the block registry lazy. Measure the design-studio bundle before and after.</li>
+</ol>
+<p class="fp">Exit criterion: no cycles reported; dev-server rebuild time on a single-block edit
+   drops measurably; all 51 suites load.</p>
+
+<h3>Phase E — DnD performance (2 days)</h3>
+<ol>
+  <li>Replace <code>watchPosition</code>'s rAF loop with an observer, or gate it off during drags
+    (<a href="#perf">§14.2</a>).</li>
+  <li>Cache <code>getFrame()</code> and bounding boxes for the duration of a drag; add an early bail
+    to <code>NestedDroppablePlugin</code>'s pointermove handler (<a href="#perf">§14.3</a>).</li>
+  <li>Collapse the nested timeouts in <code>use-min-empty-height</code> into a single
+    transition-end signal.</li>
+</ol>
+<p class="fp">Exit criterion: no dropped frames dragging a Section across a 20-block page in a
+   Performance profile; the Phase-0 watchdog warning stops appearing entirely.</p>
+
+<h3>Phase F — Backend persistence (scoped separately)</h3>
+<p>
+  Move <code>readSiteData</code>/<code>applyPuckSave</code> behind an async repository interface with
+  a localStorage implementation and an API implementation, then switch the host over. The seam
+  already exists in <code>apps/web/modules/design-studio/draft.ts</code>. Treat the current
+  localStorage-only state as a known, deliberate gap until then — it is the single biggest product
+  risk in the editor, and it is orthogonal to everything above.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2 id="appendix">17. Appendix</h2>
+
+<h3>Commands</h3>
+<pre><code># editor test suite (51 suites, 377 tests)
+cd packages/editor-packages/core &amp;&amp; npx jest
+
+# just the DnD recovery tests
+cd packages/editor-packages/core &amp;&amp; npx jest lib/dnd
+
+# type-check the editor through the app that can actually resolve it
+npx tsc --noEmit -p apps/web/tsconfig.json
+
+# run the apps
+pnpm --filter web dev     # :3000  design studio
+pnpm --filter store dev   # :3001  storefront</code></pre>
+
+<h3>Related docs</h3>
+<ul>
+  <li><code>docs/editor-study-and-enhancement-plan.md</code> — the prior deep dive; still the
+    reference for editor internals not covered here.</li>
+  <li><code>packages/editor-packages/CLAUDE.md</code> — conventions for working in the fork.</li>
+  <li><code>packages/editor-packages/core/config/blocks/BLOCKS.md</code> and
+    <code>ZONES.md</code> — per-block documentation.</li>
+  <li><code>docs/frontend-standards.md</code>, <code>docs/routing-refactor-plan.md</code>.</li>
+</ul>
+
+<h3>Files changed in this pass</h3>
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>File</th><th>Change</th></tr></thead>
+<tbody>
+<tr><td><code>packages/editor-packages/core/lib/dnd/recover-drag-operation.ts</code></td><td><span class="pill p-done">new</span> forced recovery for a wedged drag operation</td></tr>
+<tr><td><code>packages/editor-packages/core/lib/dnd/__tests__/recover-drag-operation.spec.ts</code></td><td><span class="pill p-done">new</span> 4 tests</td></tr>
+<tr><td><code>packages/editor-packages/core/components/DragDropContext/index.tsx</code></td><td><span class="pill p-done">edit</span> watchdog + effect-leak fix in <code>onDragEnd</code></td></tr>
+<tr><td><code>docs/editor-code-roadmap.html</code></td><td><span class="pill p-done">new</span> this document</td></tr>
+</tbody>
+</table>
+</div>
+
+</main>
+</div>
+
+</body>
+</html>

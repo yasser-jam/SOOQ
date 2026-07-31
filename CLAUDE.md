@@ -54,6 +54,11 @@ Bearer auth + `X-Tenant-ID` and an `ApiResponse`/`PagedApiResponse` envelope.
 
 - `docs/editor-study-and-enhancement-plan.md` — deep dive into the editor architecture,
   its perf bottlenecks, and a phased enhancement plan. **Required reading before editor work.**
+- `docs/editor-code-roadmap.html` — open in a browser. File-level map of the editor packages
+  (layers, Site JSON flow, DnD engine, plugins), a ranked audit of code smells / perf traps /
+  dead code with a phased remediation plan, and the root-cause writeup of the drag-and-drop
+  freeze (dnd-kit's un-guarded drop promise) fixed in
+  `core/lib/dnd/recover-drag-operation.ts`.
 - `docs/PRD_COMPLIANCE_PLAN.md` — admin/PRD execution plan with progress dashboard (~95% done).
 - `docs/frontend-standards.md` — inferred code conventions for `apps/web` + `packages/ui`.
 - `docs/routing-refactor-plan.md` — the three-audience routing split (merchant `/store/[slug]`,
