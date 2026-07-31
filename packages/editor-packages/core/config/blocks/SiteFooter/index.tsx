@@ -12,6 +12,7 @@ import {
 import type { ShellVariant } from "../../theme";
 import { ZONE_BLOCK_PERMISSIONS } from "../../shell-zones";
 import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
+import { showConditionField } from "../../lib/show-condition";
 
 export type SiteFooterProps = {
   title: string;
@@ -111,11 +112,13 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
             label: { type: "text", label: "التسمية (إنجليزي)" },
             labelAr: { type: "text", label: "التسمية (عربي)" },
             link: linkField({ label: "الوجهة" }),
+            showCondition: showConditionField,
           },
           defaultItemProps: {
             label: "New link",
             labelAr: "عنصر",
             link: EMPTY_LINK,
+            showCondition: "always",
           },
           getItemSummary: (item: { label?: string; href?: string }) =>
             item?.label || item?.href || "Link",

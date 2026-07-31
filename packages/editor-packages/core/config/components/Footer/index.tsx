@@ -9,6 +9,11 @@ import {
   resolveLinkTarget,
   type LinkValue,
 } from "../../fields/LinkField";
+import {
+  shouldShowForCondition,
+  type ShowCondition,
+} from "../../lib/show-condition";
+import { useStore } from "../../store-context";
 
 import selectionStyles from "../../lib/zone-selection.module.css";
 import responsiveStyles from "../../lib/zone-responsive.module.css";
@@ -87,6 +92,8 @@ export type FooterLinkData = {
   link?: LinkValue;
   /** Legacy field kept for older persisted JSON payloads. */
   href?: string;
+  /** Auth visibility — persisted in Site JSON (`loggedIn` / `loggedOut` / `always`). */
+  showCondition?: ShowCondition;
 };
 
 export type FooterColumn = {
@@ -225,6 +232,7 @@ const Footer = ({
   componentId,
 }: FooterProps) => {
   const previewSelected = useZonePreviewSelected(componentId);
+  const { auth } = useStore();
   if (!visible && !previewSelected) return null;
 
   const deviceClass = isMobileOnly ? responsiveStyles.hideOnDesktop : "";
@@ -250,23 +258,29 @@ const Footer = ({
   const renderedChildren =
     children ??
     (resolvedColumns
-      ? resolvedColumns.map((col, ci) => (
-          <FooterList
-            key={`${col.title}-${ci}`}
-            title={pickText(col.title, col.titleAr, language) || col.title}
-          >
-            {col.links.map((lnk, li) => (
-              <FooterLink
-                key={`${resolveHrefLegacy(lnk.link, lnk.href) ?? "none"}-${li}`}
-                link={lnk.link}
-                href={lnk.href}
-                editMode={editMode}
-              >
-                {pickText(lnk.label, lnk.labelAr, language) || lnk.label}
-              </FooterLink>
-            ))}
-          </FooterList>
-        ))
+      ? resolvedColumns.map((col, ci) => {
+          const visibleLinks = (col.links ?? []).filter((lnk) =>
+            shouldShowForCondition(lnk.showCondition, auth.isLoggedIn, editMode)
+          );
+          if (visibleLinks.length === 0) return null;
+          return (
+            <FooterList
+              key={`${col.title}-${ci}`}
+              title={pickText(col.title, col.titleAr, language) || col.title}
+            >
+              {visibleLinks.map((lnk, li) => (
+                <FooterLink
+                  key={`${resolveHrefLegacy(lnk.link, lnk.href) ?? "none"}-${li}`}
+                  link={lnk.link}
+                  href={lnk.href}
+                  editMode={editMode}
+                >
+                  {pickText(lnk.label, lnk.labelAr, language) || lnk.label}
+                </FooterLink>
+              ))}
+            </FooterList>
+          );
+        })
       : null);
 
   const resolvedTagline =

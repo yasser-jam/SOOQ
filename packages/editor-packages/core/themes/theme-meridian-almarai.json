@@ -247,7 +247,8 @@
                   "link": {
                     "kind": "page",
                     "pageId": "/cart"
-                  }
+                  },
+                  "showCondition": "loggedIn"
                 }
               ]
             },
@@ -256,12 +257,31 @@
               "titleAr": "حسابي",
               "links": [
                 {
+                  "label": "Settings",
+                  "labelAr": "الإعدادات",
+                  "link": {
+                    "kind": "page",
+                    "pageId": "/settings"
+                  },
+                  "showCondition": "loggedIn"
+                },
+                {
+                  "label": "Orders",
+                  "labelAr": "طلباتي",
+                  "link": {
+                    "kind": "page",
+                    "pageId": "/orders"
+                  },
+                  "showCondition": "loggedIn"
+                },
+                {
                   "label": "Login",
                   "labelAr": "تسجيل الدخول",
                   "link": {
                     "kind": "page",
                     "pageId": "/login"
-                  }
+                  },
+                  "showCondition": "loggedOut"
                 },
                 {
                   "label": "Verify",
@@ -269,7 +289,8 @@
                   "link": {
                     "kind": "page",
                     "pageId": "/verify-otp"
-                  }
+                  },
+                  "showCondition": "loggedOut"
                 }
               ]
             },
@@ -408,6 +429,17 @@
                     "link": {
                       "kind": "page",
                       "pageId": "/orders"
+                    },
+                    "showCondition": "loggedIn"
+                  },
+                  {
+                    "label": {
+                      "ar": "السلة",
+                      "en": "Cart"
+                    },
+                    "link": {
+                      "kind": "page",
+                      "pageId": "/cart"
                     },
                     "showCondition": "loggedIn"
                   },
@@ -3270,7 +3302,7 @@
       "path": "/settings",
       "slug": "/settings",
       "link": "/settings",
-      "title": "/settings",
+      "title": "الإعدادات",
       "name": "الإعدادات",
       "iconName": "FileText",
       "isCustom": false,

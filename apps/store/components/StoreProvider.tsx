@@ -5,7 +5,7 @@
  * Provides real implementations of all StoreContext actions to the block tree.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
 	StoreContext,
 	defaultCustomerState,
@@ -85,10 +85,12 @@ function clearCookie(name: string) {
 }
 
 function readAuthFromCookies(): StoreAuthState {
+	const accessToken = readCookie(cookiesConfig.storeAccessToken)
 	const customerName = readCookie("sooq-user-name")
 	const customerPhone = readCookie("sooq-user-phone")
 	return {
-		isLoggedIn: Boolean(customerName && customerPhone),
+		// Access token is the real session signal; name/phone are display-only.
+		isLoggedIn: Boolean(accessToken),
 		customerName: customerName ?? null,
 		customerPhone: customerPhone ?? null,
 	}
@@ -565,13 +567,56 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
 	// ─── Context value ─────────────────────────────────────────────────────────
 
-	const value: StoreContextValue = {
-		auth,
-		loading,
-		errors,
-		productsPage,
-		customer,
-		actions: {
+	const customerActions = useMemo(
+		() => ({
+			setProfileDraftField,
+			saveProfile,
+			setMarketingPref,
+			setAddressDraftField,
+			setAddressDraftLocation,
+			createAddress,
+			setDefaultAddress,
+			deleteAddress,
+			refreshCustomer,
+		}),
+		[
+			setProfileDraftField,
+			saveProfile,
+			setMarketingPref,
+			setAddressDraftField,
+			setAddressDraftLocation,
+			createAddress,
+			setDefaultAddress,
+			deleteAddress,
+			refreshCustomer,
+		],
+	)
+
+	const value = useMemo<StoreContextValue>(
+		() => ({
+			auth,
+			loading,
+			errors,
+			productsPage,
+			customer,
+			actions: {
+				login,
+				verifyOtp,
+				makeOrder,
+				addToCart,
+				addToWishlist,
+				logout,
+				searchProducts,
+				productsPage: productsPageActions,
+				customer: customerActions,
+			},
+		}),
+		[
+			auth,
+			loading,
+			errors,
+			productsPage,
+			customer,
 			login,
 			verifyOtp,
 			makeOrder,
@@ -579,20 +624,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 			addToWishlist,
 			logout,
 			searchProducts,
-			productsPage: productsPageActions,
-			customer: {
-				setProfileDraftField,
-				saveProfile,
-				setMarketingPref,
-				setAddressDraftField,
-				setAddressDraftLocation,
-				createAddress,
-				setDefaultAddress,
-				deleteAddress,
-				refreshCustomer,
-			},
-		},
-	}
+			productsPageActions,
+			customerActions,
+		],
+	)
 
 	return (
 		<StoreContext.Provider value={value}>

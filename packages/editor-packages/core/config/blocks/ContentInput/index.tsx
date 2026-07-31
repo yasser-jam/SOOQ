@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { ComponentConfig, Fields } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";
@@ -17,6 +17,9 @@ import type { ValueContext } from "../../binding";
 import { useBoundValue } from "../../binding";
 import { useStore } from "../../store-context";
 import styles from "./styles.module.css";
+
+/** Keep draft writes off the hot path so StoreContext doesn't re-render the page per keystroke. */
+const CUSTOMER_DRAFT_DEBOUNCE_MS = 250;
 
 const getClassName = getClassNameFactory("ContentInput", styles);
 
@@ -145,11 +148,36 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
                 : "";
 
     const [localValue, setLocalValue] = useState(boundValue);
+    const isFocusedRef = useRef(false);
+    const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+    const flushCustomerDraft = (value: string) => {
+      if (isProfileFullName) {
+        actions.customer.setProfileDraftField("fullName", value);
+        return;
+      }
+      if (addressDraftField) {
+        actions.customer.setAddressDraftField(addressDraftField, value);
+      }
+    };
+
+    const clearDraftTimer = () => {
+      if (draftTimerRef.current != null) {
+        clearTimeout(draftTimerRef.current);
+        draftTimerRef.current = null;
+      }
+    };
+
+    useEffect(() => () => clearDraftTimer(), []);
+
+    // Re-sync from the store when it changes underneath us — but never while
+    // the user is typing. Immediate draft writes used to update StoreContext
+    // on every keystroke, remounting siblings (map, gates) and stealing focus.
     useEffect(() => {
       if (!isBound) return;
+      if (isCustomerDraft && isFocusedRef.current) return;
       setLocalValue(boundValue);
-    }, [isBound, boundValue]);
+    }, [isBound, isCustomerDraft, boundValue]);
 
     useEffect(() => {
       if (!isDebouncedBound || puck.isEditing) return;
@@ -185,13 +213,25 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
       setLocalValue(next);
       if (puck.isEditing || isContextDisplay) return;
 
-      if (isProfileFullName) {
-        actions.customer.setProfileDraftField("fullName", next);
-        return;
-      }
+      if (!isCustomerDraft) return;
 
-      if (addressDraftField) {
-        actions.customer.setAddressDraftField(addressDraftField, next);
+      clearDraftTimer();
+      draftTimerRef.current = setTimeout(() => {
+        draftTimerRef.current = null;
+        flushCustomerDraft(next);
+      }, CUSTOMER_DRAFT_DEBOUNCE_MS);
+    };
+
+    const handleFocus = () => {
+      isFocusedRef.current = true;
+    };
+
+    const handleBlur = () => {
+      isFocusedRef.current = false;
+      if (puck.isEditing || !isCustomerDraft) return;
+      clearDraftTimer();
+      if (localValue !== boundValue) {
+        flushCustomerDraft(localValue);
       }
     };
 
@@ -230,6 +270,8 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
             ? (event) => handleChange(event.target.value)
             : undefined
         }
+        onFocus={isCustomerDraft ? handleFocus : undefined}
+        onBlur={isCustomerDraft ? handleBlur : undefined}
         aria-label={!label.trim() ? placeholder || label : undefined}
         {...{ [SOOQ_INPUT_ATTR]: "" }}
       />

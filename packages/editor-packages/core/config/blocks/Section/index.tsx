@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { ComponentConfig, Slot } from "@/core/types";
 import type { ComponentDataOptionalId, SlotComponent } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";
@@ -443,6 +443,67 @@ function SectionView({
   const colsMobile = clampColumns(columnsMobile ?? 1);
   const isEditing = puck.isEditing === true;
   const activeCols = useEditorActiveColumns(isEditing, cols, colsMobile);
+  const { customer } = useStore();
+  const sampleMode = isEditing && useSampleDataInEditor();
+
+  const isProductsGrid = isProductsGridSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const isProductsPage = isProductsPageSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const isCustomerAccount = isCustomerAccountSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const isCustomerAddresses = isCustomerAddressesSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const customerAccountBoundData = useMemo(() => {
+    if (sampleMode) {
+      return {
+        profile: {
+          customerId: "sample-customer",
+          fullName: "أحمد محمد",
+          phone: "+963991234567",
+          totalSpendSyp: 125000,
+          orderCount: 7,
+          lastOrderAt: "2026-01-15T10:00:00Z",
+          createdAt: "2025-06-01T08:00:00Z",
+        },
+        preferences: {
+          emailOptIn: true,
+          smsOptIn: false,
+          emailConsentedAt: "2025-06-01T08:00:00Z",
+          smsConsentedAt: null,
+        },
+      };
+    }
+    return {
+      profile: customer.profile,
+      preferences: customer.preferences,
+    };
+  }, [sampleMode, customer.profile, customer.preferences]);
+
+  const customerAccountProviderValue = useMemo(
+    () => ({
+      data: customerAccountBoundData,
+      isLoading: false,
+      isError: false,
+      metadata: null,
+      language: "ar" as const,
+      selectedVariantId: null,
+      setSelectedVariantId: () => {},
+    }),
+    [customerAccountBoundData]
+  );
 
   const gap = gridGap ?? "24px";
   const bgImage = (backgroundImage ?? "").trim();
@@ -474,52 +535,6 @@ function SectionView({
     alignContent: "start",
     width: "100%",
   } as const;
-
-  const isProductsGrid = isProductsGridSection({
-    sectionKind,
-    metadata: sectionMetadata,
-  });
-
-  const isProductsPage = isProductsPageSection({
-    sectionKind,
-    metadata: sectionMetadata,
-  });
-
-  const isCustomerAccount = isCustomerAccountSection({
-    sectionKind,
-    metadata: sectionMetadata,
-  });
-
-  const isCustomerAddresses = isCustomerAddressesSection({
-    sectionKind,
-    metadata: sectionMetadata,
-  });
-
-  const { customer } = useStore();
-  const sampleMode = isEditing && useSampleDataInEditor();
-
-  const customerAccountBoundData = sampleMode
-    ? {
-        profile: {
-          customerId: "sample-customer",
-          fullName: "أحمد محمد",
-          phone: "+963991234567",
-          totalSpendSyp: 125000,
-          orderCount: 7,
-          lastOrderAt: "2026-01-15T10:00:00Z",
-          createdAt: "2025-06-01T08:00:00Z",
-        },
-        preferences: {
-          emailOptIn: true,
-          smsOptIn: false,
-          emailConsentedAt: "2025-06-01T08:00:00Z",
-          smsConsentedAt: null,
-        },
-      }
-    : {
-        profile: customer.profile,
-        preferences: customer.preferences,
-      };
 
   const productsGridRender = isProductsGrid ? (
     <ProductsGridTemplateRepeater
@@ -566,17 +581,7 @@ function SectionView({
   );
 
   const customerAccountContent = isCustomerAccount ? (
-    <BoundDataProvider
-      value={{
-        data: customerAccountBoundData,
-        isLoading: false,
-        isError: false,
-        metadata: null,
-        language: "ar",
-        selectedVariantId: null,
-        setSelectedVariantId: () => {},
-      }}
-    >
+    <BoundDataProvider value={customerAccountProviderValue}>
       {defaultSectionContent}
     </BoundDataProvider>
   ) : (
