@@ -13,6 +13,14 @@ import {
 import { CUSTOM_TEMPLATE_KEY, readDraftTemplateKey } from "./templates"
 import type { DesignConfigJson, DesignVersion } from "./types"
 
+export {
+  applyDesignConfigToLocalStorage,
+  hasUsableSitePages,
+  hydrateLocalSiteFromSources,
+  type HydrateLocalSiteResult,
+  type HydrateLocalSiteSource,
+} from "./local-site-sync"
+
 /**
  * The mobile app builder doesn't exist yet, but the backend validates that
  * `configJson` carries both platform keys — so mobile ships as an empty

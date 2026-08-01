@@ -75,6 +75,7 @@ import {
   DESIGN_SCHEMA_VERSION,
   saveDesignDraft,
 } from "@/modules/design-studio/actions"
+import { applyDesignConfigToLocalStorage } from "@/modules/design-studio/local-site-sync"
 import { designStudioKeys } from "@/modules/design-studio/queryKeys"
 import { CUSTOM_TEMPLATE_KEY } from "@/modules/design-studio/templates"
 
@@ -493,6 +494,9 @@ export function ThemeOnboardingDialog({
         },
         schemaVersion: DESIGN_SCHEMA_VERSION,
       })
+
+      // Keep editor localStorage in lockstep with the new API draft.
+      applyDesignConfigToLocalStorage(version.configJson)
 
       return { version, themeName }
     },

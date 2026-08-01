@@ -54,6 +54,7 @@ import { Button } from "@workspace/ui/components/button"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { saveWebDesignDraft } from "@/modules/design-studio/draft"
+import { hydrateLocalSiteFromSources } from "@/modules/design-studio/local-site-sync"
 import { designStudioKeys } from "@/modules/design-studio/queryKeys"
 import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell"
 import { PreviewPageShell } from "../_components/preview-page-shell"
@@ -478,19 +479,6 @@ export function Client({
     ? EDITOR_METADATA_MOBILE
     : EDITOR_METADATA_DESKTOP
 
-  const { data, resolvedData, savePageData } = useDemoData({
-    path,
-    isEdit,
-    mode: editorMode,
-    metadata: editorMetadata,
-  })
-
-  const previewPageTitle = useMemo(() => {
-    const site = readSiteData(editorMode)
-    const page = findSitePage(site, path)
-    return page?.title ?? page?.name ?? path
-  }, [path, editorMode])
-
   const pathname = usePathname()
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -524,8 +512,59 @@ export function Client({
   const exportFileName = isMobileEditor ? "site-mobile" : "site"
 
   const [isClient, setIsClient] = useState(false)
+  // Gate the editor until API/file → localStorage hydration finishes so we
+  // never flash the previously cached theme after "تطبيق الثيم".
+  const [siteReady, setSiteReady] = useState(false)
+  const [siteRevision, setSiteRevision] = useState(0)
   const exportDataRef = useRef<UserData | null>(null)
   const siteDataRef = useRef<SiteData | null>(null)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        const result = await hydrateLocalSiteFromSources()
+        if (cancelled) return
+
+        if (result.source === "api") {
+          toast.success("تم تحديث التصميم المحلي من الخادم")
+        } else if (result.source === "builtin-file") {
+          toast.success("تم تحديث التصميم المحلي من القالب")
+        }
+      } catch {
+        // Keep whatever is already in localStorage if the draft fetch fails.
+      } finally {
+        if (!cancelled) {
+          setSiteRevision((n) => n + 1)
+          setSiteReady(true)
+        }
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const { data, resolvedData, savePageData } = useDemoData({
+    path,
+    isEdit,
+    mode: editorMode,
+    metadata: editorMetadata,
+    revision: siteRevision,
+  })
+
+  const previewPageTitle = useMemo(() => {
+    if (!siteReady) return path
+    const site = readSiteData(editorMode)
+    const page = findSitePage(site, path)
+    return page?.title ?? page?.name ?? path
+  }, [path, editorMode, siteReady, siteRevision])
 
   // --- Draft autosave (crash safety) -------------------------------------
   // Edits are debounce-written to a per-page draft key; publish stays
@@ -652,13 +691,10 @@ export function Client({
   }, [])
 
   useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  useEffect(() => {
+    if (!siteReady) return
     siteDataRef.current = readSiteData(editorMode)
     exportDataRef.current = null
-  }, [path, editorMode])
+  }, [path, editorMode, siteReady, siteRevision])
 
   // The pages panel can add or delete pages without changing `path`, which
   // would leave this snapshot (used by the JSON viewer / export) describing a
@@ -810,7 +846,7 @@ export function Client({
     return { enabled: params.get("disableIframe") !== "true" }
   }, [])
 
-  if (!isClient) return null
+  if (!isClient || !siteReady) return null
 
   if (isEdit) {
     return (
@@ -878,7 +914,7 @@ export function Client({
           </div>
         ) : null}
         <Puck
-          key={`${path}:${editorMode}:${draftEpoch}`}
+          key={`${path}:${editorMode}:${draftEpoch}:${siteRevision}`}
           config={config}
           data={editorData}
           height="100%"

@@ -1,4 +1,5 @@
 import {
+  clearAllPageDrafts,
   clearPageDraft,
   getDraftStorageKey,
   readPageDraft,
@@ -72,6 +73,20 @@ describe("page-draft", () => {
     writePageDraft("/", samplePage);
     clearPageDraft("/");
 
+    expect(window.localStorage.getItem("puck-demo:v1:site")).toBe(
+      '{"pages":[]}'
+    );
+  });
+
+  it("clearAllPageDrafts removes desktop and mobile drafts only", () => {
+    window.localStorage.setItem("puck-demo:v1:site", '{"pages":[]}');
+    writePageDraft("/", samplePage);
+    writePageDraft("/cart", samplePage, "mobile");
+
+    clearAllPageDrafts();
+
+    expect(readPageDraft("/")).toBeNull();
+    expect(readPageDraft("/cart", "mobile")).toBeNull();
     expect(window.localStorage.getItem("puck-demo:v1:site")).toBe(
       '{"pages":[]}'
     );

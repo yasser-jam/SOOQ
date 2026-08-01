@@ -69,3 +69,27 @@ export function clearPageDraft(path: string, mode?: EditorMode): void {
     // ignore
   }
 }
+
+/**
+ * Wipe every crash-safety page draft (desktop + mobile). Used after applying
+ * a theme or hydrating Site JSON from the API so stale per-page drafts cannot
+ * resurrect the previous design on top of the new site.
+ */
+export function clearAllPageDrafts(): void {
+  if (!isBrowser) return;
+
+  const prefix = `puck-demo:${componentKey}:draft:`;
+  const keys: string[] = [];
+
+  try {
+    for (let i = 0; i < window.localStorage.length; i += 1) {
+      const key = window.localStorage.key(i);
+      if (key?.startsWith(prefix)) keys.push(key);
+    }
+    for (const key of keys) {
+      window.localStorage.removeItem(key);
+    }
+  } catch {
+    // ignore
+  }
+}

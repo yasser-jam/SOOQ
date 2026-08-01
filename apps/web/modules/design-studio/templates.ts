@@ -20,6 +20,7 @@ import {
   listDesignTemplatesQueryOptions,
   saveDesignDraft,
 } from "./actions"
+import { applyDesignConfigToLocalStorage } from "./local-site-sync"
 import type { DesignConfigJson, DesignVersion } from "./types"
 
 /** Marks a draft built by the custom-theme wizard rather than a template. */
@@ -103,23 +104,29 @@ export async function applyStudioTemplate(
       throw new Error(`Unknown builtin theme: ${card.templateKey}`)
     }
 
-    return saveDesignDraft({
+    const version = await saveDesignDraft({
       configJson: withTemplateKey(
         { web: normalizeSiteData(siteData), mobile: {} },
         card.templateKey
       ),
       schemaVersion: DESIGN_SCHEMA_VERSION,
     })
+    // Mirror into localStorage immediately so opening the editor never
+    // boots the previous cached Site JSON.
+    applyDesignConfigToLocalStorage(version.configJson)
+    return version
   }
 
   const applied = await applyDesignTemplate({ templateKey: card.templateKey })
 
   // apply-template overwrites the draft from the template, which carries no
   // templateKey of its own — stamp it back so the gallery can mark the card.
-  return saveDesignDraft({
+  const version = await saveDesignDraft({
     configJson: withTemplateKey(applied.configJson, card.templateKey),
     schemaVersion: applied.schemaVersion || DESIGN_SCHEMA_VERSION,
   })
+  applyDesignConfigToLocalStorage(version.configJson)
+  return version
 }
 
 export function readDraftTemplateKey(
