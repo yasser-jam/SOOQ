@@ -149,6 +149,7 @@
   <a href="#store">4. State: the app store</a>
   <a href="#dnd">5. The drag-and-drop engine</a>
   <a href="#blocks">6. Blocks &amp; the registry</a>
+  <a href="#bilingual" class="lvl2">6.1 Bilingual content</a>
   <a href="#plugins">7. Plugins</a>
   <a href="#binding">8. Binding &amp; data adapter</a>
   <a href="#zones">9. Shell zones &amp; pages</a>
@@ -164,11 +165,13 @@
 
   <div class="grp">Part III — Audit</div>
   <a href="#smells">13. Code smells</a>
+  <a href="#smell-bilingual" class="lvl2">13.9 Bilingual idempotency</a>
   <a href="#perf">14. Performance</a>
   <a href="#dead">15. Dead code</a>
 
   <div class="grp">Part IV — Plan</div>
   <a href="#plan">16. Remediation plan</a>
+  <a href="#phase-g" class="lvl2">Phase G — Bilingual</a>
   <a href="#appendix">17. Appendix</a>
 </nav>
 
@@ -181,7 +184,7 @@
   traps and dead code — and the root cause of the drag-and-drop freeze.
 </p>
 <div class="meta">
-  Generated 2026-07-31 &nbsp;·&nbsp; branch <code>dsn-temp</code> @ <code>7b32497</code><br>
+  Generated 2026-07-31 &nbsp;·&nbsp; revised 2026-08-01 (bilingual + zoneKey pass) &nbsp;·&nbsp; branch <code>dsn-temp</code> @ <code>e0bf54d</code> + uncommitted work<br>
   Scope: <code>packages/editor-packages/**</code>, <code>apps/web/app/store/[storeSlug]/(dashboard)/design-studio/**</code>,
   <code>apps/store/**</code>
 </div>
@@ -195,7 +198,7 @@
   <div class="stat"><span class="n">62</span><span class="l">block folders</span></div>
   <div class="stat"><span class="n">58</span><span class="l">registered blocks</span></div>
   <div class="stat"><span class="n">7</span><span class="l">first-party plugins</span></div>
-  <div class="stat"><span class="n">377</span><span class="l">passing tests</span></div>
+  <div class="stat"><span class="n">373<span style="font-size:13px;color:var(--muted)">/384</span></span><span class="l">passing tests</span></div>
 </div>
 
 <div class="card red">
@@ -216,6 +219,37 @@
     <strong>Fixed</strong> in this pass with a watchdog + forced recovery
     (<a href="#bug-fix">§12.3</a>), plus a leaked-effect fix in the same handler that was
     accumulating stale dispatch callbacks over a long session.
+  </p>
+</div>
+
+<div class="card amber">
+  <h4>Bilingual content — canvas crashes fixed; migration still incomplete</h4>
+  <p>
+    User-facing text props are moving from plain <code>string</code> to
+    <code>BilingualString = { ar, en }</code>. <code>normalizeEditorData</code> rewrites saved Site
+    JSON on read via <code>BILINGUAL_PROPS</code> (18 block types + <code>root</code>). The runtime
+    crashes that were taking down Design Studio on load are fixed in this pass:
+  </p>
+  <ul>
+    <li>Puck chrome Header resolves <code>root.title</code> with <code>pickLang()</code></li>
+    <li><code>Testimonials</code> fully converted (fields + sample data + render)</li>
+    <li>Zone overlay blocks renamed reserved React prop <code>key</code> → <code>zoneKey</code>
+      (with a read-time rename migration)</li>
+  </ul>
+  <p>
+    Still broken / unfinished if those blocks appear on a page:
+    <code>Accordion</code>, <code>ButtonGroup</code>, <code>ContactForm.submitLabel</code>,
+    <code>SiteHeader</code>/<code>SiteFooter</code>/<code>SiteDrawerShell</code> (still on the
+    sibling <code>*Ar</code> helpers while migration collapses them into bilingual objects).
+    Full status in <a href="#bilingual">§6.1</a>; remaining work in
+    <a href="#plan">§16, Phase G</a>.
+  </p>
+  <p style="margin-bottom:0">
+    Related: the root-level migration is <strong>not idempotent</strong> — defaults are merged
+    <em>after</em> the bilingual pass, so <code>drawerTitle</code>, <code>drawerTriggerLabel</code>
+    and <code>footerTagline</code> stay strings on the first normalise and become
+    <code>{ ar, en }</code> on the second. Several site-data / mobile-sync specs currently fail
+    because they expect bare strings. <a href="#smell-bilingual">§13.9</a>
   </p>
 </div>
 
@@ -371,9 +405,36 @@ localStorage                            &lt;Render config data /&gt;
     merchant switching device or clearing site data loses the whole storefront design.
     <code>apps/web/modules/design-studio/draft.ts</code> exists and calls
     <code>saveWebDesignDraft</code>, so the seam is there; the read path has not been moved.
-    Tracked in <a href="#plan">§16, Phase D</a>.
+    Tracked in <a href="#plan">§16, Phase F</a>.
   </p>
 </div>
+
+<h3>The normalise pipeline</h3>
+<p>
+  Every read and every save funnels through <code>config/lib/normalize-editor-data.ts</code>
+  (836 LOC). It is the only place old payloads get upgraded, and it runs on the whole tree, so
+  order matters. Per node, <code>normalizeComponentNode()</code> applies:
+</p>
+<div class="flow">1  migrateRenamedProps(type, props)     RENAMED_PROPS — e.g. ZoneDrawer.key → zoneKey
+2  migrateBilingualTextProps(type, …)   BILINGUAL_PROPS — "text" → { ar, en },
+                                          collapsing any sibling *Ar prop
+3  mergeDefaults(config defaults, …)    fills in anything the payload omits
+4  stripVisualOnlyKeys()                drops __-prefixed editor-only keys
+5  normalizeNestedComponents()          recurse into slots / arrays
+6  ensure a stable props.id</div>
+<p>
+  Root props take the same path plus <code>migrateLegacyShellLinks()</code> and the
+  <code>shellComponentsMigrationVersion</code> gate (currently <strong>4</strong>), which decides
+  whether missing shell blocks get inserted. Two registries drive the per-type behaviour and both
+  are plain data, deliberately importing nothing from blocks so they cannot create cycles:
+  <code>config/lib/bilingual-props.ts</code> and the <code>RENAMED_PROPS</code> map inside
+  <code>normalize-editor-data.ts</code>.
+</p>
+<p class="fp">
+  Note the ordering bug in step 2 vs 3: defaults are merged <em>after</em> the bilingual pass, so a
+  prop supplied only by <code>defaultProps</code> is not migrated on the first run.
+  <a href="#smell-bilingual">§13.9</a>
+</p>
 
 <h3>Editor modes (desktop / mobile)</h3>
 <p>
@@ -502,6 +563,113 @@ onDragEnd           ▶ WAIT for source.status === "idle"        ◀── THE F
   <code>*Client.tsx</code> split when the block needs state (see
   <code>CategoryListMenu/CategoryListMenuClient.tsx</code> for the pattern).</p>
 
+<h3 id="bilingual">6.1 Bilingual content</h3>
+
+<p>
+  SOOQ is Arabic-first. Merchant-authored copy is stored as
+  <code>BilingualString = { ar: string; en: string }</code> (DSN-016 / OTA: plain JSON, no
+  functions). Helpers live in <code>lib/bilingual.ts</code>
+  (<code>normalizeBilingual</code>, <code>pickLang</code>); the reusable Puck field is
+  <code>config/fields/BilingualText</code> (<code>bilingualTextField()</code>). Active language
+  comes from <code>config/locale/LanguageContext</code> + <code>LanguageProvider</code>, which
+  <code>Root</code> mounts when nothing higher in the tree has already provided one.
+</p>
+
+<div class="card accent">
+  <h4>Contract for every bilingual prop</h4>
+  <ol style="margin-bottom:0">
+    <li>Register the path in <code>config/lib/bilingual-props.ts</code>
+      (<code>collapseFrom</code> when a legacy <code>*Ar</code> sibling exists).</li>
+    <li>Expose it with <code>bilingualTextField({ label, mode? })</code> — not
+      <code>type: "text"</code>.</li>
+    <li>Default to a full <code>{ ar, en }</code> object (never a bare string).</li>
+    <li>Resolve at render with <code>pickLang(value, language)</code> before any JSX child /
+      attribute / <code>.trim()</code> / string concat.</li>
+  </ol>
+</div>
+
+<p>
+  On every read/save, <code>normalizeComponentNode</code> runs
+  <code>migrateBilingualTextProps</code> (see <a href="#dataflow">§3</a>). Legacy payloads with a
+  plain string (or a pair of <code>name</code> + <code>nameAr</code>) become
+  <code>{ ar, en }</code>; already-migrated objects are left alone.
+</p>
+
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Type</th><th>Bilingual paths</th><th>Field + render status</th></tr></thead>
+<tbody>
+<tr>
+  <td><code>ContentHeading</code> · <code>ContentParagraph</code> · <code>ContentButton</code> ·
+    <code>ContentLink</code> · <code>ContentInput</code> · <code>ContentSwitch</code> ·
+    <code>ContentImage</code></td>
+  <td><code>text</code> / <code>label</code> / <code>title</code> / <code>placeholder</code> /
+    <code>helperText</code> / <code>alt</code></td>
+  <td><span class="pill p-done">done</span> <code>bilingualTextField</code> +
+    <code>pickLang</code></td>
+</tr>
+<tr>
+  <td><code>NavMenu</code> · <code>Sidebar</code> · <code>SideDrawer</code></td>
+  <td>title / trigger / <code>items[].label</code></td>
+  <td><span class="pill p-done">done</span></td>
+</tr>
+<tr>
+  <td><code>ContactForm</code></td>
+  <td><code>title</code>, <code>subtitle</code>, <code>submitLabel</code>,
+    <code>successMessage</code></td>
+  <td><span class="pill p-high">partial</span> title/subtitle done;
+    <code>submitLabel</code>/<code>successMessage</code> still plain text fields but listed in
+    <code>BILINGUAL_PROPS</code> → migrated object rendered raw</td>
+</tr>
+<tr>
+  <td><code>Testimonials</code></td>
+  <td><code>inlineItems[].{name,role,text}</code> (collapse from <code>*Ar</code>)</td>
+  <td><span class="pill p-done">done</span> this pass — fields, sample data, render,
+    <code>getInitial(pickLang(…))</code></td>
+</tr>
+<tr>
+  <td><code>root</code></td>
+  <td><code>title</code>, brand/tagline/link labels, drawer labels</td>
+  <td><span class="pill p-high">partial</span> <code>title</code> field + Puck Header
+    <code>pickLang</code> done; shell sibling props still mid-migration
+    (<a href="#smell-bilingual">§13.9</a>)</td>
+</tr>
+<tr>
+  <td><code>Accordion</code></td>
+  <td><code>heading</code>, <code>description</code>, <code>items[].{title,body}</code></td>
+  <td><span class="pill p-crit">broken</span> still <code>type: "text"</code>; renders object as
+    React child</td>
+</tr>
+<tr>
+  <td><code>ButtonGroup</code></td>
+  <td><code>allButtonTitle</code>, <code>items[].title</code></td>
+  <td><span class="pill p-crit">broken</span> same — <code>{item.title}</code> throws</td>
+</tr>
+<tr>
+  <td><code>SiteHeader</code> · <code>SiteFooter</code> · <code>SiteDrawerShell</code></td>
+  <td>title / tagline / link labels (collapse from <code>*Ar</code>)</td>
+  <td><span class="pill p-crit">broken</span> components still use
+    <code>pickLabel(en, ar)</code> / sibling <code>labelAr</code>; migration deletes the sibling
+    and leaves <code>{ ar, en }</code> in <code>label</code></td>
+</tr>
+<tr>
+  <td><code>ImageGallery</code></td>
+  <td><code>images[].alt</code></td>
+  <td><span class="pill p-med">gap</span> alt coerced as attribute string →
+    <code>[object Object]</code>; less loud than a throw</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<p class="fp">
+  Rule of thumb when a canvas error says
+  <em>"Objects are not valid as a React child (found: object with keys {ar, en})"</em> or
+  <em>".trim is not a function"</em>: find the block in the stack, add
+  <code>pickLang</code> at the call site, and convert the field to
+  <code>bilingualTextField</code> so new edits stay in shape.
+</p>
+
 <!-- ══════════════════════════════════════════════════════════ -->
 <h2 id="plugins">7. Plugins</h2>
 
@@ -555,6 +723,26 @@ onDragEnd           ▶ WAIT for source.status === "idle"        ◀── THE F
   (<code>openZone</code>/<code>closeZone</code>/<code>toggleZone</code>) and
   <code>zone-registry.ts</code> wire runtime open/close.
 </p>
+
+<div class="card green">
+  <h4>Zone event key is <code>zoneKey</code>, not <code>key</code></h4>
+  <p>
+    Overlay zone blocks used to store their event-bus id under the prop name
+    <code>key</code>. Spreading that props object into JSX
+    (<span class="fp">MemoizeComponent → &lt;Component {…renderProps} /&gt;</span>) made React treat
+    it as the React key and warn
+    <em>"A props object containing a 'key' prop is being spread into JSX"</em> — the block never
+    actually received the value.
+  </p>
+  <p style="margin-bottom:0">
+    Renamed to <code>zoneKey</code> on <code>ZoneDrawer</code> / <code>ZonePopup</code> /
+    <code>ZoneBottomSheet</code> (fields, defaults, presets, theme JSON, ZonesPanel).
+    <code>RENAMED_PROPS</code> in <code>normalize-editor-data.ts</code> rewrites legacy
+    <code>key</code> → <code>zoneKey</code> on read so saved storefronts keep working. Match this
+    value from <code>sooq:zone</code> events / <code>data-sooq-zone-toggle</code>.
+  </p>
+</div>
+
 <p>
   <code>config/page-registry.ts</code> holds the built-in page definitions and dispatches
   <code>PAGES_UPDATED_EVENT</code>; <code>config/pages.ts</code> handles custom pages. Route
@@ -573,10 +761,12 @@ onDragEnd           ▶ WAIT for source.status === "idle"        ◀── THE F
   same at render time via <code>PreviewThemeProvider</code>.
 </p>
 <p>
-  Custom field types under <code>config/fields/</code> (<code>ThemeColorField</code>,
-  <code>SpacingField</code>, <code>BorderField</code>, <code>LinkField</code>,
-  <code>ProductPickerField</code>, <code>CollectionPickerField</code>…) are what make the right
-  sidebar feel bespoke rather than generic Puck.
+  Custom field types under <code>config/fields/</code> (<code>BilingualText</code>,
+  <code>ThemeColorField</code>, <code>SpacingField</code>, <code>BorderField</code>,
+  <code>LinkField</code>, <code>ProductPickerField</code>, <code>CollectionPickerField</code>…)
+  are what make the right sidebar feel bespoke rather than generic Puck.
+  For merchant copy, prefer <code>bilingualTextField()</code> over <code>type: "text"</code>
+  (<a href="#bilingual">§6.1</a>).
 </p>
 
 <!-- ══════════════════════════════════════════════════════════ -->
@@ -914,6 +1104,35 @@ if (!settled) {
   but is not run anywhere. Either run it once over the fixtures and delete both, or drop the warning.
 </p>
 
+<h3 id="smell-bilingual">13.9 <span class="pill p-high">high</span> Bilingual migration is not idempotent for default-only props</h3>
+<p>
+  In <code>normalizeComponentNode</code> / root normalise, order is:
+</p>
+<pre><code>migrateRenamedProps → migrateBilingualTextProps → mergeDefaults → …</code></pre>
+<p>
+  A prop that exists <em>only</em> in <code>defaultProps</code> (never on the saved payload) is
+  therefore filled in <em>after</em> the bilingual pass, so it stays a plain string on the first
+  normalise. The second normalise then sees the string and converts it to
+  <code>{ ar, en }</code>. Consequence: <code>normalizeEditorData(normalizeEditorData(x))</code>
+  ≠ <code>normalizeEditorData(x)</code> for root shell defaults like
+  <code>drawerTitle</code>, <code>drawerTriggerLabel</code>, <code>footerTagline</code>, and for
+  block defaults like <code>ButtonGroup.allButtonTitle</code>.
+</p>
+<p>
+  <code>site-data-fixtures.spec.ts</code> (idempotency), <code>site-data-mobile.spec.ts</code>,
+  <code>mobile-sync.spec.ts</code> and <code>storefront-mode.spec.ts</code> currently fail for
+  exactly this reason — they assert bare strings against values that the migration rewrote.
+  <code>bilingual-migration.spec.ts</code> itself is written against Vitest while the package
+  runs Jest, so it never loads.
+</p>
+<p style="margin-bottom:0">
+  <strong>Fix:</strong> either (a) run bilingual migration again after
+  <code>mergeDefaults</code>, or (b) ship all bilingual <code>defaultProps</code> as already-
+  shaped <code>{ ar, en }</code> objects and teach the tests to expect that. Prefer (b) for
+  newly converted blocks; (a) is the durable fix for anything still defaulting as a string.
+  Tracked in <a href="#plan">§16, Phase G</a>.
+</p>
+
 <!-- ══════════════════════════════════════════════════════════ -->
 <h2 id="perf">14. Performance</h2>
 
@@ -1164,6 +1383,74 @@ if (!settled) {
   risk in the editor, and it is orthogonal to everything above.
 </p>
 
+<h3 id="phase-g">Phase G — Finish bilingual content <span class="pill p-high">in progress</span></h3>
+<div class="tbl-scroll">
+<table>
+<thead><tr><th>Task</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr>
+  <td>Core helpers + field (<code>lib/bilingual.ts</code>, <code>BilingualText</code>,
+    <code>LanguageProvider</code>)</td>
+  <td><span class="pill p-done">done</span></td>
+  <td></td>
+</tr>
+<tr>
+  <td>Content* / NavMenu / Sidebar / SideDrawer / ContactForm title+subtitle</td>
+  <td><span class="pill p-done">done</span></td>
+  <td>registry + field + <code>pickLang</code></td>
+</tr>
+<tr>
+  <td>Puck Header <code>root.title</code> + root <code>bilingualTextField</code></td>
+  <td><span class="pill p-done">done</span></td>
+  <td>was throwing on Design Studio load</td>
+</tr>
+<tr>
+  <td><code>Testimonials</code> full conversion</td>
+  <td><span class="pill p-done">done</span></td>
+  <td>fields, sample data, render, collapseFrom <code>*Ar</code></td>
+</tr>
+<tr>
+  <td>Zone <code>key</code> → <code>zoneKey</code> + <code>RENAMED_PROPS</code> migration</td>
+  <td><span class="pill p-done">done</span></td>
+  <td>blocks, presets, themes, ZonesPanel, docs</td>
+</tr>
+<tr>
+  <td>Convert <code>Accordion</code> + <code>ButtonGroup</code></td>
+  <td><span class="pill p-crit">todo</span></td>
+  <td>still crash if present on canvas</td>
+</tr>
+<tr>
+  <td>Convert <code>SiteHeader</code> / <code>SiteFooter</code> / <code>SiteDrawerShell</code>
+    off sibling <code>*Ar</code> helpers</td>
+  <td><span class="pill p-crit">todo</span></td>
+  <td>use <code>pickLang</code> on bilingual <code>label</code> / <code>title</code> /
+    <code>tagline</code></td>
+</tr>
+<tr>
+  <td>Finish <code>ContactForm.submitLabel</code> / <code>successMessage</code> +
+    <code>ImageGallery.alt</code></td>
+  <td><span class="pill p-high">todo</span></td>
+  <td>listed in <code>BILINGUAL_PROPS</code> already</td>
+</tr>
+<tr>
+  <td>Make migration idempotent (re-run after <code>mergeDefaults</code>, or ship bilingual
+    defaults everywhere)</td>
+  <td><span class="pill p-high">todo</span></td>
+  <td>see <a href="#smell-bilingual">§13.9</a></td>
+</tr>
+<tr>
+  <td>Fix specs: expect <code>{ ar, en }</code>; convert
+    <code>bilingual-migration.spec.ts</code> from Vitest → Jest</td>
+  <td><span class="pill p-high">todo</span></td>
+  <td>site-data-fixtures / mobile-sync / storefront-mode currently red</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="fp">Exit criterion: no bilingual React-child / <code>.trim</code> crashes on a seeded
+   meridian theme; <code>normalizeEditorData</code> is idempotent; bilingual migration suite green
+   under Jest.</p>
+
 <!-- ══════════════════════════════════════════════════════════ -->
 <h2 id="appendix">17. Appendix</h2>
 
@@ -1196,10 +1483,14 @@ pnpm --filter store dev   # :3001  storefront</code></pre>
 <table>
 <thead><tr><th>File</th><th>Change</th></tr></thead>
 <tbody>
-<tr><td><code>packages/editor-packages/core/lib/dnd/recover-drag-operation.ts</code></td><td><span class="pill p-done">new</span> forced recovery for a wedged drag operation</td></tr>
-<tr><td><code>packages/editor-packages/core/lib/dnd/__tests__/recover-drag-operation.spec.ts</code></td><td><span class="pill p-done">new</span> 4 tests</td></tr>
-<tr><td><code>packages/editor-packages/core/components/DragDropContext/index.tsx</code></td><td><span class="pill p-done">edit</span> watchdog + effect-leak fix in <code>onDragEnd</code></td></tr>
-<tr><td><code>docs/editor-code-roadmap.html</code></td><td><span class="pill p-done">new</span> this document</td></tr>
+<tr><td><code>lib/dnd/recover-drag-operation.ts</code> (+ tests)</td><td><span class="pill p-done">new</span> DnD freeze watchdog (§12)</td></tr>
+<tr><td><code>components/DragDropContext/index.tsx</code></td><td><span class="pill p-done">edit</span> watchdog + effect-leak fix</td></tr>
+<tr><td><code>lib/bilingual.ts</code>, <code>config/fields/BilingualText/</code>, <code>config/locale/*</code></td><td><span class="pill p-done">new</span> bilingual helpers + field + language context</td></tr>
+<tr><td><code>config/lib/bilingual-props.ts</code>, <code>normalize-editor-data.ts</code></td><td><span class="pill p-done">edit</span> migration registry + <code>RENAMED_PROPS</code> (<code>key</code>→<code>zoneKey</code>)</td></tr>
+<tr><td><code>components/Puck/components/Header/index.tsx</code>, <code>config/root.tsx</code></td><td><span class="pill p-done">edit</span> <code>pickLang(root.title)</code> + bilingual title field</td></tr>
+<tr><td><code>config/blocks/Testimonials/</code>, <code>config/data/testimonials.ts</code></td><td><span class="pill p-done">edit</span> full bilingual conversion</td></tr>
+<tr><td><code>ZoneDrawer</code> / <code>ZonePopup</code> / <code>ZoneBottomSheet</code> + presets + themes + <code>ZonesPanel</code></td><td><span class="pill p-done">edit</span> <code>key</code> → <code>zoneKey</code></td></tr>
+<tr><td><code>BLOCKS.md</code>, <code>ZONES.md</code>, <code>docs/editor-code-roadmap.html</code></td><td><span class="pill p-done">edit</span> docs brought in sync</td></tr>
 </tbody>
 </table>
 </div>

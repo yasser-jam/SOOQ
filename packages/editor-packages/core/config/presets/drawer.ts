@@ -23,7 +23,7 @@ const drawerMobileNav: ZonePreset = {
     props: {
       is_active: true,
       is_mobile_only: true,
-      key: "site-drawer",
+      zoneKey: "site-drawer",
       side: "left",
       backgroundColor: "#ffffff",
       overlay: true,
@@ -59,7 +59,7 @@ const drawerMobileCommerce: ZonePreset = {
     props: {
       is_active: true,
       is_mobile_only: true,
-      key: "site-drawer",
+      zoneKey: "site-drawer",
       side: "left",
       backgroundColor: "#ffffff",
       overlay: true,

@@ -32,9 +32,15 @@ import { bumpCartLineQuantity } from "../../cart/cart-qty-actions";
 import { useStore } from "../../store-context";
 import { AlignRight } from "lucide-react";
 import { createAlignField } from "../../fields/AlignField";
+import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 
 export type ContentButtonProps = WithLayout<{
-  label: string;
+  label: BilingualString | string;
   labelValueContext?: ValueContext | null;
   align: "left" | "center" | "right";
   destinationType: "link" | "action" | "zone";
@@ -135,7 +141,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
         { label: "كبير", value: "lg" },
       ],
     },
-    label: { type: "text", contentEditable: true, label: "النص" },
+    label: bilingualTextField({ label: "النص", contentEditable: true }),
     align: alignField,
     destinationType: {
       type: "radio",
@@ -187,7 +193,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
     }),
   },
   defaultProps: {
-    label: "زر",
+    label: { ar: "زر", en: "Button" },
     align: "center",
     destinationType: "link",
     buttonAction: "link",
@@ -231,9 +237,13 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       puck,
     } = props;
 
-    const { data: boundData, language, metadata, selectedVariantId } =
+    const { data: boundData, language: boundLanguage, metadata, selectedVariantId } =
       useBoundData();
-    const resolvedLabel = useBoundValue(label, labelValueContext);
+    const { language: activeLanguage, toggleLanguage } = useActiveLanguage();
+    const resolvedLabel = useBoundValue(
+      pickLang(label, activeLanguage),
+      labelValueContext
+    );
     const resolvedAlign = align ?? "center";
     const destType =
       destinationType ??
@@ -333,6 +343,12 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
 
     const onFunctionalClick = async (e: MouseEvent) => {
       e.preventDefault();
+
+      if (action === "toggleLanguage") {
+        toggleLanguage();
+        return;
+      }
+
       if (puck.isEditing) return;
 
       if (action === "login") {
@@ -380,7 +396,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       }
 
       if (action === "addToCart" && boundData) {
-        const detail = buildProductActionDetail(boundData, language, metadata, selectedVariantId);
+        const detail = buildProductActionDetail(boundData, activeLanguage, metadata, selectedVariantId);
         if (detail) {
           actions.addToCart(detail);
           return;
@@ -388,7 +404,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       }
 
       if (action === "addToWishlist" && boundData) {
-        const detail = buildProductActionDetail(boundData, language, metadata, selectedVariantId);
+        const detail = buildProductActionDetail(boundData, activeLanguage, metadata, selectedVariantId);
         if (detail) {
           actions.addToWishlist(detail);
           return;
@@ -490,7 +506,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
     }
 
     const resolvedHref =
-      resolveLinkHref(link, { boundData, locale: language }) ?? "#";
+      resolveLinkHref(link, { boundData, locale: activeLanguage }) ?? "#";
     const target = resolveLinkTarget(link);
     const rel = resolveLinkRel(link);
 

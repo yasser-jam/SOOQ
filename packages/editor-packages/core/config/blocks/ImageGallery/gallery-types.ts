@@ -1,6 +1,8 @@
+import type { BilingualString } from "@/core/lib/bilingual";
+
 export type GalleryImageItem = {
   src: string;
-  alt: string;
+  alt: BilingualString | string;
 };
 
 export type ImageGalleryContentProps = {

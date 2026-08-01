@@ -14,6 +14,11 @@ const LOCALE_SHORTHANDS: Record<string, { ar: string; en: string }> = {
     ar: "product.attributesDisplayAr",
     en: "product.attributesDisplayEn",
   },
+  "product.categories[0].name": {
+    ar: "product.categories[0].nameAr",
+    en: "product.categories[0].nameEn",
+  },
+  "category.name": { ar: "category.nameAr", en: "category.nameEn" },
 };
 
 function tokenizePath(path: string): string[] {
@@ -90,9 +95,22 @@ export function resolveValueContextAsString(
   data: unknown,
   options: ResolveOptions = {}
 ): string | undefined {
+  const locale = options.locale ?? "ar";
   const value = resolveValueContext(path, data, options);
   if (value == null) return undefined;
-  if (typeof value === "string") return value.trim() || undefined;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed) return trimmed;
+    // Optional English fields (e.g. CategoryRef.nameEn) — fall back to Arabic.
+    if (locale === "en") {
+      const arPath = resolveShorthandPath(path, "ar");
+      if (arPath !== path) {
+        const arValue = resolvePath(data, arPath);
+        if (typeof arValue === "string" && arValue.trim()) return arValue.trim();
+      }
+    }
+    return undefined;
+  }
   if (typeof value === "number" || typeof value === "boolean") {
     return String(value);
   }

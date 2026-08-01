@@ -5,6 +5,7 @@ import { DEFAULT_ZONE_FOOTER_PRESET } from "../presets/footer";
 import { DEFAULT_ZONE_HEADER_PRESET } from "../presets/header";
 import { isZoneHeaderSection } from "../blocks/Section/zone-section";
 import type { UserData } from "../types";
+import { BILINGUAL_PROPS, type BilingualPropDef } from "./bilingual-props";
 import {
   ROOT_SHELL_LEFT_ZONE,
   ROOT_SHELL_RIGHT_ZONE,
@@ -33,7 +34,7 @@ type ComponentLike = {
 };
 
 const SHELL_MIGRATION_VERSION_KEY = "shellComponentsMigrationVersion";
-const CURRENT_SHELL_MIGRATION_VERSION = 3;
+const CURRENT_SHELL_MIGRATION_VERSION = 4;
 
 const isPlainObject = (value: unknown): value is JsonRecord => {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -195,6 +196,140 @@ const migrateLegacyShellLinks = (rootProps: JsonRecord): JsonRecord => {
       };
     });
   }
+
+  return next;
+};
+
+const parsePathSegments = (
+  path: string
+): Array<{ key: string; isArray: boolean }> => {
+  return path.split(".").map((part) => {
+    if (part.endsWith("[]")) {
+      return { key: part.slice(0, -2), isArray: true };
+    }
+    return { key: part, isArray: false };
+  });
+};
+
+const siblingKeyFromPath = (collapseFrom: string | undefined): string | undefined => {
+  if (!collapseFrom) return undefined;
+  const segments = parsePathSegments(collapseFrom);
+  return segments[segments.length - 1]?.key;
+};
+
+const migrateLeafBilingual = (
+  obj: JsonRecord,
+  key: string,
+  siblingArKey?: string
+): void => {
+  const value = obj[key];
+
+  if (typeof value === "string") {
+    const arVal =
+      siblingArKey && typeof obj[siblingArKey] === "string"
+        ? (obj[siblingArKey] as string)
+        : siblingArKey
+          ? ""
+          : value;
+    const enVal = siblingArKey ? value : "";
+    obj[key] = { ar: arVal, en: enVal };
+    if (siblingArKey) delete obj[siblingArKey];
+    return;
+  }
+
+  if (siblingArKey && typeof obj[siblingArKey] === "string") {
+    if (isPlainObject(value)) {
+      obj[key] = {
+        ar:
+          typeof value.ar === "string" && value.ar
+            ? value.ar
+            : (obj[siblingArKey] as string),
+        en: typeof value.en === "string" ? value.en : "",
+      };
+    } else {
+      obj[key] = { ar: obj[siblingArKey] as string, en: "" };
+    }
+    delete obj[siblingArKey];
+  }
+};
+
+const applyBilingualMigration = (
+  obj: JsonRecord,
+  segments: Array<{ key: string; isArray: boolean }>,
+  segmentIndex: number,
+  siblingArKey?: string
+): void => {
+  if (segmentIndex >= segments.length) return;
+
+  const { key, isArray } = segments[segmentIndex];
+  const isLeaf = segmentIndex === segments.length - 1;
+
+  if (isArray) {
+    const arr = obj[key];
+    if (!Array.isArray(arr)) return;
+    arr.forEach((item) => {
+      if (!isPlainObject(item)) return;
+      applyBilingualMigration(item, segments, segmentIndex + 1, siblingArKey);
+    });
+    return;
+  }
+
+  if (isLeaf) {
+    migrateLeafBilingual(obj, key, siblingArKey);
+    return;
+  }
+
+  const next = obj[key];
+  if (isPlainObject(next)) {
+    applyBilingualMigration(next, segments, segmentIndex + 1, siblingArKey);
+  }
+};
+
+const migrateBilingualTextProps = (
+  nodeType: string,
+  props: JsonRecord
+): JsonRecord => {
+  const defs = BILINGUAL_PROPS[nodeType];
+  if (!defs?.length) return props;
+
+  const next = { ...props };
+
+  defs.forEach(({ path, collapseFrom }: BilingualPropDef) => {
+    const segments = parsePathSegments(path);
+    const siblingArKey = siblingKeyFromPath(collapseFrom);
+    applyBilingualMigration(next, segments, 0, siblingArKey);
+  });
+
+  return next;
+};
+
+/**
+ * Props renamed after the block shipped. `key` had to go: React reserves it, so
+ * spreading block props into JSX turned the zone event key into a React key and
+ * the block never received it.
+ */
+const RENAMED_PROPS: Record<string, Record<string, string>> = {
+  ZoneDrawer: { key: "zoneKey" },
+  ZonePopup: { key: "zoneKey" },
+  ZoneBottomSheet: { key: "zoneKey" },
+};
+
+const migrateRenamedProps = (
+  nodeType: string,
+  props: JsonRecord
+): JsonRecord => {
+  const renames = RENAMED_PROPS[nodeType];
+  if (!renames) return props;
+
+  const next = { ...props };
+
+  Object.entries(renames).forEach(([from, to]) => {
+    if (!(from in next)) return;
+    if (next[to] === undefined) {
+      next[to] = next[from];
+    }
+    delete next[from];
+  });
 
   return next;
 };
@@ -537,11 +672,11 @@ const normalizeComponentNode = (
   item: ComponentLike,
   components: ComponentDefaults
 ): ComponentLike => {
+  const rawProps = isPlainObject(item.props) ? item.props : {};
+  const renamedProps = migrateRenamedProps(item.type, { ...rawProps });
+  const migratedProps = migrateBilingualTextProps(item.type, renamedProps);
   const defaultProps = components[item.type]?.defaultProps ?? {};
-  const mergedProps = mergeDefaults(
-    defaultProps,
-    isPlainObject(item.props) ? item.props : {}
-  );
+  const mergedProps = mergeDefaults(defaultProps, migratedProps);
 
   const cleanedProps = stripVisualOnlyKeys(mergedProps);
 
@@ -645,8 +780,12 @@ export function normalizeEditorData(
     ? (input.root as JsonRecord)
     : {};
 
+  const migratedIncomingRoot = migrateBilingualTextProps("root", {
+    ...incomingRoot,
+  });
+
   const normalizedRootProps = normalizeNestedComponents(
-    stripVisualOnlyKeys(mergeDefaults(rootDefaults, incomingRoot)),
+    stripVisualOnlyKeys(mergeDefaults(rootDefaults, migratedIncomingRoot)),
     components
   ) as JsonRecord;
   const migratedRootProps = migrateLegacyShellLinks(normalizedRootProps);

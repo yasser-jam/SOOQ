@@ -15,6 +15,7 @@ import { Config, Overrides, UserGenerics } from "../../../../types"
 import { DefaultOverride } from "../../../DefaultOverride"
 import { usePropsContext } from "../.."
 import { getClassNameFactory } from "../../../../lib"
+import { pickLang } from "../../../../lib/bilingual"
 import styles from "./styles.module.css"
 
 const getClassName = getClassNameFactory("PuckHeader", styles)
@@ -111,8 +112,11 @@ const HeaderInner = <
 
   const rootTitle = useAppStore((s) => {
     const rootData = s.state.indexes.nodes["root"]?.data as G["UserRootProps"]
+    const language =
+      (rootData?.props as { language?: "ar" | "en" } | undefined)?.language ??
+      "ar"
 
-    return rootData.props.title ?? ""
+    return pickLang(rootData?.props?.title, language)
   })
 
   const rightSideBarVisible = useAppStore((s) => s.state.ui.rightSideBarVisible)

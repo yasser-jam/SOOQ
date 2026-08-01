@@ -16,6 +16,10 @@ import {
   resolveLinkTarget,
   type LinkValue,
 } from "../../fields/LinkField";
+import {
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
 
 import styles from "./styles.module.css";
 
@@ -40,7 +44,8 @@ import styles from "./styles.module.css";
  */
 
 export type SiteDrawerLink = {
-  label: string;
+  label: BilingualString | string;
+  /** @deprecated Collapsed into `label` by normalizeEditorData. */
   labelAr?: string;
   link?: LinkValue;
   /** Legacy field kept for older persisted JSON payloads. */
@@ -73,11 +78,13 @@ export type SiteDrawerProps = {
   trigger?: SiteDrawerTrigger;
 
   /** Displayed on the floating trigger button (if any). */
-  triggerLabel?: string;
+  triggerLabel?: BilingualString | string;
+  /** @deprecated Collapsed into `triggerLabel`. */
   triggerLabelAr?: string;
   triggerIcon?: SiteDrawerIcon;
 
-  title?: string;
+  title?: BilingualString | string;
+  /** @deprecated Collapsed into `title`. */
   titleAr?: string;
   showTitle?: boolean;
 
@@ -121,12 +128,13 @@ const ICON_MAP: Record<
 };
 
 const pickText = (
-  en: string | undefined,
-  ar: string | undefined,
+  value: BilingualString | string | undefined,
+  legacyAr: string | undefined,
   language: "ar" | "en"
 ): string => {
-  if (language === "ar" && ar && ar.trim()) return ar;
-  return en || "";
+  if (value && typeof value === "object") return pickLang(value, language);
+  if (language === "ar" && legacyAr && legacyAr.trim()) return legacyAr;
+  return typeof value === "string" ? value : "";
 };
 
 export const SiteDrawer = ({
@@ -558,11 +566,16 @@ export const SiteDrawer = ({
 // Sensible defaults shared with root.tsx so both the field panel and the
 // render path agree on initial values.
 export const DEFAULT_DRAWER_LINKS: SiteDrawerLink[] = [
-  { label: "Home", labelAr: "الرئيسية", link: { kind: "page", pageId: "/" } },
   {
-    label: "Shop",
-    labelAr: "المتجر",
+    label: { ar: "الرئيسية", en: "Home" },
+    link: { kind: "page", pageId: "/" },
+  },
+  {
+    label: { ar: "المتجر", en: "Shop" },
     link: { kind: "page", pageId: "/products/example-product" },
   },
-  { label: "Cart", labelAr: "السلة", link: { kind: "page", pageId: "/cart" } },
+  {
+    label: { ar: "السلة", en: "Cart" },
+    link: { kind: "page", pageId: "/cart" },
+  },
 ];

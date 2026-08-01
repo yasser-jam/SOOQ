@@ -4,6 +4,7 @@ import { WithLayout, withLayout, hideLayoutPosition } from "../../components/Lay
 import { RADIUS_OPTIONS } from "../../content/typography-fields";
 import { spacingOptions } from "../../options";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
+import { bilingualTextField, type BilingualString } from "../../fields/BilingualText";
 import { GalleryView } from "./GalleryView";
 import type { GalleryImageItem, ImageGalleryContentProps } from "./gallery-types";
 
@@ -26,7 +27,7 @@ const DURATION_OPTIONS = [
 
 const defaultImage = (text: string): GalleryImageItem => ({
   src: `https://placehold.co/800x600/e2e8f0/64748b?text=${encodeURIComponent(text)}`,
-  alt: "",
+  alt: { ar: text, en: text } as BilingualString,
 });
 
 const ImageGalleryInner: ComponentConfig<ImageGalleryProps> = {
@@ -45,7 +46,7 @@ const ImageGalleryInner: ComponentConfig<ImageGalleryProps> = {
       label: "الصور",
       arrayFields: {
         src: { type: "text", label: "رابط الصورة" },
-        alt: { type: "text", label: "نص بديل" },
+        alt: bilingualTextField({ label: "نص بديل" }),
       },
       defaultItemProps: defaultImage("صورة"),
       getItemSummary: (_item, i) => `صورة ${(i ?? 0) + 1}`,
@@ -159,7 +160,12 @@ const ImageGalleryInner: ComponentConfig<ImageGalleryProps> = {
 
     const images = (legacy.images ?? []).map((item) => ({
       src: item.src,
-      alt: item.alt ?? "",
+      alt:
+        item.alt && typeof item.alt === "object"
+          ? item.alt
+          : typeof item.alt === "string"
+            ? { ar: item.alt, en: "" }
+            : { ar: "", en: "" },
     }));
 
     let radius = props.radius;

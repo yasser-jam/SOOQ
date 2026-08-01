@@ -7,6 +7,7 @@ import {
 	BoundDataProvider,
 	type BoundDataContextValue,
 } from "@/core/config/binding"
+import { useActiveLanguage } from "@/core/config/locale/LanguageContext"
 import {
 	BOUND_QUERY_POLICY,
 	boundQueryKeys,
@@ -21,13 +22,12 @@ import {
  */
 export function UrlBoundProductProvider({
 	slug,
-	language = "ar",
 	children,
 }: {
 	slug: string
-	language?: "ar" | "en"
 	children: React.ReactNode
 }) {
+	const { language } = useActiveLanguage()
 	const adapter = getEditorDataAdapter()
 	const metadata = useMemo(
 		() => adapter.buildPublicProductResourceMetadata(slug),

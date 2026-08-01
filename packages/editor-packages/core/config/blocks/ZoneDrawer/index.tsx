@@ -9,7 +9,8 @@ import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
 export type ZoneDrawerProps = {
   is_active: boolean;
   is_mobile_only: boolean;
-  key: string;
+  /** Event key matched by `sooq:zone` / `data-sooq-zone-toggle`. */
+  zoneKey: string;
   side: "left" | "right";
   backgroundColor: string;
   overlay: boolean;
@@ -39,7 +40,7 @@ export const ZoneDrawer: ComponentConfig<ZoneDrawerProps> = {
         { label: "No", value: false },
       ],
     },
-    key: {
+    zoneKey: {
       type: "text",
       label: "مفتاح الحدث",
       placeholder: "site-drawer",
@@ -80,7 +81,7 @@ export const ZoneDrawer: ComponentConfig<ZoneDrawerProps> = {
   defaultProps: {
     is_active: false,
     is_mobile_only: true,
-    key: "site-drawer",
+    zoneKey: "site-drawer",
     side: "left",
     backgroundColor: "#ffffff",
     overlay: true,
@@ -92,7 +93,7 @@ export const ZoneDrawer: ComponentConfig<ZoneDrawerProps> = {
   render: ({
     is_active,
     is_mobile_only,
-    key: zoneKey,
+    zoneKey,
     side,
     backgroundColor,
     overlay,

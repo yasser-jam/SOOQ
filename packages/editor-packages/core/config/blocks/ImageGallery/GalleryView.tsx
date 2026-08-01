@@ -12,6 +12,8 @@ import {
 } from "@workspace/ui/components/carousel";
 import type { GalleryImageItem, ImageGalleryContentProps } from "./gallery-types";
 import { resolveRadius } from "../../content/typography-fields";
+import { pickLang } from "../../fields/BilingualText";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 
 type GalleryViewProps = ImageGalleryContentProps;
 
@@ -48,11 +50,12 @@ function GalleryImage({
   aspectRatio: string;
   objectFit: GalleryViewProps["objectFit"];
 }) {
+  const { language } = useActiveLanguage();
   const r = resolveRadius(radius ?? "theme-md");
   return (
     <img
       src={item.src}
-      alt={item.alt ?? ""}
+      alt={pickLang(item.alt, language)}
       style={{
         display: "block",
         width: "100%",

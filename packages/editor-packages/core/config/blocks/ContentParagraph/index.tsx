@@ -17,9 +17,15 @@ import { AlignRight } from "lucide-react";
 import type { ValueContext } from "../../binding";
 import { useBoundValue } from "../../binding";
 import { createAlignField } from "../../fields/AlignField";
+import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 
 export type ContentParagraphProps = WithLayout<{
-  text: string;
+  text: BilingualString | string;
   valueContext?: ValueContext | null;
   textAlign: "left" | "center" | "right";
   fontFamily: "body" | "option1" | "option2";
@@ -36,11 +42,11 @@ const alignField = createAlignField({ defaultValue: "right" });
 const ContentParagraphInner: ComponentConfig<ContentParagraphProps> = {
   label: "نص",
   fields: {
-    text: {
-      type: "textarea",
-      contentEditable: true,
+    text: bilingualTextField({
       label: "النص",
-    },
+      mode: "textarea",
+      contentEditable: true,
+    }),
     textAlign: alignField,
     fontFamily: {
       type: "select",
@@ -76,7 +82,7 @@ const ContentParagraphInner: ComponentConfig<ContentParagraphProps> = {
     color: colorField,
   },
   defaultProps: {
-    text: "نص",
+    text: { ar: "نص", en: "Text" },
     textAlign: "right",
     fontFamily: "body",
     fontSize: "theme-md",
@@ -104,7 +110,8 @@ const ContentParagraphInner: ComponentConfig<ContentParagraphProps> = {
       textTransform,
       color,
     } = props;
-    const resolvedText = useBoundValue(text, valueContext);
+    const { language } = useActiveLanguage();
+    const resolvedText = useBoundValue(pickLang(text, language), valueContext);
     const fontCss = COMPONENT_FONT_CSS[fontFamily] ?? COMPONENT_FONT_CSS.body;
     const fs = resolveFontSize(fontSize ?? "theme-md");
     const fw = resolveFontWeight(fontWeight ?? "theme-light");

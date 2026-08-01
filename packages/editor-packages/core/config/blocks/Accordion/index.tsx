@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { getClassNameFactory } from "@/core/lib";
 import type { ComponentConfig, Fields } from "@/core/types";
@@ -8,19 +10,25 @@ import {
   hideLayoutPosition,
 } from "../../components/Layout";
 import { colorField } from "../../fields/ColorField";
+import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("Accordion", styles);
 
 type AccordionItem = {
-  title: string;
-  body: string;
+  title: BilingualString | string;
+  body: BilingualString | string;
   open: boolean;
 };
 
 export type AccordionProps = WithLayout<{
-  heading: string;
-  description: string;
+  heading: BilingualString | string;
+  description: BilingualString | string;
   items: AccordionItem[];
   variant: "soft" | "outline" | "minimal";
   backgroundColor: string;
@@ -30,8 +38,8 @@ export type AccordionProps = WithLayout<{
 const AccordionInner: ComponentConfig<AccordionProps> = {
   label: "أكورديون",
   fields: {
-    heading: { type: "text", label: "العنوان" },
-    description: { type: "textarea", label: "الوصف" },
+    heading: bilingualTextField({ label: "العنوان" }),
+    description: bilingualTextField({ label: "الوصف", mode: "textarea" }),
     variant: {
       type: "radio",
       label: "النمط",
@@ -53,8 +61,8 @@ const AccordionInner: ComponentConfig<AccordionProps> = {
       type: "array",
       label: "العناصر",
       arrayFields: {
-        title: { type: "text", label: "العنوان" },
-        body: { type: "textarea", label: "المحتوى" },
+        title: bilingualTextField({ label: "العنوان" }),
+        body: bilingualTextField({ label: "المحتوى", mode: "textarea" }),
         open: {
           type: "radio",
           label: "مفتوح افتراضياً",
@@ -65,38 +73,71 @@ const AccordionInner: ComponentConfig<AccordionProps> = {
         },
       },
       defaultItemProps: {
-        title: "سؤال",
-        body: "إجابة",
+        title: { ar: "سؤال", en: "Question" },
+        body: { ar: "إجابة", en: "Answer" },
         open: false,
       },
-      getItemSummary: (item: AccordionItem) => item.title || "عنصر",
+      getItemSummary: (item: AccordionItem) =>
+        pickLang(item.title) || "عنصر",
     },
   },
   defaultProps: {
-    heading: "الأسئلة الشائعة",
-    description: "إجابات مختصرة وعملية لتسهّل على الزائر قراءتها بسرعة.",
+    heading: { ar: "الأسئلة الشائعة", en: "FAQ" },
+    description: {
+      ar: "إجابات مختصرة وعملية لتسهّل على الزائر قراءتها بسرعة.",
+      en: "Short, practical answers that are easy to scan.",
+    },
     variant: "soft",
     backgroundColor: "",
     textColor: "",
     items: [
       {
-        title: "كم يستغرق التوصيل؟",
-        body: "معظم الطلبات في سوريا تصل خلال 2-4 أيام عمل حسب المدينة.",
+        title: {
+          ar: "كم يستغرق التوصيل؟",
+          en: "How long does delivery take?",
+        },
+        body: {
+          ar: "معظم الطلبات في سوريا تصل خلال 2-4 أيام عمل حسب المدينة.",
+          en: "Most orders in Syria arrive within 2–4 business days depending on the city.",
+        },
         open: true,
       },
       {
-        title: "هل يمكن الدفع عند الاستلام؟",
-        body: "نعم، الدفع عند الاستلام متاح لجميع المناطق المؤهلة.",
+        title: {
+          ar: "هل يمكن الدفع عند الاستلام؟",
+          en: "Is cash on delivery available?",
+        },
+        body: {
+          ar: "نعم، الدفع عند الاستلام متاح لجميع المناطق المؤهلة.",
+          en: "Yes — cash on delivery is available in all eligible areas.",
+        },
         open: false,
       },
       {
-        title: "هل تقدّمون إرجاعاً للمنتجات؟",
-        body: "يمكنك طلب الإرجاع خلال 7 أيام للمنتجات غير المستخدمة بحالتها الأصلية.",
+        title: {
+          ar: "هل تقدّمون إرجاعاً للمنتجات؟",
+          en: "Do you accept returns?",
+        },
+        body: {
+          ar: "يمكنك طلب الإرجاع خلال 7 أيام للمنتجات غير المستخدمة بحالتها الأصلية.",
+          en: "You can request a return within 7 days for unused products in original condition.",
+        },
         open: false,
       },
     ],
   },
-  render: ({ heading, description, items, variant, backgroundColor, textColor }) => {
+  render: ({
+    heading,
+    description,
+    items,
+    variant,
+    backgroundColor,
+    textColor,
+  }) => {
+    const { language } = useActiveLanguage();
+    const headingText = pickLang(heading, language);
+    const descriptionText = pickLang(description, language);
+
     const paletteStyle = {
       "--Accordion-bg": backgroundColor || "#ffffff",
       "--Accordion-text": textColor || "#0f172a",
@@ -110,16 +151,18 @@ const AccordionInner: ComponentConfig<AccordionProps> = {
 
     return (
       <section className={className} style={paletteStyle}>
-        {heading ? (
-          <h3 className={getClassName("heading")}>{heading}</h3>
+        {headingText ? (
+          <h3 className={getClassName("heading")}>{headingText}</h3>
         ) : null}
-        {description ? (
-          <p className={getClassName("description")}>{description}</p>
+        {descriptionText ? (
+          <p className={getClassName("description")}>{descriptionText}</p>
         ) : null}
 
         <div className={getClassName("list")}>
           {(items || []).map((item, index) => {
-            const title = item.title || `عنصر ${index + 1}`;
+            const title =
+              pickLang(item.title, language) || `عنصر ${index + 1}`;
+            const body = pickLang(item.body, language);
             return (
               <details
                 key={`${title}-${index}`}
@@ -132,7 +175,7 @@ const AccordionInner: ComponentConfig<AccordionProps> = {
                 </summary>
 
                 <div className={getClassName("body")}>
-                  <p className={getClassName("bodyText")}>{item.body}</p>
+                  <p className={getClassName("bodyText")}>{body}</p>
                 </div>
               </details>
             );

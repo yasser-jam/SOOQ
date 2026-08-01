@@ -1,7 +1,10 @@
 "use client";
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState } from "react";
-import { AutoField, Button, createUsePuck, FieldLabel, walkTree } from "@/core";
+import { AutoField, FieldLabel } from "../../../components/AutoField";
+import { Button } from "../../../components/Button";
+import { createUsePuck } from "../../../lib/use-puck";
+import { walkTree } from "../../../lib/data/walk-tree";
 import { ComponentConfig, ComponentDataOptionalId, Slot } from "@/core/types";
 import { withLayout } from "../../components/Layout";
 import { generateId } from "@/core/lib/generate-id";

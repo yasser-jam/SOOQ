@@ -83,7 +83,7 @@ Applied via shared CSS in `config/lib/zone-responsive.module.css`.
         "props": {
           "is_active": true,
           "is_mobile_only": true,
-          "key": "site-drawer",
+          "zoneKey": "site-drawer",
           "side": "left",
           "backgroundColor": "#ffffff",
           "overlay": true,
@@ -99,7 +99,7 @@ Applied via shared CSS in `config/lib/zone-responsive.module.css`.
         "type": "ZonePopup",
         "props": {
           "is_active": false,
-          "key": "popup-main",
+          "zoneKey": "popup-main",
           "backgroundColor": "#ffffff",
           "borderRadius": "12px",
           "maxWidth": "480px",
@@ -225,7 +225,7 @@ Full field list for the overlay zone blocks (`SiteHeader` / `SiteFooter` are doc
 |---|---|---|---|
 | `is_active` | `boolean` | `false` | Storefront gate — editor still previews when `false` |
 | `is_mobile_only` | `boolean` | `true` | Hides on viewports > 640px on the live site |
-| `key` | `string` | `"site-drawer"` | Match this value from `sooq:zone` event / `data-sooq-zone-toggle` |
+| `zoneKey` | `string` | `"site-drawer"` | Match this value from `sooq:zone` event / `data-sooq-zone-toggle`. Legacy `key` is migrated on read |
 | `side` | `"left" \| "right"` | `"left"` | Which edge the drawer slides from |
 | `backgroundColor` | `string` | `"#ffffff"` | Empty → white |
 | `overlay` | `boolean` | `true` | Backdrop scrim |
@@ -238,7 +238,7 @@ Full field list for the overlay zone blocks (`SiteHeader` / `SiteFooter` are doc
 |---|---|---|---|
 | `is_active` | `boolean` | `false` | |
 | `is_mobile_only` | `boolean` | `false` | |
-| `key` | `string` | `"popup-main"` | |
+| `zoneKey` | `string` | `"popup-main"` | Legacy `key` is migrated on read |
 | `backgroundColor` | `string` | `"#ffffff"` | |
 | `borderRadius` | `string` | `"12px"` | Any CSS value |
 | `maxWidth` | `string` | `"480px"` | |
@@ -252,7 +252,7 @@ Full field list for the overlay zone blocks (`SiteHeader` / `SiteFooter` are doc
 |---|---|---|---|
 | `is_active` | `boolean` | `false` | |
 | `is_mobile_only` | `boolean` | `true` | |
-| `key` | `string` | `"cart-sheet"` | |
+| `zoneKey` | `string` | `"cart-sheet"` | Legacy `key` is migrated on read |
 | `backgroundColor` | `string` | `"#ffffff"` | |
 | `borderRadius` | `string` | `"16px 16px 0 0"` | Any CSS value |
 | `maxHeight` | `string` | `"80vh"` | |

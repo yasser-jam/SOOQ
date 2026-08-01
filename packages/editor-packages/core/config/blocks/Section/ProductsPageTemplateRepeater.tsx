@@ -11,6 +11,7 @@ import { SlotRenderPure } from "@/core/components/SlotRender/server";
 import { assignComponentIds } from "@/core/lib/assign-component-ids";
 import { useAppStore } from "@/core/store";
 import { conf } from "../../index";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 import {
   getEditorDataAdapter,
   useSampleDataInEditor,
@@ -198,6 +199,7 @@ function ProductsPageTemplateCells({
   isEditing,
   onSelectTemplate,
 }: CellsProps) {
+  const { language } = useActiveLanguage();
   const boundList = useMemo(
     () =>
       products.map((product) => ({
@@ -219,7 +221,7 @@ function ProductsPageTemplateCells({
               isLoading: false,
               isError: false,
               metadata: null,
-              language: "ar",
+              language,
               selectedVariantId: null,
               setSelectedVariantId: () => {},
             }}

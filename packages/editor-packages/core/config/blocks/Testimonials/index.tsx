@@ -7,6 +7,11 @@ import {
   sampleTestimonials,
   type Testimonial,
 } from "../../data/testimonials";
+import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("Testimonials", styles);
@@ -69,9 +74,9 @@ function TestimonialsRender({
         }`.trim()}
       >
         {items.map((t, idx) => {
-          const text = language === "ar" && t.textAr ? t.textAr : t.text;
-          const name = language === "ar" && t.nameAr ? t.nameAr : t.name;
-          const role = language === "ar" && t.roleAr ? t.roleAr : t.role;
+          const text = pickLang(t.text, language);
+          const name = pickLang(t.name, language);
+          const role = pickLang(t.role, language);
           // `id` is merchant-editable and defaults to "" — two freshly-added
           // items would collide on the React key. Prefer the stable id when
           // present, otherwise fall back to the array index.
@@ -179,10 +184,8 @@ const TestimonialsInner: ComponentConfig<TestimonialsProps> = {
       label: "آراء مضمّنة",
       arrayFields: {
         id: { type: "text", label: "المعرف" },
-        name: { type: "text", label: "الاسم" },
-        nameAr: { type: "text", label: "الاسم (AR)" },
-        role: { type: "text", label: "الدور" },
-        roleAr: { type: "text", label: "الدور (AR)" },
+        name: bilingualTextField({ label: "الاسم" }),
+        role: bilingualTextField({ label: "الدور" }),
         avatar: { type: "text", label: "رابط الصورة الرمزية" },
         rating: {
           type: "select",
@@ -195,21 +198,18 @@ const TestimonialsInner: ComponentConfig<TestimonialsProps> = {
             { label: "5 stars", value: 5 },
           ],
         },
-        text: { type: "textarea", label: "الاقتباس" },
-        textAr: { type: "textarea", label: "الاقتباس (AR)" },
+        text: bilingualTextField({ label: "الاقتباس", mode: "textarea" }),
       },
       defaultItemProps: {
         id: "",
-        name: "",
-        nameAr: "",
-        role: "",
-        roleAr: "",
+        name: { ar: "", en: "" } as BilingualString,
+        role: { ar: "", en: "" } as BilingualString,
         avatar: "",
         rating: 5,
-        text: "",
-        textAr: "",
+        text: { ar: "", en: "" } as BilingualString,
       },
-      getItemSummary: (item) => (item as Testimonial).name || "Testimonial",
+      getItemSummary: (item) =>
+        pickLang((item as Testimonial).name) || "Testimonial",
     },
   },
 

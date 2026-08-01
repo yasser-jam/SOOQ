@@ -23,8 +23,8 @@ export type ContactFormProps = WithLayout<{
   showPhone: boolean;
   showSubject: boolean;
   requirePhone: boolean;
-  submitLabel: string;
-  successMessage: string;
+  submitLabel: BilingualString | string;
+  successMessage: BilingualString | string;
   enableCaptcha: boolean;
   submitWidth: "auto" | "full";
 }>;
@@ -42,6 +42,7 @@ function ContactFormRender({
 }: ContactFormProps) {
   const titleText = pickLang(title, language);
   const subtitleText = pickLang(subtitle, language);
+  const submitLabelText = pickLang(submitLabel, language);
 
   return (
     <div className={getClassName()}>
@@ -148,7 +149,7 @@ function ContactFormRender({
             submitWidth === "full" ? getClassName("submit--full") : ""
           }`.trim()}
         >
-          {submitLabel}
+          {submitLabelText}
         </button>
       </form>
     </div>
@@ -202,8 +203,8 @@ const ContactFormInner: ComponentConfig<ContactFormProps> = {
         { label: "Hide", value: false },
       ],
     },
-    submitLabel: { type: "text", label: "نص زر الإرسال" },
-    successMessage: { type: "text", label: "رسالة النجاح" },
+    submitLabel: bilingualTextField({ label: "نص زر الإرسال" }),
+    successMessage: bilingualTextField({ label: "رسالة النجاح" }),
     enableCaptcha: {
       type: "radio",
       label: "كابتشا",
@@ -232,8 +233,11 @@ const ContactFormInner: ComponentConfig<ContactFormProps> = {
     showPhone: true,
     requirePhone: false,
     showSubject: true,
-    submitLabel: "إرسال",
-    successMessage: "شكراً — تم إرسال رسالتك.",
+    submitLabel: { ar: "إرسال", en: "Send" },
+    successMessage: {
+      ar: "شكراً — تم إرسال رسالتك.",
+      en: "Thanks — your message was sent.",
+    },
     enableCaptcha: true,
     submitWidth: "auto",
   },

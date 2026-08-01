@@ -11,6 +11,7 @@ import { SlotRenderPure } from "@/core/components/SlotRender/server";
 import { assignComponentIds } from "@/core/lib/assign-component-ids";
 import { useAppStore } from "@/core/store";
 import { conf } from "../../index";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 import { useSampleDataInEditor } from "../../data-adapter";
 import { BoundDataProvider } from "../../binding/BoundDataContext";
 import type { CustomerAddress } from "../../store-context";
@@ -224,6 +225,7 @@ function CustomerAddressesTemplateCells({
   isEditing,
   onSelectTemplate,
 }: CellsProps) {
+  const { language } = useActiveLanguage();
   const boundList = useMemo(
     () =>
       addresses.map((address) => ({
@@ -245,7 +247,7 @@ function CustomerAddressesTemplateCells({
               isLoading: false,
               isError: false,
               metadata: null,
-              language: "ar",
+              language,
               selectedVariantId: null,
               setSelectedVariantId: () => {},
             }}

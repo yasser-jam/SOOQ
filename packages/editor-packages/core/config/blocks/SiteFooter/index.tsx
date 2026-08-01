@@ -13,18 +13,21 @@ import type { ShellVariant } from "../../theme";
 import { ZONE_BLOCK_PERMISSIONS } from "../../shell-zones";
 import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
 import { showConditionField } from "../../lib/show-condition";
+import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
 
 export type SiteFooterProps = {
-  title: string;
+  title: BilingualString | string;
   variant: ShellVariant;
   language: "ar" | "en";
   visible: boolean;
   is_mobile_only: boolean;
-  tagline: string;
-  taglineAr: string;
+  tagline: BilingualString | string;
   showBottomBar: boolean;
-  bottomBarText: string;
-  bottomBarTextAr: string;
+  bottomBarText: BilingualString | string;
   columns: FooterColumn[];
   bottomLinks: FooterLinkData[];
   backgroundColor: string;
@@ -37,10 +40,7 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
     ...ZONE_BLOCK_PERMISSIONS,
   },
   fields: {
-    title: {
-      type: "text",
-      label: "عنوان العلامة التجارية",
-    },
+    title: bilingualTextField({ label: "عنوان العلامة التجارية" }),
     variant: {
       type: "select",
       label: "نوع التخطيط",
@@ -73,14 +73,7 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
         { label: "No", value: false },
       ],
     },
-    tagline: {
-      type: "textarea",
-      label: "الشعار (إنجليزي)",
-    },
-    taglineAr: {
-      type: "textarea",
-      label: "الشعار (عربي)",
-    },
+    tagline: bilingualTextField({ label: "الشعار", mode: "textarea" }),
     showBottomBar: {
       type: "radio",
       label: "إظهار الشريط السفلي",
@@ -89,63 +82,58 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
         { label: "No", value: false },
       ],
     },
-    bottomBarText: {
-      type: "text",
-      label: "نص الشريط السفلي (إنجليزي)",
-      placeholder: "e.g. © 2026 Meridian",
-    },
-    bottomBarTextAr: {
-      type: "text",
-      label: "نص الشريط السفلي (عربي)",
-      placeholder: "مثال: © ٢٠٢٦ متجري",
-    },
+    bottomBarText: bilingualTextField({
+      label: "نص الشريط السفلي",
+      placeholderAr: "مثال: © ٢٠٢٦ متجري",
+      placeholderEn: "e.g. © 2026 Meridian",
+    }),
     columns: {
       type: "array",
       label: "أعمدة التذييل",
       arrayFields: {
-        title: { type: "text", label: "عنوان العمود (إنجليزي)" },
-        titleAr: { type: "text", label: "عنوان العمود (عربي)" },
+        title: bilingualTextField({ label: "عنوان العمود" }),
         links: {
           type: "array",
           label: "الروابط",
           arrayFields: {
-            label: { type: "text", label: "التسمية (إنجليزي)" },
-            labelAr: { type: "text", label: "التسمية (عربي)" },
+            label: bilingualTextField({ label: "التسمية" }),
             link: linkField({ label: "الوجهة" }),
             showCondition: showConditionField,
           },
           defaultItemProps: {
-            label: "New link",
-            labelAr: "عنصر",
+            label: { ar: "عنصر", en: "New link" } as BilingualString,
             link: EMPTY_LINK,
             showCondition: "always",
           },
-          getItemSummary: (item: { label?: string; href?: string }) =>
-            item?.label || item?.href || "Link",
+          getItemSummary: (item: FooterLinkData) =>
+            pickLang(item?.label) || "Link",
         },
       },
       defaultItemProps: {
-        title: "New column",
-        titleAr: "عمود جديد",
-        links: [{ label: "الرابط", labelAr: "رابط", link: EMPTY_LINK }],
+        title: { ar: "عمود جديد", en: "New column" } as BilingualString,
+        links: [
+          {
+            label: { ar: "رابط", en: "Link" } as BilingualString,
+            link: EMPTY_LINK,
+          },
+        ],
       },
-      getItemSummary: (item: { title?: string }) => item?.title || "Column",
+      getItemSummary: (item: FooterColumn) =>
+        pickLang(item?.title) || "Column",
     } as any,
     bottomLinks: {
       type: "array",
       label: "الروابط السفلية",
       arrayFields: {
-        label: { type: "text", label: "التسمية (إنجليزي)" },
-        labelAr: { type: "text", label: "التسمية (عربي)" },
+        label: bilingualTextField({ label: "التسمية" }),
         link: linkField({ label: "الوجهة" }),
       },
       defaultItemProps: {
-        label: "New link",
-        labelAr: "عنصر",
+        label: { ar: "عنصر", en: "New link" } as BilingualString,
         link: EMPTY_LINK,
       },
-      getItemSummary: (item: { label?: string; href?: string }) =>
-        item?.label || item?.href || "Link",
+      getItemSummary: (item: FooterLinkData) =>
+        pickLang(item?.label) || "Link",
     } as any,
     backgroundColor: colorField({
       label: "لون الخلفية",
@@ -157,16 +145,14 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
     }),
   },
   defaultProps: {
-    title: "",
+    title: { ar: "", en: "" },
     variant: "commerce",
     language: "ar",
     visible: true,
     is_mobile_only: false,
-    tagline: "",
-    taglineAr: "",
+    tagline: { ar: "", en: "" },
     showBottomBar: true,
-    bottomBarText: "",
-    bottomBarTextAr: "",
+    bottomBarText: { ar: "", en: "" },
     columns: DEFAULT_FOOTER_COLUMNS,
     bottomLinks: DEFAULT_FOOTER_BOTTOM_LINKS,
     backgroundColor: "",
@@ -181,10 +167,8 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
     visible,
     is_mobile_only,
     tagline,
-    taglineAr,
     showBottomBar,
     bottomBarText,
-    bottomBarTextAr,
     columns,
     bottomLinks,
     backgroundColor,
@@ -204,9 +188,7 @@ export const SiteFooter: ComponentConfig<SiteFooterProps> = {
         isMobileOnly={is_mobile_only}
         showBottomBar={showBottomBar}
         bottomBarText={bottomBarText}
-        bottomBarTextAr={bottomBarTextAr}
         tagline={tagline}
-        taglineAr={taglineAr}
         bottomLinks={bottomLinks}
         backgroundColor={backgroundColor || undefined}
         textColor={textColor || undefined}

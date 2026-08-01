@@ -3,7 +3,7 @@ import { ReactElement, useEffect, useMemo, useState } from "react";
 
 import styles from "./HeadingAnalyzer.module.css";
 
-import { createUsePuck } from "@/core";
+import { createUsePuck } from "@/core/lib/use-puck";
 import { Plugin } from "@/core/types";
 import { OutlineList } from "@/core/components/OutlineList";
 

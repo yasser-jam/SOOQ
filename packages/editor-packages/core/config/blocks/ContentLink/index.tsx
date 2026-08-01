@@ -17,9 +17,14 @@ import {
 } from "../../fields/LinkField";
 import { useBoundData } from "../../binding";
 import { getClassNameFactory } from "@/core/lib";
-import { AlignRight } from "lucide-react";
 import styles from "./styles.module.css";
 import { createAlignField } from "../../fields/AlignField";
+import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 
 const getClassName = getClassNameFactory("ContentLink", styles);
 
@@ -62,7 +67,7 @@ function resolveIconComponent(icon: string | undefined) {
 export type LinkHoverEffect = "none" | "underline" | "border" | "color" | "both";
 
 export type ContentLinkProps = WithLayout<{
-  title: string;
+  title: BilingualString | string;
   link: LinkValue;
   align: "left" | "center" | "right";
   color: string;
@@ -86,7 +91,7 @@ const HOVER_EFFECT_OPTIONS = [
 const ContentLinkInner: ComponentConfig<ContentLinkProps> = {
   label: "رابط",
   fields: {
-    title: { type: "text", contentEditable: true, label: "العنوان" },
+    title: bilingualTextField({ label: "العنوان", contentEditable: true }),
     link: linkField({ label: "الرابط" }),
     align: alignField,
     color: colorField,
@@ -117,7 +122,7 @@ const ContentLinkInner: ComponentConfig<ContentLinkProps> = {
     },
   },
   defaultProps: {
-    title: "رابط",
+    title: { ar: "رابط", en: "Link" },
     link: EMPTY_LINK,
     align: "right",
     color: "theme-primary",
@@ -150,8 +155,10 @@ const ContentLinkInner: ComponentConfig<ContentLinkProps> = {
     iconPosition,
     puck,
   }) => {
+    const { language } = useActiveLanguage();
+    const displayTitle = pickLang(title, language);
     const { data: boundData } = useBoundData();
-    const resolvedHref = resolveLinkHref(link, { boundData }) ?? "#";
+    const resolvedHref = resolveLinkHref(link, { boundData, locale: language }) ?? "#";
     const target = resolveLinkTarget(link);
     const rel = resolveLinkRel(link);
     const isEditing = puck?.isEditing === true;
@@ -212,7 +219,7 @@ const ContentLinkInner: ComponentConfig<ContentLinkProps> = {
             style={anchorStyle}
           >
             {iconPosition === "start" ? iconNode : null}
-            <span className={getClassName("label")}>{title}</span>
+            <span className={getClassName("label")}>{displayTitle}</span>
             {iconPosition === "end" ? iconNode : null}
           </a>
         </div>

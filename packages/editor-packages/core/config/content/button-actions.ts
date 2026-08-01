@@ -14,6 +14,7 @@ export const BUTTON_ACTIONS = [
   "createAddress",
   "setDefaultAddress",
   "deleteAddress",
+  "toggleLanguage",
 ] as const;
 
 export type ButtonAction = (typeof BUTTON_ACTIONS)[number];
@@ -32,6 +33,7 @@ export const BUTTON_ACTION_OPTIONS: { label: string; value: ButtonAction }[] = [
   { label: "حفظ العنوان", value: "createAddress" },
   { label: "تعيين كعنوان افتراضي", value: "setDefaultAddress" },
   { label: "حذف العنوان", value: "deleteAddress" },
+  { label: "تبديل اللغة", value: "toggleLanguage" },
 ];
 
 export const BUTTON_FUNCTIONAL_ACTION_OPTIONS = BUTTON_ACTION_OPTIONS.filter(
@@ -54,6 +56,7 @@ export function buttonActionLabel(action: ButtonAction): string {
     createAddress: "حفظ العنوان",
     setDefaultAddress: "تعيين كعنوان افتراضي",
     deleteAddress: "حذف العنوان",
+    toggleLanguage: "تبديل اللغة",
   };
   return map[action];
 }

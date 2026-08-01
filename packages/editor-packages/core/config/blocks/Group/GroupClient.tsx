@@ -23,6 +23,7 @@ import {
   mapCartLineToBoundData,
 } from "../../cart/map-cart-line-to-bound-data";
 import { useStoreCart } from "../../cart/use-store-cart";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 import { getClassNameFactory } from "@/core/lib";
 import styles from "./styles.module.css";
 
@@ -68,6 +69,7 @@ export function GroupClient({
   skipProductDetailFetch = false,
   isEditing = false,
 }: GroupClientProps) {
+  const { language: activeLanguage } = useActiveLanguage();
   const parentBound = useBoundData();
   const { cart } = useStoreCart();
   const adapter = getEditorDataAdapter();
@@ -179,7 +181,7 @@ export function GroupClient({
         : isLoading,
     isError: cartLineId ? false : skipProductDetailFetch ? false : isError,
     metadata: cartLine?.metadata ?? metadata ?? parentBound.metadata ?? null,
-    language: cartLine?.language ?? language,
+    language: cartLine?.language ?? language ?? activeLanguage,
     selectedVariantId: effectiveVariantId,
     setSelectedVariantId,
   };

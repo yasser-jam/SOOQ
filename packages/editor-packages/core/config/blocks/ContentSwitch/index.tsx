@@ -12,14 +12,20 @@ import {
 import type { ValueContext } from "../../binding";
 import { useBoundValue } from "../../binding";
 import { useStore } from "../../store-context";
+import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("ContentSwitch", styles);
 
 export type ContentSwitchProps = WithLayout<{
-  label: string;
+  label: BilingualString | string;
   name: string;
-  helperText: string;
+  helperText: BilingualString | string;
   defaultChecked: boolean;
   labelPosition: "start" | "end";
   switchAction: SwitchAction | "";
@@ -30,9 +36,9 @@ const ContentSwitchInner: ComponentConfig<ContentSwitchProps> = {
   label: "مفتاح تبديل",
 
   fields: {
-    label: { type: "text", label: "التسمية" },
+    label: bilingualTextField({ label: "التسمية" }),
     name: { type: "text", label: "الاسم (للإرسال)" },
-    helperText: { type: "text", label: "نص مساعد" },
+    helperText: bilingualTextField({ label: "نص مساعد" }),
     defaultChecked: {
       type: "radio",
       label: "مُفعّل افتراضياً",
@@ -57,9 +63,9 @@ const ContentSwitchInner: ComponentConfig<ContentSwitchProps> = {
   },
 
   defaultProps: {
-    label: "المتوفر فقط",
+    label: { ar: "المتوفر فقط", en: "In stock only" },
     name: "in-stock-only",
-    helperText: "",
+    helperText: { ar: "", en: "" },
     defaultChecked: false,
     labelPosition: "start",
     switchAction: "",
@@ -75,6 +81,9 @@ const ContentSwitchInner: ComponentConfig<ContentSwitchProps> = {
     checkedValueContext,
     puck,
   }) => {
+    const { language } = useActiveLanguage();
+    const resolvedLabel = pickLang(label, language);
+    const resolvedHelperText = pickLang(helperText, language);
     const { productsPage, customer, actions } = useStore();
     const contextChecked = useBoundValue("", checkedValueContext) === "true";
 
@@ -129,13 +138,13 @@ const ContentSwitchInner: ComponentConfig<ContentSwitchProps> = {
     };
 
     const inputId = `cs-${name}`;
-    const helperId = helperText.trim() ? `${inputId}-helper` : undefined;
+    const helperId = resolvedHelperText.trim() ? `${inputId}-helper` : undefined;
 
     return (
       <div className={getClassName({ labelEnd: labelPosition === "end" })}>
         <label className={getClassName("row")} htmlFor={inputId}>
-          {label.trim() ? (
-            <span className={getClassName("label")}>{label}</span>
+          {resolvedLabel.trim() ? (
+            <span className={getClassName("label")}>{resolvedLabel}</span>
           ) : null}
           <span className={getClassName("track")}>
             <input
@@ -147,7 +156,7 @@ const ContentSwitchInner: ComponentConfig<ContentSwitchProps> = {
               checked={localChecked}
               disabled={puck.isEditing}
               aria-describedby={helperId}
-              aria-label={!label.trim() ? name : undefined}
+              aria-label={!resolvedLabel.trim() ? name : undefined}
               onChange={(event) => void handleChange(event.target.checked)}
               {...{ [SOOQ_INPUT_ATTR]: "" }}
             />
@@ -156,7 +165,7 @@ const ContentSwitchInner: ComponentConfig<ContentSwitchProps> = {
         </label>
         {helperId ? (
           <span id={helperId} className={getClassName("helper")}>
-            {helperText}
+            {resolvedHelperText}
           </span>
         ) : null}
       </div>

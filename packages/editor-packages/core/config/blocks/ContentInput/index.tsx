@@ -16,6 +16,12 @@ import {
 import type { ValueContext } from "../../binding";
 import { useBoundValue } from "../../binding";
 import { useStore } from "../../store-context";
+import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 import styles from "./styles.module.css";
 
 /** Keep draft writes off the hot path so StoreContext doesn't re-render the page per keystroke. */
@@ -26,10 +32,10 @@ const getClassName = getClassNameFactory("ContentInput", styles);
 export type ContentInputPrependIcon = "none" | "search";
 
 export type ContentInputProps = WithLayout<{
-  label: string;
+  label: BilingualString | string;
   name: string;
   inputType: "text" | "number" | "email" | "password" | "tel" | "search";
-  placeholder: string;
+  placeholder: BilingualString | string;
   required: boolean;
   prependIcon: ContentInputPrependIcon;
   inputAction: InputAction | "";
@@ -53,7 +59,7 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
   label: "حقل إدخال",
 
   fields: {
-    label: { type: "text", label: "التسمية" },
+    label: bilingualTextField({ label: "التسمية" }),
     name: { type: "text", label: "الاسم (للإرسال)" },
     inputType: {
       type: "select",
@@ -67,7 +73,7 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
         { label: "هاتف", value: "tel" },
       ],
     },
-    placeholder: { type: "text", label: "نص توضيحي" },
+    placeholder: bilingualTextField({ label: "نص توضيحي" }),
     required: {
       type: "radio",
       label: "إلزامي",
@@ -93,10 +99,10 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
   },
 
   defaultProps: {
-    label: "حقل",
+    label: { ar: "حقل", en: "Field" },
     name: "field",
     inputType: "text",
-    placeholder: "",
+    placeholder: { ar: "", en: "" },
     required: false,
     prependIcon: "none",
     inputAction: "",
@@ -115,8 +121,11 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
     valueContext,
     puck,
   }) => {
+    const { language } = useActiveLanguage();
+    const resolvedLabel = pickLang(label, language);
+    const resolvedPlaceholder = pickLang(placeholder, language);
     const { productsPage, customer, actions } = useStore();
-    const contextBoundValue = useBoundValue(placeholder || "", valueContext);
+    const contextBoundValue = useBoundValue(resolvedPlaceholder || "", valueContext);
 
     const isSearchProducts = inputAction === "search_products";
     const isPriceFilter = isPriceFilterInputAction(inputAction);
@@ -251,7 +260,7 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
         className={inputClassName}
         type={resolvedType}
         name={name}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         required={required}
         disabled={puck.isEditing}
         readOnly={isContextDisplay && !puck.isEditing}
@@ -272,16 +281,20 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
         }
         onFocus={isCustomerDraft ? handleFocus : undefined}
         onBlur={isCustomerDraft ? handleBlur : undefined}
-        aria-label={!label.trim() ? placeholder || label : undefined}
+        aria-label={
+          !resolvedLabel.trim()
+            ? resolvedPlaceholder || resolvedLabel
+            : undefined
+        }
         {...{ [SOOQ_INPUT_ATTR]: "" }}
       />
     );
 
     return (
       <div className={getClassName()}>
-        {label.trim() ? (
+        {resolvedLabel.trim() ? (
           <label className={getClassName("label")} htmlFor={`ci-${name}`}>
-            {label}
+            {resolvedLabel}
             {required && <span className={getClassName("required")}>*</span>}
           </label>
         ) : null}

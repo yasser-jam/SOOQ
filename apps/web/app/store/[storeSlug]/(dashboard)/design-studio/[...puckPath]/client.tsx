@@ -3,12 +3,12 @@
 import Link from "next/link"
 import {
   AutoField,
-  createUsePuck,
   FieldLabel,
   Puck,
   Render,
   type Overrides,
 } from "@/core"
+import { createUsePuck } from "@/core/lib/use-puck"
 import config from "@/core/config"
 import { useDemoData } from "@/lib/use-demo-data"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"

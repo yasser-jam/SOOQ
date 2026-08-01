@@ -9,7 +9,8 @@ import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
 export type ZonePopupProps = {
   is_active: boolean;
   is_mobile_only: boolean;
-  key: string;
+  /** Event key matched by `sooq:zone` / `data-sooq-zone-toggle`. */
+  zoneKey: string;
   backgroundColor: string;
   borderRadius: string;
   maxWidth: string;
@@ -40,7 +41,7 @@ export const ZonePopup: ComponentConfig<ZonePopupProps> = {
         { label: "No", value: false },
       ],
     },
-    key: {
+    zoneKey: {
       type: "text",
       label: "مفتاح الحدث",
       placeholder: "popup-main",
@@ -82,7 +83,7 @@ export const ZonePopup: ComponentConfig<ZonePopupProps> = {
   defaultProps: {
     is_active: false,
     is_mobile_only: false,
-    key: "popup-main",
+    zoneKey: "popup-main",
     backgroundColor: "#ffffff",
     borderRadius: "12px",
     maxWidth: "480px",
@@ -95,7 +96,7 @@ export const ZonePopup: ComponentConfig<ZonePopupProps> = {
   render: ({
     is_active,
     is_mobile_only,
-    key: zoneKey,
+    zoneKey,
     backgroundColor,
     borderRadius,
     maxWidth,

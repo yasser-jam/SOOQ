@@ -66,8 +66,12 @@ export function StorefrontRenderer() {
 	const rootProps = useMemo(() => {
 		const root = resolvedData?.root
 		if (!root) return undefined
-		return ("props" in root ? root.props : root) as Partial<FullThemeProps>
+		return ("props" in root ? root.props : root) as Partial<FullThemeProps> & {
+			language?: "ar" | "en"
+		}
 	}, [resolvedData])
+
+	const initialLanguage = rootProps?.language ?? "ar"
 
 	if (status === "not-found-tenant") {
 		notFound()
@@ -86,7 +90,7 @@ export function StorefrontRenderer() {
 	)
 
 	return (
-		<StoreProvider>
+		<StoreProvider initialLanguage={initialLanguage}>
 			<PreviewThemeProvider rootProps={rootProps}>
 				{productSlug ? (
 					<UrlBoundProductProvider slug={productSlug}>

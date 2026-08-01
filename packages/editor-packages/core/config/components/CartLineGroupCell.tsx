@@ -5,6 +5,7 @@ import conf from "../index";
 import { SlotRenderPure } from "@/core/components/SlotRender/server";
 import { assignComponentIds } from "@/core/lib/assign-component-ids";
 import { BoundDataProvider } from "../binding";
+import { useActiveLanguage } from "../locale/LanguageContext";
 import { mapCartLineToBoundData } from "../cart/map-cart-line-to-bound-data";
 import type { StoreCartLine } from "../cart/store-cart";
 import { createCartItemGroup } from "../presets/cart";
@@ -19,6 +20,7 @@ export function CartLineGroupCell({
   line,
   isEditing = false,
 }: CartLineGroupCellProps) {
+  const { language: activeLanguage } = useActiveLanguage();
   const boundData = useMemo(() => mapCartLineToBoundData(line), [line]);
 
   const content = useMemo(() => {
@@ -33,7 +35,7 @@ export function CartLineGroupCell({
         isLoading: false,
         isError: false,
         metadata: line.metadata ?? null,
-        language: line.language ?? "ar",
+        language: line.language ?? activeLanguage,
         selectedVariantId: line.selectedVariant?.variantId ?? null,
         setSelectedVariantId: () => {},
       }}

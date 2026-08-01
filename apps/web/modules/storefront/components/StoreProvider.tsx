@@ -16,6 +16,7 @@ import {
 	type StoreLoadingState,
 	type StoreErrorState,
 } from "@/core/config/store-context"
+import { LanguageProvider } from "@/core/config/locale/LanguageProvider"
 import type { ProductCardActionEventDetail } from "@/core/config/binding/product-actions"
 import {
 	addOrUpdateLine,
@@ -115,7 +116,14 @@ function emptyAddressDraft(): CustomerAddressDraft {
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-export function StoreProvider({ children }: { children: React.ReactNode }) {
+// Twin copy: apps/store/components/StoreProvider.tsx — keep in sync until dedup.
+export function StoreProvider({
+	children,
+	initialLanguage = "ar",
+}: {
+	children: React.ReactNode
+	initialLanguage?: "ar" | "en"
+}) {
 	const { productsPage, actions: productsPageActions } = useProductsPageState()
 
 	const [auth, setAuth] = useState<StoreAuthState>({
@@ -630,14 +638,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 	)
 
 	return (
-		<StoreContext.Provider value={value}>
-			{children}
-			<CheckoutDrawer
-				open={checkoutOpen}
-				onClose={closeCheckout}
-				cart={checkoutCart}
-				tenantId={getStoreTenantId()}
-			/>
-		</StoreContext.Provider>
+		<LanguageProvider initialLanguage={initialLanguage} persist>
+			<StoreContext.Provider value={value}>
+				{children}
+				<CheckoutDrawer
+					open={checkoutOpen}
+					onClose={closeCheckout}
+					cart={checkoutCart}
+					tenantId={getStoreTenantId()}
+				/>
+			</StoreContext.Provider>
+		</LanguageProvider>
 	)
 }

@@ -12,6 +12,7 @@ import { SlotRenderPure } from "@/core/components/SlotRender/server";
 import { assignComponentIds } from "@/core/lib/assign-component-ids";
 import { useAppStore } from "@/core/store";
 import { conf } from "../../index";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 import {
   BOUND_QUERY_POLICY,
   boundQueryKeys,
@@ -265,6 +266,7 @@ function ProductsGridTemplateCells({
   isEditing,
   onSelectTemplate,
 }: CellsProps) {
+  const { language } = useActiveLanguage();
   const boundList = useMemo(
     () =>
       products.map((product) => ({
@@ -286,7 +288,7 @@ function ProductsGridTemplateCells({
               isLoading: false,
               isError: false,
               metadata: null,
-              language: "ar",
+              language,
               selectedVariantId: null,
               setSelectedVariantId: () => {},
             }}

@@ -15,7 +15,7 @@ const popupBasic: ZonePreset = {
     props: {
       is_active: false,
       is_mobile_only: false,
-      key: "popup-main",
+      zoneKey: "popup-main",
       backgroundColor: "#ffffff",
       borderRadius: "12px",
       maxWidth: "480px",

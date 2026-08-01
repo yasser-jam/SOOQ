@@ -44,6 +44,11 @@ import {
 } from "./pagination-utils";
 import { AlignRight } from "lucide-react";
 import { createAlignField } from "../../fields/AlignField";
+import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
 
 export const BUTTON_GROUP_SELECT_EVENT = "sooq:button-group-select";
 
@@ -56,7 +61,7 @@ type ButtonStyle = {
 };
 
 export type ButtonGroupItem = {
-  title: string;
+  title: BilingualString | string;
   value: string;
   destinationType: "link" | "action" | "zone";
   link: LinkValue;
@@ -71,7 +76,7 @@ export type ButtonGroupBindingMode = "static" | "categories" | "pagination";
 export type ButtonGroupProps = WithLayout<{
   bindingMode?: ButtonGroupBindingMode;
   prependAllButton?: boolean;
-  allButtonTitle?: string;
+  allButtonTitle?: BilingualString | string;
   items: ButtonGroupItem[];
   inactiveStyle: ButtonStyle;
   activeStyle: ButtonStyle;
@@ -193,12 +198,14 @@ function resolveButtonStyle(style: ButtonStyle | undefined, isEditing: boolean):
 }
 
 function createDefaultItem(
-  title: string,
+  title: BilingualString | string,
   value: string,
   overrides?: Partial<ButtonGroupItem>
 ): ButtonGroupItem {
+  const bilingualTitle: BilingualString =
+    typeof title === "string" ? { ar: title, en: title } : title;
   return {
-    title,
+    title: bilingualTitle,
     value,
     destinationType: "link",
     link: EMPTY_LINK,
@@ -238,15 +245,12 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
         { label: "لا", value: false },
       ],
     },
-    allButtonTitle: {
-      type: "text",
-      label: "عنوان زر الكل",
-    },
+    allButtonTitle: bilingualTextField({ label: "عنوان زر الكل" }),
     items: {
       type: "array",
       label: "الأزرار",
       arrayFields: {
-        title: { type: "text", label: "العنوان" },
+        title: bilingualTextField({ label: "العنوان" }),
         value: { type: "text", label: "القيمة" },
         destinationType: {
           type: "radio",
@@ -283,8 +287,12 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
           ],
         },
       },
-      defaultItemProps: createDefaultItem("زر", "value"),
-      getItemSummary: (item: ButtonGroupItem) => item.title || item.value || "زر",
+      defaultItemProps: createDefaultItem(
+        { ar: "زر", en: "Button" },
+        "value"
+      ),
+      getItemSummary: (item: ButtonGroupItem) =>
+        pickLang(item.title) || item.value || "زر",
     },
     inactiveStyle: {
       type: "object",
@@ -311,17 +319,17 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
   defaultProps: {
     bindingMode: "static",
     prependAllButton: true,
-    allButtonTitle: "الكل",
+    allButtonTitle: { ar: "الكل", en: "All" },
     defaultSelectedValue: "option-a",
     gap: "theme-8",
     align: "center",
     inactiveStyle: { ...DEFAULT_BUTTON_STYLE },
     activeStyle: { ...DEFAULT_ACTIVE_STYLE },
     items: [
-      createDefaultItem("الخيار أ", "option-a", {
+      createDefaultItem({ ar: "الخيار أ", en: "Option A" }, "option-a", {
         link: { kind: "page", pageId: "/" },
       }),
-      createDefaultItem("الخيار ب", "option-b", {
+      createDefaultItem({ ar: "الخيار ب", en: "Option B" }, "option-b", {
         link: { kind: "page", pageId: "/products" },
       }),
     ],
@@ -711,7 +719,7 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
                 cursor: isEllipsis ? "default" : style.cursor,
               }}
             >
-              {isLoading ? "..." : item.title}
+              {isLoading ? "..." : pickLang(item.title, language)}
             </button>
           );
         })}

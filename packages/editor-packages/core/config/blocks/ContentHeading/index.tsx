@@ -18,9 +18,15 @@ import {
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import { useBoundValue } from "../../binding";
 import { createAlignField } from "../../fields/AlignField";
+import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 
 export type ContentHeadingProps = WithLayout<{
-  text: string;
+  text: BilingualString | string;
   valueContext?: ValueContext | null;
   textAlign: "left" | "center" | "right";
   fontFamily: "body" | "option1" | "option2";
@@ -39,11 +45,11 @@ const alignField = createAlignField({ defaultValue: "left" });
 const ContentHeadingInner: ComponentConfig<ContentHeadingProps> = {
   label: "عنوان",
   fields: {
-    text: {
-      type: "textarea",
-      contentEditable: true,
+    text: bilingualTextField({
       label: "نص العنوان",
-    },
+      mode: "textarea",
+      contentEditable: true,
+    }),
     textAlign: alignField,
     fontFamily: {
       type: "select",
@@ -79,7 +85,7 @@ const ContentHeadingInner: ComponentConfig<ContentHeadingProps> = {
     color: colorField,
   },
   defaultProps: {
-    text: "عنوان",
+    text: { ar: "عنوان", en: "Heading" },
     level: "2",
     textAlign: "right",
     fontFamily: "body",
@@ -109,7 +115,8 @@ const ContentHeadingInner: ComponentConfig<ContentHeadingProps> = {
       textTransform,
       color,
     } = props;
-    const resolvedText = useBoundValue(text, valueContext);
+    const { language } = useActiveLanguage();
+    const resolvedText = useBoundValue(pickLang(text, language), valueContext);
     const H = Tag[Math.min(Math.max(parseInt(level, 10) || 2, 1), 6) - 1];
     const fontCss = COMPONENT_FONT_CSS[fontFamily ?? "body"] ?? COMPONENT_FONT_CSS.body;
     const fs = resolveFontSize(fontSize ?? "theme-lg");

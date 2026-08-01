@@ -1,7 +1,10 @@
 {
   "root": {
     "props": {
-      "title": "ميريديان",
+      "title": {
+        "ar": "ميريديان",
+        "en": "Meridian"
+      },
       "direction": "rtl",
       "language": "ar",
       "currency": "SYP",
@@ -78,7 +81,10 @@
         "type": "SiteHeader",
         "props": {
           "id": "SiteHeader-shell",
-          "title": "ميريديان",
+          "title": {
+            "ar": "ميريديان",
+            "en": "Meridian"
+          },
           "variant": "commerce",
           "language": "ar",
           "visible": true,
@@ -86,8 +92,10 @@
           "brandHref": "/",
           "links": [
             {
-              "label": "Home",
-              "labelAr": "الرئيسية",
+              "label": {
+                "ar": "الرئيسية",
+                "en": "Home"
+              },
               "link": {
                 "kind": "page",
                 "pageId": "/"
@@ -95,8 +103,10 @@
               "showCondition": "always"
             },
             {
-              "label": "Products",
-              "labelAr": "المنتجات",
+              "label": {
+                "ar": "المنتجات",
+                "en": "Products"
+              },
               "link": {
                 "kind": "page",
                 "pageId": "/products"
@@ -104,8 +114,10 @@
               "showCondition": "always"
             },
             {
-              "label": "Settings",
-              "labelAr": "الإعدادات",
+              "label": {
+                "ar": "الإعدادات",
+                "en": "Settings"
+              },
               "link": {
                 "kind": "page",
                 "pageId": "/settings"
@@ -113,8 +125,10 @@
               "showCondition": "loggedIn"
             },
             {
-              "label": "About us",
-              "labelAr": "من نحن",
+              "label": {
+                "ar": "من نحن",
+                "en": "About us"
+              },
               "link": {
                 "kind": "page",
                 "pageId": "/about"
@@ -122,8 +136,10 @@
               "showCondition": "always"
             },
             {
-              "label": "Orders",
-              "labelAr": "طلباتي",
+              "label": {
+                "ar": "طلباتي",
+                "en": "Orders"
+              },
               "link": {
                 "kind": "page",
                 "pageId": "/orders"
@@ -144,7 +160,10 @@
               "type": "ContentButton",
               "props": {
                 "id": "ContentButton-header-orders",
-                "label": "طلباتي",
+                "label": {
+                  "ar": "طلباتي",
+                  "en": "Orders"
+                },
                 "align": "center",
                 "destinationType": "link",
                 "buttonAction": "link",
@@ -167,7 +186,10 @@
               "type": "ContentButton",
               "props": {
                 "id": "ContentButton-header-cart",
-                "label": "السلة",
+                "label": {
+                  "ar": "السلة",
+                  "en": "Cart"
+                },
                 "align": "center",
                 "destinationType": "link",
                 "buttonAction": "link",
@@ -190,7 +212,10 @@
               "type": "ContentButton",
               "props": {
                 "id": "ContentButton-header-login",
-                "label": "تسجيل الدخول",
+                "label": {
+                  "ar": "تسجيل الدخول",
+                  "en": "Sign in"
+                },
                 "align": "center",
                 "destinationType": "link",
                 "buttonAction": "link",
@@ -218,32 +243,45 @@
         "type": "SiteFooter",
         "props": {
           "id": "SiteFooter-shell",
-          "title": "ميريديان",
+          "title": {
+            "ar": "ميريديان",
+            "en": "Meridian"
+          },
           "variant": "commerce",
           "language": "ar",
           "visible": true,
           "is_mobile_only": false,
-          "tagline": "Everything you love, delivered.",
-          "taglineAr": "كل ما تحبه، يصل إلى بابك.",
+          "tagline": {
+            "ar": "كل ما تحبه، يصل إلى بابك.",
+            "en": "Everything you love, delivered."
+          },
           "showBottomBar": true,
-          "bottomBarText": "© 2026 Meridian Store",
-          "bottomBarTextAr": "© ٢٠٢٦ متجر ميريديان — جميع الحقوق محفوظة",
+          "bottomBarText": {
+            "ar": "© ٢٠٢٦ متجر ميريديان — جميع الحقوق محفوظة",
+            "en": "© 2026 Meridian Store"
+          },
           "columns": [
             {
-              "title": "Shop",
-              "titleAr": "التسوق",
+              "title": {
+                "ar": "التسوق",
+                "en": "Shop"
+              },
               "links": [
                 {
-                  "label": "Products",
-                  "labelAr": "كل المنتجات",
+                  "label": {
+                    "ar": "كل المنتجات",
+                    "en": "Products"
+                  },
                   "link": {
                     "kind": "page",
                     "pageId": "/products"
                   }
                 },
                 {
-                  "label": "Cart",
-                  "labelAr": "سلة التسوق",
+                  "label": {
+                    "ar": "سلة التسوق",
+                    "en": "Cart"
+                  },
                   "link": {
                     "kind": "page",
                     "pageId": "/cart"
@@ -253,12 +291,16 @@
               ]
             },
             {
-              "title": "Account",
-              "titleAr": "حسابي",
+              "title": {
+                "ar": "حسابي",
+                "en": "Account"
+              },
               "links": [
                 {
-                  "label": "Settings",
-                  "labelAr": "الإعدادات",
+                  "label": {
+                    "ar": "الإعدادات",
+                    "en": "Settings"
+                  },
                   "link": {
                     "kind": "page",
                     "pageId": "/settings"
@@ -266,8 +308,10 @@
                   "showCondition": "loggedIn"
                 },
                 {
-                  "label": "Orders",
-                  "labelAr": "طلباتي",
+                  "label": {
+                    "ar": "طلباتي",
+                    "en": "Orders"
+                  },
                   "link": {
                     "kind": "page",
                     "pageId": "/orders"
@@ -275,8 +319,10 @@
                   "showCondition": "loggedIn"
                 },
                 {
-                  "label": "Login",
-                  "labelAr": "تسجيل الدخول",
+                  "label": {
+                    "ar": "تسجيل الدخول",
+                    "en": "Login"
+                  },
                   "link": {
                     "kind": "page",
                     "pageId": "/login"
@@ -284,8 +330,10 @@
                   "showCondition": "loggedOut"
                 },
                 {
-                  "label": "Verify",
-                  "labelAr": "تأكيد الرمز",
+                  "label": {
+                    "ar": "تأكيد الرمز",
+                    "en": "Verify"
+                  },
                   "link": {
                     "kind": "page",
                     "pageId": "/verify-otp"
@@ -295,20 +343,26 @@
               ]
             },
             {
-              "title": "Help",
-              "titleAr": "المساعدة",
+              "title": {
+                "ar": "المساعدة",
+                "en": "Help"
+              },
               "links": [
                 {
-                  "label": "FAQ",
-                  "labelAr": "الأسئلة الشائعة",
+                  "label": {
+                    "ar": "الأسئلة الشائعة",
+                    "en": "FAQ"
+                  },
                   "link": {
                     "kind": "anchor",
                     "hash": "faq"
                   }
                 },
                 {
-                  "label": "Home",
-                  "labelAr": "الرئيسية",
+                  "label": {
+                    "ar": "الرئيسية",
+                    "en": "Home"
+                  },
                   "link": {
                     "kind": "page",
                     "pageId": "/"
@@ -319,16 +373,20 @@
           ],
           "bottomLinks": [
             {
-              "label": "Privacy",
-              "labelAr": "سياسة الخصوصية",
+              "label": {
+                "ar": "سياسة الخصوصية",
+                "en": "Privacy"
+              },
               "link": {
                 "kind": "anchor",
                 "hash": "privacy"
               }
             },
             {
-              "label": "Terms",
-              "labelAr": "الشروط والأحكام",
+              "label": {
+                "ar": "الشروط والأحكام",
+                "en": "Terms"
+              },
               "link": {
                 "kind": "anchor",
                 "hash": "terms"
@@ -347,7 +405,7 @@
           "id": "ZoneDrawer-site",
           "is_active": true,
           "is_mobile_only": true,
-          "key": "site-drawer",
+          "zoneKey": "site-drawer",
           "side": "right",
           "backgroundColor": "#ffffff",
           "overlay": true,
@@ -357,7 +415,10 @@
               "type": "ContentHeading",
               "props": {
                 "id": "Heading-drawer-title",
-                "text": "القائمة",
+                "text": {
+                  "ar": "القائمة",
+                  "en": "Menu"
+                },
                 "level": "3",
                 "textAlign": "right",
                 "fontFamily": "body",
@@ -470,7 +531,10 @@
               "type": "ContentParagraph",
               "props": {
                 "id": "Paragraph-drawer-note",
-                "text": "توصيل خلال ٢-٤ أيام عمل لجميع المحافظات.",
+                "text": {
+                  "ar": "توصيل خلال ٢-٤ أيام عمل لجميع المحافظات.",
+                  "en": ""
+                },
                 "textAlign": "right",
                 "fontFamily": "body",
                 "fontSize": "theme-sm",
@@ -492,7 +556,7 @@
           "id": "ZonePopup-login",
           "is_active": false,
           "is_mobile_only": false,
-          "key": "login",
+          "zoneKey": "login",
           "backgroundColor": "#ffffff",
           "borderRadius": "24px",
           "maxWidth": "420px",
@@ -503,7 +567,10 @@
               "type": "ContentHeading",
               "props": {
                 "id": "Heading-popup-login",
-                "text": "تسجيل الدخول السريع",
+                "text": {
+                  "ar": "تسجيل الدخول السريع",
+                  "en": ""
+                },
                 "level": "3",
                 "textAlign": "right",
                 "fontFamily": "body",
@@ -519,7 +586,10 @@
               "type": "ContentParagraph",
               "props": {
                 "id": "Paragraph-popup-login",
-                "text": "أدخل بياناتك وسنرسل لك رمز تحقق فوراً.",
+                "text": {
+                  "ar": "أدخل بياناتك وسنرسل لك رمز تحقق فوراً.",
+                  "en": ""
+                },
                 "textAlign": "right",
                 "fontFamily": "body",
                 "fontSize": "theme-sm",
@@ -534,7 +604,10 @@
               "type": "ContentButton",
               "props": {
                 "id": "Button-popup-login",
-                "label": "الذهاب لصفحة الدخول",
+                "label": {
+                  "ar": "الذهاب لصفحة الدخول",
+                  "en": ""
+                },
                 "align": "center",
                 "destinationType": "link",
                 "buttonAction": "link",
@@ -563,7 +636,7 @@
           "id": "ZoneBottomSheet-cart",
           "is_active": false,
           "is_mobile_only": true,
-          "key": "cart-sheet",
+          "zoneKey": "cart-sheet",
           "backgroundColor": "#ffffff",
           "borderRadius": "24px 24px 0 0",
           "maxHeight": "70vh",
@@ -574,7 +647,10 @@
               "type": "ContentHeading",
               "props": {
                 "id": "Heading-sheet-cart",
-                "text": "سلتك جاهزة",
+                "text": {
+                  "ar": "سلتك جاهزة",
+                  "en": ""
+                },
                 "level": "3",
                 "textAlign": "right",
                 "fontFamily": "body",
@@ -590,7 +666,10 @@
               "type": "ContentButton",
               "props": {
                 "id": "Button-sheet-cart",
-                "label": "عرض السلة",
+                "label": {
+                  "ar": "عرض السلة",
+                  "en": ""
+                },
                 "align": "center",
                 "destinationType": "link",
                 "buttonAction": "link",
@@ -665,7 +744,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-hero-title",
-                        "text": "أناقة تصل إلى بابك",
+                        "text": {
+                          "ar": "أناقة تصل إلى بابك",
+                          "en": ""
+                        },
                         "level": "1",
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -681,7 +763,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-hero-sub",
-                        "text": "تشكيلة مختارة بعناية من أفضل المنتجات، بأسعار تنافسية ودفع عند الاستلام وتوصيل سريع لكل المحافظات.",
+                        "text": {
+                          "ar": "تشكيلة مختارة بعناية من أفضل المنتجات، بأسعار تنافسية ودفع عند الاستلام وتوصيل سريع لكل المحافظات.",
+                          "en": ""
+                        },
                         "textAlign": "center",
                         "fontFamily": "body",
                         "fontSize": "theme-lg",
@@ -708,7 +793,10 @@
                             "type": "ContentButton",
                             "props": {
                               "id": "Button-hero-shop",
-                              "label": "تسوّق الآن",
+                              "label": {
+                                "ar": "تسوّق الآن",
+                                "en": ""
+                              },
                               "align": "center",
                               "destinationType": "link",
                               "buttonAction": "link",
@@ -730,7 +818,10 @@
                             "type": "ContentButton",
                             "props": {
                               "id": "Button-hero-faq",
-                              "label": "تعرّف علينا",
+                              "label": {
+                                "ar": "تعرّف علينا",
+                                "en": ""
+                              },
                               "align": "center",
                               "destinationType": "link",
                               "buttonAction": "link",
@@ -780,7 +871,10 @@
                 "type": "ContentHeading",
                 "props": {
                   "id": "Heading-features-title",
-                  "text": "لماذا ميريديان؟",
+                  "text": {
+                    "ar": "لماذا ميريديان؟",
+                    "en": ""
+                  },
                   "level": "2",
                   "textAlign": "center",
                   "fontFamily": "body",
@@ -829,7 +923,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-feature-1",
-                        "text": "توصيل سريع",
+                        "text": {
+                          "ar": "توصيل سريع",
+                          "en": ""
+                        },
                         "level": "3",
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -845,7 +942,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-feature-1",
-                        "text": "طلبك يصل خلال ٢-٤ أيام عمل إلى باب منزلك.",
+                        "text": {
+                          "ar": "طلبك يصل خلال ٢-٤ أيام عمل إلى باب منزلك.",
+                          "en": ""
+                        },
                         "textAlign": "center",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -893,7 +993,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-feature-2",
-                        "text": "دفع عند الاستلام",
+                        "text": {
+                          "ar": "دفع عند الاستلام",
+                          "en": ""
+                        },
                         "level": "3",
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -909,7 +1012,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-feature-2",
-                        "text": "ادفع بعد أن تستلم طلبك وتتأكد من جودته.",
+                        "text": {
+                          "ar": "ادفع بعد أن تستلم طلبك وتتأكد من جودته.",
+                          "en": ""
+                        },
                         "textAlign": "center",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -957,7 +1063,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-feature-3",
-                        "text": "إرجاع خلال ٧ أيام",
+                        "text": {
+                          "ar": "إرجاع خلال ٧ أيام",
+                          "en": ""
+                        },
                         "level": "3",
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -973,7 +1082,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-feature-3",
-                        "text": "إرجاع مجاني للمنتجات غير المستخدمة بحالتها الأصلية.",
+                        "text": {
+                          "ar": "إرجاع مجاني للمنتجات غير المستخدمة بحالتها الأصلية.",
+                          "en": ""
+                        },
                         "textAlign": "center",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -1013,7 +1125,10 @@
                 "type": "ContentHeading",
                 "props": {
                   "id": "Heading-featured",
-                  "text": "منتجات مختارة لك",
+                  "text": {
+                    "ar": "منتجات مختارة لك",
+                    "en": ""
+                  },
                   "level": "2",
                   "textAlign": "right",
                   "fontFamily": "body",
@@ -1029,7 +1144,10 @@
                 "type": "ContentParagraph",
                 "props": {
                   "id": "Paragraph-featured",
-                  "text": "أحدث ما وصل إلى المتجر — اضغط على المنتج لعرض تفاصيله.",
+                  "text": {
+                    "ar": "أحدث ما وصل إلى المتجر — اضغط على المنتج لعرض تفاصيله.",
+                    "en": ""
+                  },
                   "textAlign": "right",
                   "fontFamily": "body",
                   "fontSize": "theme-md",
@@ -1094,7 +1212,10 @@
                             "props": {
                               "id": "Image-featured-card",
                               "src": "https://placehold.co/400x400/ede9fe/7c3aed?text=Product",
-                              "alt": "",
+                              "alt": {
+                                "ar": "",
+                                "en": ""
+                              },
                               "align": "center",
                               "objectFit": "cover",
                               "radius": "theme-lg",
@@ -1111,7 +1232,10 @@
                             "type": "ContentHeading",
                             "props": {
                               "id": "Heading-featured-card",
-                              "text": "عنوان المنتج",
+                              "text": {
+                                "ar": "عنوان المنتج",
+                                "en": "Product title"
+                              },
                               "level": "3",
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -1130,7 +1254,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-featured-card-price",
-                              "text": "0.00 SYP",
+                              "text": {
+                                "ar": "0.00 SYP",
+                                "en": "0.00 SYP"
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-lg",
@@ -1148,7 +1275,10 @@
                             "type": "ContentButton",
                             "props": {
                               "id": "Button-featured-card",
-                              "label": "عرض التفاصيل",
+                              "label": {
+                                "ar": "عرض التفاصيل",
+                                "en": "View details"
+                              },
                               "align": "center",
                               "destinationType": "link",
                               "buttonAction": "link",
@@ -1207,7 +1337,10 @@
                             "props": {
                               "id": "Image-featured-card",
                               "src": "https://placehold.co/400x400/ede9fe/7c3aed?text=Product",
-                              "alt": "",
+                              "alt": {
+                                "ar": "",
+                                "en": ""
+                              },
                               "align": "center",
                               "objectFit": "cover",
                               "radius": "theme-lg",
@@ -1224,7 +1357,10 @@
                             "type": "ContentHeading",
                             "props": {
                               "id": "Heading-featured-card",
-                              "text": "عنوان المنتج",
+                              "text": {
+                                "ar": "عنوان المنتج",
+                                "en": "Product title"
+                              },
                               "level": "3",
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -1243,7 +1379,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-featured-card-price",
-                              "text": "0.00 SYP",
+                              "text": {
+                                "ar": "0.00 SYP",
+                                "en": "0.00 SYP"
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-lg",
@@ -1261,7 +1400,10 @@
                             "type": "ContentButton",
                             "props": {
                               "id": "Button-featured-card",
-                              "label": "عرض التفاصيل",
+                              "label": {
+                                "ar": "عرض التفاصيل",
+                                "en": "View details"
+                              },
                               "align": "center",
                               "destinationType": "link",
                               "buttonAction": "link",
@@ -1294,7 +1436,10 @@
                 "type": "ContentLink",
                 "props": {
                   "id": "Link-featured-all",
-                  "title": "عرض كل المنتجات",
+                  "title": {
+                    "ar": "عرض كل المنتجات",
+                    "en": "View all products"
+                  },
                   "link": {
                     "kind": "page",
                     "pageId": "/products"
@@ -1344,36 +1489,54 @@
                   "inlineItems": [
                     {
                       "id": "t1",
-                      "name": "Ahmad Ali",
-                      "nameAr": "أحمد علي",
-                      "role": "Customer",
-                      "roleAr": "عميل",
+                      "name": {
+                        "ar": "أحمد علي",
+                        "en": "Ahmad Ali"
+                      },
+                      "role": {
+                        "ar": "عميل",
+                        "en": "Customer"
+                      },
                       "avatar": "",
                       "rating": 5,
-                      "text": "Fast delivery and great quality.",
-                      "textAr": "التوصيل كان سريعاً والجودة ممتازة، تجربة تستحق التكرار."
+                      "text": {
+                        "ar": "التوصيل كان سريعاً والجودة ممتازة، تجربة تستحق التكرار.",
+                        "en": "Fast delivery and great quality."
+                      }
                     },
                     {
                       "id": "t2",
-                      "name": "Lina Hasan",
-                      "nameAr": "لينا حسن",
-                      "role": "Customer",
-                      "roleAr": "عميلة",
+                      "name": {
+                        "ar": "لينا حسن",
+                        "en": "Lina Hasan"
+                      },
+                      "role": {
+                        "ar": "عميلة",
+                        "en": "Customer"
+                      },
                       "avatar": "",
                       "rating": 5,
-                      "text": "Beautiful products and easy checkout.",
-                      "textAr": "المنتجات جميلة وعملية الطلب سهلة جداً من الهاتف."
+                      "text": {
+                        "ar": "المنتجات جميلة وعملية الطلب سهلة جداً من الهاتف.",
+                        "en": "Beautiful products and easy checkout."
+                      }
                     },
                     {
                       "id": "t3",
-                      "name": "Omar Nadeem",
-                      "nameAr": "عمر نديم",
-                      "role": "Customer",
-                      "roleAr": "عميل",
+                      "name": {
+                        "ar": "عمر نديم",
+                        "en": "Omar Nadeem"
+                      },
+                      "role": {
+                        "ar": "عميل",
+                        "en": "Customer"
+                      },
                       "avatar": "",
                       "rating": 4,
-                      "text": "Good prices, helpful support.",
-                      "textAr": "الأسعار منافسة وفريق الدعم متعاون ويرد بسرعة."
+                      "text": {
+                        "ar": "الأسعار منافسة وفريق الدعم متعاون ويرد بسرعة.",
+                        "en": "Good prices, helpful support."
+                      }
                     }
                   ]
                 }
@@ -1404,30 +1567,60 @@
                 "type": "Accordion",
                 "props": {
                   "id": "Accordion-home-faq",
-                  "heading": "الأسئلة الشائعة",
-                  "description": "إجابات مختصرة وعملية على أكثر ما يسأل عنه عملاؤنا.",
+                  "heading": {
+                    "ar": "الأسئلة الشائعة",
+                    "en": "FAQ"
+                  },
+                  "description": {
+                    "ar": "إجابات مختصرة وعملية على أكثر ما يسأل عنه عملاؤنا.",
+                    "en": ""
+                  },
                   "variant": "soft",
                   "backgroundColor": "",
                   "textColor": "",
                   "items": [
                     {
-                      "title": "كم يستغرق التوصيل؟",
-                      "body": "معظم الطلبات تصل خلال ٢-٤ أيام عمل حسب المدينة.",
+                      "title": {
+                        "ar": "كم يستغرق التوصيل؟",
+                        "en": "How long does delivery take?"
+                      },
+                      "body": {
+                        "ar": "معظم الطلبات تصل خلال ٢-٤ أيام عمل حسب المدينة.",
+                        "en": "Most orders arrive within 2–4 business days depending on the city."
+                      },
                       "open": true
                     },
                     {
-                      "title": "هل الدفع عند الاستلام متاح؟",
-                      "body": "نعم، الدفع عند الاستلام متاح لجميع المناطق المؤهلة.",
+                      "title": {
+                        "ar": "هل الدفع عند الاستلام متاح؟",
+                        "en": ""
+                      },
+                      "body": {
+                        "ar": "نعم، الدفع عند الاستلام متاح لجميع المناطق المؤهلة.",
+                        "en": "Yes — cash on delivery is available in all eligible areas."
+                      },
                       "open": false
                     },
                     {
-                      "title": "هل يمكنني إرجاع المنتج؟",
-                      "body": "يمكنك طلب الإرجاع خلال ٧ أيام للمنتجات غير المستخدمة بحالتها الأصلية.",
+                      "title": {
+                        "ar": "هل يمكنني إرجاع المنتج؟",
+                        "en": ""
+                      },
+                      "body": {
+                        "ar": "يمكنك طلب الإرجاع خلال ٧ أيام للمنتجات غير المستخدمة بحالتها الأصلية.",
+                        "en": "You can request a return within 7 days for unused products in original condition."
+                      },
                       "open": false
                     },
                     {
-                      "title": "كيف أتابع حالة طلبي؟",
-                      "body": "بعد تسجيل الدخول ستصلك رسالة بحالة الطلب وتفاصيل الشحن أولاً بأول.",
+                      "title": {
+                        "ar": "كيف أتابع حالة طلبي؟",
+                        "en": ""
+                      },
+                      "body": {
+                        "ar": "بعد تسجيل الدخول ستصلك رسالة بحالة الطلب وتفاصيل الشحن أولاً بأول.",
+                        "en": "After signing in you will get updates on order status and shipping details."
+                      },
                       "open": false
                     }
                   ]
@@ -1459,7 +1652,10 @@
                 "type": "ContentHeading",
                 "props": {
                   "id": "Heading-cta",
-                  "text": "جاهز لتبدأ التسوق؟",
+                  "text": {
+                    "ar": "جاهز لتبدأ التسوق؟",
+                    "en": ""
+                  },
                   "level": "2",
                   "textAlign": "center",
                   "fontFamily": "body",
@@ -1475,7 +1671,10 @@
                 "type": "ContentParagraph",
                 "props": {
                   "id": "Paragraph-cta",
-                  "text": "سجّل دخولك واحصل على شحن مجاني لطلبك الأول.",
+                  "text": {
+                    "ar": "سجّل دخولك واحصل على شحن مجاني لطلبك الأول.",
+                    "en": ""
+                  },
                   "textAlign": "center",
                   "fontFamily": "body",
                   "fontSize": "theme-md",
@@ -1490,7 +1689,10 @@
                 "type": "ContentButton",
                 "props": {
                   "id": "Button-cta",
-                  "label": "ابدأ الآن",
+                  "label": {
+                    "ar": "ابدأ الآن",
+                    "en": ""
+                  },
                   "align": "center",
                   "destinationType": "link",
                   "buttonAction": "link",
@@ -1576,7 +1778,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-login",
-                        "text": "أهلاً بعودتك",
+                        "text": {
+                          "ar": "أهلاً بعودتك",
+                          "en": ""
+                        },
                         "level": "1",
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -1592,7 +1797,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-login",
-                        "text": "أدخل رقم هاتفك واسمك الكامل وسنرسل لك رمز تحقق.",
+                        "text": {
+                          "ar": "أدخل رقم هاتفك واسمك الكامل وسنرسل لك رمز تحقق.",
+                          "en": ""
+                        },
                         "textAlign": "right",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -1607,10 +1815,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-login-phone",
-                        "label": "رقم الهاتف",
+                        "label": {
+                          "ar": "رقم الهاتف",
+                          "en": ""
+                        },
                         "name": "phone",
                         "inputType": "tel",
-                        "placeholder": "+963...",
+                        "placeholder": {
+                          "ar": "+963...",
+                          "en": "+963..."
+                        },
                         "required": true,
                         "prependIcon": "none",
                         "inputAction": ""
@@ -1620,10 +1834,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-login-name",
-                        "label": "الاسم الكامل",
+                        "label": {
+                          "ar": "الاسم الكامل",
+                          "en": ""
+                        },
                         "name": "fullName",
                         "inputType": "text",
-                        "placeholder": "أدخل اسمك",
+                        "placeholder": {
+                          "ar": "أدخل اسمك",
+                          "en": ""
+                        },
                         "required": true,
                         "prependIcon": "none",
                         "inputAction": ""
@@ -1633,7 +1853,10 @@
                       "type": "ContentButton",
                       "props": {
                         "id": "Button-login-submit",
-                        "label": "إرسال رمز التحقق",
+                        "label": {
+                          "ar": "إرسال رمز التحقق",
+                          "en": ""
+                        },
                         "align": "center",
                         "destinationType": "action",
                         "buttonAction": "login",
@@ -1663,7 +1886,10 @@
                       "type": "ContentLink",
                       "props": {
                         "id": "Link-login-products",
-                        "title": "المتابعة كزائر وتصفح المنتجات",
+                        "title": {
+                          "ar": "المتابعة كزائر وتصفح المنتجات",
+                          "en": ""
+                        },
                         "link": {
                           "kind": "page",
                           "pageId": "/products"
@@ -1748,7 +1974,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-otp",
-                        "text": "أدخل رمز التحقق",
+                        "text": {
+                          "ar": "أدخل رمز التحقق",
+                          "en": "Enter verification code"
+                        },
                         "level": "1",
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -1764,7 +1993,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-otp",
-                        "text": "أرسلنا رمز تحقق إلى رقم هاتفك. أدخله للمتابعة.",
+                        "text": {
+                          "ar": "أرسلنا رمز تحقق إلى رقم هاتفك. أدخله للمتابعة.",
+                          "en": ""
+                        },
                         "textAlign": "right",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -1779,10 +2011,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-otp-code",
-                        "label": "رمز التحقق",
+                        "label": {
+                          "ar": "رمز التحقق",
+                          "en": ""
+                        },
                         "name": "otp",
                         "inputType": "text",
-                        "placeholder": "------",
+                        "placeholder": {
+                          "ar": "------",
+                          "en": "------"
+                        },
                         "required": true,
                         "prependIcon": "none",
                         "inputAction": ""
@@ -1792,7 +2030,10 @@
                       "type": "ContentButton",
                       "props": {
                         "id": "Button-otp-verify",
-                        "label": "تأكيد ومتابعة",
+                        "label": {
+                          "ar": "تأكيد ومتابعة",
+                          "en": ""
+                        },
                         "align": "center",
                         "destinationType": "action",
                         "buttonAction": "verifyOtp",
@@ -1813,7 +2054,10 @@
                       "type": "ContentLink",
                       "props": {
                         "id": "Link-otp-resend",
-                        "title": "لم يصلك الرمز؟ العودة لتسجيل الدخول",
+                        "title": {
+                          "ar": "لم يصلك الرمز؟ العودة لتسجيل الدخول",
+                          "en": ""
+                        },
                         "link": {
                           "kind": "page",
                           "pageId": "/login"
@@ -1868,7 +2112,10 @@
                 "type": "ContentHeading",
                 "props": {
                   "id": "Heading-products",
-                  "text": "تسوّق كل المنتجات",
+                  "text": {
+                    "ar": "تسوّق كل المنتجات",
+                    "en": ""
+                  },
                   "level": "1",
                   "textAlign": "right",
                   "fontFamily": "body",
@@ -1884,7 +2131,10 @@
                 "type": "ContentParagraph",
                 "props": {
                   "id": "Paragraph-products",
-                  "text": "ابحث عن ما تريد أو تصفّح حسب الفئة.",
+                  "text": {
+                    "ar": "ابحث عن ما تريد أو تصفّح حسب الفئة.",
+                    "en": ""
+                  },
                   "textAlign": "right",
                   "fontFamily": "body",
                   "fontSize": "theme-md",
@@ -1899,10 +2149,16 @@
                 "type": "ContentInput",
                 "props": {
                   "id": "Input-products-search",
-                  "label": "",
+                  "label": {
+                    "ar": "",
+                    "en": ""
+                  },
                   "name": "search",
                   "inputType": "search",
-                  "placeholder": "ابحث عن منتج…",
+                  "placeholder": {
+                    "ar": "ابحث عن منتج…",
+                    "en": ""
+                  },
                   "required": false,
                   "prependIcon": "search",
                   "inputAction": "search_products",
@@ -1915,7 +2171,10 @@
                   "id": "ButtonGroup-products-categories",
                   "bindingMode": "categories",
                   "prependAllButton": true,
-                  "allButtonTitle": "الكل",
+                  "allButtonTitle": {
+                    "ar": "الكل",
+                    "en": "All"
+                  },
                   "gap": "theme-8",
                   "align": "center",
                   "inactiveStyle": {
@@ -1957,10 +2216,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-products-min-price",
-                        "label": "أقل سعر",
+                        "label": {
+                          "ar": "أقل سعر",
+                          "en": ""
+                        },
                         "name": "min-price",
                         "inputType": "number",
-                        "placeholder": "0",
+                        "placeholder": {
+                          "ar": "0",
+                          "en": "0"
+                        },
                         "required": false,
                         "prependIcon": "none",
                         "inputAction": "filter_min_price",
@@ -1974,10 +2239,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-products-max-price",
-                        "label": "أعلى سعر",
+                        "label": {
+                          "ar": "أعلى سعر",
+                          "en": ""
+                        },
                         "name": "max-price",
                         "inputType": "number",
-                        "placeholder": "بدون حد",
+                        "placeholder": {
+                          "ar": "بدون حد",
+                          "en": ""
+                        },
                         "required": false,
                         "prependIcon": "none",
                         "inputAction": "filter_max_price",
@@ -1991,9 +2262,15 @@
                       "type": "ContentSwitch",
                       "props": {
                         "id": "Switch-products-in-stock",
-                        "label": "المتوفر فقط",
+                        "label": {
+                          "ar": "المتوفر فقط",
+                          "en": ""
+                        },
                         "name": "in-stock-only",
-                        "helperText": "",
+                        "helperText": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "defaultChecked": false,
                         "labelPosition": "start",
                         "switchAction": "filter_in_stock_only"
@@ -2056,7 +2333,10 @@
                             "props": {
                               "id": "Image-products-card",
                               "src": "https://placehold.co/400x400/ede9fe/7c3aed?text=Product",
-                              "alt": "",
+                              "alt": {
+                                "ar": "",
+                                "en": ""
+                              },
                               "align": "center",
                               "objectFit": "cover",
                               "radius": "theme-lg",
@@ -2088,7 +2368,10 @@
                             "type": "ContentHeading",
                             "props": {
                               "id": "Heading-products-card",
-                              "text": "عنوان المنتج",
+                              "text": {
+                                "ar": "عنوان المنتج",
+                                "en": "Product title"
+                              },
                               "level": "3",
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -2107,7 +2390,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-products-card-price",
-                              "text": "0.00 SYP",
+                              "text": {
+                                "ar": "0.00 SYP",
+                                "en": "0.00 SYP"
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-lg",
@@ -2125,7 +2411,10 @@
                             "type": "ContentButton",
                             "props": {
                               "id": "Button-products-card",
-                              "label": "عرض التفاصيل",
+                              "label": {
+                                "ar": "عرض التفاصيل",
+                                "en": "View details"
+                              },
                               "align": "center",
                               "destinationType": "link",
                               "buttonAction": "link",
@@ -2184,7 +2473,10 @@
                             "props": {
                               "id": "Image-products-card",
                               "src": "https://placehold.co/400x400/ede9fe/7c3aed?text=Product",
-                              "alt": "",
+                              "alt": {
+                                "ar": "",
+                                "en": ""
+                              },
                               "align": "center",
                               "objectFit": "cover",
                               "radius": "theme-lg",
@@ -2216,7 +2508,10 @@
                             "type": "ContentHeading",
                             "props": {
                               "id": "Heading-products-card",
-                              "text": "عنوان المنتج",
+                              "text": {
+                                "ar": "عنوان المنتج",
+                                "en": "Product title"
+                              },
                               "level": "3",
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -2235,7 +2530,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-products-card-price",
-                              "text": "0.00 SYP",
+                              "text": {
+                                "ar": "0.00 SYP",
+                                "en": "0.00 SYP"
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-lg",
@@ -2253,7 +2551,10 @@
                             "type": "ContentButton",
                             "props": {
                               "id": "Button-products-card",
-                              "label": "عرض التفاصيل",
+                              "label": {
+                                "ar": "عرض التفاصيل",
+                                "en": "View details"
+                              },
                               "align": "center",
                               "destinationType": "link",
                               "buttonAction": "link",
@@ -2425,7 +2726,10 @@
                             "type": "ContentHeading",
                             "props": {
                               "id": "Heading-product-title",
-                              "text": "عنوان المنتج",
+                              "text": {
+                                "ar": "عنوان المنتج",
+                                "en": "Product title"
+                              },
                               "level": "1",
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -2444,7 +2748,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-product-price",
-                              "text": "0.00 SYP",
+                              "text": {
+                                "ar": "0.00 SYP",
+                                "en": "0.00 SYP"
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-lg",
@@ -2462,7 +2769,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-product-compare",
-                              "text": "",
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
@@ -2480,7 +2790,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-product-description",
-                              "text": "وصف المنتج",
+                              "text": {
+                                "ar": "وصف المنتج",
+                                "en": ""
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
@@ -2515,7 +2828,10 @@
                             "type": "ContentButton",
                             "props": {
                               "id": "Button-product-add",
-                              "label": "إضافة إلى السلة",
+                              "label": {
+                                "ar": "إضافة إلى السلة",
+                                "en": ""
+                              },
                               "align": "center",
                               "destinationType": "action",
                               "buttonAction": "addToCart",
@@ -2536,7 +2852,10 @@
                             "type": "ContentButton",
                             "props": {
                               "id": "Button-product-cart",
-                              "label": "الذهاب إلى السلة",
+                              "label": {
+                                "ar": "الذهاب إلى السلة",
+                                "en": ""
+                              },
                               "align": "center",
                               "destinationType": "link",
                               "buttonAction": "link",
@@ -2586,7 +2905,10 @@
                 "type": "ContentHeading",
                 "props": {
                   "id": "Heading-related",
-                  "text": "قد يعجبك أيضاً",
+                  "text": {
+                    "ar": "قد يعجبك أيضاً",
+                    "en": ""
+                  },
                   "level": "2",
                   "textAlign": "right",
                   "fontFamily": "body",
@@ -2652,7 +2974,10 @@
                             "props": {
                               "id": "Image-related-card",
                               "src": "https://placehold.co/400x400/ede9fe/7c3aed?text=Product",
-                              "alt": "",
+                              "alt": {
+                                "ar": "",
+                                "en": ""
+                              },
                               "align": "center",
                               "objectFit": "cover",
                               "radius": "theme-lg",
@@ -2669,7 +2994,10 @@
                             "type": "ContentHeading",
                             "props": {
                               "id": "Heading-related-card",
-                              "text": "عنوان المنتج",
+                              "text": {
+                                "ar": "عنوان المنتج",
+                                "en": "Product title"
+                              },
                               "level": "3",
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -2688,7 +3016,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-related-card-price",
-                              "text": "0.00 SYP",
+                              "text": {
+                                "ar": "0.00 SYP",
+                                "en": "0.00 SYP"
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-lg",
@@ -2706,7 +3037,10 @@
                             "type": "ContentButton",
                             "props": {
                               "id": "Button-related-card",
-                              "label": "عرض التفاصيل",
+                              "label": {
+                                "ar": "عرض التفاصيل",
+                                "en": "View details"
+                              },
                               "align": "center",
                               "destinationType": "link",
                               "buttonAction": "link",
@@ -2765,7 +3099,10 @@
                             "props": {
                               "id": "Image-related-card",
                               "src": "https://placehold.co/400x400/ede9fe/7c3aed?text=Product",
-                              "alt": "",
+                              "alt": {
+                                "ar": "",
+                                "en": ""
+                              },
                               "align": "center",
                               "objectFit": "cover",
                               "radius": "theme-lg",
@@ -2782,7 +3119,10 @@
                             "type": "ContentHeading",
                             "props": {
                               "id": "Heading-related-card",
-                              "text": "عنوان المنتج",
+                              "text": {
+                                "ar": "عنوان المنتج",
+                                "en": "Product title"
+                              },
                               "level": "3",
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -2801,7 +3141,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-related-card-price",
-                              "text": "0.00 SYP",
+                              "text": {
+                                "ar": "0.00 SYP",
+                                "en": "0.00 SYP"
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-lg",
@@ -2819,7 +3162,10 @@
                             "type": "ContentButton",
                             "props": {
                               "id": "Button-related-card",
-                              "label": "عرض التفاصيل",
+                              "label": {
+                                "ar": "عرض التفاصيل",
+                                "en": "View details"
+                              },
                               "align": "center",
                               "destinationType": "link",
                               "buttonAction": "link",
@@ -2890,7 +3236,10 @@
                 "type": "ContentHeading",
                 "props": {
                   "id": "Heading-cart",
-                  "text": "سلة التسوق",
+                  "text": {
+                    "ar": "سلة التسوق",
+                    "en": ""
+                  },
                   "level": "1",
                   "textAlign": "right",
                   "fontFamily": "body",
@@ -2906,7 +3255,10 @@
                 "type": "ContentParagraph",
                 "props": {
                   "id": "Paragraph-cart",
-                  "text": "راجع المنتجات والكميات قبل إتمام الطلب. الدفع عند الاستلام متاح.",
+                  "text": {
+                    "ar": "راجع المنتجات والكميات قبل إتمام الطلب. الدفع عند الاستلام متاح.",
+                    "en": ""
+                  },
                   "textAlign": "right",
                   "fontFamily": "body",
                   "fontSize": "theme-sm",
@@ -2921,7 +3273,10 @@
                 "type": "ContentButton",
                 "props": {
                   "id": "complete-order",
-                  "label": "إتمام الطلب",
+                  "label": {
+                    "ar": "إتمام الطلب",
+                    "en": ""
+                  },
                   "align": "center",
                   "destinationType": "action",
                   "buttonAction": "makeOrder",
@@ -2942,7 +3297,10 @@
                 "type": "ContentLink",
                 "props": {
                   "id": "Link-cart-continue",
-                  "title": "متابعة التسوق",
+                  "title": {
+                    "ar": "متابعة التسوق",
+                    "en": "Continue shopping"
+                  },
                   "link": {
                     "kind": "page",
                     "pageId": "/products"
@@ -3012,7 +3370,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-about-hero",
-                        "text": "نصنع تجربة تسوّق تليق بك",
+                        "text": {
+                          "ar": "نصنع تجربة تسوّق تليق بك",
+                          "en": ""
+                        },
                         "level": "1",
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -3028,7 +3389,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-about-hero",
-                        "text": "ميريديان متجر عربي يضع الجودة والثقة في المقدمة — منتجات مختارة، أسعار واضحة، وتوصيل يصل إلى بابك.",
+                        "text": {
+                          "ar": "ميريديان متجر عربي يضع الجودة والثقة في المقدمة — منتجات مختارة، أسعار واضحة، وتوصيل يصل إلى بابك.",
+                          "en": ""
+                        },
                         "textAlign": "center",
                         "fontFamily": "body",
                         "fontSize": "theme-lg",
@@ -3069,7 +3433,10 @@
                 "props": {
                   "id": "Image-about-story",
                   "src": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=1000&q=80",
-                  "alt": "فريق ميريديان",
+                  "alt": {
+                    "ar": "فريق ميريديان",
+                    "en": ""
+                  },
                   "align": "center",
                   "objectFit": "cover",
                   "radius": "theme-lg",
@@ -3099,7 +3466,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-about-story",
-                        "text": "قصتنا",
+                        "text": {
+                          "ar": "قصتنا",
+                          "en": ""
+                        },
                         "level": "2",
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -3115,7 +3485,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-about-story-1",
-                        "text": "بدأنا من فكرة بسيطة: أن يحصل كل عميل على منتجات يستحقها دون تعقيد، مع دفع عند الاستلام وخدمة قريبة من احتياجاته.",
+                        "text": {
+                          "ar": "بدأنا من فكرة بسيطة: أن يحصل كل عميل على منتجات يستحقها دون تعقيد، مع دفع عند الاستلام وخدمة قريبة من احتياجاته.",
+                          "en": ""
+                        },
                         "textAlign": "right",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -3130,7 +3503,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-about-story-2",
-                        "text": "نختار بعناية، نوضح التفاصيل، ونهتم بما بعد الطلب — لأن الثقة تُبنى في كل خطوة.",
+                        "text": {
+                          "ar": "نختار بعناية، نوضح التفاصيل، ونهتم بما بعد الطلب — لأن الثقة تُبنى في كل خطوة.",
+                          "en": ""
+                        },
                         "textAlign": "right",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -3241,7 +3617,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-about-cta",
-                        "text": "جاهز لاستكشاف التشكيلة؟",
+                        "text": {
+                          "ar": "جاهز لاستكشاف التشكيلة؟",
+                          "en": ""
+                        },
                         "level": "2",
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -3257,7 +3636,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-about-cta",
-                        "text": "تصفّح المنتجات وابدأ طلبك بخطوات بسيطة — الدفع عند الاستلام متاح.",
+                        "text": {
+                          "ar": "تصفّح المنتجات وابدأ طلبك بخطوات بسيطة — الدفع عند الاستلام متاح.",
+                          "en": ""
+                        },
                         "textAlign": "center",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -3272,7 +3654,10 @@
                       "type": "ContentButton",
                       "props": {
                         "id": "Button-about-cta",
-                        "label": "تسوّق الآن",
+                        "label": {
+                          "ar": "تسوّق الآن",
+                          "en": ""
+                        },
                         "align": "center",
                         "destinationType": "link",
                         "buttonAction": "link",
@@ -3352,7 +3737,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-settings-signedout",
-                        "text": "سجّل دخولك لعرض إعدادات حسابك.",
+                        "text": {
+                          "ar": "سجّل دخولك لعرض إعدادات حسابك.",
+                          "en": ""
+                        },
                         "level": "1",
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -3368,7 +3756,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-settings-signedout",
-                        "text": "يمكنك تسجيل الدخول برقم هاتفك لمتابعة طلباتك وإدارة حسابك.",
+                        "text": {
+                          "ar": "يمكنك تسجيل الدخول برقم هاتفك لمتابعة طلباتك وإدارة حسابك.",
+                          "en": ""
+                        },
                         "textAlign": "center",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -3383,7 +3774,10 @@
                       "type": "ContentLink",
                       "props": {
                         "id": "Link-settings-login",
-                        "title": "تسجيل الدخول",
+                        "title": {
+                          "ar": "تسجيل الدخول",
+                          "en": "Sign in"
+                        },
                         "link": {
                           "kind": "page",
                           "pageId": "/login"
@@ -3451,7 +3845,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-settings-profile",
-                        "text": "المعلومات الشخصية",
+                        "text": {
+                          "ar": "المعلومات الشخصية",
+                          "en": ""
+                        },
                         "level": "2",
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -3479,7 +3876,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-settings-order-label",
-                              "text": "عدد الطلبات",
+                              "text": {
+                                "ar": "عدد الطلبات",
+                                "en": ""
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
@@ -3494,7 +3894,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-settings-order-value",
-                              "text": "",
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
@@ -3527,7 +3930,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-settings-spend-label",
-                              "text": "إجمالي الإنفاق",
+                              "text": {
+                                "ar": "إجمالي الإنفاق",
+                                "en": ""
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
@@ -3542,7 +3948,10 @@
                             "type": "ContentParagraph",
                             "props": {
                               "id": "Paragraph-settings-spend-value",
-                              "text": "",
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
                               "textAlign": "right",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
@@ -3563,10 +3972,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-settings-full-name",
-                        "label": "الاسم الكامل",
+                        "label": {
+                          "ar": "الاسم الكامل",
+                          "en": ""
+                        },
                         "name": "fullName",
                         "inputType": "text",
-                        "placeholder": "أدخل اسمك",
+                        "placeholder": {
+                          "ar": "أدخل اسمك",
+                          "en": ""
+                        },
                         "required": true,
                         "prependIcon": "none",
                         "inputAction": "profile_full_name"
@@ -3576,10 +3991,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-settings-phone",
-                        "label": "رقم الهاتف",
+                        "label": {
+                          "ar": "رقم الهاتف",
+                          "en": ""
+                        },
                         "name": "phone",
                         "inputType": "tel",
-                        "placeholder": "+963...",
+                        "placeholder": {
+                          "ar": "+963...",
+                          "en": "+963..."
+                        },
                         "required": false,
                         "prependIcon": "none",
                         "inputAction": "",
@@ -3592,7 +4013,10 @@
                       "type": "ContentButton",
                       "props": {
                         "id": "Button-settings-save-profile",
-                        "label": "حفظ التغييرات",
+                        "label": {
+                          "ar": "حفظ التغييرات",
+                          "en": ""
+                        },
                         "align": "center",
                         "destinationType": "action",
                         "buttonAction": "saveProfile",
@@ -3665,7 +4089,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-settings-marketing",
-                        "text": "تفضيلات التسويق",
+                        "text": {
+                          "ar": "تفضيلات التسويق",
+                          "en": ""
+                        },
                         "level": "2",
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -3681,7 +4108,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-settings-marketing",
-                        "text": "اختر كيف تحب أن نصلك بالعروض.",
+                        "text": {
+                          "ar": "اختر كيف تحب أن نصلك بالعروض.",
+                          "en": ""
+                        },
                         "textAlign": "right",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -3696,9 +4126,15 @@
                       "type": "ContentSwitch",
                       "props": {
                         "id": "Switch-settings-email",
-                        "label": "رسائل البريد الإلكتروني",
+                        "label": {
+                          "ar": "رسائل البريد الإلكتروني",
+                          "en": ""
+                        },
                         "name": "email-opt-in",
-                        "helperText": "",
+                        "helperText": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "defaultChecked": false,
                         "labelPosition": "start",
                         "switchAction": "marketing_email_opt_in"
@@ -3708,9 +4144,15 @@
                       "type": "ContentSwitch",
                       "props": {
                         "id": "Switch-settings-sms",
-                        "label": "الرسائل النصية",
+                        "label": {
+                          "ar": "الرسائل النصية",
+                          "en": ""
+                        },
                         "name": "sms-opt-in",
-                        "helperText": "",
+                        "helperText": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "defaultChecked": false,
                         "labelPosition": "start",
                         "switchAction": "marketing_sms_opt_in"
@@ -3770,7 +4212,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-settings-address-label",
-                        "text": "",
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "level": "3",
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -3789,7 +4234,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-settings-address-governorate",
-                        "text": "",
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "textAlign": "right",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -3807,7 +4255,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-settings-address-city",
-                        "text": "",
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "textAlign": "right",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -3825,7 +4276,10 @@
                       "type": "ContentParagraph",
                       "props": {
                         "id": "Paragraph-settings-address-street",
-                        "text": "",
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "textAlign": "right",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
@@ -3855,7 +4309,10 @@
                             "type": "ContentButton",
                             "props": {
                               "id": "Button-settings-set-default",
-                              "label": "تعيين كافتراضي",
+                              "label": {
+                                "ar": "تعيين كافتراضي",
+                                "en": ""
+                              },
                               "align": "center",
                               "destinationType": "action",
                               "buttonAction": "setDefaultAddress",
@@ -3878,7 +4335,10 @@
                             "type": "ContentButton",
                             "props": {
                               "id": "Button-settings-delete-address",
-                              "label": "حذف",
+                              "label": {
+                                "ar": "حذف",
+                                "en": ""
+                              },
                               "align": "center",
                               "destinationType": "action",
                               "buttonAction": "deleteAddress",
@@ -3954,7 +4414,10 @@
                       "type": "ContentHeading",
                       "props": {
                         "id": "Heading-settings-address-form",
-                        "text": "إضافة عنوان جديد",
+                        "text": {
+                          "ar": "إضافة عنوان جديد",
+                          "en": ""
+                        },
                         "level": "2",
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -3982,10 +4445,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-settings-address-label",
-                        "label": "التسمية",
+                        "label": {
+                          "ar": "التسمية",
+                          "en": ""
+                        },
                         "name": "address-label",
                         "inputType": "text",
-                        "placeholder": "",
+                        "placeholder": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "required": false,
                         "prependIcon": "none",
                         "inputAction": "address_label"
@@ -3995,10 +4464,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-settings-address-recipient-name",
-                        "label": "اسم المستلم",
+                        "label": {
+                          "ar": "اسم المستلم",
+                          "en": ""
+                        },
                         "name": "address-recipient-name",
                         "inputType": "text",
-                        "placeholder": "",
+                        "placeholder": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "required": false,
                         "prependIcon": "none",
                         "inputAction": "address_recipient_name"
@@ -4008,10 +4483,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-settings-address-recipient-phone",
-                        "label": "رقم هاتف المستلم",
+                        "label": {
+                          "ar": "رقم هاتف المستلم",
+                          "en": ""
+                        },
                         "name": "address-recipient-phone",
                         "inputType": "tel",
-                        "placeholder": "+963...",
+                        "placeholder": {
+                          "ar": "+963...",
+                          "en": "+963..."
+                        },
                         "required": false,
                         "prependIcon": "none",
                         "inputAction": "address_recipient_phone"
@@ -4021,10 +4502,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-settings-address-governorate",
-                        "label": "المحافظة",
+                        "label": {
+                          "ar": "المحافظة",
+                          "en": ""
+                        },
                         "name": "address-governorate",
                         "inputType": "text",
-                        "placeholder": "",
+                        "placeholder": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "required": false,
                         "prependIcon": "none",
                         "inputAction": "address_governorate"
@@ -4034,10 +4521,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-settings-address-city",
-                        "label": "المدينة",
+                        "label": {
+                          "ar": "المدينة",
+                          "en": ""
+                        },
                         "name": "address-city",
                         "inputType": "text",
-                        "placeholder": "",
+                        "placeholder": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "required": false,
                         "prependIcon": "none",
                         "inputAction": "address_city"
@@ -4047,10 +4540,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-settings-address-street",
-                        "label": "العنوان التفصيلي",
+                        "label": {
+                          "ar": "العنوان التفصيلي",
+                          "en": ""
+                        },
                         "name": "address-street",
                         "inputType": "text",
-                        "placeholder": "",
+                        "placeholder": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "required": false,
                         "prependIcon": "none",
                         "inputAction": "address_street"
@@ -4060,10 +4559,16 @@
                       "type": "ContentInput",
                       "props": {
                         "id": "Input-settings-address-notes",
-                        "label": "ملاحظات",
+                        "label": {
+                          "ar": "ملاحظات",
+                          "en": ""
+                        },
                         "name": "address-notes",
                         "inputType": "text",
-                        "placeholder": "",
+                        "placeholder": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "required": false,
                         "prependIcon": "none",
                         "inputAction": "address_notes"
@@ -4073,9 +4578,15 @@
                       "type": "ContentSwitch",
                       "props": {
                         "id": "Switch-settings-address-default",
-                        "label": "تعيين كعنوان افتراضي",
+                        "label": {
+                          "ar": "تعيين كعنوان افتراضي",
+                          "en": ""
+                        },
                         "name": "address-is-default",
-                        "helperText": "",
+                        "helperText": {
+                          "ar": "",
+                          "en": ""
+                        },
                         "defaultChecked": false,
                         "labelPosition": "start",
                         "switchAction": "address_is_default"
@@ -4085,7 +4596,10 @@
                       "type": "ContentButton",
                       "props": {
                         "id": "Button-settings-create-address",
-                        "label": "حفظ العنوان",
+                        "label": {
+                          "ar": "حفظ العنوان",
+                          "en": ""
+                        },
                         "align": "center",
                         "destinationType": "action",
                         "buttonAction": "createAddress",

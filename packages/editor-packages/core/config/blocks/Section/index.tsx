@@ -58,6 +58,7 @@ import {
   type BreakpointThemeProps,
 } from "../../theme";
 import { BoundDataProvider } from "../../binding/BoundDataContext";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 import { useSampleDataInEditor } from "../../data-adapter";
 import { useStore } from "../../store-context";
 import styles from "./styles.module.css";
@@ -444,6 +445,7 @@ function SectionView({
   const isEditing = puck.isEditing === true;
   const activeCols = useEditorActiveColumns(isEditing, cols, colsMobile);
   const { customer } = useStore();
+  const { language } = useActiveLanguage();
   const sampleMode = isEditing && useSampleDataInEditor();
 
   const isProductsGrid = isProductsGridSection({
@@ -498,7 +500,7 @@ function SectionView({
       isLoading: false,
       isError: false,
       metadata: null,
-      language: "ar" as const,
+      language,
       selectedVariantId: null,
       setSelectedVariantId: () => {},
     }),

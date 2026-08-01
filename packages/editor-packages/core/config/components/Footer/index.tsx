@@ -18,6 +18,10 @@ import { useStore } from "../../store-context";
 import selectionStyles from "../../lib/zone-selection.module.css";
 import responsiveStyles from "../../lib/zone-responsive.module.css";
 import { useZonePreviewSelected } from "../../lib/use-zone-preview-selected";
+import {
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
 import styles from "./styles.module.css";
 
 const FooterVariantContext = createContext<ShellVariant>("commerce");
@@ -87,7 +91,8 @@ const FooterList = ({
 };
 
 export type FooterLinkData = {
-  label: string;
+  label: BilingualString | string;
+  /** @deprecated Collapsed into `label` by normalizeEditorData. */
   labelAr?: string;
   link?: LinkValue;
   /** Legacy field kept for older persisted JSON payloads. */
@@ -97,84 +102,71 @@ export type FooterLinkData = {
 };
 
 export type FooterColumn = {
-  title: string;
+  title: BilingualString | string;
+  /** @deprecated Collapsed into `title` by normalizeEditorData. */
   titleAr?: string;
   links: FooterLinkData[];
 };
 
 export const DEFAULT_FOOTER_BOTTOM_LINKS: FooterLinkData[] = [
   {
-    label: "Privacy",
-    labelAr: "الخصوصية",
+    label: { ar: "الخصوصية", en: "Privacy" },
     link: { kind: "page", pageId: "/privacy" },
   },
   {
-    label: "Terms",
-    labelAr: "الشروط",
+    label: { ar: "الشروط", en: "Terms" },
     link: { kind: "page", pageId: "/terms" },
   },
 ];
 
 export const DEFAULT_FOOTER_COLUMNS: FooterColumn[] = [
   {
-    title: "Shop",
-    titleAr: "المتجر",
+    title: { ar: "المتجر", en: "Shop" },
     links: [
       {
-        label: "Home",
-        labelAr: "الرئيسية",
+        label: { ar: "الرئيسية", en: "Home" },
         link: { kind: "page", pageId: "/" },
       },
       {
-        label: "Products",
-        labelAr: "المنتجات",
+        label: { ar: "المنتجات", en: "Products" },
         link: { kind: "page", pageId: "/products/example-product" },
       },
       {
-        label: "Cart",
-        labelAr: "السلة",
+        label: { ar: "السلة", en: "Cart" },
         link: { kind: "page", pageId: "/cart" },
       },
     ],
   },
   {
-    title: "Explore",
-    titleAr: "استكشف",
+    title: { ar: "استكشف", en: "Explore" },
     links: [
       {
-        label: "Themes",
-        labelAr: "القوالب",
+        label: { ar: "القوالب", en: "Themes" },
         link: { kind: "page", pageId: "/themes" },
       },
       {
-        label: "Pricing",
-        labelAr: "الأسعار",
+        label: { ar: "الأسعار", en: "Pricing" },
         link: { kind: "page", pageId: "/pricing" },
       },
       {
-        label: "About",
-        labelAr: "من نحن",
+        label: { ar: "من نحن", en: "About" },
         link: { kind: "page", pageId: "/about" },
       },
     ],
   },
   {
-    title: "Support",
-    titleAr: "الدعم",
+    title: { ar: "الدعم", en: "Support" },
     links: [
       {
-        label: "Shipping",
-        labelAr: "الشحن",
+        label: { ar: "الشحن", en: "Shipping" },
         link: { kind: "anchor", hash: "shipping" },
       },
       {
-        label: "Returns",
-        labelAr: "الإرجاع",
+        label: { ar: "الإرجاع", en: "Returns" },
         link: { kind: "anchor", hash: "returns" },
       },
       {
-        label: "Contact",
-        labelAr: "اتصل بنا",
+        label: { ar: "اتصل بنا", en: "Contact" },
         link: { kind: "anchor", hash: "contact" },
       },
     ],
@@ -184,7 +176,7 @@ export const DEFAULT_FOOTER_COLUMNS: FooterColumn[] = [
 export type FooterProps = {
   children?: ReactNode;
   variant?: ShellVariant;
-  siteTitle?: string;
+  siteTitle?: BilingualString | string;
   columns?: FooterColumn[];
   bottomLinks?: FooterLinkData[];
   language?: "ar" | "en";
@@ -193,9 +185,11 @@ export type FooterProps = {
   /** When true, footer is shown only on mobile viewports. */
   isMobileOnly?: boolean;
   showBottomBar?: boolean;
-  bottomBarText?: string;
+  bottomBarText?: BilingualString | string;
+  /** @deprecated Collapsed into `bottomBarText`. */
   bottomBarTextAr?: string;
-  tagline?: string;
+  tagline?: BilingualString | string;
+  /** @deprecated Collapsed into `tagline`. */
   taglineAr?: string;
   /** Any valid CSS colour. Empty falls back to the theme. */
   backgroundColor?: string;
@@ -203,13 +197,17 @@ export type FooterProps = {
   componentId?: string;
 };
 
+/** Resolve bilingual or legacy en/ar sibling pair. */
 const pickText = (
-  en: string | undefined,
-  ar: string | undefined,
+  value: BilingualString | string | undefined,
+  legacyAr: string | undefined,
   language: "ar" | "en"
 ): string => {
-  if (language === "ar" && ar && ar.trim()) return ar;
-  return en || "";
+  if (value && typeof value === "object") {
+    return pickLang(value, language);
+  }
+  if (language === "ar" && legacyAr && legacyAr.trim()) return legacyAr;
+  return typeof value === "string" ? value : "";
 };
 
 const Footer = ({
@@ -265,8 +263,8 @@ const Footer = ({
           if (visibleLinks.length === 0) return null;
           return (
             <FooterList
-              key={`${col.title}-${ci}`}
-              title={pickText(col.title, col.titleAr, language) || col.title}
+              key={`col-${ci}`}
+              title={pickText(col.title, col.titleAr, language)}
             >
               {visibleLinks.map((lnk, li) => (
                 <FooterLink
@@ -275,7 +273,7 @@ const Footer = ({
                   href={lnk.href}
                   editMode={editMode}
                 >
-                  {pickText(lnk.label, lnk.labelAr, language) || lnk.label}
+                  {pickText(lnk.label, lnk.labelAr, language)}
                 </FooterLink>
               ))}
             </FooterList>
@@ -329,7 +327,9 @@ const Footer = ({
         <div className={styles.innerCommerce}>
           <div className={styles.gridCommerce}>
             <div className={styles.brandCol}>
-              <span className={styles.brandName}>{siteTitle}</span>
+              <span className={styles.brandName}>
+                {pickLang(siteTitle, language) || "Meridian"}
+              </span>
               <p className={styles.brandTagline}>{resolvedTagline}</p>
             </div>
             {renderedChildren}
@@ -339,12 +339,11 @@ const Footer = ({
           <div className={styles.bottomBarCommerce}>
             <span>
               {pickText(bottomBarText, bottomBarTextAr, language) ||
-                `© ${new Date().getFullYear()} ${siteTitle}`}
+                `© ${new Date().getFullYear()} ${pickLang(siteTitle, language) || "Meridian"}`}
             </span>
             <span className={styles.bottomSep}>·</span>
             {resolvedBottomLinks.map((item, index) => {
-              const label =
-                pickText(item.label, item.labelAr, language) || item.label;
+              const label = pickText(item.label, item.labelAr, language);
               const href = resolveHrefLegacy(item.link, item.href);
               const targetAttr = resolveLinkTarget(item.link);
               const relAttr = resolveLinkRel(item.link);

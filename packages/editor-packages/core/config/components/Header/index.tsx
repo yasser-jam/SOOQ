@@ -24,6 +24,10 @@ import {
   shouldShowForCondition,
   type ShowCondition,
 } from "../../lib/show-condition";
+import {
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
 
 import styles from "./styles.module.css";
 
@@ -105,7 +109,8 @@ const NavItem = ({
 // Merchants can rewrite the header nav from Root fields. The shape is the same
 // as NavMenu so an AI agent can swap the two without touching this component.
 export type HeaderLink = {
-  label: string;
+  label: BilingualString | string;
+  /** @deprecated Collapsed into `label` by normalizeEditorData. */
   labelAr?: string;
   link?: LinkValue;
   /** Legacy field kept for older persisted JSON payloads. */
@@ -118,23 +123,19 @@ export type HeaderLink = {
 // recognisable before the merchant edits the fields.
 export const DEFAULT_HEADER_LINKS: HeaderLink[] = [
   {
-    label: "Home",
-    labelAr: "الرئيسية",
+    label: { ar: "الرئيسية", en: "Home" },
     link: { kind: "page", pageId: "/" },
   },
   {
-    label: "Shop",
-    labelAr: "المتجر",
+    label: { ar: "المتجر", en: "Shop" },
     link: { kind: "page", pageId: "/products/example-product" },
   },
   {
-    label: "Cart",
-    labelAr: "السلة",
+    label: { ar: "السلة", en: "Cart" },
     link: { kind: "page", pageId: "/cart" },
   },
   {
-    label: "Themes",
-    labelAr: "القوالب",
+    label: { ar: "القوالب", en: "Themes" },
     link: { kind: "page", pageId: "/themes" },
   },
 ];
@@ -142,7 +143,7 @@ export const DEFAULT_HEADER_LINKS: HeaderLink[] = [
 export type HeaderProps = {
   editMode: boolean;
   variant?: ShellVariant;
-  siteTitle?: string;
+  siteTitle?: BilingualString | string;
   /** Bilingual — resolved by Header based on `language`. */
   links?: HeaderLink[];
   language?: "ar" | "en";
@@ -174,9 +175,14 @@ export type HeaderProps = {
 };
 
 const pickLabel = (link: HeaderLink, language: "ar" | "en"): string => {
-  if (language === "ar" && link.labelAr && link.labelAr.trim())
+  // Prefer already-migrated bilingual `label`; fall back to legacy siblings.
+  if (link.label && typeof link.label === "object") {
+    return pickLang(link.label, language);
+  }
+  if (language === "ar" && link.labelAr && link.labelAr.trim()) {
     return link.labelAr;
-  return link.label || "";
+  }
+  return typeof link.label === "string" ? link.label : "";
 };
 
 const Header = ({
@@ -236,11 +242,13 @@ const Header = ({
       </button>
     ) : null;
 
+  const resolvedTitle = pickLang(siteTitle, language) || "Meridian";
+
   const brandNode = editMode ? (
-    <span className={styles.logo}>{siteTitle}</span>
+    <span className={styles.logo}>{resolvedTitle}</span>
   ) : (
     <a href={withStoreBasePath(brandHref || "/") ?? "/"} className={styles.logo}>
-      {siteTitle}
+      {resolvedTitle}
     </a>
   );
 
@@ -330,10 +338,10 @@ const Header = ({
       <header className={styles.innerCommerce}>
         {drawerButton}
         {editMode ? (
-          <span className={styles.brand}>{siteTitle}</span>
+          <span className={styles.brand}>{resolvedTitle}</span>
         ) : (
           <a href={withStoreBasePath(brandHref || "/") ?? "/"} className={styles.brand}>
-            {siteTitle}
+            {resolvedTitle}
           </a>
         )}
         <nav className={styles.navCommerce}>

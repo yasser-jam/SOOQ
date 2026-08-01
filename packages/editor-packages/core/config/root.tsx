@@ -1,3 +1,5 @@
+"use client";
+
 import React, { CSSProperties } from "react";
 import {
   Type,
@@ -50,6 +52,12 @@ import {
   ZONE_POPUP,
   ZONE_BOTTOM_SHEET,
 } from "./shell-zones";
+import { useActiveLanguage } from "./locale/LanguageContext";
+import { LanguageProvider } from "./locale/LanguageProvider";
+import {
+  bilingualTextField,
+  type BilingualString,
+} from "./fields/BilingualText";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -69,7 +77,7 @@ export type LocaleProps = {
 export type RootProps = DefaultRootRenderProps<
   Partial<FullThemeProps> &
     LocaleProps & {
-      title?: string;
+      title?: BilingualString | string;
       /** When true, the HTML block appears in the Content palette (Settings → Editor). */
       enableHtmlRichTextBlock?: boolean;
 
@@ -152,13 +160,10 @@ export const Root: RootConfig<{
       icon: <Type size={14} />,
       accent: "slate",
     }),
-    title: {
-      type: "text",
-      label: "Page title",
-    },
+    title: bilingualTextField({ label: "Page title" }),
   } as any,
   defaultProps: {
-    title: "متجر Ertqaa",
+    title: { ar: "متجر Ertqaa", en: "Ertqaa Store" },
     enableHtmlRichTextBlock: false,
     direction: "rtl",
     language: "ar",
@@ -211,14 +216,28 @@ export const Root: RootConfig<{
   },
 
   render: (props) => {
+    const outer = useActiveLanguage();
+    if (outer.__provided) {
+      return <RootShell {...props} />;
+    }
+    const p = props as RootProps;
+    return (
+      <LanguageProvider initialLanguage={p.language ?? "ar"}>
+        <RootShell {...props} />
+      </LanguageProvider>
+    );
+  },
+};
+
+function RootShell(props: DefaultRootRenderProps<RootProps>) {
     const p = props as any;
     const {
       badgeShape = DEFAULT_BADGE.badgeShape,
       badgeStyle = DEFAULT_BADGE.badgeStyle,
-      direction = "rtl",
-      language = "ar",
       puck: { isEditing, renderDropZone: DropZone },
     } = p;
+
+    const { language, direction } = useActiveLanguage();
 
     const colors: ColorTheme = {} as ColorTheme;
     COLOR_KEYS.forEach(({ key }) => {
@@ -342,7 +361,6 @@ export const Root: RootConfig<{
         </div>
       </>
     );
-  },
-};
+}
 
 export default Root;

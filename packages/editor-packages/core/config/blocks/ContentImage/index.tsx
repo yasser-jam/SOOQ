@@ -8,6 +8,12 @@ import type { ValueContext } from "../../binding";
 import { useBoundValue } from "../../binding";
 import { createAlignField } from "../../fields/AlignField";
 import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
+import { useActiveLanguage } from "../../locale/LanguageContext";
+import {
   createBlock,
   imageBlockPlugins,
 } from "../../property-plugins";
@@ -15,7 +21,7 @@ import {
 export type ContentImageProps = WithLayout<{
   src: string;
   valueContext?: ValueContext | null;
-  alt: string;
+  alt: BilingualString | string;
   altValueContext?: ValueContext | null;
   align: "left" | "center" | "right";
   objectFit: "contain" | "cover" | "fill" | "none" | "scale-down";
@@ -45,7 +51,7 @@ function resolveImageRadius(
 
 const imageFields = {
   src: { type: "text" as const, label: "رابط الصورة" },
-  alt: { type: "text" as const, label: "نص بديل" },
+  alt: bilingualTextField({ label: "نص بديل" }),
   align: alignField,
   objectFit: {
     type: "select" as const,
@@ -72,7 +78,7 @@ export const ContentImage = createBlock<ContentImageProps>({
   propertyPlugins: imageBlockPlugins(imageFields),
   defaultProps: {
     src: "https://placehold.co/800x450/e2e8f0/64748b?text=%D8%B5%D9%88%D8%B1%D8%A9",
-    alt: "",
+    alt: { ar: "", en: "" },
     align: "center",
     objectFit: "cover",
     radius: "theme-md",
@@ -102,8 +108,9 @@ export const ContentImage = createBlock<ContentImageProps>({
   },
   render: (props) => {
     const { src, valueContext, alt, altValueContext, align, objectFit, radius, maxWidth } = props;
+    const { language } = useActiveLanguage();
     const resolvedSrc = useBoundValue(src, valueContext);
-    const resolvedAlt = useBoundValue(alt, altValueContext);
+    const resolvedAlt = useBoundValue(pickLang(alt, language), altValueContext);
     const legacy = props as ContentImageProps & {
       radiusMode?: "theme" | "fixed";
       radiusTheme?: string;

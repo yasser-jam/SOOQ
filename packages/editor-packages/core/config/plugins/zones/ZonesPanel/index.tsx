@@ -125,8 +125,8 @@ export function ZonesPanel() {
         active,
         title: getZoneDisplayTitle(definition, props),
         eventKey:
-          typeof props.key === "string" && props.key.trim()
-            ? props.key
+          typeof props.zoneKey === "string" && props.zoneKey.trim()
+            ? props.zoneKey
             : undefined,
       };
     });

@@ -13,9 +13,14 @@ import type { ShellVariant } from "../../theme";
 import { ZONE_BLOCK_PERMISSIONS, ZONE_BLOCK_TYPES } from "../../shell-zones";
 import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
 import { showConditionField } from "../../lib/show-condition";
+import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
 
 export type SiteHeaderProps = {
-  title: string;
+  title: BilingualString | string;
   variant: ShellVariant;
   language: "ar" | "en";
   visible: boolean;
@@ -43,10 +48,7 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
     ...ZONE_BLOCK_PERMISSIONS,
   },
   fields: {
-    title: {
-      type: "text",
-      label: "عنوان العلامة التجارية",
-    },
+    title: bilingualTextField({ label: "عنوان العلامة التجارية" }),
     variant: {
       type: "select",
       label: "نوع التخطيط",
@@ -88,19 +90,17 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
       type: "array",
       label: "روابط التنقل",
       arrayFields: {
-        label: { type: "text", label: "التسمية (إنجليزي)" },
-        labelAr: { type: "text", label: "التسمية (عربي)" },
+        label: bilingualTextField({ label: "التسمية" }),
         link: linkField({ label: "الوجهة" }),
         showCondition: showConditionField,
       },
       defaultItemProps: {
-        label: "New link",
-        labelAr: "عنصر",
+        label: { ar: "عنصر", en: "New link" } as BilingualString,
         link: EMPTY_LINK,
         showCondition: "always",
       },
-      getItemSummary: (item: { label?: string; href?: string }) =>
-        item?.label || item?.href || "Link",
+      getItemSummary: (item: HeaderLink) =>
+        pickLang(item?.label) || "Link",
     } as any,
     backgroundColor: colorField({
       label: "لون الخلفية",
@@ -164,7 +164,7 @@ export const SiteHeader: ComponentConfig<SiteHeaderProps> = {
     },
   },
   defaultProps: {
-    title: "",
+    title: { ar: "", en: "" },
     variant: "commerce",
     language: "ar",
     visible: true,

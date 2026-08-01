@@ -12,7 +12,7 @@ const bottomSheetBasic: ZonePreset = {
     props: {
       is_active: false,
       is_mobile_only: true,
-      key: "bs-main",
+      zoneKey: "bs-main",
       backgroundColor: "#ffffff",
       borderRadius: "16px 16px 0 0",
       maxHeight: "80vh",

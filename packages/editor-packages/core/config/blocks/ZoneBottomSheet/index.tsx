@@ -9,7 +9,8 @@ import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
 export type ZoneBottomSheetProps = {
   is_active: boolean;
   is_mobile_only: boolean;
-  key: string;
+  /** Event key matched by `sooq:zone` / `data-sooq-zone-toggle`. */
+  zoneKey: string;
   backgroundColor: string;
   borderRadius: string;
   maxHeight: string;
@@ -40,7 +41,7 @@ export const ZoneBottomSheet: ComponentConfig<ZoneBottomSheetProps> = {
         { label: "No", value: false },
       ],
     },
-    key: {
+    zoneKey: {
       type: "text",
       label: "مفتاح الحدث",
       placeholder: "cart-sheet",
@@ -82,7 +83,7 @@ export const ZoneBottomSheet: ComponentConfig<ZoneBottomSheetProps> = {
   defaultProps: {
     is_active: false,
     is_mobile_only: true,
-    key: "cart-sheet",
+    zoneKey: "cart-sheet",
     backgroundColor: "#ffffff",
     borderRadius: "16px 16px 0 0",
     maxHeight: "80vh",
@@ -95,7 +96,7 @@ export const ZoneBottomSheet: ComponentConfig<ZoneBottomSheetProps> = {
   render: ({
     is_active,
     is_mobile_only,
-    key: zoneKey,
+    zoneKey,
     backgroundColor,
     borderRadius,
     maxHeight,

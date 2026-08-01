@@ -2574,7 +2574,7 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 |---|---|---|
 | `is_active` | `boolean` | `false` |
 | `is_mobile_only` | `boolean` | `true` |
-| `key` | `string` | `"site-drawer"` |
+| `zoneKey` | `string` | `"site-drawer"` |
 | `side` | `"left" \| "right"` | `"left"` |
 | `backgroundColor` | `string` | `"#ffffff"` |
 | `overlay` | `boolean` | `true` |
@@ -2592,7 +2592,7 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 |---|---|---|
 | `is_active` | `boolean` | `false` |
 | `is_mobile_only` | `boolean` | `false` |
-| `key` | `string` | `"login"` |
+| `zoneKey` | `string` | `"login"` |
 | `backgroundColor` | `string` | `"#ffffff"` |
 | `borderRadius` | `string` | `"12px"` |
 | `maxWidth` | `string` | `"480px"` |
@@ -2611,7 +2611,7 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 |---|---|---|
 | `is_active` | `boolean` | `false` |
 | `is_mobile_only` | `boolean` | `true` |
-| `key` | `string` | `"cart-sheet"` |
+| `zoneKey` | `string` | `"cart-sheet"` |
 | `backgroundColor` | `string` | `"#ffffff"` |
 | `borderRadius` | `string` | `"16px 16px 0 0"` |
 | `maxHeight` | `string` | `"80vh"` |
@@ -2719,14 +2719,14 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 | `itemCount` | `number` | Max items shown (1–12) | `3` |
 | `inlineItems` | `Testimonial[]` | Inline testimonials array | sample data |
 | `inlineItems[].id` | `string` | Unique id | `""` |
-| `inlineItems[].name` | `string` | Author name (EN) | `""` |
-| `inlineItems[].nameAr` | `string` | Author name (AR) | `""` |
-| `inlineItems[].role` | `string` | Role/title (EN) | `""` |
-| `inlineItems[].roleAr` | `string` | Role/title (AR) | `""` |
+| `inlineItems[].name` | `BilingualString` | Author name | `{ ar: "", en: "" }` |
+| `inlineItems[].role` | `BilingualString` | Role/title | `{ ar: "", en: "" }` |
 | `inlineItems[].avatar` | `string` | Avatar image URL | `""` |
 | `inlineItems[].rating` | `1…5` | Star rating | `5` |
-| `inlineItems[].text` | `string` | Quote text (EN) | `""` |
-| `inlineItems[].textAr` | `string` | Quote text (AR) | `""` |
+| `inlineItems[].text` | `BilingualString` | Quote text | `{ ar: "", en: "" }` |
+
+Legacy `nameAr` / `roleAr` / `textAr` siblings are collapsed into the bilingual
+objects on read by `normalizeEditorData`.
 
 ### JSON Example
 
@@ -2744,14 +2744,11 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
     "inlineItems": [
       {
         "id": "t1",
-        "name": "Ahmed Ali",
-        "nameAr": "أحمد علي",
-        "role": "Customer",
-        "roleAr": "عميل",
+        "name": { "ar": "أحمد علي", "en": "Ahmed Ali" },
+        "role": { "ar": "عميل", "en": "Customer" },
         "avatar": "",
         "rating": 5,
-        "text": "Great products!",
-        "textAr": "منتجات رائعة!"
+        "text": { "ar": "منتجات رائعة!", "en": "Great products!" }
       }
     ]
   }
