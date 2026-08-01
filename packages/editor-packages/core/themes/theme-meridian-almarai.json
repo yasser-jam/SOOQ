@@ -533,7 +533,7 @@
                 "id": "Paragraph-drawer-note",
                 "text": {
                   "ar": "توصيل خلال ٢-٤ أيام عمل لجميع المحافظات.",
-                  "en": ""
+                  "en": "Delivery in 2–4 business days to all governorates."
                 },
                 "textAlign": "right",
                 "fontFamily": "body",
@@ -569,7 +569,7 @@
                 "id": "Heading-popup-login",
                 "text": {
                   "ar": "تسجيل الدخول السريع",
-                  "en": ""
+                  "en": "Quick sign in"
                 },
                 "level": "3",
                 "textAlign": "right",
@@ -588,7 +588,7 @@
                 "id": "Paragraph-popup-login",
                 "text": {
                   "ar": "أدخل بياناتك وسنرسل لك رمز تحقق فوراً.",
-                  "en": ""
+                  "en": "Enter your details and we’ll send a verification code right away."
                 },
                 "textAlign": "right",
                 "fontFamily": "body",
@@ -606,7 +606,7 @@
                 "id": "Button-popup-login",
                 "label": {
                   "ar": "الذهاب لصفحة الدخول",
-                  "en": ""
+                  "en": "Go to sign-in page"
                 },
                 "align": "center",
                 "destinationType": "link",
@@ -649,7 +649,7 @@
                 "id": "Heading-sheet-cart",
                 "text": {
                   "ar": "سلتك جاهزة",
-                  "en": ""
+                  "en": "Your cart is ready"
                 },
                 "level": "3",
                 "textAlign": "right",
@@ -668,7 +668,7 @@
                 "id": "Button-sheet-cart",
                 "label": {
                   "ar": "عرض السلة",
-                  "en": ""
+                  "en": "View cart"
                 },
                 "align": "center",
                 "destinationType": "link",
@@ -746,7 +746,7 @@
                         "id": "Heading-hero-title",
                         "text": {
                           "ar": "أناقة تصل إلى بابك",
-                          "en": ""
+                          "en": "Elegance delivered to your door"
                         },
                         "level": "1",
                         "textAlign": "center",
@@ -765,7 +765,7 @@
                         "id": "Paragraph-hero-sub",
                         "text": {
                           "ar": "تشكيلة مختارة بعناية من أفضل المنتجات، بأسعار تنافسية ودفع عند الاستلام وتوصيل سريع لكل المحافظات.",
-                          "en": ""
+                          "en": "A carefully curated selection of the best products, competitive prices, cash on delivery, and fast shipping across every governorate."
                         },
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -795,7 +795,7 @@
                               "id": "Button-hero-shop",
                               "label": {
                                 "ar": "تسوّق الآن",
-                                "en": ""
+                                "en": "Shop now"
                               },
                               "align": "center",
                               "destinationType": "link",
@@ -820,7 +820,7 @@
                               "id": "Button-hero-faq",
                               "label": {
                                 "ar": "تعرّف علينا",
-                                "en": ""
+                                "en": "About us"
                               },
                               "align": "center",
                               "destinationType": "link",
@@ -873,7 +873,7 @@
                   "id": "Heading-features-title",
                   "text": {
                     "ar": "لماذا ميريديان؟",
-                    "en": ""
+                    "en": "Why Meridian?"
                   },
                   "level": "2",
                   "textAlign": "center",
@@ -925,7 +925,7 @@
                         "id": "Heading-feature-1",
                         "text": {
                           "ar": "توصيل سريع",
-                          "en": ""
+                          "en": "Fast delivery"
                         },
                         "level": "3",
                         "textAlign": "center",
@@ -944,7 +944,7 @@
                         "id": "Paragraph-feature-1",
                         "text": {
                           "ar": "طلبك يصل خلال ٢-٤ أيام عمل إلى باب منزلك.",
-                          "en": ""
+                          "en": "Your order arrives in 2–4 business days to your door."
                         },
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -995,7 +995,7 @@
                         "id": "Heading-feature-2",
                         "text": {
                           "ar": "دفع عند الاستلام",
-                          "en": ""
+                          "en": "Cash on delivery"
                         },
                         "level": "3",
                         "textAlign": "center",
@@ -1014,7 +1014,7 @@
                         "id": "Paragraph-feature-2",
                         "text": {
                           "ar": "ادفع بعد أن تستلم طلبك وتتأكد من جودته.",
-                          "en": ""
+                          "en": "Pay after you receive your order and check its quality."
                         },
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -1065,7 +1065,7 @@
                         "id": "Heading-feature-3",
                         "text": {
                           "ar": "إرجاع خلال ٧ أيام",
-                          "en": ""
+                          "en": "Returns within 7 days"
                         },
                         "level": "3",
                         "textAlign": "center",
@@ -1084,7 +1084,7 @@
                         "id": "Paragraph-feature-3",
                         "text": {
                           "ar": "إرجاع مجاني للمنتجات غير المستخدمة بحالتها الأصلية.",
-                          "en": ""
+                          "en": "Free returns on unused products in original condition."
                         },
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -1127,7 +1127,7 @@
                   "id": "Heading-featured",
                   "text": {
                     "ar": "منتجات مختارة لك",
-                    "en": ""
+                    "en": "Picks for you"
                   },
                   "level": "2",
                   "textAlign": "right",
@@ -1146,7 +1146,7 @@
                   "id": "Paragraph-featured",
                   "text": {
                     "ar": "أحدث ما وصل إلى المتجر — اضغط على المنتج لعرض تفاصيله.",
-                    "en": ""
+                    "en": "The latest arrivals — tap a product to view details."
                   },
                   "textAlign": "right",
                   "fontFamily": "body",
@@ -1573,7 +1573,7 @@
                   },
                   "description": {
                     "ar": "إجابات مختصرة وعملية على أكثر ما يسأل عنه عملاؤنا.",
-                    "en": ""
+                    "en": "Short, practical answers to what our customers ask most."
                   },
                   "variant": "soft",
                   "backgroundColor": "",
@@ -1593,7 +1593,7 @@
                     {
                       "title": {
                         "ar": "هل الدفع عند الاستلام متاح؟",
-                        "en": ""
+                        "en": "Is cash on delivery available?"
                       },
                       "body": {
                         "ar": "نعم، الدفع عند الاستلام متاح لجميع المناطق المؤهلة.",
@@ -1604,7 +1604,7 @@
                     {
                       "title": {
                         "ar": "هل يمكنني إرجاع المنتج؟",
-                        "en": ""
+                        "en": "Can I return a product?"
                       },
                       "body": {
                         "ar": "يمكنك طلب الإرجاع خلال ٧ أيام للمنتجات غير المستخدمة بحالتها الأصلية.",
@@ -1615,7 +1615,7 @@
                     {
                       "title": {
                         "ar": "كيف أتابع حالة طلبي؟",
-                        "en": ""
+                        "en": "How do I track my order?"
                       },
                       "body": {
                         "ar": "بعد تسجيل الدخول ستصلك رسالة بحالة الطلب وتفاصيل الشحن أولاً بأول.",
@@ -1654,7 +1654,7 @@
                   "id": "Heading-cta",
                   "text": {
                     "ar": "جاهز لتبدأ التسوق؟",
-                    "en": ""
+                    "en": "Ready to start shopping?"
                   },
                   "level": "2",
                   "textAlign": "center",
@@ -1673,7 +1673,7 @@
                   "id": "Paragraph-cta",
                   "text": {
                     "ar": "سجّل دخولك واحصل على شحن مجاني لطلبك الأول.",
-                    "en": ""
+                    "en": "Sign in and get free shipping on your first order."
                   },
                   "textAlign": "center",
                   "fontFamily": "body",
@@ -1691,7 +1691,7 @@
                   "id": "Button-cta",
                   "label": {
                     "ar": "ابدأ الآن",
-                    "en": ""
+                    "en": "Start now"
                   },
                   "align": "center",
                   "destinationType": "link",
@@ -1780,7 +1780,7 @@
                         "id": "Heading-login",
                         "text": {
                           "ar": "أهلاً بعودتك",
-                          "en": ""
+                          "en": "Welcome back"
                         },
                         "level": "1",
                         "textAlign": "right",
@@ -1799,7 +1799,7 @@
                         "id": "Paragraph-login",
                         "text": {
                           "ar": "أدخل رقم هاتفك واسمك الكامل وسنرسل لك رمز تحقق.",
-                          "en": ""
+                          "en": "Enter your phone number and full name and we’ll send you a verification code."
                         },
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -1817,7 +1817,7 @@
                         "id": "Input-login-phone",
                         "label": {
                           "ar": "رقم الهاتف",
-                          "en": ""
+                          "en": "Phone number"
                         },
                         "name": "phone",
                         "inputType": "tel",
@@ -1836,13 +1836,13 @@
                         "id": "Input-login-name",
                         "label": {
                           "ar": "الاسم الكامل",
-                          "en": ""
+                          "en": "Full name"
                         },
                         "name": "fullName",
                         "inputType": "text",
                         "placeholder": {
                           "ar": "أدخل اسمك",
-                          "en": ""
+                          "en": "Enter your name"
                         },
                         "required": true,
                         "prependIcon": "none",
@@ -1855,7 +1855,7 @@
                         "id": "Button-login-submit",
                         "label": {
                           "ar": "إرسال رمز التحقق",
-                          "en": ""
+                          "en": "Send verification code"
                         },
                         "align": "center",
                         "destinationType": "action",
@@ -1888,7 +1888,7 @@
                         "id": "Link-login-products",
                         "title": {
                           "ar": "المتابعة كزائر وتصفح المنتجات",
-                          "en": ""
+                          "en": "Continue as guest and browse products"
                         },
                         "link": {
                           "kind": "page",
@@ -1995,7 +1995,7 @@
                         "id": "Paragraph-otp",
                         "text": {
                           "ar": "أرسلنا رمز تحقق إلى رقم هاتفك. أدخله للمتابعة.",
-                          "en": ""
+                          "en": "We sent a verification code to your phone. Enter it to continue."
                         },
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -2013,7 +2013,7 @@
                         "id": "Input-otp-code",
                         "label": {
                           "ar": "رمز التحقق",
-                          "en": ""
+                          "en": "Verification code"
                         },
                         "name": "otp",
                         "inputType": "text",
@@ -2032,7 +2032,7 @@
                         "id": "Button-otp-verify",
                         "label": {
                           "ar": "تأكيد ومتابعة",
-                          "en": ""
+                          "en": "Confirm and continue"
                         },
                         "align": "center",
                         "destinationType": "action",
@@ -2056,7 +2056,7 @@
                         "id": "Link-otp-resend",
                         "title": {
                           "ar": "لم يصلك الرمز؟ العودة لتسجيل الدخول",
-                          "en": ""
+                          "en": "Didn’t get the code? Back to sign in"
                         },
                         "link": {
                           "kind": "page",
@@ -2114,7 +2114,7 @@
                   "id": "Heading-products",
                   "text": {
                     "ar": "تسوّق كل المنتجات",
-                    "en": ""
+                    "en": "Shop all products"
                   },
                   "level": "1",
                   "textAlign": "right",
@@ -2133,7 +2133,7 @@
                   "id": "Paragraph-products",
                   "text": {
                     "ar": "ابحث عن ما تريد أو تصفّح حسب الفئة.",
-                    "en": ""
+                    "en": "Search for what you need or browse by category."
                   },
                   "textAlign": "right",
                   "fontFamily": "body",
@@ -2157,7 +2157,7 @@
                   "inputType": "search",
                   "placeholder": {
                     "ar": "ابحث عن منتج…",
-                    "en": ""
+                    "en": "Search for a product…"
                   },
                   "required": false,
                   "prependIcon": "search",
@@ -2218,7 +2218,7 @@
                         "id": "Input-products-min-price",
                         "label": {
                           "ar": "أقل سعر",
-                          "en": ""
+                          "en": "Lowest price"
                         },
                         "name": "min-price",
                         "inputType": "number",
@@ -2241,13 +2241,13 @@
                         "id": "Input-products-max-price",
                         "label": {
                           "ar": "أعلى سعر",
-                          "en": ""
+                          "en": "Highest price"
                         },
                         "name": "max-price",
                         "inputType": "number",
                         "placeholder": {
                           "ar": "بدون حد",
-                          "en": ""
+                          "en": "No limit"
                         },
                         "required": false,
                         "prependIcon": "none",
@@ -2264,7 +2264,7 @@
                         "id": "Switch-products-in-stock",
                         "label": {
                           "ar": "المتوفر فقط",
-                          "en": ""
+                          "en": "In stock only"
                         },
                         "name": "in-stock-only",
                         "helperText": {
@@ -2792,7 +2792,7 @@
                               "id": "Paragraph-product-description",
                               "text": {
                                 "ar": "وصف المنتج",
-                                "en": ""
+                                "en": "Product description"
                               },
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -2830,7 +2830,7 @@
                               "id": "Button-product-add",
                               "label": {
                                 "ar": "إضافة إلى السلة",
-                                "en": ""
+                                "en": "Add to cart"
                               },
                               "align": "center",
                               "destinationType": "action",
@@ -2854,7 +2854,7 @@
                               "id": "Button-product-cart",
                               "label": {
                                 "ar": "الذهاب إلى السلة",
-                                "en": ""
+                                "en": "Go to cart"
                               },
                               "align": "center",
                               "destinationType": "link",
@@ -2907,7 +2907,7 @@
                   "id": "Heading-related",
                   "text": {
                     "ar": "قد يعجبك أيضاً",
-                    "en": ""
+                    "en": "You may also like"
                   },
                   "level": "2",
                   "textAlign": "right",
@@ -3238,7 +3238,7 @@
                   "id": "Heading-cart",
                   "text": {
                     "ar": "سلة التسوق",
-                    "en": ""
+                    "en": "Shopping cart"
                   },
                   "level": "1",
                   "textAlign": "right",
@@ -3257,7 +3257,7 @@
                   "id": "Paragraph-cart",
                   "text": {
                     "ar": "راجع المنتجات والكميات قبل إتمام الطلب. الدفع عند الاستلام متاح.",
-                    "en": ""
+                    "en": "Review products and quantities before checkout. Cash on delivery is available."
                   },
                   "textAlign": "right",
                   "fontFamily": "body",
@@ -3275,7 +3275,7 @@
                   "id": "complete-order",
                   "label": {
                     "ar": "إتمام الطلب",
-                    "en": ""
+                    "en": "Place order"
                   },
                   "align": "center",
                   "destinationType": "action",
@@ -3372,7 +3372,7 @@
                         "id": "Heading-about-hero",
                         "text": {
                           "ar": "نصنع تجربة تسوّق تليق بك",
-                          "en": ""
+                          "en": "We build a shopping experience that fits you"
                         },
                         "level": "1",
                         "textAlign": "center",
@@ -3391,7 +3391,7 @@
                         "id": "Paragraph-about-hero",
                         "text": {
                           "ar": "ميريديان متجر عربي يضع الجودة والثقة في المقدمة — منتجات مختارة، أسعار واضحة، وتوصيل يصل إلى بابك.",
-                          "en": ""
+                          "en": "Meridian is an Arabic store that puts quality and trust first — curated products, clear prices, and delivery to your door."
                         },
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -3435,7 +3435,7 @@
                   "src": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=1000&q=80",
                   "alt": {
                     "ar": "فريق ميريديان",
-                    "en": ""
+                    "en": "Meridian team"
                   },
                   "align": "center",
                   "objectFit": "cover",
@@ -3468,7 +3468,7 @@
                         "id": "Heading-about-story",
                         "text": {
                           "ar": "قصتنا",
-                          "en": ""
+                          "en": "Our story"
                         },
                         "level": "2",
                         "textAlign": "right",
@@ -3487,7 +3487,7 @@
                         "id": "Paragraph-about-story-1",
                         "text": {
                           "ar": "بدأنا من فكرة بسيطة: أن يحصل كل عميل على منتجات يستحقها دون تعقيد، مع دفع عند الاستلام وخدمة قريبة من احتياجاته.",
-                          "en": ""
+                          "en": "We started with a simple idea: every customer deserves great products without hassle — cash on delivery and support that stays close."
                         },
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -3505,7 +3505,7 @@
                         "id": "Paragraph-about-story-2",
                         "text": {
                           "ar": "نختار بعناية، نوضح التفاصيل، ونهتم بما بعد الطلب — لأن الثقة تُبنى في كل خطوة.",
-                          "en": ""
+                          "en": "We choose carefully, explain the details, and care after the order — because trust is built at every step."
                         },
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -3619,7 +3619,7 @@
                         "id": "Heading-about-cta",
                         "text": {
                           "ar": "جاهز لاستكشاف التشكيلة؟",
-                          "en": ""
+                          "en": "Ready to explore the collection?"
                         },
                         "level": "2",
                         "textAlign": "center",
@@ -3638,7 +3638,7 @@
                         "id": "Paragraph-about-cta",
                         "text": {
                           "ar": "تصفّح المنتجات وابدأ طلبك بخطوات بسيطة — الدفع عند الاستلام متاح.",
-                          "en": ""
+                          "en": "Browse products and place your order in a few simple steps — cash on delivery is available."
                         },
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -3656,7 +3656,7 @@
                         "id": "Button-about-cta",
                         "label": {
                           "ar": "تسوّق الآن",
-                          "en": ""
+                          "en": "Shop now"
                         },
                         "align": "center",
                         "destinationType": "link",
@@ -3739,7 +3739,7 @@
                         "id": "Heading-settings-signedout",
                         "text": {
                           "ar": "سجّل دخولك لعرض إعدادات حسابك.",
-                          "en": ""
+                          "en": "Sign in to view your account settings."
                         },
                         "level": "1",
                         "textAlign": "center",
@@ -3758,7 +3758,7 @@
                         "id": "Paragraph-settings-signedout",
                         "text": {
                           "ar": "يمكنك تسجيل الدخول برقم هاتفك لمتابعة طلباتك وإدارة حسابك.",
-                          "en": ""
+                          "en": "Sign in with your phone number to track orders and manage your account."
                         },
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -3847,7 +3847,7 @@
                         "id": "Heading-settings-profile",
                         "text": {
                           "ar": "المعلومات الشخصية",
-                          "en": ""
+                          "en": "Personal information"
                         },
                         "level": "2",
                         "textAlign": "right",
@@ -3878,7 +3878,7 @@
                               "id": "Paragraph-settings-order-label",
                               "text": {
                                 "ar": "عدد الطلبات",
-                                "en": ""
+                                "en": "Order count"
                               },
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -3932,7 +3932,7 @@
                               "id": "Paragraph-settings-spend-label",
                               "text": {
                                 "ar": "إجمالي الإنفاق",
-                                "en": ""
+                                "en": "Total spent"
                               },
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -3974,13 +3974,13 @@
                         "id": "Input-settings-full-name",
                         "label": {
                           "ar": "الاسم الكامل",
-                          "en": ""
+                          "en": "Full name"
                         },
                         "name": "fullName",
                         "inputType": "text",
                         "placeholder": {
                           "ar": "أدخل اسمك",
-                          "en": ""
+                          "en": "Enter your name"
                         },
                         "required": true,
                         "prependIcon": "none",
@@ -3993,7 +3993,7 @@
                         "id": "Input-settings-phone",
                         "label": {
                           "ar": "رقم الهاتف",
-                          "en": ""
+                          "en": "Phone number"
                         },
                         "name": "phone",
                         "inputType": "tel",
@@ -4015,7 +4015,7 @@
                         "id": "Button-settings-save-profile",
                         "label": {
                           "ar": "حفظ التغييرات",
-                          "en": ""
+                          "en": "Save changes"
                         },
                         "align": "center",
                         "destinationType": "action",
@@ -4091,7 +4091,7 @@
                         "id": "Heading-settings-marketing",
                         "text": {
                           "ar": "تفضيلات التسويق",
-                          "en": ""
+                          "en": "Marketing preferences"
                         },
                         "level": "2",
                         "textAlign": "right",
@@ -4110,7 +4110,7 @@
                         "id": "Paragraph-settings-marketing",
                         "text": {
                           "ar": "اختر كيف تحب أن نصلك بالعروض.",
-                          "en": ""
+                          "en": "Choose how you’d like to hear about offers."
                         },
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -4128,7 +4128,7 @@
                         "id": "Switch-settings-email",
                         "label": {
                           "ar": "رسائل البريد الإلكتروني",
-                          "en": ""
+                          "en": "Email messages"
                         },
                         "name": "email-opt-in",
                         "helperText": {
@@ -4146,7 +4146,7 @@
                         "id": "Switch-settings-sms",
                         "label": {
                           "ar": "الرسائل النصية",
-                          "en": ""
+                          "en": "SMS messages"
                         },
                         "name": "sms-opt-in",
                         "helperText": {
@@ -4311,7 +4311,7 @@
                               "id": "Button-settings-set-default",
                               "label": {
                                 "ar": "تعيين كافتراضي",
-                                "en": ""
+                                "en": "Set as default"
                               },
                               "align": "center",
                               "destinationType": "action",
@@ -4337,7 +4337,7 @@
                               "id": "Button-settings-delete-address",
                               "label": {
                                 "ar": "حذف",
-                                "en": ""
+                                "en": "Delete"
                               },
                               "align": "center",
                               "destinationType": "action",
@@ -4416,7 +4416,7 @@
                         "id": "Heading-settings-address-form",
                         "text": {
                           "ar": "إضافة عنوان جديد",
-                          "en": ""
+                          "en": "Add a new address"
                         },
                         "level": "2",
                         "textAlign": "right",
@@ -4447,7 +4447,7 @@
                         "id": "Input-settings-address-label",
                         "label": {
                           "ar": "التسمية",
-                          "en": ""
+                          "en": "Label"
                         },
                         "name": "address-label",
                         "inputType": "text",
@@ -4466,7 +4466,7 @@
                         "id": "Input-settings-address-recipient-name",
                         "label": {
                           "ar": "اسم المستلم",
-                          "en": ""
+                          "en": "Recipient name"
                         },
                         "name": "address-recipient-name",
                         "inputType": "text",
@@ -4485,7 +4485,7 @@
                         "id": "Input-settings-address-recipient-phone",
                         "label": {
                           "ar": "رقم هاتف المستلم",
-                          "en": ""
+                          "en": "Recipient phone number"
                         },
                         "name": "address-recipient-phone",
                         "inputType": "tel",
@@ -4504,7 +4504,7 @@
                         "id": "Input-settings-address-governorate",
                         "label": {
                           "ar": "المحافظة",
-                          "en": ""
+                          "en": "Governorate"
                         },
                         "name": "address-governorate",
                         "inputType": "text",
@@ -4523,7 +4523,7 @@
                         "id": "Input-settings-address-city",
                         "label": {
                           "ar": "المدينة",
-                          "en": ""
+                          "en": "City"
                         },
                         "name": "address-city",
                         "inputType": "text",
@@ -4542,7 +4542,7 @@
                         "id": "Input-settings-address-street",
                         "label": {
                           "ar": "العنوان التفصيلي",
-                          "en": ""
+                          "en": "Detailed address"
                         },
                         "name": "address-street",
                         "inputType": "text",
@@ -4561,7 +4561,7 @@
                         "id": "Input-settings-address-notes",
                         "label": {
                           "ar": "ملاحظات",
-                          "en": ""
+                          "en": "Notes"
                         },
                         "name": "address-notes",
                         "inputType": "text",
@@ -4580,7 +4580,7 @@
                         "id": "Switch-settings-address-default",
                         "label": {
                           "ar": "تعيين كعنوان افتراضي",
-                          "en": ""
+                          "en": "Set as default address"
                         },
                         "name": "address-is-default",
                         "helperText": {
@@ -4598,7 +4598,7 @@
                         "id": "Button-settings-create-address",
                         "label": {
                           "ar": "حفظ العنوان",
-                          "en": ""
+                          "en": "Save address"
                         },
                         "align": "center",
                         "destinationType": "action",

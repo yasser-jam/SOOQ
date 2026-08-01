@@ -23,6 +23,7 @@ import { CustomField } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";
 import {
   EMPTY_BILINGUAL,
+  isBilingualValue,
   normalizeBilingual,
   pickLang,
   type BilingualString,
@@ -30,7 +31,7 @@ import {
 import styles from "./styles.module.css";
 
 export type { BilingualString } from "@/core/lib/bilingual";
-export { EMPTY_BILINGUAL, normalizeBilingual, pickLang };
+export { EMPTY_BILINGUAL, isBilingualValue, normalizeBilingual, pickLang };
 
 const getClassName = getClassNameFactory("BilingualText", styles);
 
