@@ -19,6 +19,7 @@ export const BILINGUAL_PROPS: Record<string, BilingualPropDef[]> = {
   ContentInput: [{ path: "label" }, { path: "placeholder" }],
   ContentSwitch: [{ path: "label" }, { path: "helperText" }],
   ContentImage: [{ path: "alt" }],
+  Card: [{ path: "title" }, { path: "description" }],
 
   ButtonGroup: [{ path: "allButtonTitle" }, { path: "items[].title" }],
   Accordion: [

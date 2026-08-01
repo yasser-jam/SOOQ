@@ -181,7 +181,9 @@ export function GroupClient({
         : isLoading,
     isError: cartLineId ? false : skipProductDetailFetch ? false : isError,
     metadata: cartLine?.metadata ?? metadata ?? parentBound.metadata ?? null,
-    language: cartLine?.language ?? language ?? activeLanguage,
+    // Follow the live language toggle — Group/cart `language` props are frozen
+    // at authoring time (usually "ar") and must not override the storefront UI.
+    language: activeLanguage || language || "ar",
     selectedVariantId: effectiveVariantId,
     setSelectedVariantId,
   };

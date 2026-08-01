@@ -16,6 +16,11 @@ import {
   isMobileEditorMetadata,
 } from "./editor-mode";
 import type { UserData } from "../types";
+import {
+  isBilingualValue,
+  pickLang,
+  type BilingualString,
+} from "../../lib/bilingual";
 
 export type { EditorMode } from "./editor-mode";
 export {
@@ -33,6 +38,20 @@ type ComponentLike = {
   type: string;
   props: JsonRecord;
 };
+
+/** Page meta text — plain string (legacy) or bilingual `{ ar, en }`. */
+export type SitePageText = string | BilingualString;
+
+/** Resolve page meta for a language (editor UI defaults to Arabic). */
+export function resolveSitePageText(
+  value: SitePageText | undefined | null,
+  language: "ar" | "en" = "ar",
+  fallback = ""
+): string {
+  if (value == null || value === "") return fallback;
+  const resolved = pickLang(value, language);
+  return typeof resolved === "string" && resolved ? resolved : fallback;
+}
 
 /** @deprecated Legacy custom-page registry key — migrated into SiteData.pages */
 export const CUSTOM_PAGES_STORAGE_KEY = "puck-demo-custom-pages:v1";
@@ -61,12 +80,12 @@ export type SitePage = {
   /** URL slug used for storage and routing (concrete path for static pages) */
   slug: string;
   /** Display name shown in the pages panel */
-  name: string;
+  name: SitePageText;
   /** Public link / editor path (concrete URL) */
   link: string;
   /** Document title for this page */
-  title?: string;
-  description?: string;
+  title?: SitePageText;
+  description?: SitePageText;
   iconName?: PageDefinition["iconName"];
   dynamic?: boolean;
   examplePath?: string;
@@ -122,8 +141,8 @@ export function getLegacyPageStorageKey(path: string) {
 export function sitePageToDefinition(page: SitePage): PageDefinition {
   return {
     path: page.path,
-    label: page.name,
-    description: page.description ?? "",
+    label: resolveSitePageText(page.name, "ar", page.path),
+    description: resolveSitePageText(page.description, "ar"),
     iconName: isValidIconName(page.iconName) ? page.iconName : "FileText",
     dynamic: page.dynamic,
     examplePath: page.examplePath,
@@ -431,23 +450,32 @@ export function normalizeSiteData(value: Partial<SiteData> | null | undefined): 
     // Only `composed.content` is used below — passing the (already normalized)
     // site zones here would re-normalize the same zone tree once per page for
     // a result that gets discarded.
+    const pageTitleFallback: SitePageText =
+      page.title ?? page.name ?? definition.label;
     const composed = normalizeEditorData({
       root: {
         props: {
           ...(rootNormalized.root?.props ?? {}),
-          title: page.title ?? page.name ?? definition.label,
+          title: pageTitleFallback,
         },
       },
       content: page.content ?? [],
       zones: {},
     });
 
+    const composedTitle = composed.root?.props?.title;
+    const resolvedTitle: SitePageText =
+      page.title ??
+      (typeof composedTitle === "string" || isBilingualValue(composedTitle)
+        ? (composedTitle as SitePageText)
+        : definition.label);
+
     return {
       path: definition.path,
       slug: page.slug ?? definition.path,
       name: page.name ?? definition.label,
       link: page.link ?? getEditPath(definition),
-      title: page.title ?? readString(composed.root?.props?.title, definition.label),
+      title: resolvedTitle,
       description: page.description ?? definition.description,
       iconName: definition.iconName,
       dynamic: definition.dynamic,

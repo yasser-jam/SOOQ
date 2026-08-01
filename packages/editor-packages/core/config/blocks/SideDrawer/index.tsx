@@ -28,6 +28,7 @@ import {
 } from "../../fields/LinkField";
 import { createStarterTextBlock } from "../Section/starter-data";
 import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
+import { useDisplayLanguage } from "../../locale/use-display-language";
 import styles from "./styles.module.css";
 const getClassName = getClassNameFactory("SideDrawer", styles);
 
@@ -372,9 +373,10 @@ const SideDrawerInternal: ComponentConfig<SideDrawerProps> = {
   }) => {
     const isEditing = !!(puck as { isEditing?: boolean } | undefined)
       ?.isEditing;
+    const language = useDisplayLanguage();
     const drawerName = (name && name.trim()) || "drawer";
-    const resolvedTitle = pickLang(title);
-    const resolvedTriggerLabel = pickLang(triggerLabel);
+    const resolvedTitle = pickLang(title, language);
+    const resolvedTriggerLabel = pickLang(triggerLabel, language);
     const IconCmp = ICON_MAP[triggerIcon ?? "menu"];
 
     // In the editor we force the drawer open so merchants can design its
@@ -598,7 +600,7 @@ const SideDrawerInternal: ComponentConfig<SideDrawerProps> = {
                 const href = resolveLinkHref(item.link);
                 const target = resolveLinkTarget(item.link);
                 const rel = resolveLinkRel(item.link);
-                const label = pickLang(item.label) || "—";
+                const label = pickLang(item.label, language) || "—";
 
                 if (!href) {
                   return (

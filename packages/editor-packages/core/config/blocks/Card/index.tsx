@@ -1,10 +1,17 @@
 /* eslint-disable @next/next/no-img-element */
+"use client";
 import React, { lazy, Suspense } from "react";
 import { ComponentConfig } from "@/core/types";
 import styles from "./styles.module.css";
 import { getClassNameFactory } from "@/core/lib";
 import dynamicIconImports from "lucide-react/dynamicIconImports";
 import { withLayout, WithLayout } from "../../components/Layout";
+import {
+  bilingualTextField,
+  pickLang,
+  type BilingualString,
+} from "../../fields/BilingualText";
+import { useActiveLanguage } from "../../locale/LanguageContext";
 
 const getClassName = getClassNameFactory("Card", styles);
 
@@ -21,22 +28,23 @@ const iconOptions = Object.keys(dynamicIconImports).map((iconName) => ({
 }));
 
 export type CardProps = WithLayout<{
-  title: string;
-  description: string;
+  title: BilingualString | string;
+  description: BilingualString | string;
   icon?: string;
   mode: "flat" | "card";
 }>;
 
 const CardInner: ComponentConfig<CardProps> = {
   fields: {
-    title: {
-      type: "text",
+    title: bilingualTextField({
+      label: "العنوان",
       contentEditable: true,
-    },
-    description: {
-      type: "textarea",
+    }),
+    description: bilingualTextField({
+      label: "الوصف",
+      mode: "textarea",
       contentEditable: true,
-    },
+    }),
     icon: {
       type: "select",
       options: iconOptions,
@@ -50,12 +58,15 @@ const CardInner: ComponentConfig<CardProps> = {
     },
   },
   defaultProps: {
-    title: "Title",
-    description: "Description",
+    title: { ar: "عنوان", en: "Title" },
+    description: { ar: "وصف", en: "Description" },
     icon: "feather",
     mode: "flat",
   },
   render: ({ title, icon, description, mode }) => {
+    const { language } = useActiveLanguage();
+    const resolvedTitle = pickLang(title, language);
+    const resolvedDescription = pickLang(description, language);
     const iconKey = icon
       ? iconComponents[icon]
         ? icon
@@ -73,8 +84,8 @@ const CardInner: ComponentConfig<CardProps> = {
             )}
           </div>
 
-          <div className={getClassName("title")}>{title}</div>
-          <div className={getClassName("description")}>{description}</div>
+          <div className={getClassName("title")}>{resolvedTitle}</div>
+          <div className={getClassName("description")}>{resolvedDescription}</div>
         </div>
       </div>
     );

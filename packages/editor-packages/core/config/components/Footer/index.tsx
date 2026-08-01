@@ -22,6 +22,7 @@ import {
   pickLang,
   type BilingualString,
 } from "../../fields/BilingualText";
+import { useDisplayLanguage } from "../../locale/use-display-language";
 import styles from "./styles.module.css";
 
 const FooterVariantContext = createContext<ShellVariant>("commerce");
@@ -216,7 +217,7 @@ const Footer = ({
   siteTitle = "Meridian",
   columns,
   bottomLinks,
-  language = "ar",
+  language: languageProp = "ar",
   editMode = false,
   visible = true,
   isMobileOnly = false,
@@ -231,6 +232,7 @@ const Footer = ({
 }: FooterProps) => {
   const previewSelected = useZonePreviewSelected(componentId);
   const { auth } = useStore();
+  const language = useDisplayLanguage(languageProp);
   if (!visible && !previewSelected) return null;
 
   const deviceClass = isMobileOnly ? responsiveStyles.hideOnDesktop : "";

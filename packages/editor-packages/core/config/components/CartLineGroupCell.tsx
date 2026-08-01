@@ -35,7 +35,7 @@ export function CartLineGroupCell({
         isLoading: false,
         isError: false,
         metadata: line.metadata ?? null,
-        language: line.language ?? activeLanguage,
+        language: activeLanguage,
         selectedVariantId: line.selectedVariant?.variantId ?? null,
         setSelectedVariantId: () => {},
       }}

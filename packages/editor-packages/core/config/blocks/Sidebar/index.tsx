@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { ComponentConfig, Slot } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";
@@ -9,6 +10,7 @@ import {
 } from "../../fields/BilingualText";
 import { createSidebarStarterContent } from "../Section/starter-data";
 import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
+import { useDisplayLanguage } from "../../locale/use-display-language";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("Sidebar", styles);
@@ -180,7 +182,8 @@ const SidebarInternal: ComponentConfig<SidebarProps> = {
     items: Items,
     puck,
   }) => {
-    const resolvedTitle = pickLang(title);
+    const language = useDisplayLanguage();
+    const resolvedTitle = pickLang(title, language);
     const resolvedDock = dock ?? "inline";
     const isDocked = resolvedDock !== "inline";
     // When docked, the whole sidebar IS the sticky/fixed anchor — its inner

@@ -28,6 +28,7 @@ import {
   pickLang,
   type BilingualString,
 } from "../../fields/BilingualText";
+import { useDisplayLanguage } from "../../locale/use-display-language";
 
 import styles from "./styles.module.css";
 
@@ -190,7 +191,7 @@ const Header = ({
   variant = "commerce",
   siteTitle = "Meridian",
   links,
-  language = "ar",
+  language: languageProp = "ar",
   visible = true,
   isMobileOnly = false,
   brandHref = "/",
@@ -207,6 +208,7 @@ const Header = ({
 }: HeaderProps) => {
   const previewSelected = useZonePreviewSelected(componentId);
   const { auth } = useStore();
+  const language = useDisplayLanguage(languageProp);
   if (!visible && !previewSelected) return null;
 
   const deviceClass = isMobileOnly ? responsiveStyles.hideOnDesktop : "";

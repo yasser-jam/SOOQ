@@ -33,7 +33,14 @@ function nodeSummary(value: unknown): string {
 
 function pageLabel(page: unknown, index: number): string {
   if (!isPlainObject(page)) return `Page ${index}`
-  const name = typeof page.name === "string" ? page.name : null
+  const name =
+    typeof page.name === "string"
+      ? page.name
+      : page.name &&
+          typeof page.name === "object" &&
+          typeof (page.name as { ar?: unknown }).ar === "string"
+        ? (page.name as { ar: string }).ar
+        : null
   const path = typeof page.path === "string" ? page.path : null
   const slug = typeof page.slug === "string" ? page.slug : null
   return name || path || slug || `Page ${index}`

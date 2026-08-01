@@ -77,6 +77,10 @@ describe("bilingual migration (shellComponentsMigrationVersion 4)", () => {
     expect(BILINGUAL_PROPS.ContentHeading).toBeDefined();
     expect(BILINGUAL_PROPS.ContentButton).toBeDefined();
     expect(BILINGUAL_PROPS.SiteFooter).toBeDefined();
+    expect(BILINGUAL_PROPS.Card).toEqual([
+      { path: "title" },
+      { path: "description" },
+    ]);
   });
 });
 

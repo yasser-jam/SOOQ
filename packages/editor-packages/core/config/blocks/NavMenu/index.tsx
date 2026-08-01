@@ -23,6 +23,7 @@ import {
   shouldShowForCondition,
   type ShowCondition,
 } from "../../lib/show-condition";
+import { useDisplayLanguage } from "../../locale/use-display-language";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("NavMenu", styles);
@@ -133,6 +134,7 @@ const NavMenuInternal: ComponentConfig<NavMenuProps> = {
   render: ({ orientation, variant, activePath, items, puck }) => {
     const isVertical = orientation === "vertical";
     const { auth } = useStore();
+    const language = useDisplayLanguage();
     const visibleItems = (items ?? []).filter((item) =>
       shouldShowForCondition(
         item.showCondition,
@@ -153,7 +155,7 @@ const NavMenuInternal: ComponentConfig<NavMenuProps> = {
           const href = resolveLinkHref(item.link);
           const target = resolveLinkTarget(item.link);
           const rel = resolveLinkRel(item.link);
-          const label = pickLang(item.label) || "—";
+          const label = pickLang(item.label, language) || "—";
           const isActive =
             !!activePath &&
             !!href &&

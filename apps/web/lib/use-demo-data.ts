@@ -7,6 +7,7 @@ import {
 	composePuckData,
 	getSiteStorageKey,
 	readSiteData,
+	resolveSitePageText,
 	writeSiteData,
 	type EditorMode,
 } from "@/core/config/lib/site-data";
@@ -63,7 +64,14 @@ export const useDemoData = ({
 					entry.path === path ||
 					entry.examplePath === path,
 			);
-			document.title = page?.title ?? page?.name ?? "";
+			const language =
+				(site.root?.props as { language?: "ar" | "en" } | undefined)
+					?.language === "en"
+					? "en"
+					: "ar";
+			document.title =
+				resolveSitePageText(page?.title, language) ||
+				resolveSitePageText(page?.name, language);
 		}
 	}, [path, isEdit, mode]);
 

@@ -696,17 +696,26 @@
     {
       "path": "/",
       "slug": "/",
-      "name": "الرئيسية",
+      "name": {
+        "ar": "الرئيسية",
+        "en": "Home"
+      },
       "link": "/",
-      "title": "ميريديان — الرئيسية",
-      "description": "متجر ميريديان: منتجات مختارة بعناية وتوصيل سريع لكل المحافظات.",
+      "title": {
+        "ar": "ميريديان — الرئيسية",
+        "en": "Meridian — Home"
+      },
+      "description": {
+        "ar": "متجر ميريديان: منتجات مختارة بعناية وتوصيل سريع لكل المحافظات.",
+        "en": "Meridian store: carefully curated products and fast delivery across every governorate."
+      },
       "iconName": "Home",
       "content": [
         {
           "type": "Section",
           "props": {
             "id": "Section-home-hero",
-            "name": "الهيرو",
+            "name": "الهيرو (Hero)",
             "anchorId": "hero",
             "visible": true,
             "paddingTop": "120px",
@@ -852,7 +861,7 @@
           "type": "Section",
           "props": {
             "id": "Section-home-features",
-            "name": "المزايا",
+            "name": "المزايا (Benefits)",
             "anchorId": "features",
             "visible": true,
             "paddingTop": "72px",
@@ -1106,7 +1115,7 @@
           "type": "Section",
           "props": {
             "id": "Section-home-featured",
-            "name": "منتجات مختارة",
+            "name": "منتجات مختارة (Featured products)",
             "anchorId": "featured",
             "visible": true,
             "paddingTop": "72px",
@@ -1460,7 +1469,7 @@
           "type": "Section",
           "props": {
             "id": "Section-home-testimonials",
-            "name": "آراء العملاء",
+            "name": "آراء العملاء (Testimonials)",
             "anchorId": "reviews",
             "visible": true,
             "paddingTop": "72px",
@@ -1548,7 +1557,7 @@
           "type": "Section",
           "props": {
             "id": "Section-home-faq",
-            "name": "الأسئلة الشائعة",
+            "name": "الأسئلة الشائعة (FAQ)",
             "anchorId": "faq",
             "visible": true,
             "paddingTop": "72px",
@@ -1633,7 +1642,7 @@
           "type": "Section",
           "props": {
             "id": "Section-home-cta",
-            "name": "دعوة للتسوق",
+            "name": "دعوة للتسوق (Shop CTA)",
             "anchorId": "cta",
             "visible": true,
             "paddingTop": "80px",
@@ -1718,10 +1727,19 @@
     {
       "path": "/login",
       "slug": "/login",
-      "name": "تسجيل الدخول",
+      "name": {
+        "ar": "تسجيل الدخول",
+        "en": "Sign in"
+      },
       "link": "/login",
-      "title": "تسجيل الدخول",
-      "description": "سجّل دخولك برقم هاتفك لمتابعة طلباتك.",
+      "title": {
+        "ar": "تسجيل الدخول",
+        "en": "Sign in"
+      },
+      "description": {
+        "ar": "سجّل دخولك برقم هاتفك لمتابعة طلباتك.",
+        "en": "Sign in with your phone number to track your orders."
+      },
       "iconName": "FileText",
       "isCustom": true,
       "content": [
@@ -1729,7 +1747,7 @@
           "type": "Section",
           "props": {
             "id": "Section-login",
-            "name": "تسجيل الدخول",
+            "name": "تسجيل الدخول (Sign in)",
             "anchorId": "login",
             "visible": true,
             "paddingTop": "80px",
@@ -1914,10 +1932,19 @@
     {
       "path": "/verify-otp",
       "slug": "/verify-otp",
-      "name": "تأكيد الرمز",
+      "name": {
+        "ar": "تأكيد الرمز",
+        "en": "Verify code"
+      },
       "link": "/verify-otp",
-      "title": "التحقق من الرمز",
-      "description": "أدخل رمز التحقق المرسل إلى هاتفك.",
+      "title": {
+        "ar": "التحقق من الرمز",
+        "en": "Verify code"
+      },
+      "description": {
+        "ar": "أدخل رمز التحقق المرسل إلى هاتفك.",
+        "en": "Enter the verification code sent to your phone."
+      },
       "iconName": "FileText",
       "isCustom": true,
       "content": [
@@ -1925,7 +1952,7 @@
           "type": "Section",
           "props": {
             "id": "Section-otp",
-            "name": "تأكيد الرمز",
+            "name": "تأكيد الرمز (Verify code)",
             "anchorId": "verify",
             "visible": true,
             "paddingTop": "80px",
@@ -2082,10 +2109,19 @@
     {
       "path": "/products",
       "slug": "/products",
-      "name": "المنتجات",
+      "name": {
+        "ar": "المنتجات",
+        "en": "Products"
+      },
       "link": "/products",
-      "title": "كل المنتجات",
-      "description": "تصفّح كل منتجات المتجر مع البحث والتصنيفات.",
+      "title": {
+        "ar": "كل المنتجات",
+        "en": "All products"
+      },
+      "description": {
+        "ar": "تصفّح كل منتجات المتجر مع البحث والتصنيفات.",
+        "en": "Browse every product with search and categories."
+      },
       "iconName": "Package",
       "isCustom": true,
       "content": [
@@ -2093,7 +2129,7 @@
           "type": "Section",
           "props": {
             "id": "Section-products-page",
-            "name": "صفحة المنتجات",
+            "name": "صفحة المنتجات (Products page)",
             "anchorId": "products",
             "visible": true,
             "paddingTop": "56px",
@@ -2613,10 +2649,19 @@
     {
       "path": "/products/:product-slug",
       "slug": "/products/example-product",
-      "name": "تفاصيل المنتج",
+      "name": {
+        "ar": "تفاصيل المنتج",
+        "en": "Product details"
+      },
       "link": "/products/example-product",
-      "title": "تفاصيل المنتج",
-      "description": "صفحة تفاصيل منتج فردي مع الصور والخيارات والإضافة للسلة.",
+      "title": {
+        "ar": "تفاصيل المنتج",
+        "en": "Product details"
+      },
+      "description": {
+        "ar": "صفحة تفاصيل منتج فردي مع الصور والخيارات والإضافة للسلة.",
+        "en": "Individual product page with images, options, and add to cart."
+      },
       "iconName": "Package",
       "dynamic": true,
       "examplePath": "/products/example-product",
@@ -2625,7 +2670,7 @@
           "type": "Section",
           "props": {
             "id": "Section-product-detail",
-            "name": "تفاصيل المنتج",
+            "name": "تفاصيل المنتج (Product details)",
             "anchorId": "product",
             "visible": true,
             "paddingTop": "64px",
@@ -2886,7 +2931,7 @@
           "type": "Section",
           "props": {
             "id": "Section-product-related",
-            "name": "قد يعجبك أيضاً",
+            "name": "قد يعجبك أيضاً (You may also like)",
             "anchorId": "related",
             "visible": true,
             "paddingTop": "56px",
@@ -3202,17 +3247,26 @@
     {
       "path": "/cart",
       "slug": "/cart",
-      "name": "السلة",
+      "name": {
+        "ar": "السلة",
+        "en": "Cart"
+      },
       "link": "/cart",
-      "title": "سلة التسوق",
-      "description": "راجع منتجات سلتك وأتمم طلبك.",
+      "title": {
+        "ar": "سلة التسوق",
+        "en": "Shopping cart"
+      },
+      "description": {
+        "ar": "راجع منتجات سلتك وأتمم طلبك.",
+        "en": "Review your cart and complete your order."
+      },
       "iconName": "ShoppingCart",
       "content": [
         {
           "type": "Section",
           "props": {
             "id": "Section-cart",
-            "name": "سلة التسوق",
+            "name": "سلة التسوق (Shopping cart)",
             "anchorId": "cart",
             "visible": true,
             "paddingTop": "56px",
@@ -3322,17 +3376,26 @@
     {
       "path": "/about",
       "slug": "/about",
-      "name": "من نحن",
+      "name": {
+        "ar": "من نحن",
+        "en": "About"
+      },
       "link": "/about",
-      "title": "ميريديان — من نحن",
-      "description": "تعرّف على قصة ميريديان ورؤيتنا وقيمنا.",
+      "title": {
+        "ar": "ميريديان — من نحن",
+        "en": "Meridian — About"
+      },
+      "description": {
+        "ar": "تعرّف على قصة ميريديان ورؤيتنا وقيمنا.",
+        "en": "Learn Meridian’s story, vision, and values."
+      },
       "iconName": "FileText",
       "content": [
         {
           "type": "Section",
           "props": {
             "id": "Section-about-hero",
-            "name": "هيرو من نحن",
+            "name": "هيرو من نحن (About hero)",
             "anchorId": "about-hero",
             "visible": true,
             "paddingTop": "120px",
@@ -3413,7 +3476,7 @@
           "type": "Section",
           "props": {
             "id": "Section-about-story",
-            "name": "قصتنا",
+            "name": "قصتنا (Our story)",
             "anchorId": "story",
             "visible": true,
             "paddingTop": "80px",
@@ -3527,7 +3590,7 @@
           "type": "Section",
           "props": {
             "id": "Section-about-values",
-            "name": "قيمنا",
+            "name": "قيمنا (Our values)",
             "anchorId": "values",
             "visible": true,
             "paddingTop": "72px",
@@ -3546,8 +3609,14 @@
                 "type": "Card",
                 "props": {
                   "id": "Card-about-quality",
-                  "title": "جودة مختارة",
-                  "description": "نراجع كل منتج قبل إدراجه لنضمن معايير واضحة تناسب توقعاتك.",
+                  "title": {
+                    "ar": "جودة مختارة",
+                    "en": "Curated quality"
+                  },
+                  "description": {
+                    "ar": "نراجع كل منتج قبل إدراجه لنضمن معايير واضحة تناسب توقعاتك.",
+                    "en": "We review every product before listing it to meet clear standards you can trust."
+                  },
                   "icon": "sparkles",
                   "mode": "flat"
                 }
@@ -3556,8 +3625,14 @@
                 "type": "Card",
                 "props": {
                   "id": "Card-about-delivery",
-                  "title": "توصيل موثوق",
-                  "description": "نصل إلى المحافظات خلال أيام عمل قليلة مع متابعة واضحة لحالة الطلب.",
+                  "title": {
+                    "ar": "توصيل موثوق",
+                    "en": "Reliable delivery"
+                  },
+                  "description": {
+                    "ar": "نصل إلى المحافظات خلال أيام عمل قليلة مع متابعة واضحة لحالة الطلب.",
+                    "en": "We reach governorates within a few business days with clear order tracking."
+                  },
                   "icon": "truck",
                   "mode": "flat"
                 }
@@ -3566,8 +3641,14 @@
                 "type": "Card",
                 "props": {
                   "id": "Card-about-support",
-                  "title": "خدمة قريبة",
-                  "description": "فريقنا جاهز لمساعدتك قبل الشراء وبعده — بأسئلة بسيطة وإجابات سريعة.",
+                  "title": {
+                    "ar": "خدمة قريبة",
+                    "en": "Close support"
+                  },
+                  "description": {
+                    "ar": "فريقنا جاهز لمساعدتك قبل الشراء وبعده — بأسئلة بسيطة وإجابات سريعة.",
+                    "en": "Our team is ready before and after purchase — simple questions, quick answers."
+                  },
                   "icon": "headphones",
                   "mode": "flat"
                 }
@@ -3579,7 +3660,7 @@
           "type": "Section",
           "props": {
             "id": "Section-about-cta",
-            "name": "ابدأ التسوق",
+            "name": "ابدأ التسوق (Start shopping)",
             "anchorId": "cta",
             "visible": true,
             "paddingTop": "88px",
@@ -3687,17 +3768,26 @@
       "path": "/settings",
       "slug": "/settings",
       "link": "/settings",
-      "title": "الإعدادات",
-      "name": "الإعدادات",
+      "title": {
+        "ar": "الإعدادات",
+        "en": "Settings"
+      },
+      "name": {
+        "ar": "الإعدادات",
+        "en": "Settings"
+      },
       "iconName": "FileText",
       "isCustom": false,
-      "description": "إدارة الملف الشخصي والعناوين وتفضيلات التسويق.",
+      "description": {
+        "ar": "إدارة الملف الشخصي والعناوين وتفضيلات التسويق.",
+        "en": "Manage your profile, addresses, and marketing preferences."
+      },
       "content": [
         {
           "type": "Section",
           "props": {
             "id": "Section-settings-signedout",
-            "name": "تسجيل الدخول",
+            "name": "تسجيل الدخول (Sign in)",
             "anchorId": "settings-signedout",
             "visible": true,
             "showCondition": "loggedOut",
@@ -3801,7 +3891,7 @@
           "type": "Section",
           "props": {
             "id": "Section-settings-profile",
-            "name": "الملف الشخصي",
+            "name": "الملف الشخصي (Profile)",
             "anchorId": "settings-profile",
             "visible": true,
             "showCondition": "loggedIn",
@@ -4045,7 +4135,7 @@
           "type": "Section",
           "props": {
             "id": "Section-settings-marketing",
-            "name": "تفضيلات التسويق",
+            "name": "تفضيلات التسويق (Marketing preferences)",
             "anchorId": "settings-marketing",
             "visible": true,
             "showCondition": "loggedIn",
@@ -4168,7 +4258,7 @@
           "type": "Section",
           "props": {
             "id": "Section-settings-addresses",
-            "name": "عناويني",
+            "name": "عناويني (My addresses)",
             "anchorId": "settings-addresses",
             "visible": true,
             "showCondition": "loggedIn",
@@ -4370,7 +4460,7 @@
           "type": "Section",
           "props": {
             "id": "Section-settings-address-form",
-            "name": "إضافة عنوان جديد",
+            "name": "إضافة عنوان جديد (Add a new address)",
             "anchorId": "settings-address-form",
             "visible": true,
             "showCondition": "loggedIn",

@@ -3,6 +3,10 @@ import {
   writeSiteData,
   type SiteData,
 } from "@/core/config/lib/site-data"
+import {
+  backfillEmptyBilingual,
+  needsBilingualBackfill,
+} from "@/core/config/lib/backfill-bilingual"
 import { clearAllPageDrafts } from "@/core/config/lib/page-draft"
 import { readSelectedTheme } from "@/core/config/lib/selected-theme"
 import {
@@ -10,7 +14,11 @@ import {
   loadBuiltinThemeSiteData,
 } from "@/core/themes"
 
-import { getDesignDraft } from "./actions"
+import {
+  DESIGN_SCHEMA_VERSION,
+  getDesignDraft,
+  saveDesignDraft,
+} from "./actions"
 import type { DesignConfigJson, DesignVersion } from "./types"
 
 const isBrowser = typeof window !== "undefined"
@@ -56,15 +64,40 @@ export function applyDesignConfigToLocalStorage(
   return wrote
 }
 
-export type HydrateLocalSiteSource = "api" | "builtin-file" | "unchanged"
+export type HydrateLocalSiteSource =
+  | "api"
+  | "api-backfilled"
+  | "builtin-file"
+  | "unchanged"
 
 export type HydrateLocalSiteResult = {
   source: HydrateLocalSiteSource
 }
 
 /**
+ * When a builtin theme was applied before English copy existed, the API draft
+ * still has empty `en` fields. Copy EN from the bundled JSON (by block id)
+ * without wiping merchant structure.
+ */
+async function backfillBuiltinEnglish(
+  site: SiteData,
+  templateKey: string
+): Promise<{ site: SiteData; filled: number } | null> {
+  if (!needsBilingualBackfill(site)) return null
+  const builtin = await loadBuiltinThemeSiteData(templateKey)
+  if (!builtin) return null
+  const { site: next, filledCount } = backfillEmptyBilingual(
+    structuredClone(normalizeSiteData(site)),
+    normalizeSiteData(builtin)
+  )
+  if (filledCount <= 0) return null
+  return { site: next, filled: filledCount }
+}
+
+/**
  * Source-of-truth order for the Design Studio editor:
  * 1. API draft (`GET /admin/design/draft`) when it has pages
+ *    — with automatic EN backfill from the builtin file when needed
  * 2. Builtin theme JSON file keyed by the draft / selected-theme templateKey
  * 3. Leave existing localStorage alone
  *
@@ -76,14 +109,38 @@ export async function hydrateLocalSiteFromSources(): Promise<HydrateLocalSiteRes
 
   const draft = await getDesignDraft().catch(() => null)
   const config = draft?.configJson
-
-  if (config && hasUsableSitePages(config.web)) {
-    applyDesignConfigToLocalStorage(config)
-    return { source: "api" }
-  }
-
   const templateKey =
     readTemplateKey(draft) ?? readSelectedTheme()?.templateKey ?? null
+
+  if (config && hasUsableSitePages(config.web)) {
+    let web = normalizeSiteData(config.web)
+    let source: HydrateLocalSiteSource = "api"
+
+    if (templateKey && isBuiltinThemeKey(templateKey)) {
+      const backfilled = await backfillBuiltinEnglish(web, templateKey)
+      if (backfilled) {
+        web = backfilled.site
+        source = "api-backfilled"
+        // Persist so the storefront / next hydrate also see EN.
+        await saveDesignDraft({
+          configJson: {
+            ...config,
+            web,
+            mobile: config.mobile ?? {},
+            templateKey,
+          },
+          schemaVersion: draft?.schemaVersion ?? DESIGN_SCHEMA_VERSION,
+        }).catch(() => null)
+      }
+    }
+
+    applyDesignConfigToLocalStorage({
+      ...config,
+      web,
+      templateKey: templateKey ?? config.templateKey,
+    })
+    return { source }
+  }
 
   if (templateKey && isBuiltinThemeKey(templateKey)) {
     const siteData = await loadBuiltinThemeSiteData(templateKey)

@@ -7,6 +7,7 @@ import {
   normalizeBilingual,
   type BilingualString,
 } from "../../lib/bilingual";
+import { useDisplayLanguage } from "../../config/locale/use-display-language";
 
 type BilingualInlineTextFieldProps = {
   propPath: string;
@@ -23,9 +24,10 @@ const BilingualInlineTextFieldInternal = ({
   isReadOnly,
   opts = {},
 }: BilingualInlineTextFieldProps) => {
-  const language = useAppStore(
+  const rootLanguage = useAppStore(
     (s) => (s.state.data.root.props?.language as "ar" | "en" | undefined) ?? "ar"
   );
+  const language = useDisplayLanguage(rootLanguage);
   const normalized = normalizeBilingual(value);
   const displayValue = normalized[language] || normalized[language === "ar" ? "en" : "ar"];
 

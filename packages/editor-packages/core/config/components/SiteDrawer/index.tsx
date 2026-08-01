@@ -20,6 +20,7 @@ import {
   pickLang,
   type BilingualString,
 } from "../../fields/BilingualText";
+import { useDisplayLanguage } from "../../locale/use-display-language";
 
 import styles from "./styles.module.css";
 
@@ -167,9 +168,10 @@ export const SiteDrawer = ({
   showOnMobile = true,
   showOnDesktop = true,
   openOnEdgeHover = true,
-  language = "ar",
+  language: languageProp = "ar",
   editMode = false,
 }: SiteDrawerProps) => {
+  const language = useDisplayLanguage(languageProp);
   const dispatch = useAppStore((s) => s.dispatch);
   const selectorKey = useAppStore((s) => {
     if (!editMode || typeof id !== "string" || !id) return "";

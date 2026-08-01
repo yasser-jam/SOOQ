@@ -11,6 +11,7 @@ import {
 	getSiteStorageKey,
 	readSiteData,
 	readStorefrontSiteData,
+	resolveSitePageText,
 	resolveStorefrontMode,
 	type SitePage,
 } from "@/core/config/lib/site-data"
@@ -149,8 +150,15 @@ export function useStorefrontData({
 		(resolvedSnapshot === null || resolvedSnapshot.key !== resolveKey)
 
 	useEffect(() => {
-		document.title = matchedPage?.title ?? matchedPage?.name ?? ""
-	}, [matchedPage])
+		const language =
+			(data?.root?.props as { language?: "ar" | "en" } | undefined)
+				?.language === "en"
+				? "en"
+				: "ar"
+		document.title =
+			resolveSitePageText(matchedPage?.title, language) ||
+			resolveSitePageText(matchedPage?.name, language)
+	}, [matchedPage, data?.root?.props])
 
 	return {
 		data,
