@@ -32,9 +32,9 @@ export const builtinThemeCatalog: BuiltinThemeSummary[] = [
     templateKey: "builtin-sooq-modern",
     templateName: "سوق مودرن",
     description:
-      "قالب متعدد الصفحات بتصميم عصري — صفحة رئيسية، منتجات، تفاصيل منتج، سلة، وتسجيل دخول.",
+      "قالب نظيف بخط IBM Plex وألوان تركواز — هيرو مقسوم، إحصائيات، بطاقات، معرض صور، فئات، منتجات مربوطة، وتواصل، مع صفحات كاملة ثنائية اللغة.",
     previewImageUrl:
-      "https://placehold.co/400x250/1f2937/f9fafb?text=%D8%B3%D9%88%D9%82",
+      "https://placehold.co/400x250/0f766e/ffffff?text=%D8%B3%D9%88%D9%82+%D9%85%D9%88%D8%AF%D8%B1%D9%86",
   },
   {
     templateKey: "builtin-meridian-almarai",
