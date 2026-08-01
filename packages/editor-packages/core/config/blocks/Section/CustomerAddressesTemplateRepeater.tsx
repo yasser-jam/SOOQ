@@ -109,7 +109,9 @@ function useCustomerAddresses(isEditing: boolean): {
   sampleMode: boolean;
 } {
   const { customer } = useStore();
-  const sampleMode = isEditing && useSampleDataInEditor();
+  // Always call the hook — never short-circuit (Rules of Hooks).
+  const sampleInEditor = useSampleDataInEditor();
+  const sampleMode = isEditing && sampleInEditor;
 
   if (sampleMode) {
     return {
@@ -199,6 +201,16 @@ export function CustomerAddressesTemplateRepeater({
     );
   }
 
+  // Storefront clones need cardTemplate (slot `content` is a component at
+  // render). Without it we'd paint empty cells and look like a binding miss.
+  if (!liveTemplate && !isEditing) {
+    return gridWrap(
+      <div style={EMPTY_STATE_STYLE}>
+        تعذّر عرض بطاقة العنوان — أعد حفظ قسم العناوين من محرّك التصميم.
+      </div>
+    );
+  }
+
   return gridWrap(
     <CustomerAddressesTemplateCells
       addresses={addresses}
@@ -238,7 +250,10 @@ function CustomerAddressesTemplateCells({
   return (
     <>
       {boundList.map(({ address, boundData }, index) => {
-        const isEditableCell = isEditing && index === 0;
+        // Cell 0 always uses the live `content` slot so the storefront still
+        // renders the first address when `cardTemplate` failed to sync (stale
+        // Site JSON). Remaining cells clone from the cardTemplate snapshot.
+        const useLiveSlot = index === 0;
         return (
           <BoundDataProvider
             key={address.addressId}
@@ -252,7 +267,7 @@ function CustomerAddressesTemplateCells({
               setSelectedVariantId: () => {},
             }}
           >
-            {isEditableCell ? (
+            {useLiveSlot ? (
               <EditableSlot style={{ display: "contents" }} />
             ) : (
               <CloneTemplateCell

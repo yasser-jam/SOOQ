@@ -68,6 +68,28 @@ describe("resolveValueContext", () => {
 });
 
 describe("resolveValueContextAsString", () => {
+  it("resolves customer address bindings used by the settings repeater", () => {
+    const addressPayload = {
+      address: {
+        addressId: "a-1",
+        label: "العمل",
+        governorate: "محافظة دمشق",
+        city: "بلدية المزة",
+        streetAddress: "Al-Hamra Street",
+        isDefault: true,
+      },
+    };
+    expect(
+      resolveValueContextAsString("address.label", addressPayload)
+    ).toBe("العمل");
+    expect(
+      resolveValueContextAsString("address.governorate", addressPayload)
+    ).toBe("محافظة دمشق");
+    expect(
+      resolveValueContextAsString("address.streetAddress", addressPayload)
+    ).toBe("Al-Hamra Street");
+  });
+
   it("stringifies numbers and booleans", () => {
     expect(resolveValueContextAsString("pricing.basePrice", payload)).toBe(
       "25000"

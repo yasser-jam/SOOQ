@@ -173,29 +173,43 @@ export function StoreProvider({
 	const refreshCustomer = useCallback(async () => {
 		setCustomer((prev) => ({ ...prev, isLoading: true, isError: false }))
 
-		try {
-			const [profile, preferences, addresses] = await Promise.all([
+		const [profileResult, preferencesResult, addressesResult] =
+			await Promise.allSettled([
 				getCustomerProfile(),
 				getCustomerPreferences(),
 				listCustomerAddresses(),
 			])
 
-			setCustomer((prev) => ({
-				...prev,
-				profile,
-				preferences,
-				addresses,
-				profileDraft: { fullName: profile.fullName },
-				isLoading: false,
-				isError: false,
-			}))
-		} catch (err) {
-			setCustomer((prev) => ({
-				...prev,
-				isLoading: false,
-				isError: true,
-			}))
-			throw err
+		const profile =
+			profileResult.status === "fulfilled" ? profileResult.value : null
+		const preferences =
+			preferencesResult.status === "fulfilled"
+				? preferencesResult.value
+				: null
+		const addresses =
+			addressesResult.status === "fulfilled" ? addressesResult.value : []
+		const addressesFailed = addressesResult.status === "rejected"
+
+		setCustomer((prev) => ({
+			...prev,
+			profile: profile ?? prev.profile,
+			preferences: preferences ?? prev.preferences,
+			addresses,
+			profileDraft: {
+				fullName: profile?.fullName ?? prev.profileDraft.fullName,
+			},
+			isLoading: false,
+			// Address list UI keys off this flag; don't fail the whole account
+			// page when only profile/preferences error.
+			isError: addressesFailed,
+		}))
+
+		if (addressesFailed) {
+			const reason =
+				addressesResult.status === "rejected"
+					? addressesResult.reason
+					: new Error("تعذّر تحميل العناوين.")
+			throw reason
 		}
 	}, [])
 

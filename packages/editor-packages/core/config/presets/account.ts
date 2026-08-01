@@ -122,6 +122,38 @@ const accountMarketingPreset: SectionPreset = {
   }),
 };
 
+function createAddressCardTemplate(): ComponentDataOptionalId {
+  return createAccountGroup(
+    [
+      createHeading("", {
+        valueContext: { path: "address.label" },
+      }),
+      createParagraph("", {
+        valueContext: { path: "address.governorate" },
+      }),
+      createParagraph("", {
+        valueContext: { path: "address.city" },
+      }),
+      createParagraph("", {
+        valueContext: { path: "address.streetAddress" },
+      }),
+      createRowGroup([
+        createPrimaryButton("تعيين كافتراضي", {
+          destinationType: "action",
+          buttonAction: "setDefaultAddress",
+          buttonVariant: "secondary",
+        }),
+        createPrimaryButton("حذف", {
+          destinationType: "action",
+          buttonAction: "deleteAddress",
+          buttonVariant: "error",
+        }),
+      ]),
+    ],
+    { id: "Group-settings-address-row" }
+  );
+}
+
 const accountAddressesPreset: SectionPreset = {
   id: "account-addresses",
   category: "account",
@@ -131,37 +163,9 @@ const accountAddressesPreset: SectionPreset = {
   componentData: createSection({
     ...buildCustomerAddressesSectionProps(),
     showCondition: "loggedIn",
-    content: [
-      createAccountGroup(
-        [
-          createHeading("", {
-            valueContext: { path: "address.label" },
-          }),
-          createParagraph("", {
-            valueContext: { path: "address.governorate" },
-          }),
-          createParagraph("", {
-            valueContext: { path: "address.city" },
-          }),
-          createParagraph("", {
-            valueContext: { path: "address.streetAddress" },
-          }),
-          createRowGroup([
-            createPrimaryButton("تعيين كافتراضي", {
-              destinationType: "action",
-              buttonAction: "setDefaultAddress",
-              buttonVariant: "secondary",
-            }),
-            createPrimaryButton("حذف", {
-              destinationType: "action",
-              buttonAction: "deleteAddress",
-              buttonVariant: "error",
-            }),
-          ]),
-        ],
-        { id: "Group-settings-address-row" }
-      ),
-    ],
+    // Separate clones: slot transforms must not mutate the cardTemplate snapshot.
+    content: [createAddressCardTemplate()],
+    cardTemplate: [createAddressCardTemplate()],
   }),
 };
 
@@ -282,7 +286,8 @@ export function createSettingsPageContent(): ComponentDataOptionalId[] {
       paddingTop: "24px",
       paddingBottom: "24px",
       ...buildCustomerAddressesSectionProps(),
-      content: accountAddressesPreset.componentData.props?.content ?? [],
+      content: [createAddressCardTemplate()],
+      cardTemplate: [createAddressCardTemplate()],
     }),
     createSection({
       id: "Section-settings-address-form",

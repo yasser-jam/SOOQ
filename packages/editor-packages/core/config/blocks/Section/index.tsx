@@ -171,13 +171,13 @@ export type SectionProps = WithLayout<{
   /** Raw slot snapshot for cart preset storefront rendering. */
   cartSlotItems?: ComponentDataOptionalId[] | null;
   /**
-   * Raw snapshot of the products-grid card template (a single-item wrapper
-   * around content[0]).
+   * Raw snapshot of a repeater card template (a single-item wrapper around
+   * content[0]). Used by products-grid, products-page, and customer-addresses.
    *
    * Slots are exposed to render as a `Slot` component, not as the raw JSON
-   * array, so the products-grid repeater needs this snapshot to clone the
-   * template into non-editable cells 1..N. Kept in sync by resolveData
-   * whenever the slot changes.
+   * array, so storefront repeaters need this snapshot to clone the template
+   * into non-editable cells 1..N. Kept in sync by resolveData whenever the
+   * slot changes.
    *
    * NOTE: shaped as an array (not a single object) so Puck's field walker
    * treats it as a plain non-field array and returns it as-is — walking
@@ -346,6 +346,41 @@ const SectionInner: ComponentConfig<SectionProps> = {
       };
     }
 
+    // Customer-addresses repeater clones content[0] via cardTemplate on the
+    // storefront (Puck app-store content is empty there). Mirror products-grid.
+    // Never wipe a good snapshot when the slot is temporarily empty.
+    if (isCustomerAddressesSection(props)) {
+      const rawContent = props.content as ComponentDataOptionalId[] | undefined;
+      const contentTemplate =
+        Array.isArray(rawContent) && rawContent.length > 0
+          ? rawContent[0]
+          : null;
+      const hasCardTemplate =
+        Array.isArray(props.cardTemplate) && props.cardTemplate.length > 0;
+      const contentChanged = Boolean(changed.content);
+      const shouldSync =
+        trigger === "insert" ||
+        trigger === "force" ||
+        trigger === "load" ||
+        contentChanged ||
+        !hasCardTemplate;
+
+      if (!shouldSync) return {};
+      if (contentTemplate) {
+        // Deep-clone so later slot transforms on `content` cannot mutate the
+        // storefront snapshot (presets used to share one object reference).
+        return {
+          props: {
+            cardTemplate: [
+              structuredClone(contentTemplate) as ComponentDataOptionalId,
+            ],
+          },
+        };
+      }
+      // Keep whatever snapshot we already have; only clear when both are empty.
+      return hasCardTemplate ? {} : { props: { cardTemplate: [] } };
+    }
+
     if (!isProductsGridSection(props) && !isProductsPageSection(props)) {
       return {};
     }
@@ -429,7 +464,8 @@ function CustomerAccountBoundShell({
 }) {
   const { customer } = useStore();
   const { language } = useActiveLanguage();
-  const sampleMode = isEditing && useSampleDataInEditor();
+  const sampleInEditor = useSampleDataInEditor();
+  const sampleMode = isEditing && sampleInEditor;
 
   const customerAccountBoundData = useMemo(() => {
     if (sampleMode) {

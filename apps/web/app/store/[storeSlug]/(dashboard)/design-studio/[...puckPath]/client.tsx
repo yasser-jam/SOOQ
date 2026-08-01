@@ -60,6 +60,7 @@ import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell"
 import { PreviewPageShell } from "../_components/preview-page-shell"
 import { PreviewThemeProvider } from "../_components/preview-theme-provider"
 import { SiteJsonViewer } from "../_components/site-json-viewer"
+import { StoreProvider } from "@/modules/storefront/components/StoreProvider"
 import {
   buildStudioEditHrefFromSegment,
   buildStudioPreviewHrefFromSegment,
@@ -835,7 +836,9 @@ export function Client({
   const previewRootProps = useMemo(() => {
     const root = resolvedData?.root
     if (!root) return undefined
-    return ("props" in root ? root.props : root) as Partial<FullThemeProps>
+    return ("props" in root ? root.props : root) as Partial<FullThemeProps> & {
+      language?: "ar" | "en"
+    }
   }, [resolvedData])
 
   // Referentially stable for the same reason as EDITOR_METADATA — the query
@@ -963,13 +966,21 @@ export function Client({
 
     return (
       <PreviewPageShell pageTitle={previewPageTitle} editHref={editHref}>
-        <PreviewThemeProvider rootProps={previewRootProps}>
-          <Render
-            config={config}
-            data={resolvedData}
-            metadata={editorMetadata}
-          />
-        </PreviewThemeProvider>
+        {/* StoreProvider so /settings address bindings + showCondition see
+            the customer session (same cookie the published storefront uses). */}
+        <StoreProvider
+          initialLanguage={
+            previewRootProps?.language === "en" ? "en" : "ar"
+          }
+        >
+          <PreviewThemeProvider rootProps={previewRootProps}>
+            <Render
+              config={config}
+              data={resolvedData}
+              metadata={editorMetadata}
+            />
+          </PreviewThemeProvider>
+        </StoreProvider>
       </PreviewPageShell>
     )
   }

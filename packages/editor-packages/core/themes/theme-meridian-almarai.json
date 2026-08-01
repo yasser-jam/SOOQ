@@ -4453,6 +4453,183 @@
                   ]
                 }
               }
+            ],
+            "cardTemplate": [
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-settings-address-row",
+                  "direction": "column",
+                  "gap": 18,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "language": "ar",
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "Heading-settings-address-label",
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "level": "3",
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "address.label"
+                        }
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-settings-address-governorate",
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-normal",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-neutral",
+                        "valueContext": {
+                          "path": "address.governorate"
+                        }
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-settings-address-city",
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-normal",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-neutral",
+                        "valueContext": {
+                          "path": "address.city"
+                        }
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-settings-address-street",
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-normal",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-neutral",
+                        "valueContext": {
+                          "path": "address.streetAddress"
+                        }
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "id": "RowGroup-settings-address-actions",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none",
+                        "content": [
+                          {
+                            "type": "ContentButton",
+                            "props": {
+                              "id": "Button-settings-set-default",
+                              "label": {
+                                "ar": "تعيين كافتراضي",
+                                "en": "Set as default"
+                              },
+                              "align": "center",
+                              "destinationType": "action",
+                              "buttonAction": "setDefaultAddress",
+                              "link": {
+                                "kind": "none"
+                              },
+                              "zoneKey": "popup-main",
+                              "zoneAction": "open",
+                              "buttonVariantMode": "variant",
+                              "buttonVariant": "secondary",
+                              "buttonVariantSize": "lg",
+                              "radius": "theme-full",
+                              "bgColor": "theme-primary",
+                              "textColor": "theme-surface",
+                              "buttonSize": "theme-lg",
+                              "submitRedirectUrl": ""
+                            }
+                          },
+                          {
+                            "type": "ContentButton",
+                            "props": {
+                              "id": "Button-settings-delete-address",
+                              "label": {
+                                "ar": "حذف",
+                                "en": "Delete"
+                              },
+                              "align": "center",
+                              "destinationType": "action",
+                              "buttonAction": "deleteAddress",
+                              "link": {
+                                "kind": "none"
+                              },
+                              "zoneKey": "popup-main",
+                              "zoneAction": "open",
+                              "buttonVariantMode": "variant",
+                              "buttonVariant": "error",
+                              "buttonVariantSize": "lg",
+                              "radius": "theme-full",
+                              "bgColor": "theme-primary",
+                              "textColor": "theme-surface",
+                              "buttonSize": "theme-lg",
+                              "submitRedirectUrl": ""
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
             ]
           }
         },
