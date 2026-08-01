@@ -24,6 +24,12 @@ export type StoreAuthState = {
   customerPhone: string | null;
 };
 
+const defaultAuth: StoreAuthState = {
+  isLoggedIn: false,
+  customerName: null,
+  customerPhone: null,
+};
+
 // ─── Loading / Error per-operation ────────────────────────────────────────────
 
 export type StoreLoadingState = {
@@ -246,11 +252,7 @@ const defaultCustomerActions: CustomerActions = {
 };
 
 const defaultValue: StoreContextValue = {
-  auth: {
-    isLoggedIn: false,
-    customerName: null,
-    customerPhone: null,
-  },
+  auth: defaultAuth,
   loading: {
     login: false,
     verifyOtp: false,
@@ -284,9 +286,20 @@ const defaultValue: StoreContextValue = {
 
 // ─── Context + hook ───────────────────────────────────────────────────────────
 
+/**
+ * Auth-only context so visibility gates do not re-render on cart/customer draft
+ * updates. StoreProvider must wrap both this and StoreContext.
+ */
+export const StoreAuthContext = createContext<StoreAuthState>(defaultAuth);
+
 export const StoreContext = createContext<StoreContextValue>(defaultValue);
 
 /** Hook for blocks. Returns no-ops when used outside a StoreProvider. */
 export function useStore(): StoreContextValue {
   return useContext(StoreContext);
+}
+
+/** Auth slice only — prefer this in show-condition gates. */
+export function useStoreAuth(): StoreAuthState {
+  return useContext(StoreAuthContext);
 }

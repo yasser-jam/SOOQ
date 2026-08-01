@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 import { ComponentConfig } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";
 import { WithLayout, withLayout } from "../../components/Layout";
@@ -21,6 +21,47 @@ export type ContentMapProps = WithLayout<{
   interactive: boolean;
   mapAction: ContentMapAction;
 }>;
+
+type BoundAddressDraftMapProps = {
+  heightPx: number;
+  zoom: number;
+  defaultLat: number;
+  defaultLng: number;
+  interactive: boolean;
+};
+
+/**
+ * Isolated subscriber for address-draft coords so the Leaflet map keeps a
+ * stable component identity while sibling inputs update the store.
+ */
+function BoundAddressDraftMap({
+  heightPx,
+  zoom,
+  defaultLat,
+  defaultLng,
+  interactive,
+}: BoundAddressDraftMapProps) {
+  const { customer, actions } = useStore();
+  const onLocationChange = useCallback(
+    (latitude: number, longitude: number) => {
+      actions.customer.setAddressDraftLocation(latitude, longitude);
+    },
+    [actions.customer]
+  );
+
+  return (
+    <ContentMapClient
+      heightPx={heightPx}
+      zoom={zoom}
+      defaultLat={defaultLat}
+      defaultLng={defaultLng}
+      interactive={interactive}
+      latitude={customer.addressDraft.latitude}
+      longitude={customer.addressDraft.longitude}
+      onLocationChange={onLocationChange}
+    />
+  );
+}
 
 const ContentMapInner: ComponentConfig<ContentMapProps> = {
   label: "خريطة",
@@ -66,7 +107,6 @@ const ContentMapInner: ComponentConfig<ContentMapProps> = {
     mapAction,
     puck,
   }) => {
-    const { customer, actions } = useStore();
     const isAddressDraftLocation = mapAction === "address_draft_location";
 
     if (puck.isEditing || typeof window === "undefined") {
@@ -82,23 +122,26 @@ const ContentMapInner: ComponentConfig<ContentMapProps> = {
 
     return (
       <div className={getClassName()}>
-        <ContentMapClient
-          heightPx={heightPx}
-          zoom={zoom}
-          defaultLat={defaultLat}
-          defaultLng={defaultLng}
-          interactive={interactive}
-          latitude={
-            isAddressDraftLocation ? customer.addressDraft.latitude : null
-          }
-          longitude={
-            isAddressDraftLocation ? customer.addressDraft.longitude : null
-          }
-          onLocationChange={(latitude, longitude) => {
-            if (!isAddressDraftLocation) return;
-            actions.customer.setAddressDraftLocation(latitude, longitude);
-          }}
-        />
+        {isAddressDraftLocation ? (
+          <BoundAddressDraftMap
+            heightPx={heightPx}
+            zoom={zoom}
+            defaultLat={defaultLat}
+            defaultLng={defaultLng}
+            interactive={interactive}
+          />
+        ) : (
+          <ContentMapClient
+            heightPx={heightPx}
+            zoom={zoom}
+            defaultLat={defaultLat}
+            defaultLng={defaultLng}
+            interactive={interactive}
+            latitude={null}
+            longitude={null}
+            onLocationChange={() => {}}
+          />
+        )}
       </div>
     );
   },

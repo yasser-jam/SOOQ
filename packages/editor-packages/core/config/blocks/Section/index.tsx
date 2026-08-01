@@ -415,58 +415,21 @@ type SectionViewProps = SectionProps & {
   puck: { isEditing?: boolean };
 };
 
-function SectionView({
-  id,
-  name: _name,
-  anchorId,
-  visible,
-  paddingTop,
-  paddingBottom,
-  paddingHorizontal,
-  backgroundColor,
-  backgroundImage,
-  backgroundOverlayColor,
-  theme,
-  maxWidth,
-  columns,
-  columnsMobile,
-  gridGap,
-  sectionKind,
-  collection,
-  metadata: sectionMetadata,
-  cartSlotItems,
-  cardTemplate,
-  content: Content,
-  puck,
-}: SectionViewProps) {
-  const cols = clampColumns(columns);
-  // Default mobile layout: single column unless the merchant overrides.
-  const colsMobile = clampColumns(columnsMobile ?? 1);
-  const isEditing = puck.isEditing === true;
-  const activeCols = useEditorActiveColumns(isEditing, cols, colsMobile);
+/**
+ * Owns the StoreContext subscription for customer-account sections so the
+ * surrounding Section (and its slot tree) does not re-render when the user
+ * types into address-draft fields.
+ */
+function CustomerAccountBoundShell({
+  isEditing,
+  children,
+}: {
+  isEditing: boolean;
+  children: React.ReactNode;
+}) {
   const { customer } = useStore();
   const { language } = useActiveLanguage();
   const sampleMode = isEditing && useSampleDataInEditor();
-
-  const isProductsGrid = isProductsGridSection({
-    sectionKind,
-    metadata: sectionMetadata,
-  });
-
-  const isProductsPage = isProductsPageSection({
-    sectionKind,
-    metadata: sectionMetadata,
-  });
-
-  const isCustomerAccount = isCustomerAccountSection({
-    sectionKind,
-    metadata: sectionMetadata,
-  });
-
-  const isCustomerAddresses = isCustomerAddressesSection({
-    sectionKind,
-    metadata: sectionMetadata,
-  });
 
   const customerAccountBoundData = useMemo(() => {
     if (sampleMode) {
@@ -504,8 +467,65 @@ function SectionView({
       selectedVariantId: null,
       setSelectedVariantId: () => {},
     }),
-    [customerAccountBoundData]
+    [customerAccountBoundData, language]
   );
+
+  return (
+    <BoundDataProvider value={customerAccountProviderValue}>
+      {children}
+    </BoundDataProvider>
+  );
+}
+
+function SectionView({
+  id,
+  name: _name,
+  anchorId,
+  visible,
+  paddingTop,
+  paddingBottom,
+  paddingHorizontal,
+  backgroundColor,
+  backgroundImage,
+  backgroundOverlayColor,
+  theme,
+  maxWidth,
+  columns,
+  columnsMobile,
+  gridGap,
+  sectionKind,
+  collection,
+  metadata: sectionMetadata,
+  cartSlotItems,
+  cardTemplate,
+  content: Content,
+  puck,
+}: SectionViewProps) {
+  const cols = clampColumns(columns);
+  // Default mobile layout: single column unless the merchant overrides.
+  const colsMobile = clampColumns(columnsMobile ?? 1);
+  const isEditing = puck.isEditing === true;
+  const activeCols = useEditorActiveColumns(isEditing, cols, colsMobile);
+
+  const isProductsGrid = isProductsGridSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const isProductsPage = isProductsPageSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const isCustomerAccount = isCustomerAccountSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const isCustomerAddresses = isCustomerAddressesSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
 
   const gap = gridGap ?? "24px";
   const bgImage = (backgroundImage ?? "").trim();
@@ -583,9 +603,9 @@ function SectionView({
   );
 
   const customerAccountContent = isCustomerAccount ? (
-    <BoundDataProvider value={customerAccountProviderValue}>
+    <CustomerAccountBoundShell isEditing={isEditing}>
       {defaultSectionContent}
-    </BoundDataProvider>
+    </CustomerAccountBoundShell>
   ) : (
     defaultSectionContent
   );

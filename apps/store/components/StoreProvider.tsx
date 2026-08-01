@@ -7,6 +7,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
+	StoreAuthContext,
 	StoreContext,
 	defaultCustomerState,
 	type CustomerAddressDraft,
@@ -639,15 +640,17 @@ export function StoreProvider({
 
 	return (
 		<LanguageProvider initialLanguage={initialLanguage} persist>
-			<StoreContext.Provider value={value}>
-				{children}
-				<CheckoutDrawer
-					open={checkoutOpen}
-					onClose={closeCheckout}
-					cart={checkoutCart}
-					tenantId={getStoreTenantId()}
-				/>
-			</StoreContext.Provider>
+			<StoreAuthContext.Provider value={auth}>
+				<StoreContext.Provider value={value}>
+					{children}
+					<CheckoutDrawer
+						open={checkoutOpen}
+						onClose={closeCheckout}
+						cart={checkoutCart}
+						tenantId={getStoreTenantId()}
+					/>
+				</StoreContext.Provider>
+			</StoreAuthContext.Provider>
 		</LanguageProvider>
 	)
 }

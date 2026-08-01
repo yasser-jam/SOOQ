@@ -692,12 +692,13 @@ const DropZoneRenderItem = ({
     <SlotRenderPure {...slotProps} config={config} metadata={metadata} />
   )) as WithPuckProps<ComponentData["props"]>;
 
+  const areaId = props.id as string;
   const nextContextValue = useMemo<DropZoneContext>(
     () => ({
-      areaId: props.id,
+      areaId,
       depth: 1,
     }),
-    [props]
+    [areaId]
   );
 
   const richtextProps = useRichtextProps(Component.fields, props);
