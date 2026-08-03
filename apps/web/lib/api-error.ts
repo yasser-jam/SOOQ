@@ -24,13 +24,17 @@ export const handleApiError = (error: AxiosError<unknown>) => {
 
   const status = error.response?.status
   const mapped = mapAuthError(responseData)
+  const isCustomerApi = Boolean(error.config?.url?.includes("/customer/"))
 
   // Suppress toast for handled actions:
   // - 401 refresh-and-retry already handled silently by the interceptor
+  // - storefront customer 403: StoreProvider clears sooq-store-access-token
+  //   silently (no login redirect)
   // - field errors should be rendered inline by the caller
   // - cooldown is rendered inline
   const suppressToast =
     status === 401 ||
+    (status === 403 && isCustomerApi) ||
     mapped.action === "show-field-error" ||
     mapped.action === "show-cooldown" ||
     mapped.action === "hide-feature" ||

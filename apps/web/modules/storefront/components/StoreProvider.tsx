@@ -173,15 +173,35 @@ export function StoreProvider({
 	const refreshCustomer = useCallback(async () => {
 		setCustomer((prev) => ({ ...prev, isLoading: true, isError: false }))
 
-		const [profileResult, preferencesResult, addressesResult] =
-			await Promise.allSettled([
-				getCustomerProfile(),
-				getCustomerPreferences(),
-				listCustomerAddresses(),
-			])
+		// Always validate the storefront session via /customer/profile first.
+		// A 403 means the token is invalid — drop the cookie and stay put
+		// (no login redirect).
+		let profile: Awaited<ReturnType<typeof getCustomerProfile>> | null =
+			null
+		try {
+			profile = await getCustomerProfile()
+		} catch (err) {
+			const status =
+				typeof err === "object" && err && "status" in err
+					? (err as { status?: number }).status
+					: undefined
+			if (status === 403) {
+				clearCookie(cookiesConfig.storeAccessToken)
+				setAuth({
+					isLoggedIn: false,
+					customerName: null,
+					customerPhone: null,
+				})
+				setCustomer(defaultCustomerState)
+				return
+			}
+		}
 
-		const profile =
-			profileResult.status === "fulfilled" ? profileResult.value : null
+		const [preferencesResult, addressesResult] = await Promise.allSettled([
+			getCustomerPreferences(),
+			listCustomerAddresses(),
+		])
+
 		const preferences =
 			preferencesResult.status === "fulfilled"
 				? preferencesResult.value
