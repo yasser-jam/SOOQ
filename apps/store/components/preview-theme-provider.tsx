@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useLayoutEffect } from "react";
+import { ReactNode, useLayoutEffect, useMemo } from "react";
 import {
   buildResponsiveLayoutCss,
   COLOR_KEYS,
@@ -33,38 +33,69 @@ export function PreviewThemeProvider({
   const { bodyFont, fontOption1, fontOption2, bodyFontCss, font1Css, font2Css } =
     fonts;
 
-  const colors: ColorTheme = {
-    primary: rootProps?.primary ?? DEFAULT_COLORS.primary,
-    surface: rootProps?.surface ?? DEFAULT_COLORS.surface,
-    success: rootProps?.success ?? DEFAULT_COLORS.success,
-    warning: rootProps?.warning ?? DEFAULT_COLORS.warning,
-    error: rootProps?.error ?? DEFAULT_COLORS.error,
-    dark: rootProps?.dark ?? DEFAULT_COLORS.dark,
-    text: rootProps?.text ?? DEFAULT_COLORS.text,
-    neutral: rootProps?.neutral ?? DEFAULT_COLORS.neutral,
-  };
+  const colors: ColorTheme = useMemo(
+    () => ({
+      primary: rootProps?.primary ?? DEFAULT_COLORS.primary,
+      surface: rootProps?.surface ?? DEFAULT_COLORS.surface,
+      success: rootProps?.success ?? DEFAULT_COLORS.success,
+      warning: rootProps?.warning ?? DEFAULT_COLORS.warning,
+      error: rootProps?.error ?? DEFAULT_COLORS.error,
+      dark: rootProps?.dark ?? DEFAULT_COLORS.dark,
+      text: rootProps?.text ?? DEFAULT_COLORS.text,
+      neutral: rootProps?.neutral ?? DEFAULT_COLORS.neutral,
+    }),
+    [
+      rootProps?.primary,
+      rootProps?.surface,
+      rootProps?.success,
+      rootProps?.warning,
+      rootProps?.error,
+      rootProps?.dark,
+      rootProps?.text,
+      rootProps?.neutral,
+    ]
+  );
 
   const badgeShape = (rootProps?.badgeShape ??
     DEFAULT_BADGE.badgeShape) as BadgeShape;
   const badgeStyle = (rootProps?.badgeStyle ??
     DEFAULT_BADGE.badgeStyle) as BadgeStyle;
-  const badgeVars = computeBadgeThemeVars(
-    badgeShape,
-    badgeStyle,
-    colors.error,
-    colors.success,
-    colors.neutral
+  const badgeVars = useMemo(
+    () =>
+      computeBadgeThemeVars(
+        badgeShape,
+        badgeStyle,
+        colors.error,
+        colors.success,
+        colors.neutral
+      ),
+    [badgeShape, badgeStyle, colors.error, colors.success, colors.neutral]
   );
-  const derivedColorVars = computeDerivedColorThemeVars(colors);
-  const scaleVars = computeScaleThemeVars(rootProps);
-  const buttonVariantVars = computeButtonVariantThemeVars(
-    rootProps as Partial<FullThemeProps>
+  const derivedColorVars = useMemo(
+    () => computeDerivedColorThemeVars(colors),
+    [colors]
   );
-  const bp = normalizeBreakpoints({
-    breakpointMobileMax: rootProps?.breakpointMobileMax,
-    breakpointTabletMax: rootProps?.breakpointTabletMax,
-  });
-  const responsiveLayoutCss = buildResponsiveLayoutCss(bp);
+  const scaleVars = useMemo(
+    () => computeScaleThemeVars(rootProps),
+    [rootProps]
+  );
+  const buttonVariantVars = useMemo(
+    () =>
+      computeButtonVariantThemeVars(rootProps as Partial<FullThemeProps>),
+    [rootProps]
+  );
+  const bp = useMemo(
+    () =>
+      normalizeBreakpoints({
+        breakpointMobileMax: rootProps?.breakpointMobileMax,
+        breakpointTabletMax: rootProps?.breakpointTabletMax,
+      }),
+    [rootProps?.breakpointMobileMax, rootProps?.breakpointTabletMax]
+  );
+  const responsiveLayoutCss = useMemo(
+    () => buildResponsiveLayoutCss(bp),
+    [bp]
+  );
 
   useLayoutEffect(() => {
     const doc = document;
@@ -96,7 +127,7 @@ export function PreviewThemeProvider({
         --theme-font-1: ${font1Css};
         --theme-font-2: ${font2Css};`;
 
-    styleEl.textContent = `
+    const nextCss = `
       :root {
 ${fontVarLines}
 ${colorVarLines}
@@ -118,6 +149,10 @@ ${buttonVariantVarLines}
       }
     `;
 
+    if (styleEl.textContent !== nextCss) {
+      styleEl.textContent = nextCss;
+    }
+
     const html = doc.documentElement;
     html.setAttribute("data-theme-body-font", bodyFont);
     html.setAttribute("data-theme-font-1", fontOption1);
@@ -131,7 +166,9 @@ ${buttonVariantVarLines}
       responsiveEl.id = "puck-responsive-layout";
       doc.head.appendChild(responsiveEl);
     }
-    responsiveEl.textContent = responsiveLayoutCss;
+    if (responsiveEl.textContent !== responsiveLayoutCss) {
+      responsiveEl.textContent = responsiveLayoutCss;
+    }
 
     ensureGoogleFontsLoaded(doc, [bodyFont, fontOption1, fontOption2]);
   }, [
@@ -139,14 +176,7 @@ ${buttonVariantVarLines}
     bodyFont,
     bodyFontCss,
     buttonVariantVars,
-    colors.dark,
-    colors.error,
-    colors.neutral,
-    colors.primary,
-    colors.success,
-    colors.surface,
-    colors.text,
-    colors.warning,
+    colors,
     derivedColorVars,
     font1Css,
     font2Css,

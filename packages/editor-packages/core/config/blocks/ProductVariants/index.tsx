@@ -174,10 +174,32 @@ export const ProductVariants: ComponentConfig<ProductVariantsProps> = {
   },
   render: ({ showOptionLabels, chipStyle }) => {
     const { data, language, setSelectedVariantId } = useBoundData();
+
+    // Price swaps (applyVariantPricing) clone the payload but keep the same
+    // variantMatrix reference — parse from that slice only so option chips
+    // don't remount and the init effect doesn't wipe the selection on click.
+    const variantMatrix = data?.variantMatrix;
+    const variantsFallback = data?.variants;
     const { optionGroups, variants } = useMemo(
-      () => parseVariantMatrix(data, language),
-      [data, language]
+      () =>
+        parseVariantMatrix(
+          variantMatrix != null || variantsFallback != null
+            ? {
+                variantMatrix,
+                variants: variantsFallback,
+              }
+            : null,
+          language
+        ),
+      [variantMatrix, variantsFallback, language]
     );
+
+    const productKey = useMemo(() => {
+      if (!data) return null;
+      const product = data.product as Record<string, unknown> | undefined;
+      const id = String(product?.productId ?? product?.id ?? "").trim();
+      return id || null;
+    }, [data]);
 
     const [selections, setSelections] = useState<Record<string, string>>({});
 
@@ -200,7 +222,9 @@ export const ProductVariants: ComponentConfig<ProductVariantsProps> = {
 
       setSelections(initial);
       setSelectedVariantId(firstActive?.variantId ?? null);
-    }, [data, optionGroups, variants, setSelectedVariantId]);
+      // Re-init only when the bound product / matrix identity changes — never
+      // when pricing is swapped onto the same product payload.
+    }, [productKey, optionGroups, variants, setSelectedVariantId]);
 
     if (!data) {
       return (

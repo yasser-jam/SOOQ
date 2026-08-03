@@ -102,9 +102,16 @@ export function GroupClient({
     !skipProductDetailFetch &&
     !sampleMode;
 
-  const [selectedVariantId, setSelectedVariantId] = React.useState<string | null>(
-    null
-  );
+  // Own a local variant selection only when this Group binds its own product
+  // (or cart line). Layout Groups with `product: null` must inherit from the
+  // parent BoundDataProvider (e.g. UrlBoundProductProvider) so variant chips,
+  // price, and add-to-cart share one selection — and so pricing clones at
+  // nested Groups don't fight each other.
+  const ownsVariantState = Boolean(cartLineId || product?.id);
+
+  const [localSelectedVariantId, setLocalSelectedVariantId] = React.useState<
+    string | null
+  >(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: boundQueryKeys.productDetail(productId ?? "", productApiUrl ?? ""),
@@ -114,8 +121,10 @@ export function GroupClient({
   });
 
   React.useEffect(() => {
-    setSelectedVariantId(null);
-  }, [productId, cartLineId]);
+    if (ownsVariantState) {
+      setLocalSelectedVariantId(null);
+    }
+  }, [productId, cartLineId, ownsVariantState]);
 
   const cartLine = useMemo(() => {
     if (!cartLineId) return null;
@@ -162,15 +171,27 @@ export function GroupClient({
     return null;
   }
 
+  const setSelectedVariantId = ownsVariantState
+    ? setLocalSelectedVariantId
+    : parentBound.setSelectedVariantId;
+
   const effectiveVariantId =
-    cartLine?.selectedVariant?.variantId ?? selectedVariantId;
+    cartLine?.selectedVariant?.variantId ??
+    (ownsVariantState
+      ? localSelectedVariantId
+      : parentBound.selectedVariantId);
+
   const effectiveBoundData = React.useMemo(() => {
     if (!boundData || cartLineId) return boundData;
+    // Parent provider (URL / owning Group) already applied variant pricing —
+    // re-cloning here would change `data` identity on every nested Group and
+    // make variant UI flicker/reset.
+    if (!ownsVariantState) return boundData;
     return applyVariantPricing(
       boundData as Record<string, unknown>,
       effectiveVariantId
     );
-  }, [boundData, cartLineId, effectiveVariantId]);
+  }, [boundData, cartLineId, effectiveVariantId, ownsVariantState]);
 
   const boundProviderValue = {
     data: effectiveBoundData,

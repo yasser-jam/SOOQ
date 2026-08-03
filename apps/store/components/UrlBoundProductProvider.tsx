@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import {
 	BoundDataProvider,
+	applyVariantPricing,
 	type BoundDataContextValue,
 } from "@/core/config/binding"
 import { useActiveLanguage } from "@/core/config/locale/LanguageContext"
@@ -27,7 +28,7 @@ export function UrlBoundProductProvider({
 	slug: string
 	children: React.ReactNode
 }) {
-	const { language } = useActiveLanguage();
+	const { language } = useActiveLanguage()
 	const adapter = getEditorDataAdapter()
 	const metadata = useMemo(
 		() => adapter.buildPublicProductResourceMetadata(slug),
@@ -49,9 +50,18 @@ export function UrlBoundProductProvider({
 		setSelectedVariantId(null)
 	}, [slug])
 
+	const pricedData = useMemo(
+		() =>
+			applyVariantPricing(
+				(data ?? null) as Record<string, unknown> | null,
+				selectedVariantId,
+			),
+		[data, selectedVariantId],
+	)
+
 	const value = useMemo<BoundDataContextValue>(
 		() => ({
-			data: (data ?? null) as Record<string, unknown> | null,
+			data: pricedData,
 			isLoading,
 			isError,
 			metadata,
@@ -59,7 +69,7 @@ export function UrlBoundProductProvider({
 			selectedVariantId,
 			setSelectedVariantId,
 		}),
-		[data, isLoading, isError, metadata, language, selectedVariantId],
+		[pricedData, isLoading, isError, metadata, language, selectedVariantId],
 	)
 
 	return <BoundDataProvider value={value}>{children}</BoundDataProvider>
