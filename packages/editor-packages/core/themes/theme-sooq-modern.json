@@ -17,32 +17,32 @@
       "success": "#059669",
       "warning": "#d97706",
       "error": "#dc2626",
-      "dark": "#0f172a",
-      "text": "#0f172a",
-      "neutral": "#64748b",
+      "dark": "#12302c",
+      "text": "#12302c",
+      "neutral": "#5e6e6b",
       "badgeShape": "rounded",
       "badgeStyle": "soft",
       "headerVariant": "commerce",
       "footerVariant": "commerce",
       "spacingVerticalNarrow": "16px",
-      "spacingVerticalMedium": "40px",
-      "spacingVerticalWide": "72px",
-      "spacingSideNarrow": "12px",
-      "spacingSideMedium": "20px",
-      "spacingSideWide": "40px",
+      "spacingVerticalMedium": "48px",
+      "spacingVerticalWide": "80px",
+      "spacingSideNarrow": "16px",
+      "spacingSideMedium": "24px",
+      "spacingSideWide": "48px",
       "breakpointMobileMax": 767,
       "breakpointTabletMax": 1023,
       "textSizeXs": "0.75rem",
       "textSizeSm": "0.875rem",
       "textSizeMd": "1rem",
       "textSizeLg": "1.25rem",
-      "textSizeXl": "1.625rem",
-      "textSize2xl": "2.25rem",
+      "textSizeXl": "1.75rem",
+      "textSize2xl": "2.5rem",
       "radiusNone": "0",
-      "radiusSm": "4px",
-      "radiusMd": "8px",
-      "radiusLg": "12px",
-      "radiusXl": "16px",
+      "radiusSm": "6px",
+      "radiusMd": "10px",
+      "radiusLg": "16px",
+      "radiusXl": "24px",
       "radiusFull": "9999px",
       "fontWeightLight": "300",
       "fontWeightNormal": "400",
@@ -50,12 +50,12 @@
       "fontWeightSemibold": "600",
       "fontWeightBold": "700",
       "fontWeightBolder": "700",
-      "lineHeightTight": "1.25",
-      "lineHeightNormal": "1.55",
-      "lineHeightRelaxed": "1.75",
+      "lineHeightTight": "1.2",
+      "lineHeightNormal": "1.6",
+      "lineHeightRelaxed": "1.8",
       "buttonMdHeight": "44px",
-      "buttonMdPaddingX": "20px",
-      "buttonMdPaddingY": "8px",
+      "buttonMdPaddingX": "22px",
+      "buttonMdPaddingY": "10px",
       "buttonMdFontSize": "0.9375rem",
       "buttonLgHeight": "52px",
       "buttonLgPaddingX": "28px",
@@ -63,15 +63,15 @@
       "buttonLgFontSize": "1.0625rem",
       "buttonVariantPrimaryBg": "#0f766e",
       "buttonVariantPrimaryFg": "#ffffff",
-      "buttonVariantPrimaryRadius": "8px",
+      "buttonVariantPrimaryRadius": "10px",
       "buttonVariantPrimarySize": "md",
-      "buttonVariantSecondaryBg": "#fff7ed",
-      "buttonVariantSecondaryFg": "#9a3412",
-      "buttonVariantSecondaryRadius": "8px",
+      "buttonVariantSecondaryBg": "#e6f4f2",
+      "buttonVariantSecondaryFg": "#0f766e",
+      "buttonVariantSecondaryRadius": "10px",
       "buttonVariantSecondarySize": "md",
       "buttonVariantErrorBg": "#dc2626",
       "buttonVariantErrorFg": "#ffffff",
-      "buttonVariantErrorRadius": "8px",
+      "buttonVariantErrorRadius": "10px",
       "buttonVariantErrorSize": "md"
     }
   },
@@ -148,7 +148,7 @@
             }
           ],
           "backgroundColor": "#ffffff",
-          "textColor": "#0f172a",
+          "textColor": "#12302c",
           "layoutMode": "centered",
           "menuAlign": "end",
           "navStyle": "underline",
@@ -252,8 +252,8 @@
           "visible": true,
           "is_mobile_only": false,
           "tagline": {
-            "ar": "متجر نظيف وواضح — تسوق بثقة.",
-            "en": "A clean, clear storefront — shop with confidence."
+            "ar": "تسوق هادئ، أسعار واضحة، وتوصيل موثوق.",
+            "en": "Calm shopping, clear prices, reliable delivery."
           },
           "showBottomBar": true,
           "bottomBarText": {
@@ -393,8 +393,8 @@
               }
             }
           ],
-          "backgroundColor": "#0f172a",
-          "textColor": "#99f6e4"
+          "backgroundColor": "#12302c",
+          "textColor": "#a8ddd6"
         }
       }
     ],
@@ -718,24 +718,24 @@
             "name": "الهيرو (Hero)",
             "anchorId": "hero",
             "visible": true,
-            "paddingTop": "64px",
-            "paddingBottom": "64px",
-            "paddingHorizontal": "20px",
-            "backgroundColor": "#f8fafc",
+            "paddingTop": "80px",
+            "paddingBottom": "80px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#eaf5f3",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
             "maxWidth": "1280px",
             "columns": 2,
             "columnsMobile": 1,
-            "gridGap": "32px",
+            "gridGap": "40px",
             "content": [
               {
                 "type": "Group",
                 "props": {
                   "id": "Group-hero-copy",
                   "direction": "column",
-                  "gap": 16,
+                  "gap": 20,
                   "alignItems": "flex-start",
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
@@ -754,8 +754,8 @@
                       "props": {
                         "id": "Paragraph-hero-eyebrow",
                         "text": {
-                          "ar": "متجر عصري بسيط",
-                          "en": "A simple modern store"
+                          "ar": "سوق مودرن",
+                          "en": "Sooq Modern"
                         },
                         "textAlign": "right",
                         "fontFamily": "option2",
@@ -763,7 +763,7 @@
                         "fontWeight": "theme-semibold",
                         "lineHeight": "theme-tight",
                         "fontStyle": "normal",
-                        "textTransform": "uppercase",
+                        "textTransform": "none",
                         "color": "theme-primary"
                       }
                     },
@@ -876,14 +876,14 @@
                 "type": "ContentImage",
                 "props": {
                   "id": "Image-hero",
-                  "src": "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1200&q=80",
+                  "src": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1400&q=80",
                   "alt": {
                     "ar": "واجهة متجر حديثة",
                     "en": "Modern storefront"
                   },
                   "align": "center",
                   "objectFit": "cover",
-                  "radius": "theme-md",
+                  "radius": "theme-xl",
                   "maxWidth": "100%"
                 }
               }
@@ -897,10 +897,10 @@
             "name": "أرقام سريعة (Stats)",
             "anchorId": "stats",
             "visible": true,
-            "paddingTop": "40px",
-            "paddingBottom": "40px",
+            "paddingTop": "48px",
+            "paddingBottom": "48px",
             "paddingHorizontal": "20px",
-            "backgroundColor": "#0f172a",
+            "backgroundColor": "#12302c",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "light",
@@ -943,8 +943,8 @@
             "name": "المزايا (Benefits)",
             "anchorId": "features",
             "visible": true,
-            "paddingTop": "56px",
-            "paddingBottom": "56px",
+            "paddingTop": "72px",
+            "paddingBottom": "72px",
             "paddingHorizontal": "20px",
             "backgroundColor": "#ffffff",
             "backgroundImage": "",
@@ -953,7 +953,7 @@
             "maxWidth": "1200px",
             "columns": 3,
             "columnsMobile": 1,
-            "gridGap": "20px",
+            "gridGap": "24px",
             "content": [
               {
                 "type": "ContentHeading",
@@ -1035,10 +1035,10 @@
             "name": "منتجات مختارة (Featured products)",
             "anchorId": "featured",
             "visible": true,
-            "paddingTop": "56px",
-            "paddingBottom": "56px",
+            "paddingTop": "72px",
+            "paddingBottom": "72px",
             "paddingHorizontal": "20px",
-            "backgroundColor": "#f0fdfa",
+            "backgroundColor": "#f3f6f5",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -1112,7 +1112,7 @@
                       "props": {
                         "id": "Group-products-card-template",
                         "direction": "column",
-                        "gap": 14,
+                        "gap": 12,
                         "alignItems": "stretch",
                         "justifyContent": "flex-start",
                         "wrap": "nowrap",
@@ -1123,9 +1123,9 @@
                         "backgroundColor": "#ffffff",
                         "backgroundImage": "",
                         "backgroundOverlayColor": "",
-                        "padding": "12px",
-                        "borderRadius": "theme-md",
-                        "boxShadow": "none",
+                        "padding": "16px",
+                        "borderRadius": "theme-lg",
+                        "boxShadow": "sm",
                         "layout": {
                           "grow": true,
                           "spanCol": 1,
@@ -1137,7 +1137,7 @@
                             "type": "ContentImage",
                             "props": {
                               "id": "Image-products-card",
-                              "src": "https://placehold.co/400x400/ccfbf1/0f766e?text=Product",
+                              "src": "https://placehold.co/400x400/eaf5f3/0f766e?text=Product",
                               "alt": {
                                 "ar": "",
                                 "en": ""
@@ -1252,7 +1252,7 @@
                       "props": {
                         "id": "Group-products-card-template",
                         "direction": "column",
-                        "gap": 14,
+                        "gap": 12,
                         "alignItems": "stretch",
                         "justifyContent": "flex-start",
                         "wrap": "nowrap",
@@ -1263,9 +1263,9 @@
                         "backgroundColor": "#ffffff",
                         "backgroundImage": "",
                         "backgroundOverlayColor": "",
-                        "padding": "12px",
-                        "borderRadius": "theme-md",
-                        "boxShadow": "none",
+                        "padding": "16px",
+                        "borderRadius": "theme-lg",
+                        "boxShadow": "sm",
                         "layout": {
                           "grow": true,
                           "spanCol": 1,
@@ -1277,7 +1277,7 @@
                             "type": "ContentImage",
                             "props": {
                               "id": "Image-products-card",
-                              "src": "https://placehold.co/400x400/ccfbf1/0f766e?text=Product",
+                              "src": "https://placehold.co/400x400/eaf5f3/0f766e?text=Product",
                               "alt": {
                                 "ar": "",
                                 "en": ""
@@ -1419,8 +1419,8 @@
             "name": "لمحات من المتجر (Gallery)",
             "anchorId": "gallery",
             "visible": true,
-            "paddingTop": "56px",
-            "paddingBottom": "56px",
+            "paddingTop": "72px",
+            "paddingBottom": "72px",
             "paddingHorizontal": "20px",
             "backgroundColor": "#ffffff",
             "backgroundImage": "",
@@ -1457,8 +1457,8 @@
                   "mode": "grid",
                   "aspectRatio": "square",
                   "objectFit": "cover",
-                  "radius": "theme-md",
-                  "gap": "theme-12",
+                  "radius": "theme-lg",
+                  "gap": "theme-16",
                   "images": [
                     {
                       "src": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80",
@@ -1521,10 +1521,10 @@
             "name": "شركاء موثوقون (Logos)",
             "anchorId": "partners",
             "visible": true,
-            "paddingTop": "32px",
-            "paddingBottom": "32px",
+            "paddingTop": "40px",
+            "paddingBottom": "40px",
             "paddingHorizontal": "20px",
-            "backgroundColor": "#f8fafc",
+            "backgroundColor": "#eaf5f3",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -1558,23 +1558,23 @@
                   "logos": [
                     {
                       "alt": "Brand A",
-                      "imageUrl": "https://placehold.co/160x48/f1f5f9/64748b?text=Brand+A"
+                      "imageUrl": "https://placehold.co/160x48/e8eeec/5e6e6b?text=Brand+A"
                     },
                     {
                       "alt": "Brand B",
-                      "imageUrl": "https://placehold.co/160x48/f1f5f9/64748b?text=Brand+B"
+                      "imageUrl": "https://placehold.co/160x48/e8eeec/5e6e6b?text=Brand+B"
                     },
                     {
                       "alt": "Brand C",
-                      "imageUrl": "https://placehold.co/160x48/f1f5f9/64748b?text=Brand+C"
+                      "imageUrl": "https://placehold.co/160x48/e8eeec/5e6e6b?text=Brand+C"
                     },
                     {
                       "alt": "Brand D",
-                      "imageUrl": "https://placehold.co/160x48/f1f5f9/64748b?text=Brand+D"
+                      "imageUrl": "https://placehold.co/160x48/e8eeec/5e6e6b?text=Brand+D"
                     },
                     {
                       "alt": "Brand E",
-                      "imageUrl": "https://placehold.co/160x48/f1f5f9/64748b?text=Brand+E"
+                      "imageUrl": "https://placehold.co/160x48/e8eeec/5e6e6b?text=Brand+E"
                     }
                   ]
                 }
@@ -1589,14 +1589,14 @@
             "name": "دعوة للتسوق (Shop CTA)",
             "anchorId": "cta",
             "visible": true,
-            "paddingTop": "64px",
-            "paddingBottom": "64px",
+            "paddingTop": "72px",
+            "paddingBottom": "72px",
             "paddingHorizontal": "20px",
-            "backgroundColor": "#0f172a",
+            "backgroundColor": "#0f766e",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "light",
-            "maxWidth": "800px",
+            "maxWidth": "840px",
             "columns": 1,
             "columnsMobile": 1,
             "gridGap": "24px",
@@ -1635,7 +1635,7 @@
                   "lineHeight": "theme-normal",
                   "fontStyle": "normal",
                   "textTransform": "none",
-                  "color": "#cbd5e1"
+                  "color": "#c5ebe6"
                 }
               },
               {
@@ -1657,8 +1657,8 @@
                   "buttonVariant": "primary",
                   "buttonVariantSize": "lg",
                   "radius": "theme-md",
-                  "bgColor": "#ea580c",
-                  "textColor": "#ffffff",
+                  "bgColor": "#ffffff",
+                  "textColor": "#0f766e",
                   "buttonSize": "theme-lg",
                   "submitRedirectUrl": ""
                 }
@@ -1694,10 +1694,10 @@
             "name": "تسجيل الدخول (Sign in)",
             "anchorId": "login",
             "visible": true,
-            "paddingTop": "80px",
+            "paddingTop": "88px",
             "paddingBottom": "96px",
             "paddingHorizontal": "24px",
-            "backgroundColor": "#f0fdfa",
+            "backgroundColor": "#eaf5f3",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -1718,9 +1718,9 @@
                   "backgroundColor": "#ffffff",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
-                  "padding": "32px",
-                  "borderRadius": "theme-lg",
-                  "boxShadow": "md",
+                  "padding": "36px",
+                  "borderRadius": "theme-xl",
+                  "boxShadow": "sm",
                   "product": null,
                   "metadata": null,
                   "language": "ar",
@@ -1899,10 +1899,10 @@
             "name": "تأكيد الرمز (Verify code)",
             "anchorId": "verify",
             "visible": true,
-            "paddingTop": "80px",
+            "paddingTop": "88px",
             "paddingBottom": "96px",
             "paddingHorizontal": "24px",
-            "backgroundColor": "#fff7ed",
+            "backgroundColor": "#eaf5f3",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -1923,9 +1923,9 @@
                   "backgroundColor": "#ffffff",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
-                  "padding": "32px",
-                  "borderRadius": "theme-lg",
-                  "boxShadow": "md",
+                  "padding": "36px",
+                  "borderRadius": "theme-xl",
+                  "boxShadow": "sm",
                   "product": null,
                   "metadata": null,
                   "language": "ar",
@@ -1938,7 +1938,7 @@
                         "size": 40,
                         "colorMode": "fixed",
                         "colorTheme": "primary",
-                        "colorFixed": "#ea580c"
+                        "colorFixed": "#0f766e"
                       }
                     },
                     {
@@ -2076,10 +2076,10 @@
             "name": "صفحة المنتجات (Products page)",
             "anchorId": "products",
             "visible": true,
-            "paddingTop": "40px",
-            "paddingBottom": "40px",
+            "paddingTop": "48px",
+            "paddingBottom": "56px",
             "paddingHorizontal": "24px",
-            "backgroundColor": "#f8fafc",
+            "backgroundColor": "#f3f6f5",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -2269,7 +2269,7 @@
                   "paddingTop": "0px",
                   "paddingBottom": "0px",
                   "paddingHorizontal": "0px",
-                  "backgroundColor": "#f8fafc",
+                  "backgroundColor": "#f3f6f5",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
                   "theme": "dark",
@@ -2312,7 +2312,7 @@
                             "type": "ContentImage",
                             "props": {
                               "id": "Image-products-card",
-                              "src": "https://placehold.co/400x400/ccfbf1/0f766e?text=Product",
+                              "src": "https://placehold.co/400x400/eaf5f3/0f766e?text=Product",
                               "alt": {
                                 "ar": "",
                                 "en": ""
@@ -2452,7 +2452,7 @@
                             "type": "ContentImage",
                             "props": {
                               "id": "Image-products-card",
-                              "src": "https://placehold.co/400x400/ccfbf1/0f766e?text=Product",
+                              "src": "https://placehold.co/400x400/eaf5f3/0f766e?text=Product",
                               "alt": {
                                 "ar": "",
                                 "en": ""
@@ -2617,8 +2617,8 @@
             "name": "تفاصيل المنتج (Product details)",
             "anchorId": "product",
             "visible": true,
-            "paddingTop": "64px",
-            "paddingBottom": "72px",
+            "paddingTop": "72px",
+            "paddingBottom": "80px",
             "paddingHorizontal": "24px",
             "backgroundColor": "#ffffff",
             "backgroundImage": "",
@@ -2669,7 +2669,7 @@
                             "type": "ContentImage",
                             "props": {
                               "id": "Image-product-detail",
-                              "src": "https://placehold.co/600x600/ccfbf1/0f766e?text=Product",
+                              "src": "https://placehold.co/600x600/eaf5f3/0f766e?text=Product",
                               "alt": {
                                 "ar": "",
                                 "en": ""
@@ -2698,11 +2698,11 @@
                         "alignItems": "stretch",
                         "justifyContent": "flex-start",
                         "wrap": "nowrap",
-                        "backgroundColor": "#f0fdfa",
+                        "backgroundColor": "#eaf5f3",
                         "backgroundImage": "",
                         "backgroundOverlayColor": "",
-                        "padding": "28px",
-                        "borderRadius": "theme-lg",
+                        "padding": "32px",
+                        "borderRadius": "theme-xl",
                         "boxShadow": "sm",
                         "layout": {
                           "grow": true
@@ -2882,10 +2882,10 @@
             "name": "قد يعجبك أيضاً (You may also like)",
             "anchorId": "related",
             "visible": true,
-            "paddingTop": "56px",
-            "paddingBottom": "72px",
+            "paddingTop": "72px",
+            "paddingBottom": "80px",
             "paddingHorizontal": "24px",
-            "backgroundColor": "#f0fdfa",
+            "backgroundColor": "#ffffff",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -2923,7 +2923,7 @@
                   "paddingTop": "0px",
                   "paddingBottom": "0px",
                   "paddingHorizontal": "0px",
-                  "backgroundColor": "#f0fdfa",
+                  "backgroundColor": "#eaf5f3",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
                   "theme": "dark",
@@ -2966,7 +2966,7 @@
                             "type": "ContentImage",
                             "props": {
                               "id": "Image-related-card",
-                              "src": "https://placehold.co/400x400/ccfbf1/0f766e?text=Product",
+                              "src": "https://placehold.co/400x400/eaf5f3/0f766e?text=Product",
                               "alt": {
                                 "ar": "",
                                 "en": ""
@@ -3091,7 +3091,7 @@
                             "type": "ContentImage",
                             "props": {
                               "id": "Image-related-card",
-                              "src": "https://placehold.co/400x400/ccfbf1/0f766e?text=Product",
+                              "src": "https://placehold.co/400x400/eaf5f3/0f766e?text=Product",
                               "alt": {
                                 "ar": "",
                                 "en": ""
@@ -3346,10 +3346,10 @@
             "name": "هيرو من نحن (About hero)",
             "anchorId": "about-hero",
             "visible": true,
-            "paddingTop": "120px",
-            "paddingBottom": "120px",
+            "paddingTop": "72px",
+            "paddingBottom": "72px",
             "paddingHorizontal": "24px",
-            "backgroundColor": "#0f172a",
+            "backgroundColor": "#12302c",
             "backgroundImage": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1920&q=80",
             "backgroundOverlayColor": "rgba(30, 27, 75, 0.78)",
             "theme": "light",
@@ -3411,7 +3411,7 @@
                         "lineHeight": "theme-relaxed",
                         "fontStyle": "normal",
                         "textTransform": "none",
-                        "color": "#99f6e4"
+                        "color": "#a8ddd6"
                       }
                     }
                   ]
@@ -3541,10 +3541,10 @@
             "name": "قيمنا (Our values)",
             "anchorId": "values",
             "visible": true,
-            "paddingTop": "72px",
-            "paddingBottom": "72px",
+            "paddingTop": "64px",
+            "paddingBottom": "64px",
             "paddingHorizontal": "24px",
-            "backgroundColor": "#f8fafc",
+            "backgroundColor": "#f3f6f5",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -3611,8 +3611,8 @@
             "name": "ابدأ التسوق (Start shopping)",
             "anchorId": "cta",
             "visible": true,
-            "paddingTop": "88px",
-            "paddingBottom": "96px",
+            "paddingTop": "64px",
+            "paddingBottom": "64px",
             "paddingHorizontal": "24px",
             "backgroundColor": "#0f766e",
             "backgroundImage": "",
@@ -3676,7 +3676,7 @@
                         "lineHeight": "theme-relaxed",
                         "fontStyle": "normal",
                         "textTransform": "none",
-                        "color": "#ccfbf1"
+                        "color": "#c5ebe6"
                       }
                     },
                     {
@@ -3742,7 +3742,7 @@
             "paddingTop": "48px",
             "paddingBottom": "24px",
             "paddingHorizontal": "24px",
-            "backgroundColor": "#f0fdfa",
+            "backgroundColor": "#eaf5f3",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -3765,7 +3765,7 @@
                   "backgroundOverlayColor": "",
                   "padding": "32px",
                   "borderRadius": "theme-lg",
-                  "boxShadow": "md",
+                  "boxShadow": "sm",
                   "product": null,
                   "metadata": null,
                   "cartLineId": null,
@@ -3846,7 +3846,7 @@
             "paddingTop": "24px",
             "paddingBottom": "24px",
             "paddingHorizontal": "24px",
-            "backgroundColor": "#f0fdfa",
+            "backgroundColor": "#eaf5f3",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -3873,7 +3873,7 @@
                   "backgroundOverlayColor": "",
                   "padding": "32px",
                   "borderRadius": "theme-lg",
-                  "boxShadow": "md",
+                  "boxShadow": "sm",
                   "product": null,
                   "metadata": null,
                   "cartLineId": null,
@@ -4090,7 +4090,7 @@
             "paddingTop": "24px",
             "paddingBottom": "24px",
             "paddingHorizontal": "24px",
-            "backgroundColor": "#f0fdfa",
+            "backgroundColor": "#eaf5f3",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -4117,7 +4117,7 @@
                   "backgroundOverlayColor": "",
                   "padding": "32px",
                   "borderRadius": "theme-lg",
-                  "boxShadow": "md",
+                  "boxShadow": "sm",
                   "product": null,
                   "metadata": null,
                   "cartLineId": null,
@@ -4213,7 +4213,7 @@
             "paddingTop": "24px",
             "paddingBottom": "24px",
             "paddingHorizontal": "24px",
-            "backgroundColor": "#f0fdfa",
+            "backgroundColor": "#eaf5f3",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -4240,7 +4240,7 @@
                   "backgroundOverlayColor": "",
                   "padding": "32px",
                   "borderRadius": "theme-lg",
-                  "boxShadow": "md",
+                  "boxShadow": "sm",
                   "product": null,
                   "metadata": null,
                   "cartLineId": null,
@@ -4592,7 +4592,7 @@
             "paddingTop": "24px",
             "paddingBottom": "48px",
             "paddingHorizontal": "24px",
-            "backgroundColor": "#f0fdfa",
+            "backgroundColor": "#eaf5f3",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -4619,7 +4619,7 @@
                   "backgroundOverlayColor": "",
                   "padding": "32px",
                   "borderRadius": "theme-lg",
-                  "boxShadow": "md",
+                  "boxShadow": "sm",
                   "product": null,
                   "metadata": null,
                   "cartLineId": null,
