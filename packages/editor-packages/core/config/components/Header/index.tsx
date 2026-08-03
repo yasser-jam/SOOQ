@@ -129,15 +129,16 @@ export const DEFAULT_HEADER_LINKS: HeaderLink[] = [
   },
   {
     label: { ar: "المتجر", en: "Shop" },
-    link: { kind: "page", pageId: "/products/example-product" },
-  },
-  {
-    label: { ar: "السلة", en: "Cart" },
-    link: { kind: "page", pageId: "/cart" },
+    link: { kind: "page", pageId: "/products" },
   },
   {
     label: { ar: "القوالب", en: "Themes" },
     link: { kind: "page", pageId: "/themes" },
+  },
+  {
+    label: { ar: "تسجيل الدخول", en: "Sign in" },
+    link: { kind: "page", pageId: "/login" },
+    showCondition: "loggedOut",
   },
 ];
 

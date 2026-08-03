@@ -331,12 +331,8 @@ const SideDrawerInternal: ComponentConfig<SideDrawerProps> = {
         label: { ar: "المتجر", en: "Shop" },
         link: {
           kind: "page",
-          pageId: "/products/example-product",
+          pageId: "/products",
         } as LinkValue,
-      },
-      {
-        label: { ar: "السلة", en: "Cart" },
-        link: { kind: "page", pageId: "/cart" } as LinkValue,
       },
     ],
     items: [

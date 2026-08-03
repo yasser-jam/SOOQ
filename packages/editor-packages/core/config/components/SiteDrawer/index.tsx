@@ -574,10 +574,6 @@ export const DEFAULT_DRAWER_LINKS: SiteDrawerLink[] = [
   },
   {
     label: { ar: "المتجر", en: "Shop" },
-    link: { kind: "page", pageId: "/products/example-product" },
-  },
-  {
-    label: { ar: "السلة", en: "Cart" },
-    link: { kind: "page", pageId: "/cart" },
+    link: { kind: "page", pageId: "/products" },
   },
 ];

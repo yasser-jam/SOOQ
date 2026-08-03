@@ -185,32 +185,6 @@
             {
               "type": "ContentButton",
               "props": {
-                "id": "ContentButton-header-cart",
-                "label": {
-                  "ar": "السلة",
-                  "en": "Cart"
-                },
-                "align": "center",
-                "destinationType": "link",
-                "buttonAction": "link",
-                "link": {
-                  "kind": "page",
-                  "pageId": "/cart"
-                },
-                "buttonVariantMode": "variant",
-                "buttonVariant": "secondary",
-                "buttonVariantSize": "sm",
-                "radius": "theme-md",
-                "bgColor": "theme-surface",
-                "textColor": "theme-text",
-                "buttonSize": "theme-sm",
-                "submitRedirectUrl": "",
-                "showCondition": "loggedIn"
-              }
-            },
-            {
-              "type": "ContentButton",
-              "props": {
                 "id": "ContentButton-header-login",
                 "label": {
                   "ar": "تسجيل الدخول",
@@ -490,17 +464,6 @@
                     "link": {
                       "kind": "page",
                       "pageId": "/orders"
-                    },
-                    "showCondition": "loggedIn"
-                  },
-                  {
-                    "label": {
-                      "ar": "السلة",
-                      "en": "Cart"
-                    },
-                    "link": {
-                      "kind": "page",
-                      "pageId": "/cart"
                     },
                     "showCondition": "loggedIn"
                   },

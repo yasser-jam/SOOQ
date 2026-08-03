@@ -5,6 +5,9 @@ import { createHeading, createParagraph, createPrimaryButton } from "./shared";
 const navItems = PRESET_HEADER_LINKS.map((link) => ({
   label: { ar: link.labelAr ?? link.label, en: link.label },
   link: link.link ?? { kind: "none" as const },
+  ...("showCondition" in link && link.showCondition
+    ? { showCondition: link.showCondition }
+    : {}),
 }));
 
 /**
@@ -86,7 +89,7 @@ const drawerMobileCommerce: ZonePreset = {
         },
         createPrimaryButton("تسوق الآن", {
           destinationType: "link",
-          link: { kind: "page", pageId: "/products/example-product" },
+          link: { kind: "page", pageId: "/products" },
           buttonVariantSize: "md",
           align: "right",
         }),

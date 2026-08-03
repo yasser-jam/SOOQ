@@ -13,17 +13,18 @@ export const PRESET_HEADER_LINKS = [
   {
     label: "Shop",
     labelAr: "المتجر",
-    link: { kind: "page", pageId: "/products/example-product" },
-  },
-  {
-    label: "Cart",
-    labelAr: "السلة",
-    link: { kind: "page", pageId: "/cart" },
+    link: { kind: "page", pageId: "/products" },
   },
   {
     label: "Themes",
     labelAr: "القوالب",
     link: { kind: "page", pageId: "/themes" },
+  },
+  {
+    label: "Sign in",
+    labelAr: "تسجيل الدخول",
+    link: { kind: "page", pageId: "/login" },
+    showCondition: "loggedOut" as const,
   },
 ] as const;
 
@@ -53,7 +54,7 @@ export const PRESET_FOOTER_COLUMNS = [
       {
         label: "Products",
         labelAr: "المنتجات",
-        link: { kind: "page", pageId: "/products/example-product" },
+        link: { kind: "page", pageId: "/products" },
       },
       {
         label: "Cart",

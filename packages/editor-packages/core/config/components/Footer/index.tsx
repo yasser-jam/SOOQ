@@ -130,7 +130,7 @@ export const DEFAULT_FOOTER_COLUMNS: FooterColumn[] = [
       },
       {
         label: { ar: "المنتجات", en: "Products" },
-        link: { kind: "page", pageId: "/products/example-product" },
+        link: { kind: "page", pageId: "/products" },
       },
       {
         label: { ar: "السلة", en: "Cart" },
