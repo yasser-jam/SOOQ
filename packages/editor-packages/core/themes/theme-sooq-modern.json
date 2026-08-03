@@ -1085,16 +1085,6 @@
                 }
               },
               {
-                "type": "CategoryListMenu",
-                "props": {
-                  "id": "CategoryListMenu-home",
-                  "buttonLabel": "تصفّح الفئات",
-                  "categoriesMenuTitle": "تسوق حسب الفئة",
-                  "backLabel": "رجوع للفئات",
-                  "maxProducts": 24
-                }
-              },
-              {
                 "type": "Section",
                 "props": {
                   "id": "Section-home-featured-grid",
@@ -1587,144 +1577,6 @@
                       "imageUrl": "https://placehold.co/160x48/f1f5f9/64748b?text=Brand+E"
                     }
                   ]
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "Section",
-          "props": {
-            "id": "Section-home-testimonials",
-            "name": "آراء العملاء (Testimonials)",
-            "anchorId": "reviews",
-            "visible": true,
-            "paddingTop": "56px",
-            "paddingBottom": "56px",
-            "paddingHorizontal": "20px",
-            "backgroundColor": "#fff7ed",
-            "backgroundImage": "",
-            "backgroundOverlayColor": "",
-            "theme": "dark",
-            "maxWidth": "1200px",
-            "columns": 1,
-            "columnsMobile": 1,
-            "gridGap": "24px",
-            "content": [
-              {
-                "type": "Testimonials",
-                "props": {
-                  "id": "Testimonials-home",
-                  "source": "inline",
-                  "layoutVariant": "grid",
-                  "columns": 3,
-                  "language": "ar",
-                  "showRating": true,
-                  "showAvatars": false,
-                  "itemCount": 3,
-                  "inlineItems": [
-                    {
-                      "id": "t1",
-                      "name": {
-                        "ar": "سارة م.",
-                        "en": "Sara M."
-                      },
-                      "role": {
-                        "ar": "دمشق",
-                        "en": "Damascus"
-                      },
-                      "avatar": "",
-                      "rating": 5,
-                      "text": {
-                        "ar": "الواجهة واضحة والطلب خلص بدقايق — التوصيل وصل في موعده.",
-                        "en": "Clear UI and checkout finished in minutes — delivery arrived on time."
-                      }
-                    },
-                    {
-                      "id": "t2",
-                      "name": {
-                        "ar": "خالد ر.",
-                        "en": "Khaled R."
-                      },
-                      "role": {
-                        "ar": "حلب",
-                        "en": "Aleppo"
-                      },
-                      "avatar": "",
-                      "rating": 5,
-                      "text": {
-                        "ar": "الأسعار ظاهرة من أول لحظة، وما في رسوم مخفية.",
-                        "en": "Prices are clear from the start — no hidden fees."
-                      }
-                    },
-                    {
-                      "id": "t3",
-                      "name": {
-                        "ar": "نور ع.",
-                        "en": "Nour A."
-                      },
-                      "role": {
-                        "ar": "حمص",
-                        "en": "Homs"
-                      },
-                      "avatar": "",
-                      "rating": 4,
-                      "text": {
-                        "ar": "التصميم بسيط ومريح، والفئات مرتبة بشكل ممتاز.",
-                        "en": "Simple, comfortable design and well-organized categories."
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "Section",
-          "props": {
-            "id": "Section-home-contact",
-            "name": "تواصل معنا (Contact)",
-            "anchorId": "contact",
-            "visible": true,
-            "paddingTop": "56px",
-            "paddingBottom": "56px",
-            "paddingHorizontal": "20px",
-            "backgroundColor": "#ffffff",
-            "backgroundImage": "",
-            "backgroundOverlayColor": "",
-            "theme": "dark",
-            "maxWidth": "720px",
-            "columns": 1,
-            "columnsMobile": 1,
-            "gridGap": "24px",
-            "content": [
-              {
-                "type": "ContactForm",
-                "props": {
-                  "id": "ContactForm-home",
-                  "title": {
-                    "ar": "هل لديك سؤال؟",
-                    "en": "Have a question?"
-                  },
-                  "subtitle": {
-                    "ar": "اترك رسالتك وسنرد خلال يوم عمل واحد.",
-                    "en": "Leave a message and we will reply within one business day."
-                  },
-                  "language": "ar",
-                  "showPhone": true,
-                  "requirePhone": false,
-                  "showSubject": true,
-                  "submitLabel": {
-                    "ar": "إرسال الرسالة",
-                    "en": "Send message"
-                  },
-                  "successMessage": {
-                    "ar": "شكراً — تم إرسال رسالتك.",
-                    "en": "Thanks — your message was sent."
-                  },
-                  "enableCaptcha": false,
-                  "submitWidth": "full"
                 }
               }
             ]
@@ -2274,16 +2126,6 @@
                 }
               },
               {
-                "type": "ProductSearchMenu",
-                "props": {
-                  "id": "ProductSearchMenu-products",
-                  "buttonLabel": "ابحث عن منتج",
-                  "searchPlaceholder": "اسم المنتج أو الفئة…",
-                  "menuHeading": "نتائج البحث",
-                  "maxResults": 12
-                }
-              },
-              {
                 "type": "ContentInput",
                 "props": {
                   "id": "Input-products-search",
@@ -2824,12 +2666,24 @@
                         },
                         "content": [
                           {
-                            "type": "ProductImageCarousel",
+                            "type": "ContentImage",
                             "props": {
-                              "id": "ProductImageCarousel-detail",
-                              "placeholderSrc": "https://placehold.co/600x600/ccfbf1/0f766e?text=Product",
+                              "id": "Image-product-detail",
+                              "src": "https://placehold.co/600x600/ccfbf1/0f766e?text=Product",
+                              "alt": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "align": "center",
+                              "objectFit": "cover",
                               "radius": "theme-lg",
-                              "aspectRatio": "square"
+                              "maxWidth": "100%",
+                              "altValueContext": {
+                                "path": "product.title"
+                              },
+                              "valueContext": {
+                                "path": "images[0].url"
+                              }
                             }
                           }
                         ]
@@ -2952,14 +2806,6 @@
                               "valueContext": {
                                 "path": "product.description"
                               }
-                            }
-                          },
-                          {
-                            "type": "ProductVariants",
-                            "props": {
-                              "id": "ProductVariants-detail",
-                              "showOptionLabels": true,
-                              "chipStyle": "pill"
                             }
                           },
                           {

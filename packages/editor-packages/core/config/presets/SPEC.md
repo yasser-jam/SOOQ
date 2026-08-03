@@ -257,9 +257,11 @@ Radius: `theme-sm`, `theme-md`, `theme-lg`, …
 
 ## 7. Editor UI
 
-- **Blocks sidebar** (`plugins/blocks`): "Add section" button opens `AddSectionDialog`.
-- Dialog tabs: General | Header | Footer | Products grid.
-- Clicking a preset calls `insertPresetSection()` which dispatches `insert` on root zone.
+- **Active:** Shopify outline panel opens `config/plugins/shopify-editor/AddSectionModal`
+  (section catalog presets, configure step for products grid, etc.).
+- **Legacy (unreachable):** `plugins/blocks/AddSectionDialog.tsx` — old blocks-sidebar
+  "Add section" dialog. Kept for reference; do not re-wire. Clicking a preset used to
+  call `insertPresetSection()` on the root zone.
 
 ---
 
@@ -270,6 +272,7 @@ Radius: `theme-sm`, `theme-md`, `theme-lg`, …
 | `config/presets/index.ts` | Preset definitions |
 | `config/presets/SPEC.md` | This document |
 | `lib/insert-preset-section.ts` | Insert helper |
-| `plugins/blocks/AddSectionDialog.tsx` | Dialog UI |
+| `config/plugins/shopify-editor/AddSectionModal` | **Active** Add Section UI |
+| `plugins/blocks/AddSectionDialog.tsx` | **Legacy** dialog (unreachable; do not remount) |
 | `config/blocks/BLOCKS.md` | Per-block JSON reference (all 43 blocks) |
 | `config/lib/site-data.ts` | Multi-page persistence |

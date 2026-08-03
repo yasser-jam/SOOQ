@@ -1,4 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
+/**
+ * IGNORED / do not use for new themes or section presets.
+ * Hidden from the palette (`config/index.tsx` storeBlocks). Kept registered
+ * only so existing store_config.json can still render.
+ */
 import React, { CSSProperties } from "react";
 import { ComponentConfig } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";

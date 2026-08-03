@@ -1,5 +1,18 @@
 "use client";
 
+/**
+ * LEGACY — do not use / do not re-wire into the UI.
+ *
+ * This was the old "Add section" dialog from the blocks sidebar
+ * (`plugins/blocks` → AddSectionTrigger). It has been disconnected so it is
+ * unreachable; prefer the Shopify outline flow instead:
+ *
+ *   config/plugins/shopify-editor/AddSectionModal
+ *
+ * Kept in-tree for reference only. Do not add entry points, buttons, or
+ * plugins that mount this dialog again.
+ */
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Plus, X } from "lucide-react";
@@ -22,6 +35,7 @@ type AddSectionDialogProps = {
   onClose: () => void;
 };
 
+/** @deprecated Unreachable. Use shopify-editor `AddSectionModal` instead. */
 export function AddSectionDialog({ open, onClose }: AddSectionDialogProps) {
   const storeApi = useAppStoreApi();
   const [tab, setTab] = useState<SectionPresetCategory>("general");
@@ -142,6 +156,10 @@ export function AddSectionDialog({ open, onClose }: AddSectionDialogProps) {
   );
 }
 
+/**
+ * @deprecated Unreachable. Previously rendered in `blocksPlugin`; removed so
+ * merchants only open sections via Shopify `AddSectionModal`. Do not remount.
+ */
 export function AddSectionTrigger() {
   const [open, setOpen] = useState(false);
 

@@ -1,14 +1,9 @@
 import React from "react";
 import {
   LayoutTemplate,
-  ShoppingBag,
   Sparkles,
   ShoppingCart,
   MessageSquareText,
-  Star,
-  Mail,
-  UserRound,
-  Heart,
   Images,
   Grid3x3,
   Type as TypeIcon,
@@ -40,7 +35,7 @@ import type { CollectionPickerRef } from "@/modules/product/collection/data-stor
  * Categories mirror SRS § 4.2 taxonomy:
  *   - hero:     large marketing bands, page openers
  *   - commerce: DSN-005 a-f bound-to-tenant-data blocks
- *   - customer: DSN-005 g-j customer-account-surface blocks
+ *   - customer: DSN-005 g-j customer-account-surface blocks (IGNORED presets removed)
  *   - content:  DSN-004 a-j generic text/media blocks
  *   - layout:   columns / grids / groups
  */
@@ -137,57 +132,8 @@ const section = (
   },
 });
 
-const categoryMenuBlock = () => ({
-  type: "CategoryListMenu",
-  props: {
-    buttonLabel: "Browse categories",
-    categoriesMenuTitle: "Shop by category",
-    backLabel: "Back to categories",
-    maxProducts: 24,
-  },
-});
-
-const orderHistoryBlock = () => ({
-  type: "OrderHistory",
-  props: {
-    limit: 5,
-    currency: "SYP",
-    statusFilter: "all",
-    showThumbnails: true,
-    emptyStateText: "You have no orders yet.",
-  },
-});
-
-const wishlistBlock = () => ({
-  type: "Wishlist",
-  props: {
-    columns: 3,
-    gap: "md",
-    currency: "SYP",
-    showAddToCart: true,
-    ctaLabel: "Add to cart",
-    emptyStateText: "Your wishlist is empty.",
-  },
-});
-
-const contactFormBlock = () => ({
-  type: "ContactForm",
-  props: {
-    title: { ar: "تواصل معنا", en: "Get in touch" },
-    subtitle: {
-      ar: "سنرد خلال يوم عمل واحد.",
-      en: "We'll reply within one business day.",
-    },
-    language: "ar",
-    showPhone: true,
-    requirePhone: false,
-    showSubject: true,
-    submitLabel: "إرسال",
-    successMessage: "شكراً — تم إرسال رسالتك.",
-    enableCaptcha: true,
-    submitWidth: "auto",
-  },
-});
+// IGNORED helpers (CategoryListMenu / OrderHistory / Wishlist / ContactForm)
+// intentionally removed — do not reintroduce presets that insert those types.
 
 // ─── Catalog entries ────────────────────────────────────────────────────────
 
@@ -390,203 +336,11 @@ export const sectionCatalog: SectionPreset[] = [
     gradient: "linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)",
     build: () => createCartSectionPreset(),
   },
-  {
-    id: "category-list",
-    label: "قائمة التصنيفات",
-    description: "قائمة قابلة للنقر بتصنيفات المنتجات الرئيسية.",
-    category: "commerce",
-    icon: <ShoppingBag size={20} />,
-    gradient: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
-    build: () => ({
-      type: "Section",
-      props: {
-        ...SECTION_BASE_PROPS,
-        content: [
-          categoryMenuBlock(),
-        ],
-      },
-    }),
-  },
 
-  // ── Customer (DSN-005 g-j) ──────────────────────────────────────────────
-  {
-    id: "order-history",
-    label: "سجل الطلبات",
-    description: "حساب العميل — أحدث الطلبات مع حالتها.",
-    category: "customer",
-    icon: <UserRound size={20} />,
-    gradient: "linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)",
-    build: () => ({
-      type: "Section",
-      props: {
-        ...SECTION_BASE_PROPS,
-        maxWidth: "960px",
-        content: [
-          orderHistoryBlock(),
-        ],
-      },
-    }),
-  },
-  {
-    id: "wishlist",
-    label: "المفضلة",
-    description: "منتجات العميل المحفوظة في شبكة متجاوبة.",
-    category: "customer",
-    icon: <Heart size={20} />,
-    gradient: "linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)",
-    build: () => ({
-      type: "Section",
-      props: {
-        ...SECTION_BASE_PROPS,
-        content: [
-          wishlistBlock(),
-        ],
-      },
-    }),
-  },
-  {
-    id: "testimonials",
-    label: "آراء العملاء — شبكة",
-    description: "تقييمات العملاء في شبكة ٣ أعمدة — تدعم العربية والإنجليزية.",
-    category: "customer",
-    icon: <Star size={20} />,
-    gradient: "linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)",
-    build: () => ({
-      type: "Section",
-      props: {
-        ...SECTION_BASE_PROPS,
-        paddingTop: "80px",
-        paddingBottom: "80px",
-        backgroundColor: "#fafafa",
-        content: [
-          {
-            type: "Testimonials",
-            props: {
-              source: "inline",
-              layoutVariant: "grid",
-              columns: 3,
-              language: "ar",
-              showRating: true,
-              showAvatars: true,
-              itemCount: 3,
-            },
-          },
-        ],
-      },
-    }),
-  },
-  {
-    id: "testimonials-2col",
-    label: "آراء العملاء — عمودان",
-    description: "تقييمات العملاء في شبكة عمودين — مناسبة للعروض المحدودة.",
-    category: "customer",
-    icon: <Star size={20} />,
-    gradient: "linear-gradient(135deg, #fef9c3 0%, #fcd34d 100%)",
-    build: () => ({
-      type: "Section",
-      props: {
-        ...SECTION_BASE_PROPS,
-        paddingTop: "80px",
-        paddingBottom: "80px",
-        backgroundColor: "#fafafa",
-        content: [
-          {
-            type: "Testimonials",
-            props: {
-              source: "inline",
-              layoutVariant: "grid",
-              columns: 2,
-              language: "ar",
-              showRating: true,
-              showAvatars: true,
-              itemCount: 4,
-            },
-          },
-        ],
-      },
-    }),
-  },
-  {
-    id: "testimonials-carousel",
-    label: "آراء العملاء — سلايدر",
-    description: "تقييمات العملاء بتخطيط أفقي قابل للتمرير.",
-    category: "customer",
-    icon: <Star size={20} />,
-    gradient: "linear-gradient(135deg, #fef3c7 0%, #f59e0b 100%)",
-    build: () => ({
-      type: "Section",
-      props: {
-        ...SECTION_BASE_PROPS,
-        paddingTop: "80px",
-        paddingBottom: "80px",
-        backgroundColor: "#fafafa",
-        content: [
-          {
-            type: "Testimonials",
-            props: {
-              source: "inline",
-              layoutVariant: "carousel",
-              columns: 3,
-              language: "ar",
-              showRating: true,
-              showAvatars: true,
-              itemCount: 6,
-            },
-          },
-        ],
-      },
-    }),
-  },
-  {
-    id: "testimonials-quote",
-    label: "آراء العملاء — اقتباس",
-    description: "رأي عميل واحد بارز بتصميم مبسط — مثالي للتوكيد.",
-    category: "customer",
-    icon: <Star size={20} />,
-    gradient: "linear-gradient(135deg, #fefce8 0%, #fef9c3 100%)",
-    build: () => ({
-      type: "Section",
-      props: {
-        ...SECTION_BASE_PROPS,
-        maxWidth: "768px",
-        paddingTop: "80px",
-        paddingBottom: "80px",
-        backgroundColor: "#fafafa",
-        content: [
-          {
-            type: "Testimonials",
-            props: {
-              source: "inline",
-              itemCount: 1,
-              layoutVariant: "minimal",
-              columns: 3,
-              language: "ar",
-              showRating: true,
-              showAvatars: true,
-            },
-          },
-        ],
-      },
-    }),
-  },
-  {
-    id: "contact-form",
-    label: "نموذج تواصل",
-    description: "استقبال استفسارات الزوار وإرسالها إلى المتجر.",
-    category: "customer",
-    icon: <Mail size={20} />,
-    gradient: "linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)",
-    build: () => ({
-      type: "Section",
-      props: {
-        ...SECTION_BASE_PROPS,
-        maxWidth: "768px",
-        content: [
-          contactFormBlock(),
-        ],
-      },
-    }),
-  },
+  // IGNORED store blocks — do not re-add catalog presets for:
+  // CategoryListMenu, OrderHistory, Wishlist, Testimonials, ContactForm.
+  // (ProductImageCarousel / ProductVariants / ProductSearchMenu / CheckoutForm
+  // likewise stay out of themes and presets.)
 
   // ── Content (DSN-004) ────────────────────────────────────────────────────
   {

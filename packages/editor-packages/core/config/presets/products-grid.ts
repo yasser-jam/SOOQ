@@ -299,12 +299,16 @@ export function createProductDetailSection(
                 layout: { grow: true },
                 content: [
                   {
-                    type: "ProductImageCarousel",
+                    type: "ContentImage",
                     props: {
-                      placeholderSrc:
-                        "https://placehold.co/600x600/e2e8f0/64748b?text=Product",
+                      src: "https://placehold.co/600x600/e2e8f0/64748b?text=Product",
+                      alt: { ar: "", en: "" },
+                      align: "center",
+                      objectFit: "cover",
                       radius: "theme-md",
-                      aspectRatio: "square",
+                      maxWidth: "100%",
+                      altValueContext: { path: "product.title" },
+                      valueContext: { path: "images[0].url" },
                     },
                   },
                 ],
@@ -332,13 +336,6 @@ export function createProductDetailSection(
                     color: "theme-neutral",
                     textAlign: "right",
                   }),
-                  {
-                    type: "ProductVariants",
-                    props: {
-                      showOptionLabels: true,
-                      chipStyle: "pill",
-                    },
-                  },
                   createParagraph("0.00 SYP", {
                     valueContext: { path: "pricing.displayPrice" },
                     fontSize: "theme-lg",

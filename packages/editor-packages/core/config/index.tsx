@@ -106,6 +106,9 @@ export const conf: UserConfig = {
     storeBlocks: {
       title: "عناصر المتجر",
       defaultExpanded: true,
+      // All store-bound primitives below are IGNORED (hidden from palette).
+      // Do not re-enable without also wiring them back into themes/presets.
+      visible: false,
       components: [
         // "ProductImageCarousel", // IGNORED
         // "ProductVariants",      // IGNORED
@@ -114,7 +117,7 @@ export const conf: UserConfig = {
         // "ProductSearchMenu",    // IGNORED
         // "OrderHistory",         // IGNORED
         // "Wishlist",             // IGNORED
-        "Testimonials",
+        // "Testimonials",         // IGNORED — do not use; kept registered for old JSON
         // "ContactForm",          // IGNORED
       ],
     },
@@ -152,6 +155,16 @@ export const conf: UserConfig = {
         // Product detail page primitives - kept for backward compatibility
         "ProductImage",
         "ProductInfo",
+        // IGNORED store blocks — still registered so old store_config.json can render.
+        "Testimonials",
+        "ProductImageCarousel",
+        "ProductVariants",
+        "CategoryListMenu",
+        "CheckoutForm",
+        "ProductSearchMenu",
+        "OrderHistory",
+        "Wishlist",
+        "ContactForm",
       ],
     },
     other: {
