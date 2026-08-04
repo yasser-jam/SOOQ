@@ -137,67 +137,11 @@
   background: #f8fafc;
 }
 
-.Layout-floatSwitch {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--puck-color-grey-02, #1e293b);
-  cursor: pointer;
-  user-select: none;
-}
-
-.Layout-floatSwitch input {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
 .Layout-floatHint {
   margin: 0;
   font-size: 11px;
   line-height: 1.4;
   color: var(--puck-color-grey-04, #64748b);
-}
-
-.Layout-floatHint code {
-  font-size: 10px;
-  padding: 1px 4px;
-  border-radius: 3px;
-  background: #e2e8f0;
-}
-
-.Layout-floatModeRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 16px;
-  align-items: center;
-}
-
-.Layout-floatModeOption {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--puck-color-grey-03, #475569);
-  cursor: pointer;
-}
-
-.Layout-floatModeOption input {
-  cursor: pointer;
-}
-
-.Layout-insetSelect {
-  width: 100%;
-  min-width: 0;
-  padding: 6px 8px;
-  font-size: 12px;
-  border-radius: 4px;
-  border: 1px solid #94a3b8;
-  background: #fff;
-  color: #0f172a;
-  box-sizing: border-box;
 }
 
 /* Box model: margin (amber) → padding (green) → element (slate) */

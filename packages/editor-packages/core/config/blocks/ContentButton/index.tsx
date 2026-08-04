@@ -210,6 +210,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
     buttonSize: "theme-md",
     layout: {
       positionMode: "static",
+      floatCssPosition: "fixed",
       floatUseFixedPosition: true,
       floatPlacementMode: "preset",
       floatPreset: "bottom-right",

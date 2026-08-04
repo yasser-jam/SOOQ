@@ -311,7 +311,13 @@ function RootShell(props: DefaultRootRenderProps<RootProps>) {
             allow={["Section"]}
             disallow={["SiteHeader", "SiteFooter"]}
             minEmptyHeight={isEditing ? 72 : 0}
-            style={isEditing ? { borderBottom: "1px dashed rgba(37, 99, 235, 0.25)" } : undefined}
+            style={
+              isEditing
+                ? { borderBottom: "1px dashed rgba(37, 99, 235, 0.25)" }
+                : // Avoid a wrapper box so sticky/fixed Layout on the header
+                  // Section sticks relative to the page, not a short parent.
+                  { display: "contents" }
+            }
           />
 
           <div style={{ display: "flex", flexGrow: 1, minHeight: 0, flexDirection: "column" }}>
@@ -327,7 +333,11 @@ function RootShell(props: DefaultRootRenderProps<RootProps>) {
             allow={["Section"]}
             disallow={["SiteHeader", "SiteFooter"]}
             minEmptyHeight={isEditing ? 72 : 0}
-            style={isEditing ? { borderTop: "1px dashed rgba(37, 99, 235, 0.25)" } : undefined}
+            style={
+              isEditing
+                ? { borderTop: "1px dashed rgba(37, 99, 235, 0.25)" }
+                : { display: "contents" }
+            }
           />
 
           {/* Overlay zones — managed via Zones plugin; hidden drop chrome in editor */}

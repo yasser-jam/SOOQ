@@ -1,5 +1,5 @@
 "use client";
-import { ChangeEvent, useId } from "react";
+import { ChangeEvent } from "react";
 import { getClassNameFactory } from "@/core/lib";
 import styles from "./styles.module.css";
 import {
@@ -11,7 +11,9 @@ import {
 } from "@workspace/ui/components/select";
 import {
   type EdgeKey,
+  FLOAT_CSS_POSITION_OPTIONS,
   FLOAT_PRESET_OPTIONS,
+  type FloatCssPosition,
   type FloatPresetKey,
   type LayoutCustomField,
   type LayoutFieldProps,
@@ -19,6 +21,7 @@ import {
   parsePx,
   parseShadowPx,
   PERCENT_INSET_OPTIONS,
+  resolveFloatCssPosition,
   SHADOW_NUMBER_FIELDS,
   SHADOW_PRESET_CSS,
   type ShadowPresetKey,
@@ -28,6 +31,15 @@ import {
 import { visibilityField } from "../../fields/VisibilityToggle";
 
 const getClassName = getClassNameFactory("Layout", styles);
+
+function setFloatCssPosition(
+  position: FloatCssPosition
+): Partial<LayoutFieldProps> {
+  return {
+    floatCssPosition: position,
+    floatUseFixedPosition: position === "fixed",
+  };
+}
 
 export function LayoutBoxField({
   field,
@@ -40,7 +52,6 @@ export function LayoutBoxField({
   onChange: (value: LayoutFieldProps) => void;
   readOnly?: boolean;
 }) {
-  const floatGroupId = useId();
   const layout = normalizeLayout(value);
 
   const updateLayout = (partial: Partial<LayoutFieldProps>) => {
@@ -64,7 +75,10 @@ export function LayoutBoxField({
   const positionMode = layout.positionMode ?? "static";
   const floatPlacementMode = layout.floatPlacementMode ?? "preset";
   const floatPreset = layout.floatPreset ?? "top-left";
-  const useFixedPos = layout.floatUseFixedPosition !== false;
+  const floatCssPosition = resolveFloatCssPosition(layout);
+  const floatCssHint =
+    FLOAT_CSS_POSITION_OPTIONS.find((o) => o.value === floatCssPosition)?.hint ??
+    "";
   const showPosition = field.showPosition !== false;
   const floatPresetOptions =
     field.floatPresetFilter != null && field.floatPresetFilter.length > 0
@@ -79,16 +93,19 @@ export function LayoutBoxField({
         <div className={getClassName("layoutControls")}>
           <label className={getClassName("controlItem")}>
             <span>Grow</span>
-            <select
+            <Select
               value={layout.grow ? "true" : "false"}
-              onChange={(event) =>
-                updateLayout({ grow: event.target.value === "true" })
-              }
+              onValueChange={(v) => updateLayout({ grow: v === "true" })}
               disabled={readOnly}
             >
-              <option value="true">true</option>
-              <option value="false">false</option>
-            </select>
+              <SelectTrigger size="sm">
+                <SelectValue placeholder="اختر" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">true</SelectItem>
+                <SelectItem value="false">false</SelectItem>
+              </SelectContent>
+            </Select>
           </label>
         </div>
       )}
@@ -124,7 +141,7 @@ export function LayoutBoxField({
                   positionMode: v as "static" | "float",
                 };
                 if (v === "float" && floatViewportFixed) {
-                  next.floatUseFixedPosition = true;
+                  Object.assign(next, setFloatCssPosition("fixed"));
                   next.floatPlacementMode = "preset";
                 }
                 updateLayout(next);
@@ -135,7 +152,7 @@ export function LayoutBoxField({
                 <SelectValue placeholder="اختر" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="static">ثابت</SelectItem>
+                <SelectItem value="static">عادي</SelectItem>
                 <SelectItem value="float">عائم</SelectItem>
               </SelectContent>
             </Select>
@@ -144,55 +161,53 @@ export function LayoutBoxField({
           {positionMode === "float" && (
             <div className={getClassName("floatPanel")}>
               {!floatViewportFixed && (
-                <>
-                  <label className={getClassName("floatSwitch")}>
-                    <input
-                      type="checkbox"
-                      checked={useFixedPos}
-                      onChange={(event) =>
-                        updateLayout({ floatUseFixedPosition: event.target.checked })
-                      }
-                      disabled={readOnly}
-                    />
-                    <span>موضع ثابت (نافذة العرض)</span>
-                  </label>
-                  <p className={getClassName("floatHint")}>
-                    عند الإيقاف يستخدم <code>position: absolute</code> (بالنسبة للعنصر الأب).
-                  </p>
-                </>
+                <label className={getClassName("controlItem")}>
+                  <span>نوع التموضع</span>
+                  <Select
+                    value={floatCssPosition}
+                    onValueChange={(v) =>
+                      updateLayout(setFloatCssPosition(v as FloatCssPosition))
+                    }
+                    disabled={readOnly}
+                  >
+                    <SelectTrigger size="sm">
+                      <SelectValue placeholder="اختر" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FLOAT_CSS_POSITION_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {floatCssHint && (
+                    <p className={getClassName("floatHint")}>{floatCssHint}</p>
+                  )}
+                </label>
               )}
 
               {!hideFloatCustom && (
-                <div
-                  className={getClassName("floatModeRow")}
-                  role="radiogroup"
-                  aria-label="وضعية التعويم"
-                >
-                  <label className={getClassName("floatModeOption")}>
-                    <input
-                      type="radio"
-                      name={`floatPlacementMode-${floatGroupId}`}
-                      checked={floatPlacementMode === "preset"}
-                      onChange={() =>
-                        updateLayout({ floatPlacementMode: "preset" })
-                      }
-                      disabled={readOnly}
-                    />
-                    <span>موضع مسبق</span>
-                  </label>
-                  <label className={getClassName("floatModeOption")}>
-                    <input
-                      type="radio"
-                      name={`floatPlacementMode-${floatGroupId}`}
-                      checked={floatPlacementMode === "custom"}
-                      onChange={() =>
-                        updateLayout({ floatPlacementMode: "custom" })
-                      }
-                      disabled={readOnly}
-                    />
-                    <span>إزاحة مخصصة</span>
-                  </label>
-                </div>
+                <label className={getClassName("controlItem")}>
+                  <span>وضعية التعويم</span>
+                  <Select
+                    value={floatPlacementMode}
+                    onValueChange={(v) =>
+                      updateLayout({
+                        floatPlacementMode: v as "preset" | "custom",
+                      })
+                    }
+                    disabled={readOnly}
+                  >
+                    <SelectTrigger size="sm">
+                      <SelectValue placeholder="اختر" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="preset">موضع مسبق</SelectItem>
+                      <SelectItem value="custom">إزاحة مخصصة</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </label>
               )}
 
               {(hideFloatCustom || floatPlacementMode === "preset") && (
@@ -203,7 +218,9 @@ export function LayoutBoxField({
                     onValueChange={(v) =>
                       updateLayout({
                         floatPreset: v as FloatPresetKey,
-                        floatUseFixedPosition: floatViewportFixed ? true : layout.floatUseFixedPosition,
+                        ...(floatViewportFixed
+                          ? setFloatCssPosition("fixed")
+                          : {}),
                         floatPlacementMode: "preset",
                       })
                     }
@@ -243,26 +260,33 @@ export function LayoutBoxField({
                       return (
                         <label key={key} className={getClassName("fixedCell")}>
                           <span>{label}</span>
-                          <select
-                            className={getClassName("insetSelect")}
-                            value={known ? v : v}
-                            onChange={(event) =>
-                              updateLayout({ [key]: event.target.value })
+                          <Select
+                            value={v}
+                            onValueChange={(next) =>
+                              updateLayout({ [key]: next })
                             }
                             disabled={readOnly}
-                            aria-label={`الإزاحة ${label}`}
                           >
-                            {!known && (
-                              <option value={v}>
-                                {v} (قديم)
-                              </option>
-                            )}
-                            {PERCENT_INSET_OPTIONS.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt === "auto" ? "تلقائي" : opt}
-                              </option>
-                            ))}
-                          </select>
+                            <SelectTrigger
+                              size="sm"
+                              className="w-full"
+                              aria-label={`الإزاحة ${label}`}
+                            >
+                              <SelectValue placeholder="اختر" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {!known && (
+                                <SelectItem value={v}>
+                                  {v} (قديم)
+                                </SelectItem>
+                              )}
+                              {PERCENT_INSET_OPTIONS.map((opt) => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt === "auto" ? "تلقائي" : opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </label>
                       );
                     })}

@@ -12,6 +12,7 @@ import {
   getFloatInsetStyleFromPreset,
   insetCssValue,
   normalizeLayout,
+  resolveFloatCssPosition,
   resolveLayoutAppearanceStyles,
   resolvePaddingBottom,
   resolvePaddingTop,
@@ -28,7 +29,7 @@ export const Layout = forwardRef<HTMLDivElement, LayoutProps>(
     const norm = normalizeLayout(layout);
     const isFloat = norm.positionMode === "float";
     const floatPlacementMode = norm.floatPlacementMode ?? "preset";
-    const useFixedPos = norm.floatUseFixedPosition !== false;
+    const floatCssPosition = resolveFloatCssPosition(norm);
 
     const viewportW = useAppStore((s) => s.state.ui.viewports.current.width);
     const rootBp = useAppStore(
@@ -58,7 +59,7 @@ export const Layout = forwardRef<HTMLDivElement, LayoutProps>(
     const floatStyle: CSSProperties = !isFloat
       ? { position: "static" }
       : {
-          position: (useFixedPos ? "fixed" : "absolute") as "fixed" | "absolute",
+          position: floatCssPosition,
           zIndex: 10,
           ...(floatPlacementMode === "preset"
             ? getFloatInsetStyleFromPreset(

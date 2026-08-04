@@ -17,7 +17,15 @@ export type LayoutFieldProps = {
   paddingLeft?: string;
   /** `static` (default) or out-of-flow (floating) placement */
   positionMode?: "static" | "float";
-  /** When floating: `position: fixed` (viewport) vs `absolute` (containing block). */
+  /**
+   * When floating: CSS `position` used for placement.
+   * Prefer this over the legacy boolean below.
+   */
+  floatCssPosition?: "absolute" | "fixed" | "sticky";
+  /**
+   * @deprecated use `floatCssPosition`. When floating: `true` → fixed, `false` → absolute.
+   * Still read for older Site JSON.
+   */
   floatUseFixedPosition?: boolean;
   /** Custom %/auto insets vs named corner/edge anchors. */
   floatPlacementMode?: "custom" | "preset";
@@ -107,6 +115,7 @@ export const defaultLayoutValue: Required<
     | "paddingLeft"
     | "padding"
     | "positionMode"
+    | "floatCssPosition"
     | "floatUseFixedPosition"
     | "floatPlacementMode"
     | "floatPreset"
@@ -144,6 +153,7 @@ export const defaultLayoutValue: Required<
   paddingLeft: "0px",
   padding: "0px",
   positionMode: "static",
+  floatCssPosition: "fixed",
   floatUseFixedPosition: true,
   floatPlacementMode: "preset",
   floatPreset: "top-left",
@@ -168,6 +178,23 @@ export const defaultLayoutValue: Required<
   hideOnDesktop: false,
 };
 
+export type FloatCssPosition = NonNullable<LayoutFieldProps["floatCssPosition"]>;
+
+/** Resolve CSS position for floating layout, including legacy boolean migration. */
+export function resolveFloatCssPosition(
+  value?: LayoutFieldProps
+): FloatCssPosition {
+  if (
+    value?.floatCssPosition === "absolute" ||
+    value?.floatCssPosition === "fixed" ||
+    value?.floatCssPosition === "sticky"
+  ) {
+    return value.floatCssPosition;
+  }
+  if (value?.floatUseFixedPosition === false) return "absolute";
+  return "fixed";
+}
+
 export function normalizeLayout(value?: LayoutFieldProps): Required<LayoutFieldProps> {
   const merged: Required<LayoutFieldProps> = {
     ...defaultLayoutValue,
@@ -180,11 +207,34 @@ export function normalizeLayout(value?: LayoutFieldProps): Required<LayoutFieldP
   ) {
     merged.floatPlacementMode = "custom";
   }
-  if (merged.positionMode === "float" && value?.floatUseFixedPosition === undefined) {
-    merged.floatUseFixedPosition = true;
-  }
+  const cssPos = resolveFloatCssPosition(value);
+  merged.floatCssPosition = cssPos;
+  // Keep legacy boolean in sync for older readers / saved blobs.
+  merged.floatUseFixedPosition = cssPos === "fixed";
   return merged;
 }
+
+export const FLOAT_CSS_POSITION_OPTIONS: {
+  label: string;
+  value: FloatCssPosition;
+  hint: string;
+}[] = [
+  {
+    label: "نسبي",
+    value: "absolute",
+    hint: "بالنسبة للعنصر الأب (position: absolute)",
+  },
+  {
+    label: "ثابت",
+    value: "fixed",
+    hint: "بالنسبة لنافذة العرض (position: fixed)",
+  },
+  {
+    label: "لاصق",
+    value: "sticky",
+    hint: "يلتصق أثناء التمرير داخل الحاوية (position: sticky)",
+  },
+];
 
 export type ShadowPresetKey = NonNullable<LayoutFieldProps["shadowPreset"]>;
 

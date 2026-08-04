@@ -14,7 +14,7 @@ export function Toaster({ toastOptions, ...props }: ToasterProps) {
           success:
             "!bg-green-50 !border !border-green-500/45 !text-green-950 dark:!bg-green-950/35 dark:!border-green-500/40 dark:!text-green-50",
           error:
-            "!bg-destructive/10 !border !border-destructive !text-destructive dark:!bg-destructive/20",
+            "!bg-destructive/50 !border !border-destructive-500/45 !text-destructive dark:!bg-destructive/20",
           ...toastOptions?.classNames,
         },
       }}
