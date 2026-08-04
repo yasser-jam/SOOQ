@@ -6,6 +6,8 @@ import { SeedProductsButton } from "@/modules/product/seed/seed-products-button"
 import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 import { useQuery } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
+import { useToastManager } from "@base-ui/react";
+import { toast } from "sonner";
 
 export default function HomePage() {
   const { data: settings, isPending } = useQuery(getStoreSettingsQueryOptions())
