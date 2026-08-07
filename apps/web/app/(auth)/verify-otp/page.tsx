@@ -58,9 +58,15 @@ function VerifyOtpForm() {
         router.push("/")
       },
     }),
-    onError: (error: ApiError) => {
-      if (error.action === "request-mfa") {
+    onError: (error: ApiError | Error) => {
+      if ("action" in error && error.action === "request-mfa") {
         setMfaRequired(true)
+        return
+      }
+
+      // Client-side rejections (e.g. PLATFORM_ADMIN). API errors already toast in handleApiError.
+      if (!("status" in error) && error.message) {
+        toast.error(error.message)
       }
     },
   })

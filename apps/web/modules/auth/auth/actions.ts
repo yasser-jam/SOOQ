@@ -138,6 +138,9 @@ export const getRequestOtpMutationOptions = () => ({
   mutationFn: requestOtp,
 })
 
+export const PLATFORM_ADMIN_MERCHANT_LOGIN_ERROR =
+  "حساب مدير المنصة لا يمكنه تسجيل الدخول من بوابة التاجر"
+
 export const getVerifyOtpMutationOptions = ({
   queryClient,
   onSuccess,
@@ -145,7 +148,13 @@ export const getVerifyOtpMutationOptions = ({
   queryClient: QueryClient
   onSuccess?: (response: AuthTokenResponse, isHub: boolean) => void
 }) => ({
-  mutationFn: verifyOtp,
+  mutationFn: async (command: VerifyOtpCommand) => {
+    const response = await verifyOtp(command)
+    if (response.roles?.includes("PLATFORM_ADMIN")) {
+      throw new Error(PLATFORM_ADMIN_MERCHANT_LOGIN_ERROR)
+    }
+    return response
+  },
   onSuccess: async (response: AuthTokenResponse) => {
     await persistAuthResponse(response)
     queryClient.invalidateQueries({ queryKey: authKeys.currentUser })
