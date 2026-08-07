@@ -77,16 +77,34 @@ const triggerRefresh = (): Promise<string | null> => {
   return refreshPromise
 }
 
+const AUTH_LOGIN_PATHS = ["/request-otp", "/verify-otp"]
+
+const isOnAuthLoginPage = (): boolean => {
+  if (typeof window === "undefined") return false
+  const path = window.location.pathname
+  return AUTH_LOGIN_PATHS.some(
+    (route) => path === route || path.startsWith(`${route}/`)
+  )
+}
+
 const redirectToLogin = () => {
   if (typeof window === "undefined") return
-  // Only redirect when a merchant session exists. Without an admin access
-  // token the caller was never authenticated as a merchant (e.g. a
-  // storefront visitor in apps/store), so skip the OTP login redirect.
-  const hadSession = !!getCookie(cookiesConfig.adminAccessToken)
-  if (!hadSession) return
   removeCookie(cookiesConfig.adminAccessToken)
   removeCookie(cookiesConfig.tenantSlug)
+  if (isOnAuthLoginPage()) return
   window.location.href = "/request-otp"
+}
+
+const shouldHandleMerchantAuthError = (
+  status: number | undefined,
+  url?: string
+): boolean => {
+  if (status !== 401 && status !== 403) return false
+  if (isInternalAuthRequest(url)) return false
+  // Customer storefront sessions have no merchant refresh cookie — don't
+  // run the admin refresh/logout loop for `/customer/**`.
+  if (isCustomerApiRequest(url)) return false
+  return true
 }
 
 apiInstance.interceptors.response.use(
@@ -95,14 +113,17 @@ apiInstance.interceptors.response.use(
     const original = error.config as RetryableConfig | undefined
     const status = error.response?.status
 
+    // 403 = forbidden / invalid session for merchant APIs → go to login now.
+    if (shouldHandleMerchantAuthError(status, original?.url) && status === 403) {
+      await logoutSession().catch(() => undefined)
+      redirectToLogin()
+      return Promise.reject(handleApiError(error))
+    }
+
     if (
-      (status === 401 || status == 403) &&
+      shouldHandleMerchantAuthError(status, original?.url) &&
       original &&
-      !original._retry &&
-      !isInternalAuthRequest(original.url) &&
-      // Customer storefront sessions have no merchant refresh cookie — don't
-      // run the admin refresh/logout loop for `/customer/**` 401s.
-      !isCustomerApiRequest(original.url)
+      !original._retry
     ) {
       original._retry = true
 
