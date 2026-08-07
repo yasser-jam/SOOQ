@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import {
@@ -445,9 +445,7 @@ export function ThemeOnboardingDialog({
   onOpenChange,
 }: ThemeOnboardingDialogProps) {
   const router = useRouter()
-  const params = useParams()
   const queryClient = useQueryClient()
-  const storeSlug = params.storeSlug as string
 
   const [currentStep, setCurrentStep] = useState(1)
   const [data, setData] = useState<OnboardingState>({
@@ -511,7 +509,7 @@ export function ThemeOnboardingDialog({
       onOpenChange(false)
       setCurrentStep(1)
 
-      const studioBase = `/store/${storeSlug}/design-studio`
+      const studioBase = `/design-studio`
       router.push(buildStudioEditHref(studioBase, themeName))
     },
     onError: () => {

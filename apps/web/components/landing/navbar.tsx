@@ -37,7 +37,7 @@ export function Navbar() {
       )}
     >
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 md:h-20 md:px-8">
-        <Link href="/" aria-label="إرتقاء — الصفحة الرئيسية" className="shrink-0">
+        <Link href="/welcome" aria-label="إرتقاء — الصفحة الرئيسية" className="shrink-0">
           <ErteqaLogo size="sm" />
         </Link>
 

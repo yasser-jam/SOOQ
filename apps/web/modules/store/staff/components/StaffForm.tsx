@@ -30,7 +30,7 @@ import type { StaffCreateRequestDto } from "../types"
 
 type FormInput = z.input<typeof createStaffSchema>
 
-export default function StaffForm({ storeSlug }: { storeSlug: string }) {
+export default function StaffForm() {
   const router = useRouter()
   const queryClient = useQueryClient()
 
@@ -47,7 +47,7 @@ export default function StaffForm({ storeSlug }: { storeSlug: string }) {
       queryClient,
       onSuccess: () => {
         toast.success("تم إنشاء الموظف. يمكنه الدخول الآن عبر OTP.")
-        router.push(`/store/${storeSlug}/staff`)
+        router.push(`/staff`)
       },
     }),
     onError: (error: ApiError) => {
@@ -105,7 +105,7 @@ export default function StaffForm({ storeSlug }: { storeSlug: string }) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push(`/store/${storeSlug}/staff`)}
+            onClick={() => router.push(`/staff`)}
             disabled={isPending}
           >
             إلغاء

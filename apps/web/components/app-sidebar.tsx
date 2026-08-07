@@ -59,15 +59,14 @@ type NavGroup = {
   items: readonly NavItem[]
 }
 
-function buildNavGroups(storeSlug: string): readonly NavGroup[] {
-  const base = `/store/${storeSlug}`
+function buildNavGroups(): readonly NavGroup[] {
   return [
     {
       label: "الرئيسية",
       items: [
         {
           title: "لوحة التحكم",
-          url: base,
+          url: "/",
           icon: LayoutDashboard,
         },
       ],
@@ -77,25 +76,25 @@ function buildNavGroups(storeSlug: string): readonly NavGroup[] {
       items: [
         {
           title: "المنتجات",
-          url: `${base}/products`,
+          url: `/products`,
           icon: Package,
           children: [
-            { title: "المنتجات", url: `${base}/products` },
-            { title: "الفئات", url: `${base}/products/categories` },
-            { title: "الوسوم", url: `${base}/products/tags` },
-            { title: "المجموعات", url: `${base}/products/collections` },
-            { title: "السمات المخصّصة", url: `${base}/products/attributes` },
-            { title: "استيراد منتجات", url: `${base}/products/import` },
-            { title: "سجلّ الاستيراد", url: `${base}/products/import/batches` },
+            { title: "المنتجات", url: `/products` },
+            { title: "الفئات", url: `/products/categories` },
+            { title: "الوسوم", url: `/products/tags` },
+            { title: "المجموعات", url: `/products/collections` },
+            { title: "السمات المخصّصة", url: `/products/attributes` },
+            { title: "استيراد منتجات", url: `/products/import` },
+            { title: "سجلّ الاستيراد", url: `/products/import/batches` },
           ],
         },
         {
           title: "المخزون",
-          url: `${base}/inventory`,
+          url: `/inventory`,
           icon: Warehouse,
           children: [
-            { title: "المخزون المنخفض", url: `${base}/inventory/low-stock` },
-            { title: "تعديل متعدّد", url: `${base}/inventory/bulk-adjust` },
+            { title: "المخزون المنخفض", url: `/inventory/low-stock` },
+            { title: "تعديل متعدّد", url: `/inventory/bulk-adjust` },
           ],
         },
       ],
@@ -105,21 +104,21 @@ function buildNavGroups(storeSlug: string): readonly NavGroup[] {
       items: [
         {
           title: "الطلبات",
-          url: `${base}/orders`,
+          url: `/orders`,
           icon: ShoppingBag,
         },
         {
           title: "الخدمات اللوجستية",
-          url: `${base}/logistics`,
+          url: `/logistics`,
           icon: Truck,
           children: [
-            { title: "مزودي الشحن", url: `${base}/logistics/shipping/providers` },
-            { title: "الشحنات", url: `${base}/logistics/shipping/shipments` },
+            { title: "مزودي الشحن", url: `/logistics/shipping/providers` },
+            { title: "الشحنات", url: `/logistics/shipping/shipments` },
           ],
         },
         {
           title: "الاستردادات",
-          url: `${base}/refunds`,
+          url: `/refunds`,
           icon: RotateCcw,
         },
       ],
@@ -129,12 +128,12 @@ function buildNavGroups(storeSlug: string): readonly NavGroup[] {
       items: [
         {
           title: "العملاء",
-          url: `${base}/customers`,
+          url: `/customers`,
           icon: Users,
         },
         {
           title: "أكواد الخصم",
-          url: `${base}/discount-codes`,
+          url: `/discount-codes`,
           icon: BadgePercent,
         },
       ],
@@ -144,24 +143,24 @@ function buildNavGroups(storeSlug: string): readonly NavGroup[] {
       items: [
         {
           title: "الفواتير",
-          url: `${base}/invoices`,
+          url: `/invoices`,
           icon: Receipt,
           children: [
-            { title: "قائمة الفواتير", url: `${base}/invoices` },
-            { title: "قوالب الفاتورة", url: `${base}/invoice-layouts` },
+            { title: "قائمة الفواتير", url: `/invoices` },
+            { title: "قوالب الفاتورة", url: `/invoice-layouts` },
           ],
         },
         {
           title: "المالية",
-          url: `${base}/finance`,
+          url: `/finance`,
           icon: CircleDollarSign,
           children: [
-            { title: "تسوية تحصيل COD", url: `${base}/finance/shipping/cod-reconciliation` },
+            { title: "تسوية تحصيل COD", url: `/finance/shipping/cod-reconciliation` },
           ],
         },
         {
           title: "بوابات الدفع",
-          url: `${base}/payment-providers`,
+          url: `/payment-providers`,
           icon: CreditCard,
         },
       ],
@@ -171,7 +170,7 @@ function buildNavGroups(storeSlug: string): readonly NavGroup[] {
       items: [
         {
           title: "استوديو التصميم",
-          url: `${base}/design-studio`,
+          url: `/design-studio`,
           icon: Palette,
         },
       ],
@@ -181,16 +180,16 @@ function buildNavGroups(storeSlug: string): readonly NavGroup[] {
       items: [
         {
           title: "الموظفون",
-          url: `${base}/staff`,
+          url: `/staff`,
           icon: UserCog,
         },
         {
           title: "الإعدادات",
-          url: `${base}/settings`,
+          url: `/settings`,
           icon: Settings,
           children: [
-            { title: "الإعدادات العامة", url: `${base}/settings` },
-            { title: "إدارة الوصول", url: `${base}/settings/access` },
+            { title: "الإعدادات العامة", url: `/settings` },
+            { title: "إدارة الوصول", url: `/settings/access` },
           ],
         },
       ],
@@ -316,15 +315,13 @@ function NavMenuItem({
 export type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   /** When set (e.g. `usePathname()` in the Next.js app), active state updates on client navigation. */
   pathname?: string
-  /** Tenant slug — required so nav links are scoped to the current store. */
-  storeSlug: string
   user: any
 }
 
-export function AppSidebar({ pathname: pathnameProp, storeSlug, user, ...props }: AppSidebarProps) {
+export function AppSidebar({ pathname: pathnameProp, user, ...props }: AppSidebarProps) {
   const fallbackPathname = useFallbackPathname()
   const pathname = pathnameProp ?? fallbackPathname
-  const navGroups = buildNavGroups(storeSlug)
+  const navGroups = buildNavGroups()
 
   return (
     <Sidebar {...props} side="right" dir="rtl">

@@ -1,13 +1,12 @@
 "use client"
 
-import { useParams } from "next/navigation"
-
+/**
+ * Path helper for merchant dashboard links.
+ * Dashboard URLs are slugless — tenant slug lives in localStorage / headers.
+ */
 export function useStorePath() {
-  const params = useParams<{ storeSlug: string }>()
-  const storeSlug = params?.storeSlug ?? ""
-
   return (path: string) => {
-    const normalized = path.startsWith("/") ? path : `/${path}`
-    return `/store/${storeSlug}${normalized}`
+    if (!path || path === "/") return "/"
+    return path.startsWith("/") ? path : `/${path}`
   }
 }

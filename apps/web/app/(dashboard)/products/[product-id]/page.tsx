@@ -63,10 +63,9 @@ const SECTION_IDS = [
 export default function ProductDetailsPage() {
   const router = useRouter()
   const params = useParams()
-  const storeSlug = params?.storeSlug?.toString() ?? ""
   const productId = params?.["product-id"]?.toString() ?? ""
   const isEdit = productId !== "create"
-  const productsListPath = `/store/${storeSlug}/products`
+  const productsListPath = `/products`
 
   const [activeSection, setActiveSection] = useState<string>("basic-info")
   const formScrollRef = useRef<HTMLDivElement>(null)

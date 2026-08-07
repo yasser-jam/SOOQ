@@ -27,7 +27,6 @@ import {
   UserPlus,
 } from "lucide-react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -65,8 +64,6 @@ const formatDate = (value?: string | null): string => {
 }
 
 export default function StaffTable() {
-  const params = useParams<{ storeSlug: string }>()
-  const storeSlug = params?.storeSlug ?? ""
   const queryClient = useQueryClient()
 
   const [page, setPage] = useState(0)
@@ -117,7 +114,7 @@ export default function StaffTable() {
       header: "الاسم",
       cell: ({ row }) => (
         <Link
-          href={`/store/${storeSlug}/staff/${row.original.staffId}`}
+          href={`/staff/${row.original.staffId}`}
           className="font-medium hover:underline"
         >
           {row.original.fullName}
@@ -168,7 +165,7 @@ export default function StaffTable() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link href={`/store/${storeSlug}/staff/${staff.staffId}`}>
+                <Link href={`/staff/${staff.staffId}`}>
                   <Eye className="size-4" />
                   عرض / تعديل
                 </Link>
@@ -231,7 +228,7 @@ export default function StaffTable() {
             </SelectContent>
           </Select>
           <Button asChild>
-            <Link href={`/store/${storeSlug}/staff/new`}>
+            <Link href={`/staff/new`}>
               <UserPlus className="size-4" />
               إضافة موظف
             </Link>
@@ -262,7 +259,7 @@ export default function StaffTable() {
             <div className="flex flex-col items-center gap-3 py-8 text-muted-foreground">
               <p>لا يوجد موظفون بعد.</p>
               <Button asChild variant="outline">
-                <Link href={`/store/${storeSlug}/staff/new`}>
+                <Link href={`/staff/new`}>
                   <UserPlus className="size-4" />
                   أضف أول موظف
                 </Link>

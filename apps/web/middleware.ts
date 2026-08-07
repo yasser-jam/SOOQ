@@ -4,16 +4,14 @@ import cookiesConfig from "@/config/cookies-config"
 import { TENANT_UUID_REGEX } from "@/modules/storefront/lib/store-config"
 
 // Paths bypassed entirely (no auth check):
-// - Marketing landing page at "/" (rendered by app/page.tsx — falls through to
-//   authenticated redirects when a session exists)
+// - Marketing landing at /welcome (interim until a separate domain)
 // - Merchant signup/login (/request-otp, /verify-otp, /onboarding)
-// - Customer-facing storefront and its auth at /shop/[slug]/...
+// - Customer-facing storefront auth at /shop/[slug]/...
 // - Published customer storefront at /store/[tenantId]/... (UUID segment)
-// - Static assets in `/images` — `next/image` makes an internal fetch to
-//   the source path while optimising, so without this entry the landing's
-//   pictures get redirected to /request-otp and the optimiser returns 400.
+// - Static assets in `/images`
 // - Next.js internals and the auth API
 const PUBLIC_PREFIXES = [
+	"/welcome",
 	"/request-otp",
 	"/verify-otp",
 	"/onboarding",
@@ -25,8 +23,6 @@ const PUBLIC_PREFIXES = [
 ]
 
 const isPublic = (pathname: string): boolean => {
-	if (pathname === "/") return true
-
 	if (isPublishedStorefrontPath(pathname)) return true
 
 	return PUBLIC_PREFIXES.some(
@@ -57,9 +53,29 @@ function rewritePublishedStorefront(
 	return NextResponse.rewrite(rewriteUrl)
 }
 
+/** Old merchant bookmarks: /store/{slug}/products → /products */
+function redirectLegacyMerchantStorePath(
+	request: NextRequest,
+): NextResponse | null {
+	const { pathname } = request.nextUrl
+	const match = pathname.match(/^\/store\/([^/]+)(\/.*)?$/)
+	if (!match) return null
+
+	const segment = decodeURIComponent(match[1]!)
+	if (TENANT_UUID_REGEX.test(segment)) return null
+
+	const rest = match[2] ?? ""
+	const redirectUrl = request.nextUrl.clone()
+	redirectUrl.pathname = rest || "/"
+	return NextResponse.redirect(redirectUrl, 308)
+}
+
 export function middleware(request: NextRequest) {
 	const storefrontRewrite = rewritePublishedStorefront(request)
 	if (storefrontRewrite) return storefrontRewrite
+
+	const legacyRedirect = redirectLegacyMerchantStorePath(request)
+	if (legacyRedirect) return legacyRedirect
 
 	const { pathname } = request.nextUrl
 
@@ -69,8 +85,6 @@ export function middleware(request: NextRequest) {
 
 	const accessToken = request.cookies.get(cookiesConfig.adminAccessToken)?.value
 	const refreshToken = request.cookies.get(cookiesConfig.refreshToken)?.value
-
-	return NextResponse.next()
 
 	// If we have either token, let the page render. The axios interceptor will
 	// silently refresh on the first 401. Only redirect when both are missing.

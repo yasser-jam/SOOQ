@@ -40,10 +40,8 @@ const formatDateTime = (value?: string | null): string => {
 
 export default function StaffDetailView({
   staffId,
-  storeSlug,
 }: {
   staffId: string
-  storeSlug: string
 }) {
   const queryClient = useQueryClient()
   const router = useRouter()
@@ -77,7 +75,7 @@ export default function StaffDetailView({
       queryClient,
       onSuccess: () => {
         toast.success("تم حذف الموظف")
-        router.push(`/store/${storeSlug}/staff`)
+        router.push(`/staff`)
       },
     }),
   })
