@@ -11,10 +11,9 @@ import { REGISTRATION_HUB_SLUG } from "@/modules/auth/auth/types"
  *
  * - **No / malformed session** → render the marketing landing page. Its CTAs
  *   point at `/request-otp` for the actual signup flow.
- * - **Token + real tenant slug** → server-redirect to `/store/${slug}`
- *   (merchant dashboard).
- * - **Token but still on the registration hub** → server-redirect to
- *   `/onboarding/create-store`.
+ * - **Token without OWNER** (or still on the registration hub) →
+ *   `/onboarding/create-store` so they can become an owner.
+ * - **Token + OWNER + real tenant slug** → `/store/${slug}` (merchant dashboard).
  *
  * Server-side decoding (instead of letting the client mount and bounce) keeps
  * the authenticated experience flash-free — the visitor never sees the
@@ -29,14 +28,17 @@ export default async function RootPage() {
     return <LandingPage />
   }
 
+  const roles = Array.isArray(payload.roles)
+    ? payload.roles.filter((role): role is string => typeof role === "string")
+    : []
   const slugFromCookie = cookieStore.get(cookiesConfig.tenantSlug)?.value || null
   const slugFromJwt =
     typeof payload.tenantSlug === "string" ? (payload.tenantSlug as string) : null
   const tenantSlug = slugFromCookie ?? slugFromJwt
 
-  if (tenantSlug && tenantSlug !== REGISTRATION_HUB_SLUG) {
-    redirect(`/store/${encodeURIComponent(tenantSlug)}`)
+  if (!roles.includes("OWNER") || !tenantSlug || tenantSlug === REGISTRATION_HUB_SLUG) {
+    redirect("/onboarding/create-store")
   }
 
-  redirect("/onboarding/create-store")
+  redirect(`/store/${encodeURIComponent(tenantSlug)}`)
 }

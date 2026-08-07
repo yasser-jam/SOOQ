@@ -54,7 +54,12 @@ function VerifyOtpForm() {
   const { isPending, mutate } = useMutation({
     ...getVerifyOtpMutationOptions({
       queryClient,
-      onSuccess: () => {
+      onSuccess: (response, isHub) => {
+        // Non-owners may create a store and become OWNER via onboarding.
+        if (!response.roles?.includes("OWNER") || isHub) {
+          router.push("/onboarding/create-store")
+          return
+        }
         router.push("/")
       },
     }),

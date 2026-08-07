@@ -81,7 +81,8 @@ export default function GoogleSignInButton({
       queryClient,
       onSuccess: (response, isHub) => {
         toast.success("تم تسجيل الدخول")
-        if (isHub) {
+        // Non-owners may create a store and become OWNER via onboarding.
+        if (!response.roles?.includes("OWNER") || isHub) {
           router.push("/onboarding/create-store")
           return
         }
