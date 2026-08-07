@@ -6,8 +6,6 @@ import { useRouter } from "next/navigation"
 import * as React from "react"
 import { toast } from "sonner"
 
-import { buildStorefrontUrl } from "@/modules/auth/store/storefront-url"
-
 import { getGoogleOAuthMutationOptions } from "../actions"
 import type { Role } from "../types"
 
@@ -82,13 +80,9 @@ export default function GoogleSignInButton({
       onSuccess: (response, isHub) => {
         toast.success("تم تسجيل الدخول")
         // Non-owners may create a store and become OWNER via onboarding.
+        // Slug is written to localStorage inside persistAuthResponse.
         if (!response.roles?.includes("OWNER") || isHub) {
           router.push("/onboarding/create-store")
-          return
-        }
-        const target = buildStorefrontUrl(response.tenantSlug)
-        if (target && typeof window !== "undefined") {
-          window.location.href = target
           return
         }
         router.push("/")

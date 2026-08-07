@@ -17,22 +17,15 @@ import {
 import { Toaster } from "./toaster"
 import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 import StoreConfigurationGate from "@/modules/auth/store/components/StoreConfigurationGate"
-import { TENANT_UUID_REGEX } from "@/modules/storefront/lib/store-config"
-
-const STORE_SLUG_REGEX = /^\/store\/([^/]+)/
 
 function AppSidebarWithPathname() {
   // Sidebar consumes the same merchant store-settings query that the
   // settings/dashboard pages use, so saving in any tab (or the
   // onboarding wizard) refreshes the sidebar via shared cache key.
   const { data: settings } = useQuery(getStoreSettingsQueryOptions())
-
   const pathname = usePathname()
-  const storeSlug = pathname?.match(STORE_SLUG_REGEX)?.[1] ?? ""
 
-  if (!storeSlug || TENANT_UUID_REGEX.test(storeSlug)) return null
-
-  return <AppSidebar pathname={pathname} storeSlug={storeSlug} user={settings} />
+  return <AppSidebar pathname={pathname} user={settings} />
 }
 
 export default function Providers({ children }: { children: React.ReactNode }) {

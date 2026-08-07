@@ -31,9 +31,9 @@ import {
 } from "@/components/onboarding/currency-button-group"
 import type { ApiError } from "@/lib/api"
 import { refreshSession } from "@/lib/auth/internal"
+import { setTenantSlug } from "@/lib/tenant-slug"
 import { useCurrentUser } from "@/modules/auth/auth/hooks/useCurrentUser"
 
-import { buildStorefrontUrl } from "../storefront-url"
 import { slugifyStoreName } from "../init"
 import {
   checkStoreSlug,
@@ -138,14 +138,10 @@ export default function CreateStoreFlow() {
       queryClient,
       onSuccess: async (settings: StoreSettings) => {
         await refreshSession().catch(() => undefined)
+        const targetSlug = settings.slug ?? form.getValues("slug")
+        setTenantSlug(targetSlug)
         if (typeof window !== "undefined") {
           sessionStorage.setItem(SESSION_SHOW_STORE_SETUP_LOADER, "1")
-        }
-        const targetSlug = settings.slug ?? form.getValues("slug")
-        const target = buildStorefrontUrl(targetSlug)
-        if (target && typeof window !== "undefined") {
-          window.location.href = target
-          return
         }
         router.replace("/")
       },

@@ -10,6 +10,7 @@ import { handleApiError } from "@/lib/api-error"
 import { refreshSession, logoutSession } from "@/lib/auth/internal"
 import { addCookie, getCookie, removeCookie } from "@/lib/cookies"
 import { MockApiError, tryHandleMockApi } from "@/lib/mock"
+import { clearTenantSlug, getTenantSlug, setTenantSlug } from "@/lib/tenant-slug"
 
 type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
 
@@ -54,6 +55,16 @@ apiInstance.interceptors.request.use(
     if (token) {
       config.headers.set("Authorization", `Bearer ${token}`)
     }
+
+    // Merchant APIs: attach store slug from localStorage (cookie fallback).
+    // Skip customer + internal auth — those don't use the merchant tenant header.
+    if (!isCustomerApiRequest(config.url) && !isInternalAuthRequest(config.url)) {
+      const tenantSlug = getTenantSlug()
+      if (tenantSlug && !config.headers.get("X-Tenant-Slug")) {
+        config.headers.set("X-Tenant-Slug", tenantSlug)
+      }
+    }
+
     return config
   },
   (error) => Promise.reject(error)
@@ -67,6 +78,9 @@ const triggerRefresh = (): Promise<string | null> => {
       .then((result) => {
         if (!result?.accessToken) return null
         addCookie(cookiesConfig.adminAccessToken, result.accessToken)
+        if (result.tenantSlug) {
+          setTenantSlug(result.tenantSlug)
+        }
         return result.accessToken
       })
       .catch(() => null)
@@ -91,6 +105,7 @@ const redirectToLogin = () => {
   if (typeof window === "undefined") return
   removeCookie(cookiesConfig.adminAccessToken)
   removeCookie(cookiesConfig.tenantSlug)
+  clearTenantSlug()
   if (isOnAuthLoginPage()) return
   window.location.href = "/request-otp"
 }

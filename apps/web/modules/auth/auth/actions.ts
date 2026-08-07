@@ -7,6 +7,7 @@ import { decodeJwt } from "@/lib/auth/jwt"
 import { setSessionTokens } from "@/lib/auth/internal"
 import { getCookie } from "@/lib/cookies"
 import { formatStoredPhoneForDisplay } from "@/lib/schema"
+import { getTenantSlug, setTenantSlug } from "@/lib/tenant-slug"
 
 import type {
   AuthTokenResponse,
@@ -80,7 +81,7 @@ const readCurrentUser = (): CurrentUser | null => {
   }
 
   const tenantSlug =
-    getCookie(cookiesConfig.tenantSlug) ?? readString("tenantSlug")
+    getTenantSlug() ?? getCookie(cookiesConfig.tenantSlug) ?? readString("tenantSlug")
 
   // Backend JWT layout (see JwtSecurityProvider#issueAuthentication):
   //   sub      = user UUID  (OIDC-aligned stable identifier)
@@ -132,6 +133,7 @@ const persistAuthResponse = async (
     refreshToken: response.refreshToken,
     tenantSlug: response.tenantSlug ?? null,
   })
+  setTenantSlug(response.tenantSlug)
 }
 
 export const getRequestOtpMutationOptions = () => ({

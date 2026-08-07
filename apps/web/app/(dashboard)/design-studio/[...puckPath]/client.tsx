@@ -12,7 +12,7 @@ import { createUsePuck } from "@/core/lib/use-puck"
 import config from "@/core/config"
 import { useDemoData } from "@/lib/use-demo-data"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   CircleHelp,
   Copy,
@@ -480,13 +480,9 @@ export function Client({
     ? EDITOR_METADATA_MOBILE
     : EDITOR_METADATA_DESKTOP
 
-  const pathname = usePathname()
   const router = useRouter()
   const queryClient = useQueryClient()
-  const designStudioHref = useMemo(() => {
-    const match = pathname?.match(/^\/store\/([^/]+)/)
-    return match ? `/store/${match[1]}/design-studio` : "/"
-  }, [pathname])
+  const designStudioHref = useMemo(() => "/design-studio", [])
 
   const previewHref = useMemo(
     () =>

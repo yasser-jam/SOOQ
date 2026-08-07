@@ -7,6 +7,7 @@ import { useState } from "react"
 import cookiesConfig from "@/config/cookies-config"
 import { logoutSession } from "@/lib/auth/internal"
 import { removeCookie } from "@/lib/cookies"
+import { clearTenantSlug } from "@/lib/tenant-slug"
 
 import { authKeys } from "../actions"
 
@@ -22,6 +23,7 @@ export const useLogout = () => {
     } finally {
       removeCookie(cookiesConfig.adminAccessToken)
       removeCookie(cookiesConfig.tenantSlug)
+      clearTenantSlug()
       queryClient.removeQueries({ queryKey: authKeys.currentUser })
       queryClient.clear()
       router.push("/request-otp")

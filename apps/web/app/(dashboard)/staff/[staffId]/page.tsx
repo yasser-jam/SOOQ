@@ -6,8 +6,7 @@ import RequireRole from "@/modules/auth/auth/components/RequireRole"
 import StaffDetailView from "@/modules/store/staff/components/StaffDetailView"
 
 export default function StaffDetailPage() {
-  const params = useParams<{ storeSlug: string; staffId: string }>()
-  const storeSlug = params?.storeSlug ?? ""
+  const params = useParams<{ staffId: string }>()
   const staffId = params?.staffId ?? ""
 
   return (
@@ -20,7 +19,7 @@ export default function StaffDetailPage() {
       </header>
 
       <RequireRole roles={["OWNER", "MANAGER"]}>
-        <StaffDetailView staffId={staffId} storeSlug={storeSlug} />
+        <StaffDetailView staffId={staffId} />
       </RequireRole>
     </div>
   )
