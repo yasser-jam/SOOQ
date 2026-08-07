@@ -15,7 +15,10 @@
     "web:start": "pnpm --filter web start",
     "store:build": "pnpm --filter store build",
     "store:dev": "pnpm --filter store dev",
-    "store:start": "pnpm --filter store start --port 3000"
+    "store:start": "pnpm --filter store start --port 3000",
+    "platform-admin:dev": "pnpm --filter platform-admin dev",
+    "platform-admin:build": "pnpm --filter platform-admin build",
+    "platform-admin:start": "pnpm --filter platform-admin start"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
