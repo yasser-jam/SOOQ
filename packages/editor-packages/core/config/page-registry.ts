@@ -165,6 +165,20 @@ export const PAGES: PageDefinition[] = [
       "Customer profile, marketing preferences and saved addresses",
     iconName: "FileText",
   },
+  {
+    path: "/orders",
+    label: "Orders",
+    description: "Customer order history",
+    iconName: "Package",
+  },
+  {
+    path: "/orders/:order-id",
+    label: "Order Details",
+    description: "Individual order page",
+    iconName: "Package",
+    dynamic: true,
+    examplePath: "/orders/example-order",
+  },
 ];
 
 /** Returns the path used for the editor URL (substitutes dynamic segments) */

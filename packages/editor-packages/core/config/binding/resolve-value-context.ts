@@ -1,7 +1,11 @@
+import { applyValueFormat } from "../lib/format";
+import type { ValueContextFormat } from "./types";
 import { resolveBoundImageUrl } from "./resolve-bound-images";
 
-type ResolveOptions = {
+export type ResolveOptions = {
   locale?: "ar" | "en";
+  format?: ValueContextFormat;
+  currency?: string;
 };
 
 const LOCALE_SHORTHANDS: Record<string, { ar: string; en: string }> = {
@@ -98,6 +102,11 @@ export function resolveValueContextAsString(
   const locale = options.locale ?? "ar";
   const value = resolveValueContext(path, data, options);
   if (value == null) return undefined;
+
+  if (options.format) {
+    const formatted = applyValueFormat(value, options.format, options.currency);
+    if (formatted) return formatted;
+  }
   if (typeof value === "string") {
     const trimmed = value.trim();
     if (trimmed) return trimmed;

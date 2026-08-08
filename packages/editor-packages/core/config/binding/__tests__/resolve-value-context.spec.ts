@@ -108,4 +108,35 @@ describe("resolveValueContextAsString", () => {
     expect(resolveValueContextAsString("product", payload)).toBeUndefined();
     expect(resolveValueContextAsString("images", payload)).toBeUndefined();
   });
+
+  it("formats money values when requested", () => {
+    const formatted = resolveValueContextAsString("pricing.basePrice", payload, {
+      format: "money",
+      currency: "SYP",
+    });
+    expect(formatted).toBeDefined();
+    expect(formatted).not.toBe("25000");
+  });
+
+  it("formats numeric strings as money", () => {
+    const formatted = resolveValueContextAsString(
+      "amount",
+      { amount: "1500" },
+      {
+        format: "money",
+        currency: "SYP",
+      }
+    );
+    expect(formatted).toBeDefined();
+    expect(formatted).not.toBe("1500");
+  });
+
+  it("formats datetime values", () => {
+    const formatted = resolveValueContextAsString(
+      "order.placedAt",
+      { order: { placedAt: "2025-06-15T14:30:00.000Z" } },
+      { format: "datetime" }
+    );
+    expect(formatted).toMatch(/15\/06\/2025/);
+  });
 });

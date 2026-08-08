@@ -2,7 +2,10 @@
 
 import type { ValueContext } from "./types";
 import { useBoundData } from "./BoundDataContext";
-import { resolveValueContextAsString } from "./resolve-value-context";
+import {
+  resolveValueContext,
+  resolveValueContextAsString,
+} from "./resolve-value-context";
 
 export function useBoundValue(
   staticValue: string,
@@ -14,8 +17,17 @@ export function useBoundValue(
     return staticValue;
   }
 
+  const currency =
+    valueContext.currencyPath?.trim()
+      ? resolveValueContextAsString(valueContext.currencyPath, data, {
+          locale: language,
+        })
+      : undefined;
+
   const resolved = resolveValueContextAsString(valueContext.path, data, {
     locale: language,
+    format: valueContext.format,
+    currency,
   });
 
   if (resolved) return resolved;

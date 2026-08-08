@@ -39,6 +39,7 @@ export function withShowCondition<
     render: ((props: any) => (
       <ShowConditionGate
         condition={props.showCondition}
+        dataCondition={props.dataCondition}
         isEditing={!!props.puck?.isEditing}
       >
         <OriginalRender {...props} />

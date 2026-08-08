@@ -32,12 +32,22 @@ import {
 } from "./products-page-section";
 import { ProductsGridTemplateRepeater } from "./ProductsGridTemplateRepeater";
 import { ProductsPageTemplateRepeater } from "./ProductsPageTemplateRepeater";
-import { CustomerAddressesTemplateRepeater } from "./CustomerAddressesTemplateRepeater";
+import { StoreListRepeater } from "./StoreListRepeater";
+import { sectionKindToDataSource } from "./store-list-data-sources";
 import {
   isCustomerAccountSection,
   isCustomerAddressesSection,
+  isCustomerOrdersSection,
+  isCustomerOrdersPagerSection,
+  isCustomerOrderDetailSection,
+  isStoreListSection,
   SECTION_KIND_CUSTOMER_ACCOUNT,
   SECTION_KIND_CUSTOMER_ADDRESSES,
+  SECTION_KIND_CUSTOMER_ORDERS,
+  SECTION_KIND_CUSTOMER_ORDERS_PAGER,
+  SECTION_KIND_CUSTOMER_ORDER_DETAIL,
+  SECTION_KIND_CUSTOMER_ORDER_ITEMS,
+  SECTION_KIND_CUSTOMER_ORDER_TIMELINE,
 } from "./customer-account-section";
 import {
   isCartSection,
@@ -163,6 +173,11 @@ export type SectionProps = WithLayout<{
     | typeof SECTION_KIND_CART
     | typeof SECTION_KIND_CUSTOMER_ACCOUNT
     | typeof SECTION_KIND_CUSTOMER_ADDRESSES
+    | typeof SECTION_KIND_CUSTOMER_ORDERS
+    | typeof SECTION_KIND_CUSTOMER_ORDERS_PAGER
+    | typeof SECTION_KIND_CUSTOMER_ORDER_DETAIL
+    | typeof SECTION_KIND_CUSTOMER_ORDER_ITEMS
+    | typeof SECTION_KIND_CUSTOMER_ORDER_TIMELINE
     | null;
   /** Identifies preset-driven sections (e.g. products-grid) in store_config.json. */
   metadata?: SectionPresetMetadata | null;
@@ -349,7 +364,7 @@ const SectionInner: ComponentConfig<SectionProps> = {
     // Customer-addresses repeater clones content[0] via cardTemplate on the
     // storefront (Puck app-store content is empty there). Mirror products-grid.
     // Never wipe a good snapshot when the slot is temporarily empty.
-    if (isCustomerAddressesSection(props)) {
+    if (isStoreListSection(props)) {
       const rawContent = props.content as ComponentDataOptionalId[] | undefined;
       const contentTemplate =
         Array.isArray(rawContent) && rawContent.length > 0
@@ -449,6 +464,55 @@ type SectionViewProps = SectionProps & {
   id?: string;
   puck: { isEditing?: boolean };
 };
+
+function OrdersPagerBoundShell({
+  isEditing,
+  children,
+}: {
+  isEditing: boolean;
+  children: React.ReactNode;
+}) {
+  const { orders } = useStore();
+  const { language } = useActiveLanguage();
+  const sampleInEditor = useSampleDataInEditor();
+  const sampleMode = isEditing && sampleInEditor;
+
+  const boundData = useMemo(() => {
+    if (sampleMode) {
+      return {
+        orders: {
+          pageLabel: "صفحة 1 من 2",
+          hasNext: true,
+          hasPrev: false,
+        },
+      };
+    }
+    return {
+      orders: {
+        pageLabel: orders.pageLabel,
+        hasNext: orders.hasNext,
+        hasPrev: orders.hasPrev,
+      },
+    };
+  }, [sampleMode, orders.hasNext, orders.hasPrev, orders.pageLabel]);
+
+  const providerValue = useMemo(
+    () => ({
+      data: boundData,
+      isLoading: false,
+      isError: false,
+      metadata: null,
+      language,
+      selectedVariantId: null,
+      setSelectedVariantId: () => {},
+    }),
+    [boundData, language]
+  );
+
+  return (
+    <BoundDataProvider value={providerValue}>{children}</BoundDataProvider>
+  );
+}
 
 /**
  * Owns the StoreContext subscription for customer-account sections so the
@@ -563,6 +627,27 @@ function SectionView({
     metadata: sectionMetadata,
   });
 
+  const isCustomerOrders = isCustomerOrdersSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const isCustomerOrdersPager = isCustomerOrdersPagerSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const isCustomerOrderDetail = isCustomerOrderDetailSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
+  const storeListDataSource = sectionKindToDataSource(sectionKind ?? undefined);
+  const isStoreList = isStoreListSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
   const gap = gridGap ?? "24px";
   const bgImage = (backgroundImage ?? "").trim();
   const overlayColor = (backgroundOverlayColor ?? "").trim();
@@ -622,17 +707,19 @@ function SectionView({
     />
   ) : null;
 
-  const customerAddressesRender = isCustomerAddresses ? (
-    <CustomerAddressesTemplateRepeater
-      editableSlot={Content as unknown as SlotComponent}
-      cardTemplate={cardTemplate?.[0] ?? undefined}
-      sectionId={id}
-      isEditing={isEditing}
-      activeCols={activeCols}
-      gap={gap}
-      gridClassName={gridClassName}
-    />
-  ) : null;
+  const storeListRender =
+    isStoreList && storeListDataSource ? (
+      <StoreListRepeater
+        dataSource={storeListDataSource}
+        editableSlot={Content as unknown as SlotComponent}
+        cardTemplate={cardTemplate?.[0] ?? undefined}
+        sectionId={id}
+        isEditing={isEditing}
+        activeCols={activeCols}
+        gap={gap}
+        gridClassName={gridClassName}
+      />
+    ) : null;
 
   const defaultSectionContent = (
     <Content className={gridClassName} style={gridStyle} />
@@ -642,19 +729,21 @@ function SectionView({
     <CustomerAccountBoundShell isEditing={isEditing}>
       {defaultSectionContent}
     </CustomerAccountBoundShell>
+  ) : isCustomerOrdersPager ? (
+    <OrdersPagerBoundShell isEditing={isEditing}>
+      {defaultSectionContent}
+    </OrdersPagerBoundShell>
   ) : (
     defaultSectionContent
   );
 
-  const sectionGridContent = isProductsGrid ? (
-    productsGridRender
-  ) : isProductsPage ? (
-    productsPageRender
-  ) : isCustomerAddresses ? (
-    customerAddressesRender
-  ) : (
-    customerAccountContent
-  );
+  const sectionGridContent = isProductsGrid
+    ? productsGridRender
+    : isProductsPage
+      ? productsPageRender
+      : isStoreList
+        ? storeListRender
+        : customerAccountContent;
 
   const wrappedSectionGridContent = sectionGridContent;
 
@@ -667,15 +756,48 @@ function SectionView({
           ? SECTION_KIND_PRODUCTS_GRID
           : isProductsPageSection({ sectionKind, metadata: sectionMetadata })
             ? SECTION_KIND_PRODUCTS_PAGE
-          : isCartSection({ sectionKind, metadata: sectionMetadata })
-            ? SECTION_KIND_CART
-            : isCustomerAccountSection({ sectionKind, metadata: sectionMetadata })
-              ? SECTION_KIND_CUSTOMER_ACCOUNT
-              : isCustomerAddressesSection({ sectionKind, metadata: sectionMetadata })
-                ? SECTION_KIND_CUSTOMER_ADDRESSES
-                : isZoneHeaderSection({ sectionKind, metadata: sectionMetadata })
-                  ? SECTION_KIND_ZONE_HEADER
-                  : undefined
+            : isCartSection({ sectionKind, metadata: sectionMetadata })
+              ? SECTION_KIND_CART
+              : isCustomerAccountSection({ sectionKind, metadata: sectionMetadata })
+                ? SECTION_KIND_CUSTOMER_ACCOUNT
+                : isCustomerAddressesSection({
+                      sectionKind,
+                      metadata: sectionMetadata,
+                    })
+                  ? SECTION_KIND_CUSTOMER_ADDRESSES
+                  : isCustomerOrdersSection({
+                        sectionKind,
+                        metadata: sectionMetadata,
+                      })
+                    ? SECTION_KIND_CUSTOMER_ORDERS
+                    : isCustomerOrdersPagerSection({
+                          sectionKind,
+                          metadata: sectionMetadata,
+                        })
+                      ? SECTION_KIND_CUSTOMER_ORDERS_PAGER
+                      : isCustomerOrderDetailSection({
+                            sectionKind,
+                            metadata: sectionMetadata,
+                          })
+                        ? SECTION_KIND_CUSTOMER_ORDER_DETAIL
+                        : isStoreListSection({
+                              sectionKind,
+                              metadata: sectionMetadata,
+                            }) &&
+                            sectionKind === SECTION_KIND_CUSTOMER_ORDER_ITEMS
+                          ? SECTION_KIND_CUSTOMER_ORDER_ITEMS
+                          : isStoreListSection({
+                                sectionKind,
+                                metadata: sectionMetadata,
+                              }) &&
+                              sectionKind === SECTION_KIND_CUSTOMER_ORDER_TIMELINE
+                            ? SECTION_KIND_CUSTOMER_ORDER_TIMELINE
+                            : isZoneHeaderSection({
+                                  sectionKind,
+                                  metadata: sectionMetadata,
+                                })
+                              ? SECTION_KIND_ZONE_HEADER
+                              : undefined
       }
       className={getClassName({ hidden: isHidden })}
       style={{

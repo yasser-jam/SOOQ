@@ -39,6 +39,9 @@ export type StoreLoadingState = {
   profile: boolean;
   preferences: boolean;
   address: boolean;
+  invoice: boolean;
+  cancelOrder: boolean;
+  submitReturn: boolean;
 };
 
 export type StoreErrorState = {
@@ -48,6 +51,9 @@ export type StoreErrorState = {
   profile: string | null;
   preferences: string | null;
   address: string | null;
+  invoice: string | null;
+  cancelOrder: string | null;
+  submitReturn: string | null;
 };
 
 // ─── Products page (searchable listing) ───────────────────────────────────────
@@ -155,6 +161,115 @@ export type CustomerActions = {
   refreshCustomer: () => Promise<void>;
 };
 
+// ─── Customer orders (orders list + detail) ────────────────────────────────────
+
+export type CustomerOrderSummary = {
+  orderId: string;
+  orderNumber?: string;
+  orderStatus?: string;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  subtotal?: number;
+  discountAmount?: number;
+  taxAmount?: number;
+  total?: number;
+  itemCount?: number;
+  placedAt?: string;
+  currencyCode?: string;
+};
+
+export type CustomerOrderShippingAddress = {
+  latitude?: number | null;
+  longitude?: number | null;
+  recipientName?: string | null;
+  phone?: string | null;
+  addressLabel?: string | null;
+};
+
+export type CustomerOrderItem = {
+  orderItemId?: string;
+  variantId?: string;
+  productTitle?: string;
+  variantTitle?: string;
+  sku?: string;
+  quantity?: number;
+  unitPrice?: number;
+  discountAmount?: number;
+  totalPrice?: number;
+};
+
+export type CustomerOrderTimelineEntry = {
+  timelineId?: string;
+  action?: string;
+  actor?: string;
+  details?: string | null;
+  createdAt?: string;
+};
+
+export type CustomerOrderDetail = {
+  orderId: string;
+  orderNumber?: string;
+  orderStatus?: string;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  currencyCode?: string;
+  subtotal?: number;
+  discountAmount?: number;
+  taxAmount?: number;
+  shippingCost?: number;
+  total?: number;
+  shippingAddress?: CustomerOrderShippingAddress | null;
+  notesCustomer?: string | null;
+  placedAt?: string;
+  items?: CustomerOrderItem[];
+  timeline?: CustomerOrderTimelineEntry[];
+};
+
+export type OrdersState = {
+  items: CustomerOrderSummary[];
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+  pageLabel: string;
+  isLoading: boolean;
+  isError: boolean;
+};
+
+export type OrderDetailState = {
+  order: CustomerOrderDetail | null;
+  isCancellable: boolean;
+  isReturnable: boolean;
+  cancelReason: string;
+};
+
+export type ReturnItemDraft = {
+  quantity: number;
+  condition: string;
+};
+
+export type ReturnDraftState = {
+  orderId: string | null;
+  reason: string;
+  items: Record<string, ReturnItemDraft>;
+  submitted: boolean;
+};
+
+export type OrdersActions = {
+  nextPage: () => void;
+  prevPage: () => void;
+  downloadInvoice: () => Promise<void>;
+  cancelOrder: () => Promise<void>;
+  submitReturn: () => Promise<void>;
+  setCancelReason: (reason: string) => void;
+  toggleReturnItem: (orderItemId: string, maxQuantity: number) => void;
+  setReturnItemQuantity: (orderItemId: string, quantity: number) => void;
+  setReturnItemCondition: (orderItemId: string, condition: string) => void;
+  setOrderDetail: (order: CustomerOrderDetail | null) => void;
+  refreshOrders: () => Promise<void>;
+};
+
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
 export type StoreContextActions = {
@@ -182,9 +297,13 @@ export type StoreContextValue = {
   errors: StoreErrorState;
   productsPage: ProductsPageState;
   customer: CustomerState;
+  orders: OrdersState;
+  orderDetail: OrderDetailState;
+  returnDraft: ReturnDraftState;
   actions: StoreContextActions & {
     productsPage: ProductsPageActions;
     customer: CustomerActions;
+    orders: OrdersActions;
   };
 };
 
@@ -251,6 +370,46 @@ const defaultCustomerActions: CustomerActions = {
   refreshCustomer: noopAsync,
 };
 
+const defaultOrdersState: OrdersState = {
+  items: [],
+  page: 0,
+  pageSize: 20,
+  totalPages: 0,
+  hasNext: false,
+  hasPrev: false,
+  pageLabel: "",
+  isLoading: false,
+  isError: false,
+};
+
+const defaultOrderDetailState: OrderDetailState = {
+  order: null,
+  isCancellable: false,
+  isReturnable: false,
+  cancelReason: "",
+};
+
+const defaultReturnDraftState: ReturnDraftState = {
+  orderId: null,
+  reason: "DEFECTIVE",
+  items: {},
+  submitted: false,
+};
+
+const defaultOrdersActions: OrdersActions = {
+  nextPage: noop,
+  prevPage: noop,
+  downloadInvoice: noopAsync,
+  cancelOrder: noopAsync,
+  submitReturn: noopAsync,
+  setCancelReason: noop,
+  toggleReturnItem: noop,
+  setReturnItemQuantity: noop,
+  setReturnItemCondition: noop,
+  setOrderDetail: noop,
+  refreshOrders: noopAsync,
+};
+
 const defaultValue: StoreContextValue = {
   auth: defaultAuth,
   loading: {
@@ -260,6 +419,9 @@ const defaultValue: StoreContextValue = {
     profile: false,
     preferences: false,
     address: false,
+    invoice: false,
+    cancelOrder: false,
+    submitReturn: false,
   },
   errors: {
     login: null,
@@ -268,9 +430,15 @@ const defaultValue: StoreContextValue = {
     profile: null,
     preferences: null,
     address: null,
+    invoice: null,
+    cancelOrder: null,
+    submitReturn: null,
   },
   productsPage: defaultProductsPageState,
   customer: defaultCustomerState,
+  orders: defaultOrdersState,
+  orderDetail: defaultOrderDetailState,
+  returnDraft: defaultReturnDraftState,
   actions: {
     login: noopAsync,
     verifyOtp: noopAsync,
@@ -281,6 +449,7 @@ const defaultValue: StoreContextValue = {
     searchProducts: noop,
     productsPage: defaultProductsPageActions,
     customer: defaultCustomerActions,
+    orders: defaultOrdersActions,
   },
 };
 

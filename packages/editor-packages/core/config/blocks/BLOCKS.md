@@ -8,7 +8,7 @@ Each block is described with its **properties**, accepted **values**, and a read
 > **Block registry** (`config/index.tsx`)  
 > Blocks registered in the editor are grouped as:
 > - **layout** — `Section`, `Group`, `RowGroup`
-> - **blocks** — `ContentHeading`, `ContentParagraph`, `ContentImage`, `ContentButton`, `Chip`, `ButtonGroup`, `ContentLink`, `ContentInput`, `ContentSwitch`, `ContentDivider`, `Space`, `ImageGallery`, `VideoEmbed`, `Accordion`
+> - **blocks** — `ContentHeading`, `ContentParagraph`, `ContentImage`, `ContentButton`, `Chip`, `ButtonGroup`, `ContentLink`, `ContentInput`, `ContentSwitch`, `ContentSelect`, `ContentDivider`, `Space`, `ImageGallery`, `VideoEmbed`, `Accordion`
 > - **storeBlocks** — currently `Testimonials` is the only entry surfaced in the palette; `ProductImageCarousel`, `ProductVariants`, `CategoryListMenu`, `CheckoutForm`, `ProductSearchMenu`, `OrderHistory`, `Wishlist`, `ContactForm` are all registered but commented out of the visible palette (used inside presets or bound `Group` slots). Header cart / orders use `ContentButton` presets — legacy `CartIconButton` / `OrdersIconButton` are in **legacy**.
 > - **legacy** — hidden from picker; still resolvable so old `store_config.json` payloads render
 >

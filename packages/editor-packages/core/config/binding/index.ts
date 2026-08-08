@@ -1,4 +1,4 @@
-export type { ValueContext, BoundDataContextValue } from "./types";
+export type { ValueContext, BoundDataContextValue, ValueContextFormat } from "./types";
 export {
   resolveValueContext,
   resolveValueContextAsString,

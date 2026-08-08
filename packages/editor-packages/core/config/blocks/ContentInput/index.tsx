@@ -14,7 +14,7 @@ import {
   type InputAction,
 } from "../../content/input-actions";
 import type { ValueContext } from "../../binding";
-import { useBoundValue } from "../../binding";
+import { useBoundData, useBoundValue } from "../../binding";
 import { useStore } from "../../store-context";
 import {
   bilingualTextField,
@@ -41,6 +41,8 @@ export type ContentInputProps = WithLayout<{
   inputAction: InputAction | "";
   debounceMs: number;
   valueContext?: ValueContext | null;
+  min?: number | null;
+  max?: number | null;
 }>;
 
 const PREPEND_ICON_OPTIONS = [
@@ -119,23 +121,46 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
     inputAction = "",
     debounceMs = 250,
     valueContext,
+    min,
+    max,
     puck,
   }) => {
     const { language } = useActiveLanguage();
     const resolvedLabel = pickLang(label, language);
     const resolvedPlaceholder = pickLang(placeholder, language);
-    const { productsPage, customer, actions } = useStore();
+    const { productsPage, customer, orderDetail, returnDraft, actions } =
+      useStore();
+    const { data } = useBoundData();
     const contextBoundValue = useBoundValue(resolvedPlaceholder || "", valueContext);
+
+    const orderItemId =
+      typeof data?.item === "object" &&
+      data.item != null &&
+      "orderItemId" in data.item
+        ? String((data.item as { orderItemId?: string }).orderItemId ?? "")
+        : "";
+
+    const itemMaxQuantity =
+      typeof data?.item === "object" &&
+      data.item != null &&
+      "quantity" in data.item &&
+      typeof (data.item as { quantity?: number }).quantity === "number"
+        ? Math.max(1, (data.item as { quantity: number }).quantity)
+        : max ?? undefined;
 
     const isSearchProducts = inputAction === "search_products";
     const isPriceFilter = isPriceFilterInputAction(inputAction);
     const isProfileFullName = inputAction === "profile_full_name";
     const isAddressDraft = isAddressDraftInputAction(inputAction);
-    const isCustomerDraft = isProfileFullName || isAddressDraft;
+    const isCancelReason = inputAction === "cancel_reason";
+    const isReturnItemQuantity = inputAction === "return_item_quantity";
+    const isCustomerDraft =
+      isProfileFullName || isAddressDraft || isCancelReason;
     const isContextDisplay =
       inputAction === "" && Boolean(valueContext?.path);
     const isDebouncedBound = isSearchProducts || isPriceFilter;
-    const isImmediateBound = isCustomerDraft || isContextDisplay;
+    const isImmediateBound =
+      isCustomerDraft || isContextDisplay || isReturnItemQuantity;
     const isBound = isDebouncedBound || isImmediateBound;
 
     const addressDraftField = isAddressDraft
@@ -150,6 +175,10 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
           ? (productsPage.maxPrice?.toString() ?? "")
           : isProfileFullName
             ? customer.profileDraft.fullName
+            : isCancelReason
+              ? orderDetail.cancelReason
+              : isReturnItemQuantity && orderItemId
+                ? String(returnDraft.items[orderItemId]?.quantity ?? 1)
             : addressDraftField
               ? String(customer.addressDraft[addressDraftField] ?? "")
               : isContextDisplay
@@ -163,6 +192,20 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
     const flushCustomerDraft = (value: string) => {
       if (isProfileFullName) {
         actions.customer.setProfileDraftField("fullName", value);
+        return;
+      }
+      if (isCancelReason) {
+        actions.orders.setCancelReason(value);
+        return;
+      }
+      if (isReturnItemQuantity && orderItemId) {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed)) return;
+        const clamped = Math.min(
+          Math.max(min ?? 1, parsed),
+          itemMaxQuantity ?? max ?? parsed
+        );
+        actions.orders.setReturnItemQuantity(orderItemId, clamped);
         return;
       }
       if (addressDraftField) {
@@ -222,6 +265,17 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
       setLocalValue(next);
       if (puck.isEditing || isContextDisplay) return;
 
+      if (isReturnItemQuantity && orderItemId) {
+        const parsed = Number(next);
+        if (!Number.isFinite(parsed)) return;
+        const clamped = Math.min(
+          Math.max(min ?? 1, parsed),
+          itemMaxQuantity ?? max ?? parsed
+        );
+        actions.orders.setReturnItemQuantity(orderItemId, clamped);
+        return;
+      }
+
       if (!isCustomerDraft) return;
 
       clearDraftTimer();
@@ -271,7 +325,18 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
             ? "ltr"
             : undefined
         }
-        min={isPriceFilter ? 0 : undefined}
+        min={
+          isPriceFilter
+            ? 0
+            : isReturnItemQuantity
+              ? (min ?? 1)
+              : min ?? undefined
+        }
+        max={
+          isReturnItemQuantity
+            ? (itemMaxQuantity ?? max ?? undefined)
+            : max ?? undefined
+        }
         inputMode={isPriceFilter ? "numeric" : undefined}
         value={isBound ? localValue : undefined}
         onChange={
@@ -321,6 +386,8 @@ function shouldHideDebounceMs(inputAction: InputAction | ""): boolean {
   return (
     inputAction === "" ||
     inputAction === "profile_full_name" ||
+    inputAction === "cancel_reason" ||
+    inputAction === "return_item_quantity" ||
     isAddressDraftInputAction(inputAction)
   );
 }

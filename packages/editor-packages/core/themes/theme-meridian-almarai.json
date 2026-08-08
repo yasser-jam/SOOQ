@@ -590,6 +590,193 @@
             }
           ]
         }
+      },
+      {
+        "type": "ZonePopup",
+        "props": {
+          "is_active": false,
+          "is_mobile_only": false,
+          "zoneKey": "cancel-order",
+          "backgroundColor": "#ffffff",
+          "borderRadius": "24px",
+          "maxWidth": "480px",
+          "overlay": true,
+          "showCloseButton": true,
+          "slot": [
+            {
+              "type": "Group",
+              "props": {
+                "direction": "column",
+                "gap": 16,
+                "alignItems": "stretch",
+                "justifyContent": "flex-start",
+                "wrap": "nowrap",
+                "language": "ar",
+                "backgroundColor": "#ffffff",
+                "backgroundImage": "",
+                "backgroundOverlayColor": "",
+                "padding": "32px",
+                "borderRadius": "theme-lg",
+                "boxShadow": "md",
+                "product": null,
+                "metadata": null,
+                "cartLineId": null,
+                "content": [
+                  {
+                    "type": "ContentHeading",
+                    "props": {
+                      "text": {
+                        "ar": "إلغاء الطلب",
+                        "en": "Cancel order"
+                      },
+                      "textAlign": "left",
+                      "fontFamily": "body",
+                      "fontSize": "theme-2xl",
+                      "fontWeight": "theme-bold",
+                      "lineHeight": "theme-normal",
+                      "fontStyle": "normal",
+                      "textTransform": "none",
+                      "color": "theme-text",
+                      "id": "ContentHeading-cancel-order-slot-0-content-0",
+                      "level": "2"
+                    }
+                  },
+                  {
+                    "type": "ContentParagraph",
+                    "props": {
+                      "text": {
+                        "ar": "سيتم إلغاء الطلب. لا يمكن التراجع عن هذه الخطوة.",
+                        "en": "The order will be cancelled. This cannot be undone."
+                      },
+                      "textAlign": "left",
+                      "fontFamily": "body",
+                      "fontSize": "theme-md",
+                      "fontWeight": "theme-normal",
+                      "lineHeight": "theme-relaxed",
+                      "fontStyle": "normal",
+                      "textTransform": "none",
+                      "color": "theme-text",
+                      "id": "ContentParagraph-cancel-order-slot-0-content-1"
+                    }
+                  },
+                  {
+                    "type": "ContentInput",
+                    "props": {
+                      "label": {
+                        "ar": "سبب الإلغاء (اختياري)",
+                        "en": "Cancellation reason (optional)"
+                      },
+                      "name": "cancel-reason",
+                      "inputType": "text",
+                      "placeholder": {
+                        "ar": "",
+                        "en": ""
+                      },
+                      "required": false,
+                      "inputAction": "cancel_reason",
+                      "id": "ContentInput-cancel-order-slot-0-content-2"
+                    }
+                  },
+                  {
+                    "type": "ContentParagraph",
+                    "props": {
+                      "text": {
+                        "ar": "",
+                        "en": ""
+                      },
+                      "textAlign": "left",
+                      "fontFamily": "body",
+                      "fontSize": "theme-md",
+                      "fontWeight": "theme-normal",
+                      "lineHeight": "theme-relaxed",
+                      "fontStyle": "normal",
+                      "textTransform": "none",
+                      "color": "theme-text",
+                      "valueContext": {
+                        "path": "errors.cancelOrder"
+                      },
+                      "dataCondition": {
+                        "path": "errors.cancelOrder",
+                        "op": "truthy"
+                      },
+                      "id": "ContentParagraph-cancel-order-slot-0-content-3"
+                    }
+                  },
+                  {
+                    "type": "RowGroup",
+                    "props": {
+                      "direction": "row",
+                      "gap": 16,
+                      "alignItems": "center",
+                      "justifyContent": "space-between",
+                      "wrap": "wrap",
+                      "content": [
+                        {
+                          "type": "ContentButton",
+                          "props": {
+                            "label": {
+                              "ar": "تراجع",
+                              "en": "Go back"
+                            },
+                            "align": "left",
+                            "destinationType": "zone",
+                            "buttonAction": "link",
+                            "link": {
+                              "kind": "none"
+                            },
+                            "buttonVariantMode": "variant",
+                            "buttonVariant": "secondary",
+                            "buttonVariantSize": "md",
+                            "radius": "theme-md",
+                            "bgColor": "theme-primary",
+                            "textColor": "theme-surface",
+                            "buttonSize": "theme-md",
+                            "submitRedirectUrl": "",
+                            "zoneKey": "cancel-order",
+                            "zoneAction": "close",
+                            "id": "ContentButton-cancel-order-slot-0-content-4-content-0"
+                          }
+                        },
+                        {
+                          "type": "ContentButton",
+                          "props": {
+                            "label": {
+                              "ar": "تأكيد الإلغاء",
+                              "en": "Confirm cancellation"
+                            },
+                            "align": "left",
+                            "destinationType": "action",
+                            "buttonAction": "cancelOrder",
+                            "link": {
+                              "kind": "none"
+                            },
+                            "buttonVariantMode": "variant",
+                            "buttonVariant": "error",
+                            "buttonVariantSize": "md",
+                            "radius": "theme-md",
+                            "bgColor": "theme-primary",
+                            "textColor": "theme-surface",
+                            "buttonSize": "theme-md",
+                            "submitRedirectUrl": "",
+                            "id": "ContentButton-cancel-order-slot-0-content-4-content-1",
+                            "zoneKey": "popup-main",
+                            "zoneAction": "open"
+                          }
+                        }
+                      ],
+                      "id": "RowGroup-cancel-order-slot-0-content-4",
+                      "backgroundColor": "",
+                      "padding": "0px",
+                      "borderRadius": "theme-none"
+                    }
+                  }
+                ],
+                "id": "Group-cancel-order-slot-0"
+              }
+            }
+          ],
+          "id": "ZonePopup-cancel-order"
+        }
       }
     ],
     "root:zone-bottom-sheet": [
@@ -4852,6 +5039,2586 @@
                 }
               }
             ]
+          }
+        }
+      ]
+    },
+    {
+      "path": "/orders",
+      "slug": "/orders",
+      "link": "/orders",
+      "name": {
+        "ar": "طلباتي",
+        "en": "My orders"
+      },
+      "title": {
+        "ar": "طلباتي",
+        "en": "My orders"
+      },
+      "description": {
+        "ar": "عرض سجلّ الطلبات وتتبُّع حالتها.",
+        "en": "View your order history and track status."
+      },
+      "iconName": "Package",
+      "isCustom": false,
+      "content": [
+        {
+          "type": "Section",
+          "props": {
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "paddingTop": "48px",
+            "paddingBottom": "24px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#ffffff",
+            "theme": "dark",
+            "maxWidth": "640px",
+            "visible": true,
+            "anchorId": "",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "id": "Section-orders-signedout",
+            "name": "تسجيل الدخول",
+            "showCondition": "loggedOut",
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "direction": "column",
+                  "gap": 16,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "language": "ar",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "text": {
+                          "ar": "سجّل دخولك لعرض طلباتك.",
+                          "en": "Sign in to view your orders."
+                        },
+                        "textAlign": "center",
+                        "fontFamily": "body",
+                        "fontSize": "theme-2xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-normal",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "id": "ContentHeading-orders-0-content-0-content-0",
+                        "level": "1"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "يمكنك تسجيل الدخول برقم هاتفك لمتابعة طلباتك وإدارة حسابك.",
+                          "en": "Sign in with your phone number to track orders and manage your account."
+                        },
+                        "textAlign": "center",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "id": "ContentParagraph-orders-0-content-0-content-1"
+                      }
+                    },
+                    {
+                      "type": "ContentLink",
+                      "props": {
+                        "title": {
+                          "ar": "تسجيل الدخول",
+                          "en": "Sign in"
+                        },
+                        "link": {
+                          "kind": "page",
+                          "pageId": "/login"
+                        },
+                        "align": "right",
+                        "color": "theme-text",
+                        "hoverColor": "theme-primary",
+                        "hoverEffect": "underline",
+                        "fontSize": "theme-sm",
+                        "icon": "none",
+                        "iconPosition": "end",
+                        "id": "ContentLink-orders-0-content-0-content-2"
+                      }
+                    }
+                  ],
+                  "id": "Group-orders-0-content-0"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "paddingTop": "24px",
+            "paddingBottom": "24px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#ffffff",
+            "theme": "dark",
+            "maxWidth": "960px",
+            "visible": true,
+            "anchorId": "",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "id": "Section-orders-list",
+            "name": "قائمة الطلبات",
+            "showCondition": "loggedIn",
+            "sectionKind": "customer-orders",
+            "metadata": {
+              "preset": "customer-orders"
+            },
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "direction": "column",
+                  "gap": 16,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "language": "ar",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "content": [
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "order.orderNumber"
+                              },
+                              "id": "ContentParagraph-orders-1-content-0-content-0-content-0"
+                            }
+                          },
+                          {
+                            "type": "Chip",
+                            "props": {
+                              "chipVariantMode": "theme",
+                              "chipVariant": "neutral",
+                              "shape": "pill",
+                              "size": "sm",
+                              "gap": 6,
+                              "maxItems": 10,
+                              "valueContext": {
+                                "path": "order.orderStatus"
+                              },
+                              "enumMap": "orderStatus",
+                              "id": "Chip-orders-1-content-0-content-0-content-1"
+                            }
+                          },
+                          {
+                            "type": "Chip",
+                            "props": {
+                              "chipVariantMode": "theme",
+                              "chipVariant": "neutral",
+                              "shape": "pill",
+                              "size": "sm",
+                              "gap": 6,
+                              "maxItems": 10,
+                              "valueContext": {
+                                "path": "order.paymentStatus"
+                              },
+                              "enumMap": "paymentStatus",
+                              "id": "Chip-orders-1-content-0-content-0-content-2"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-orders-1-content-0-content-0",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "تاريخ الطلب",
+                                "en": "Order date"
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "id": "ContentParagraph-orders-1-content-0-content-1-content-0"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "order.placedAt",
+                                "format": "datetime"
+                              },
+                              "id": "ContentParagraph-orders-1-content-0-content-1-content-1"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-orders-1-content-0-content-1",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "الإجمالي",
+                                "en": "Total"
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "id": "ContentParagraph-orders-1-content-0-content-2-content-0"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "order.total",
+                                "format": "money",
+                                "currencyPath": "order.currencyCode"
+                              },
+                              "id": "ContentParagraph-orders-1-content-0-content-2-content-1"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-orders-1-content-0-content-2",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "ContentLink",
+                      "props": {
+                        "title": {
+                          "ar": "عرض التفاصيل",
+                          "en": "View details"
+                        },
+                        "link": {
+                          "kind": "page",
+                          "pageId": "/orders/:order-id",
+                          "dynamicSegment": {
+                            "param": "order-id",
+                            "valueContext": {
+                              "path": "order.orderId"
+                            }
+                          }
+                        },
+                        "align": "right",
+                        "color": "theme-text",
+                        "hoverColor": "theme-primary",
+                        "hoverEffect": "underline",
+                        "fontSize": "theme-sm",
+                        "icon": "none",
+                        "iconPosition": "end",
+                        "id": "ContentLink-orders-1-content-0-content-3"
+                      }
+                    }
+                  ],
+                  "id": "Group-order-card"
+                }
+              }
+            ],
+            "cardTemplate": [
+              {
+                "type": "Group",
+                "props": {
+                  "direction": "column",
+                  "gap": 16,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "language": "ar",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "content": [
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "order.orderNumber"
+                              },
+                              "id": "ContentParagraph-orders-1-cardTemplate-0-content-0-content-0"
+                            }
+                          },
+                          {
+                            "type": "Chip",
+                            "props": {
+                              "chipVariantMode": "theme",
+                              "chipVariant": "neutral",
+                              "shape": "pill",
+                              "size": "sm",
+                              "gap": 6,
+                              "maxItems": 10,
+                              "valueContext": {
+                                "path": "order.orderStatus"
+                              },
+                              "enumMap": "orderStatus",
+                              "id": "Chip-orders-1-cardTemplate-0-content-0-content-1"
+                            }
+                          },
+                          {
+                            "type": "Chip",
+                            "props": {
+                              "chipVariantMode": "theme",
+                              "chipVariant": "neutral",
+                              "shape": "pill",
+                              "size": "sm",
+                              "gap": 6,
+                              "maxItems": 10,
+                              "valueContext": {
+                                "path": "order.paymentStatus"
+                              },
+                              "enumMap": "paymentStatus",
+                              "id": "Chip-orders-1-cardTemplate-0-content-0-content-2"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-orders-1-cardTemplate-0-content-0",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "تاريخ الطلب",
+                                "en": "Order date"
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "id": "ContentParagraph-orders-1-cardTemplate-0-content-1-content-0"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "order.placedAt",
+                                "format": "datetime"
+                              },
+                              "id": "ContentParagraph-orders-1-cardTemplate-0-content-1-content-1"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-orders-1-cardTemplate-0-content-1",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "الإجمالي",
+                                "en": "Total"
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "id": "ContentParagraph-orders-1-cardTemplate-0-content-2-content-0"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "order.total",
+                                "format": "money",
+                                "currencyPath": "order.currencyCode"
+                              },
+                              "id": "ContentParagraph-orders-1-cardTemplate-0-content-2-content-1"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-orders-1-cardTemplate-0-content-2",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "ContentLink",
+                      "props": {
+                        "title": {
+                          "ar": "عرض التفاصيل",
+                          "en": "View details"
+                        },
+                        "link": {
+                          "kind": "page",
+                          "pageId": "/orders/:order-id",
+                          "dynamicSegment": {
+                            "param": "order-id",
+                            "valueContext": {
+                              "path": "order.orderId"
+                            }
+                          }
+                        },
+                        "align": "right",
+                        "color": "theme-text",
+                        "hoverColor": "theme-primary",
+                        "hoverEffect": "underline",
+                        "fontSize": "theme-sm",
+                        "icon": "none",
+                        "iconPosition": "end",
+                        "id": "ContentLink-orders-1-cardTemplate-0-content-3"
+                      }
+                    }
+                  ],
+                  "id": "Group-order-card"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "paddingTop": "0px",
+            "paddingBottom": "48px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#ffffff",
+            "theme": "dark",
+            "maxWidth": "960px",
+            "visible": true,
+            "anchorId": "",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "id": "Section-orders-pager",
+            "name": "تصفّح الطلبات",
+            "showCondition": "loggedIn",
+            "sectionKind": "customer-orders-pager",
+            "metadata": {
+              "preset": "customer-orders-pager"
+            },
+            "content": [
+              {
+                "type": "RowGroup",
+                "props": {
+                  "direction": "row",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "justifyContent": "space-between",
+                  "wrap": "wrap",
+                  "content": [
+                    {
+                      "type": "ContentButton",
+                      "props": {
+                        "label": {
+                          "ar": "السابق",
+                          "en": "Previous"
+                        },
+                        "align": "left",
+                        "destinationType": "action",
+                        "buttonAction": "ordersPrevPage",
+                        "link": {
+                          "kind": "none"
+                        },
+                        "buttonVariantMode": "variant",
+                        "buttonVariant": "secondary",
+                        "buttonVariantSize": "md",
+                        "radius": "theme-md",
+                        "bgColor": "theme-primary",
+                        "textColor": "theme-surface",
+                        "buttonSize": "theme-md",
+                        "submitRedirectUrl": "",
+                        "id": "ContentButton-orders-2-content-0-content-0",
+                        "zoneKey": "popup-main",
+                        "zoneAction": "open"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "orders.pageLabel"
+                        },
+                        "id": "ContentParagraph-orders-2-content-0-content-1"
+                      }
+                    },
+                    {
+                      "type": "ContentButton",
+                      "props": {
+                        "label": {
+                          "ar": "التالي",
+                          "en": "Next"
+                        },
+                        "align": "left",
+                        "destinationType": "action",
+                        "buttonAction": "ordersNextPage",
+                        "link": {
+                          "kind": "none"
+                        },
+                        "buttonVariantMode": "variant",
+                        "buttonVariant": "secondary",
+                        "buttonVariantSize": "md",
+                        "radius": "theme-md",
+                        "bgColor": "theme-primary",
+                        "textColor": "theme-surface",
+                        "buttonSize": "theme-md",
+                        "submitRedirectUrl": "",
+                        "id": "ContentButton-orders-2-content-0-content-2",
+                        "zoneKey": "popup-main",
+                        "zoneAction": "open"
+                      }
+                    }
+                  ],
+                  "id": "RowGroup-orders-2-content-0",
+                  "backgroundColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "path": "/orders/:order-id",
+      "slug": "/orders/example-order",
+      "link": "/orders/example-order",
+      "name": {
+        "ar": "تفاصيل الطلب",
+        "en": "Order details"
+      },
+      "title": {
+        "ar": "تفاصيل الطلب",
+        "en": "Order details"
+      },
+      "description": {
+        "ar": "تفاصيل الطلب والمنتجات والدفع وسجلّ التحديثات.",
+        "en": "Order details, items, payment summary, and timeline."
+      },
+      "iconName": "Package",
+      "dynamic": true,
+      "examplePath": "/orders/example-order",
+      "content": [
+        {
+          "type": "Section",
+          "props": {
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "paddingTop": "48px",
+            "paddingBottom": "80px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#ffffff",
+            "theme": "dark",
+            "maxWidth": "640px",
+            "visible": true,
+            "anchorId": "",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "id": "Section-order-detail-signedout",
+            "name": "تسجيل الدخول",
+            "showCondition": "loggedOut",
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "direction": "column",
+                  "gap": 16,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "language": "ar",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "text": {
+                          "ar": "سجّل دخولك لعرض تفاصيل الطلب.",
+                          "en": "Sign in to view order details."
+                        },
+                        "textAlign": "center",
+                        "fontFamily": "body",
+                        "fontSize": "theme-2xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-normal",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "id": "ContentHeading-order-detail-0-content-0-content-0",
+                        "level": "1"
+                      }
+                    },
+                    {
+                      "type": "ContentLink",
+                      "props": {
+                        "title": {
+                          "ar": "تسجيل الدخول",
+                          "en": "Sign in"
+                        },
+                        "link": {
+                          "kind": "page",
+                          "pageId": "/login"
+                        },
+                        "align": "right",
+                        "color": "theme-text",
+                        "hoverColor": "theme-primary",
+                        "hoverEffect": "underline",
+                        "fontSize": "theme-sm",
+                        "icon": "none",
+                        "iconPosition": "end",
+                        "id": "ContentLink-order-detail-0-content-0-content-1"
+                      }
+                    }
+                  ],
+                  "id": "Group-order-detail-0-content-0"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "paddingTop": "24px",
+            "paddingBottom": "80px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#ffffff",
+            "theme": "dark",
+            "maxWidth": "960px",
+            "visible": true,
+            "anchorId": "",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "id": "Section-order-detail-header",
+            "name": "تفاصيل الطلب",
+            "showCondition": "loggedIn",
+            "sectionKind": "customer-order-detail",
+            "metadata": {
+              "preset": "customer-order-detail"
+            },
+            "content": [
+              {
+                "type": "ContentLink",
+                "props": {
+                  "title": {
+                    "ar": "← كل الطلبات",
+                    "en": "← All orders"
+                  },
+                  "link": {
+                    "kind": "page",
+                    "pageId": "/orders"
+                  },
+                  "align": "right",
+                  "color": "theme-text",
+                  "hoverColor": "theme-primary",
+                  "hoverEffect": "underline",
+                  "fontSize": "theme-sm",
+                  "icon": "none",
+                  "iconPosition": "end",
+                  "id": "ContentLink-order-detail-1-content-0"
+                }
+              },
+              {
+                "type": "RowGroup",
+                "props": {
+                  "direction": "row",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "justifyContent": "space-between",
+                  "wrap": "wrap",
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-2xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-normal",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "order.orderNumber"
+                        },
+                        "id": "ContentHeading-order-detail-1-content-1-content-0",
+                        "level": "2"
+                      }
+                    },
+                    {
+                      "type": "Chip",
+                      "props": {
+                        "chipVariantMode": "theme",
+                        "chipVariant": "neutral",
+                        "shape": "pill",
+                        "size": "sm",
+                        "gap": 6,
+                        "maxItems": 10,
+                        "valueContext": {
+                          "path": "order.orderStatus"
+                        },
+                        "enumMap": "orderStatus",
+                        "id": "Chip-order-detail-1-content-1-content-1"
+                      }
+                    },
+                    {
+                      "type": "Chip",
+                      "props": {
+                        "chipVariantMode": "theme",
+                        "chipVariant": "neutral",
+                        "shape": "pill",
+                        "size": "sm",
+                        "gap": 6,
+                        "maxItems": 10,
+                        "valueContext": {
+                          "path": "order.paymentStatus"
+                        },
+                        "enumMap": "paymentStatus",
+                        "id": "Chip-order-detail-1-content-1-content-2"
+                      }
+                    }
+                  ],
+                  "id": "RowGroup-order-detail-1-content-1",
+                  "backgroundColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none"
+                }
+              },
+              {
+                "type": "ContentParagraph",
+                "props": {
+                  "text": {
+                    "ar": "",
+                    "en": ""
+                  },
+                  "textAlign": "left",
+                  "fontFamily": "body",
+                  "fontSize": "theme-md",
+                  "fontWeight": "theme-normal",
+                  "lineHeight": "theme-relaxed",
+                  "fontStyle": "normal",
+                  "textTransform": "none",
+                  "color": "theme-text",
+                  "valueContext": {
+                    "path": "order.placedAt",
+                    "format": "datetime"
+                  },
+                  "id": "ContentParagraph-order-detail-1-content-2"
+                }
+              },
+              {
+                "type": "RowGroup",
+                "props": {
+                  "direction": "row",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "justifyContent": "space-between",
+                  "wrap": "wrap",
+                  "content": [
+                    {
+                      "type": "ContentButton",
+                      "props": {
+                        "label": {
+                          "ar": "تحميل الفاتورة",
+                          "en": "Download invoice"
+                        },
+                        "align": "left",
+                        "destinationType": "action",
+                        "buttonAction": "downloadInvoice",
+                        "link": {
+                          "kind": "none"
+                        },
+                        "buttonVariantMode": "variant",
+                        "buttonVariant": "primary",
+                        "buttonVariantSize": "md",
+                        "radius": "theme-md",
+                        "bgColor": "theme-primary",
+                        "textColor": "theme-surface",
+                        "buttonSize": "theme-md",
+                        "submitRedirectUrl": "",
+                        "id": "ContentButton-order-detail-1-content-3-content-0",
+                        "zoneKey": "popup-main",
+                        "zoneAction": "open"
+                      }
+                    },
+                    {
+                      "type": "ContentButton",
+                      "props": {
+                        "label": {
+                          "ar": "إلغاء الطلب",
+                          "en": "Cancel order"
+                        },
+                        "align": "left",
+                        "destinationType": "zone",
+                        "buttonAction": "link",
+                        "link": {
+                          "kind": "none"
+                        },
+                        "buttonVariantMode": "variant",
+                        "buttonVariant": "error",
+                        "buttonVariantSize": "md",
+                        "radius": "theme-md",
+                        "bgColor": "theme-primary",
+                        "textColor": "theme-surface",
+                        "buttonSize": "theme-md",
+                        "submitRedirectUrl": "",
+                        "zoneKey": "cancel-order",
+                        "zoneAction": "open",
+                        "dataCondition": {
+                          "path": "isCancellable",
+                          "op": "truthy"
+                        },
+                        "id": "ContentButton-order-detail-1-content-3-content-1"
+                      }
+                    }
+                  ],
+                  "id": "RowGroup-order-detail-1-content-3",
+                  "backgroundColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none"
+                }
+              },
+              {
+                "type": "ContentParagraph",
+                "props": {
+                  "text": {
+                    "ar": "",
+                    "en": ""
+                  },
+                  "textAlign": "left",
+                  "fontFamily": "body",
+                  "fontSize": "theme-md",
+                  "fontWeight": "theme-normal",
+                  "lineHeight": "theme-relaxed",
+                  "fontStyle": "normal",
+                  "textTransform": "none",
+                  "color": "theme-text",
+                  "valueContext": {
+                    "path": "errors.invoice"
+                  },
+                  "dataCondition": {
+                    "path": "errors.invoice",
+                    "op": "truthy"
+                  },
+                  "id": "ContentParagraph-order-detail-1-content-4"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "paddingTop": "80px",
+            "paddingBottom": "80px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#ffffff",
+            "theme": "dark",
+            "maxWidth": "960px",
+            "visible": true,
+            "anchorId": "",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "id": "Section-order-items",
+            "name": "المنتجات",
+            "showCondition": "loggedIn",
+            "sectionKind": "customer-order-items",
+            "metadata": {
+              "preset": "customer-order-items"
+            },
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "direction": "column",
+                  "gap": 16,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "language": "ar",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "content": [
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentSwitch",
+                            "props": {
+                              "label": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "name": "return-item-selected",
+                              "helperText": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "defaultChecked": false,
+                              "labelPosition": "start",
+                              "switchAction": "return_item_selected",
+                              "showCondition": "always",
+                              "dataCondition": {
+                                "path": "isReturnable",
+                                "op": "truthy"
+                              },
+                              "id": "ContentSwitch-order-detail-2-content-0-content-0-content-0"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "item.productTitle"
+                              },
+                              "id": "ContentParagraph-order-detail-2-content-0-content-0-content-1"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-order-detail-2-content-0-content-0",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "item.sku"
+                        },
+                        "id": "ContentParagraph-order-detail-2-content-0-content-1"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "الكمية",
+                                "en": "Quantity"
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "id": "ContentParagraph-order-detail-2-content-0-content-2-content-0"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "item.quantity"
+                              },
+                              "id": "ContentParagraph-order-detail-2-content-0-content-2-content-1"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-order-detail-2-content-0-content-2",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "سعر الوحدة",
+                                "en": "Unit price"
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "id": "ContentParagraph-order-detail-2-content-0-content-3-content-0"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "item.unitPrice",
+                                "format": "money",
+                                "currencyPath": "order.currencyCode"
+                              },
+                              "id": "ContentParagraph-order-detail-2-content-0-content-3-content-1"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-order-detail-2-content-0-content-3",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "الإجمالي",
+                                "en": "Total"
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "id": "ContentParagraph-order-detail-2-content-0-content-4-content-0"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "item.totalPrice",
+                                "format": "money",
+                                "currencyPath": "order.currencyCode"
+                              },
+                              "id": "ContentParagraph-order-detail-2-content-0-content-4-content-1"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-order-detail-2-content-0-content-4",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "label": {
+                          "ar": "الكمية المُرجعة",
+                          "en": "Return quantity"
+                        },
+                        "name": "return-qty",
+                        "inputType": "number",
+                        "placeholder": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "required": false,
+                        "inputAction": "return_item_quantity",
+                        "min": 1,
+                        "dataCondition": {
+                          "path": "isReturnable",
+                          "op": "truthy"
+                        },
+                        "id": "ContentInput-order-detail-2-content-0-content-5"
+                      }
+                    },
+                    {
+                      "type": "ContentSelect",
+                      "props": {
+                        "label": {
+                          "ar": "حالة المنتج",
+                          "en": "Item condition"
+                        },
+                        "name": "return-condition",
+                        "selectAction": "return_item_condition",
+                        "enumMapKey": "returnItemCondition",
+                        "dataCondition": {
+                          "path": "isReturnable",
+                          "op": "truthy"
+                        },
+                        "id": "ContentSelect-order-detail-2-content-0-content-6"
+                      }
+                    }
+                  ],
+                  "id": "Group-order-item"
+                }
+              }
+            ],
+            "cardTemplate": [
+              {
+                "type": "Group",
+                "props": {
+                  "direction": "column",
+                  "gap": 16,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "language": "ar",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "content": [
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentSwitch",
+                            "props": {
+                              "label": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "name": "return-item-selected",
+                              "helperText": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "defaultChecked": false,
+                              "labelPosition": "start",
+                              "switchAction": "return_item_selected",
+                              "showCondition": "always",
+                              "dataCondition": {
+                                "path": "isReturnable",
+                                "op": "truthy"
+                              },
+                              "id": "ContentSwitch-order-detail-2-cardTemplate-0-content-0-content-0"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "item.productTitle"
+                              },
+                              "id": "ContentParagraph-order-detail-2-cardTemplate-0-content-0-content-1"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-order-detail-2-cardTemplate-0-content-0",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "item.sku"
+                        },
+                        "id": "ContentParagraph-order-detail-2-cardTemplate-0-content-1"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "الكمية",
+                                "en": "Quantity"
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "id": "ContentParagraph-order-detail-2-cardTemplate-0-content-2-content-0"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "item.quantity"
+                              },
+                              "id": "ContentParagraph-order-detail-2-cardTemplate-0-content-2-content-1"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-order-detail-2-cardTemplate-0-content-2",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "سعر الوحدة",
+                                "en": "Unit price"
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "id": "ContentParagraph-order-detail-2-cardTemplate-0-content-3-content-0"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "item.unitPrice",
+                                "format": "money",
+                                "currencyPath": "order.currencyCode"
+                              },
+                              "id": "ContentParagraph-order-detail-2-cardTemplate-0-content-3-content-1"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-order-detail-2-cardTemplate-0-content-3",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "direction": "row",
+                        "gap": 16,
+                        "alignItems": "center",
+                        "justifyContent": "space-between",
+                        "wrap": "wrap",
+                        "content": [
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "الإجمالي",
+                                "en": "Total"
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "id": "ContentParagraph-order-detail-2-cardTemplate-0-content-4-content-0"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "text": {
+                                "ar": "",
+                                "en": ""
+                              },
+                              "textAlign": "left",
+                              "fontFamily": "body",
+                              "fontSize": "theme-md",
+                              "fontWeight": "theme-normal",
+                              "lineHeight": "theme-relaxed",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text",
+                              "valueContext": {
+                                "path": "item.totalPrice",
+                                "format": "money",
+                                "currencyPath": "order.currencyCode"
+                              },
+                              "id": "ContentParagraph-order-detail-2-cardTemplate-0-content-4-content-1"
+                            }
+                          }
+                        ],
+                        "id": "RowGroup-order-detail-2-cardTemplate-0-content-4",
+                        "backgroundColor": "",
+                        "padding": "8px",
+                        "borderRadius": "theme-none"
+                      }
+                    },
+                    {
+                      "type": "ContentInput",
+                      "props": {
+                        "label": {
+                          "ar": "الكمية المُرجعة",
+                          "en": "Return quantity"
+                        },
+                        "name": "return-qty",
+                        "inputType": "number",
+                        "placeholder": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "required": false,
+                        "inputAction": "return_item_quantity",
+                        "min": 1,
+                        "dataCondition": {
+                          "path": "isReturnable",
+                          "op": "truthy"
+                        },
+                        "id": "ContentInput-order-detail-2-cardTemplate-0-content-5"
+                      }
+                    },
+                    {
+                      "type": "ContentSelect",
+                      "props": {
+                        "label": {
+                          "ar": "حالة المنتج",
+                          "en": "Item condition"
+                        },
+                        "name": "return-condition",
+                        "selectAction": "return_item_condition",
+                        "enumMapKey": "returnItemCondition",
+                        "dataCondition": {
+                          "path": "isReturnable",
+                          "op": "truthy"
+                        },
+                        "id": "ContentSelect-order-detail-2-cardTemplate-0-content-6"
+                      }
+                    }
+                  ],
+                  "id": "Group-order-item"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "paddingTop": "80px",
+            "paddingBottom": "80px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#ffffff",
+            "theme": "dark",
+            "maxWidth": "960px",
+            "visible": true,
+            "anchorId": "",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "id": "Section-order-summary",
+            "name": "ملخّص الدفع",
+            "showCondition": "loggedIn",
+            "sectionKind": "customer-order-detail",
+            "metadata": {
+              "preset": "customer-order-detail"
+            },
+            "content": [
+              {
+                "type": "ContentHeading",
+                "props": {
+                  "text": {
+                    "ar": "ملخّص الدفع",
+                    "en": "Payment summary"
+                  },
+                  "textAlign": "left",
+                  "fontFamily": "body",
+                  "fontSize": "theme-2xl",
+                  "fontWeight": "theme-bold",
+                  "lineHeight": "theme-normal",
+                  "fontStyle": "normal",
+                  "textTransform": "none",
+                  "color": "theme-text",
+                  "id": "ContentHeading-order-detail-3-content-0",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "RowGroup",
+                "props": {
+                  "direction": "row",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "justifyContent": "space-between",
+                  "wrap": "wrap",
+                  "content": [
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "المجموع الفرعي",
+                          "en": "Subtotal"
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "id": "ContentParagraph-order-detail-3-content-1-content-0"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "order.subtotal",
+                          "format": "money",
+                          "currencyPath": "order.currencyCode"
+                        },
+                        "id": "ContentParagraph-order-detail-3-content-1-content-1"
+                      }
+                    }
+                  ],
+                  "id": "RowGroup-order-detail-3-content-1",
+                  "backgroundColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none"
+                }
+              },
+              {
+                "type": "RowGroup",
+                "props": {
+                  "direction": "row",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "justifyContent": "space-between",
+                  "wrap": "wrap",
+                  "dataCondition": {
+                    "path": "order.discountAmount",
+                    "op": "truthy"
+                  },
+                  "content": [
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "الخصم",
+                          "en": "Discount"
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "id": "ContentParagraph-order-detail-3-content-2-content-0"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "order.discountAmount",
+                          "format": "money",
+                          "currencyPath": "order.currencyCode"
+                        },
+                        "id": "ContentParagraph-order-detail-3-content-2-content-1"
+                      }
+                    }
+                  ],
+                  "id": "RowGroup-order-detail-3-content-2",
+                  "backgroundColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none"
+                }
+              },
+              {
+                "type": "RowGroup",
+                "props": {
+                  "direction": "row",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "justifyContent": "space-between",
+                  "wrap": "wrap",
+                  "dataCondition": {
+                    "path": "order.taxAmount",
+                    "op": "truthy"
+                  },
+                  "content": [
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "الضريبة",
+                          "en": "Tax"
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "id": "ContentParagraph-order-detail-3-content-3-content-0"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "order.taxAmount",
+                          "format": "money",
+                          "currencyPath": "order.currencyCode"
+                        },
+                        "id": "ContentParagraph-order-detail-3-content-3-content-1"
+                      }
+                    }
+                  ],
+                  "id": "RowGroup-order-detail-3-content-3",
+                  "backgroundColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none"
+                }
+              },
+              {
+                "type": "RowGroup",
+                "props": {
+                  "direction": "row",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "justifyContent": "space-between",
+                  "wrap": "wrap",
+                  "content": [
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "تكلفة الشحن",
+                          "en": "Shipping"
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "id": "ContentParagraph-order-detail-3-content-4-content-0"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "order.shippingCost",
+                          "format": "money",
+                          "currencyPath": "order.currencyCode"
+                        },
+                        "id": "ContentParagraph-order-detail-3-content-4-content-1"
+                      }
+                    }
+                  ],
+                  "id": "RowGroup-order-detail-3-content-4",
+                  "backgroundColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none"
+                }
+              },
+              {
+                "type": "RowGroup",
+                "props": {
+                  "direction": "row",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "justifyContent": "space-between",
+                  "wrap": "wrap",
+                  "content": [
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "الإجمالي",
+                          "en": "Total"
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "id": "ContentParagraph-order-detail-3-content-5-content-0"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "order.total",
+                          "format": "money",
+                          "currencyPath": "order.currencyCode"
+                        },
+                        "id": "ContentParagraph-order-detail-3-content-5-content-1"
+                      }
+                    }
+                  ],
+                  "id": "RowGroup-order-detail-3-content-5",
+                  "backgroundColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none"
+                }
+              },
+              {
+                "type": "Chip",
+                "props": {
+                  "chipVariantMode": "theme",
+                  "chipVariant": "neutral",
+                  "shape": "pill",
+                  "size": "sm",
+                  "gap": 6,
+                  "maxItems": 10,
+                  "valueContext": {
+                    "path": "order.paymentMethod"
+                  },
+                  "enumMap": "paymentMethod",
+                  "id": "Chip-order-detail-3-content-6"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "paddingTop": "80px",
+            "paddingBottom": "80px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#ffffff",
+            "theme": "dark",
+            "maxWidth": "960px",
+            "visible": true,
+            "anchorId": "",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "id": "Section-order-address",
+            "name": "عنوان التوصيل",
+            "showCondition": "loggedIn",
+            "sectionKind": "customer-order-detail",
+            "metadata": {
+              "preset": "customer-order-detail"
+            },
+            "content": [
+              {
+                "type": "ContentHeading",
+                "props": {
+                  "text": {
+                    "ar": "عنوان التوصيل",
+                    "en": "Delivery address"
+                  },
+                  "textAlign": "left",
+                  "fontFamily": "body",
+                  "fontSize": "theme-2xl",
+                  "fontWeight": "theme-bold",
+                  "lineHeight": "theme-normal",
+                  "fontStyle": "normal",
+                  "textTransform": "none",
+                  "color": "theme-text",
+                  "id": "ContentHeading-order-detail-4-content-0",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "ContentParagraph",
+                "props": {
+                  "text": {
+                    "ar": "",
+                    "en": ""
+                  },
+                  "textAlign": "left",
+                  "fontFamily": "body",
+                  "fontSize": "theme-md",
+                  "fontWeight": "theme-normal",
+                  "lineHeight": "theme-relaxed",
+                  "fontStyle": "normal",
+                  "textTransform": "none",
+                  "color": "theme-text",
+                  "valueContext": {
+                    "path": "order.shippingAddress.recipientName"
+                  },
+                  "id": "ContentParagraph-order-detail-4-content-1"
+                }
+              },
+              {
+                "type": "ContentParagraph",
+                "props": {
+                  "text": {
+                    "ar": "",
+                    "en": ""
+                  },
+                  "textAlign": "left",
+                  "fontFamily": "body",
+                  "fontSize": "theme-md",
+                  "fontWeight": "theme-normal",
+                  "lineHeight": "theme-relaxed",
+                  "fontStyle": "normal",
+                  "textTransform": "none",
+                  "color": "theme-text",
+                  "valueContext": {
+                    "path": "order.shippingAddress.phone"
+                  },
+                  "id": "ContentParagraph-order-detail-4-content-2"
+                }
+              },
+              {
+                "type": "ContentParagraph",
+                "props": {
+                  "text": {
+                    "ar": "",
+                    "en": ""
+                  },
+                  "textAlign": "left",
+                  "fontFamily": "body",
+                  "fontSize": "theme-md",
+                  "fontWeight": "theme-normal",
+                  "lineHeight": "theme-relaxed",
+                  "fontStyle": "normal",
+                  "textTransform": "none",
+                  "color": "theme-text",
+                  "valueContext": {
+                    "path": "order.shippingAddress.addressLabel"
+                  },
+                  "id": "ContentParagraph-order-detail-4-content-3"
+                }
+              }
+            ],
+            "dataCondition": {
+              "path": "order.shippingAddress",
+              "op": "truthy"
+            }
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "paddingTop": "80px",
+            "paddingBottom": "80px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#ffffff",
+            "theme": "dark",
+            "maxWidth": "960px",
+            "visible": true,
+            "anchorId": "",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "id": "Section-order-notes",
+            "name": "ملاحظاتك",
+            "showCondition": "loggedIn",
+            "sectionKind": "customer-order-detail",
+            "metadata": {
+              "preset": "customer-order-detail"
+            },
+            "content": [
+              {
+                "type": "ContentHeading",
+                "props": {
+                  "text": {
+                    "ar": "ملاحظاتك",
+                    "en": "Your notes"
+                  },
+                  "textAlign": "left",
+                  "fontFamily": "body",
+                  "fontSize": "theme-2xl",
+                  "fontWeight": "theme-bold",
+                  "lineHeight": "theme-normal",
+                  "fontStyle": "normal",
+                  "textTransform": "none",
+                  "color": "theme-text",
+                  "id": "ContentHeading-order-detail-5-content-0",
+                  "level": "2"
+                }
+              },
+              {
+                "type": "ContentParagraph",
+                "props": {
+                  "text": {
+                    "ar": "",
+                    "en": ""
+                  },
+                  "textAlign": "left",
+                  "fontFamily": "body",
+                  "fontSize": "theme-md",
+                  "fontWeight": "theme-normal",
+                  "lineHeight": "theme-relaxed",
+                  "fontStyle": "normal",
+                  "textTransform": "none",
+                  "color": "theme-text",
+                  "valueContext": {
+                    "path": "order.notesCustomer"
+                  },
+                  "id": "ContentParagraph-order-detail-5-content-1"
+                }
+              }
+            ],
+            "dataCondition": {
+              "path": "order.notesCustomer",
+              "op": "truthy"
+            }
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "paddingTop": "80px",
+            "paddingBottom": "80px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#ffffff",
+            "theme": "dark",
+            "maxWidth": "960px",
+            "visible": true,
+            "anchorId": "",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "id": "Section-order-timeline",
+            "name": "سجلّ الطلب",
+            "showCondition": "loggedIn",
+            "sectionKind": "customer-order-timeline",
+            "metadata": {
+              "preset": "customer-order-timeline"
+            },
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "direction": "column",
+                  "gap": 16,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "language": "ar",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "content": [
+                    {
+                      "type": "Chip",
+                      "props": {
+                        "chipVariantMode": "theme",
+                        "chipVariant": "neutral",
+                        "shape": "pill",
+                        "size": "sm",
+                        "gap": 6,
+                        "maxItems": 10,
+                        "valueContext": {
+                          "path": "timelineEntry.action"
+                        },
+                        "enumMap": "timelineAction",
+                        "id": "Chip-order-detail-6-content-0-content-0"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "timelineEntry.createdAt",
+                          "format": "datetime"
+                        },
+                        "id": "ContentParagraph-order-detail-6-content-0-content-1"
+                      }
+                    },
+                    {
+                      "type": "Chip",
+                      "props": {
+                        "chipVariantMode": "theme",
+                        "chipVariant": "neutral",
+                        "shape": "pill",
+                        "size": "sm",
+                        "gap": 6,
+                        "maxItems": 10,
+                        "valueContext": {
+                          "path": "timelineEntry.actor"
+                        },
+                        "enumMap": "timelineActor",
+                        "id": "Chip-order-detail-6-content-0-content-2"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "timelineEntry.details"
+                        },
+                        "id": "ContentParagraph-order-detail-6-content-0-content-3"
+                      }
+                    }
+                  ],
+                  "id": "Group-order-detail-6-content-0"
+                }
+              }
+            ],
+            "cardTemplate": [
+              {
+                "type": "Group",
+                "props": {
+                  "direction": "column",
+                  "gap": 16,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "nowrap",
+                  "language": "ar",
+                  "backgroundColor": "#ffffff",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "32px",
+                  "borderRadius": "theme-lg",
+                  "boxShadow": "md",
+                  "product": null,
+                  "metadata": null,
+                  "cartLineId": null,
+                  "content": [
+                    {
+                      "type": "Chip",
+                      "props": {
+                        "chipVariantMode": "theme",
+                        "chipVariant": "neutral",
+                        "shape": "pill",
+                        "size": "sm",
+                        "gap": 6,
+                        "maxItems": 10,
+                        "valueContext": {
+                          "path": "timelineEntry.action"
+                        },
+                        "enumMap": "timelineAction",
+                        "id": "Chip-order-detail-6-cardTemplate-0-content-0"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "timelineEntry.createdAt",
+                          "format": "datetime"
+                        },
+                        "id": "ContentParagraph-order-detail-6-cardTemplate-0-content-1"
+                      }
+                    },
+                    {
+                      "type": "Chip",
+                      "props": {
+                        "chipVariantMode": "theme",
+                        "chipVariant": "neutral",
+                        "shape": "pill",
+                        "size": "sm",
+                        "gap": 6,
+                        "maxItems": 10,
+                        "valueContext": {
+                          "path": "timelineEntry.actor"
+                        },
+                        "enumMap": "timelineActor",
+                        "id": "Chip-order-detail-6-cardTemplate-0-content-2"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "text": {
+                          "ar": "",
+                          "en": ""
+                        },
+                        "textAlign": "left",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-normal",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text",
+                        "valueContext": {
+                          "path": "timelineEntry.details"
+                        },
+                        "id": "ContentParagraph-order-detail-6-cardTemplate-0-content-3"
+                      }
+                    }
+                  ],
+                  "id": "Group-order-detail-6-cardTemplate-0"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
+            "columns": 1,
+            "columnsMobile": 1,
+            "gridGap": "24px",
+            "paddingTop": "80px",
+            "paddingBottom": "80px",
+            "paddingHorizontal": "24px",
+            "backgroundColor": "#ffffff",
+            "theme": "dark",
+            "maxWidth": "960px",
+            "visible": true,
+            "anchorId": "",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "id": "Section-order-return-actions",
+            "name": "طلب إرجاع",
+            "showCondition": "loggedIn",
+            "sectionKind": "customer-order-detail",
+            "metadata": {
+              "preset": "customer-order-detail"
+            },
+            "content": [
+              {
+                "type": "ContentButton",
+                "props": {
+                  "label": {
+                    "ar": "طلب إرجاع المنتجات",
+                    "en": "Request item return"
+                  },
+                  "align": "left",
+                  "destinationType": "action",
+                  "buttonAction": "submitReturn",
+                  "link": {
+                    "kind": "none"
+                  },
+                  "buttonVariantMode": "variant",
+                  "buttonVariant": "primary",
+                  "buttonVariantSize": "md",
+                  "radius": "theme-md",
+                  "bgColor": "theme-primary",
+                  "textColor": "theme-surface",
+                  "buttonSize": "theme-md",
+                  "submitRedirectUrl": "",
+                  "id": "ContentButton-order-detail-7-content-0",
+                  "zoneKey": "popup-main",
+                  "zoneAction": "open"
+                }
+              },
+              {
+                "type": "ContentParagraph",
+                "props": {
+                  "text": {
+                    "ar": "",
+                    "en": ""
+                  },
+                  "textAlign": "left",
+                  "fontFamily": "body",
+                  "fontSize": "theme-md",
+                  "fontWeight": "theme-normal",
+                  "lineHeight": "theme-relaxed",
+                  "fontStyle": "normal",
+                  "textTransform": "none",
+                  "color": "theme-text",
+                  "valueContext": {
+                    "path": "errors.submitReturn"
+                  },
+                  "dataCondition": {
+                    "path": "errors.submitReturn",
+                    "op": "truthy"
+                  },
+                  "id": "ContentParagraph-order-detail-7-content-1"
+                }
+              }
+            ],
+            "dataCondition": {
+              "path": "isReturnable",
+              "op": "truthy"
+            }
           }
         }
       ]
