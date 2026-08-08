@@ -40,11 +40,6 @@ import { useSelectedPage } from "../../../lib/use-selected-page"
 import {
   applySelectedPage,
 } from "../../../lib/selected-page"
-import {
-  getStudioBaseFromPathname,
-  parseStudioPathname,
-  resolveStudioThemeEditHref,
-} from "../../../lib/studio-paths"
 import styles from "./styles.module.css"
 import { Input } from "@workspace/ui/components/input"
 import { Button } from "@workspace/ui/components/button"
@@ -123,13 +118,11 @@ const createStarterPageContent = (title: string): UserData["content"] => {
 function PageCard({
   page,
   isActive,
-  editHref,
   onSelect,
   onDelete,
 }: {
   page: PageDefinition
   isActive: boolean
-  editHref: string
   onSelect: (page: PageDefinition) => void
   /** Omitted for built-in pages, which cannot be deleted. */
   onDelete?: (page: PageDefinition) => void
@@ -139,13 +132,10 @@ function PageCard({
   const displayPath = page.dynamic ? page.path : getEditPath(page)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
+  // Stay on the design-studio URL; page switching is in-editor state only.
   const handleClick = useCallback(() => {
     onSelect(page)
-    if (window.location.pathname === new URL(editHref, window.location.origin).pathname) {
-      return
-    }
-    window.location.href = editHref
-  }, [editHref, onSelect, page])
+  }, [onSelect, page])
 
   // The whole card is a click target, so every control inside it has to stop
   // the event from bubbling up into the "switch to this page" navigation.
@@ -282,20 +272,6 @@ export function PagesPanel() {
   const [formError, setFormError] = useState<string | null>(null)
 
   const selectedPagePath = useSelectedPage()
-
-  const studioBase = useMemo(() => {
-    if (typeof window === "undefined") return null
-    return getStudioBaseFromPathname(window.location.pathname)
-  }, [])
-
-  const themeEditHref = useMemo(() => {
-    if (!studioBase) return null
-    const parsed = parseStudioPathname(window.location.pathname)
-    if (parsed) {
-      return `${studioBase}/${parsed.themeSegment}/edit`
-    }
-    return resolveStudioThemeEditHref(studioBase)
-  }, [studioBase])
 
   const refreshPages = useCallback(() => {
     setPages(getAllPages())
@@ -476,24 +452,15 @@ export function PagesPanel() {
       <div className="space-y-2">
         <h3 className={getClassName("groupTitle")}>{title}</h3>
         <div className="space-y-2">
-          {groupPages.map((page) => {
-            const editHref =
-              themeEditHref ??
-              (studioBase
-                ? resolveStudioThemeEditHref(studioBase)
-                : `${getEditPath(page)}/edit`)
-
-            return (
-              <PageCard
-                key={`${page.path}-${page.isCustom ? "custom" : "core"}`}
-                page={page}
-                isActive={selectedPagePath === getEditPath(page)}
-                editHref={editHref}
-                onSelect={handleSelectPage}
-                onDelete={page.isCustom ? handleDeletePage : undefined}
-              />
-            )
-          })}
+          {groupPages.map((page) => (
+            <PageCard
+              key={`${page.path}-${page.isCustom ? "custom" : "core"}`}
+              page={page}
+              isActive={selectedPagePath === getEditPath(page)}
+              onSelect={handleSelectPage}
+              onDelete={page.isCustom ? handleDeletePage : undefined}
+            />
+          ))}
         </div>
       </div>
     )
