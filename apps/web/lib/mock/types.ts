@@ -127,6 +127,39 @@ export type MockOrderRecord = {
   createdAt: string
 }
 
+export type MockCustomerOrderRecord = {
+  orderId: string
+  tenantId: string
+  orderNumber: string
+  orderStatus: string
+  paymentStatus: string
+  paymentMethod: "COD"
+  subtotal: number
+  discountAmount: number
+  taxAmount: number
+  shippingCost: number
+  total: number
+  itemCount: number
+  placedAt: string
+  shippingAddress: MockOrderRecord["shippingAddress"]
+  notesCustomer?: string | null
+  items: Array<{
+    orderItemId: string
+    productTitle: string
+    sku: string
+    quantity: number
+    unitPrice: number
+    totalPrice: number
+  }>
+  timeline: Array<{
+    timelineId: string
+    action: string
+    actor: string
+    details: string | null
+    createdAt: string
+  }>
+}
+
 export type MockDiscountCodeRecord = {
   discountCodeId: string
   code: string
@@ -237,6 +270,8 @@ export type MockDatabase = {
   discountCodes: MockDiscountCodeRecord[]
   /** Storefront checkout orders (POST /public/checkout) */
   orders: MockOrderRecord[]
+  /** Demo customer orders for GET /customer/orders in mock mode */
+  customerOrders?: MockCustomerOrderRecord[]
   invoices: MockInvoiceRecord[]
   shippingProviders: MockShippingProviderRecord[]
   shipments: MockShipmentRecord[]

@@ -48,6 +48,10 @@ const BILINGUAL: Record<string, { ar: string; en: string }> = {
     ar: "طلب إرجاع المنتجات",
     en: "Request item return",
   },
+  "تم إرسال طلب الإرجاع بنجاح.": {
+    ar: "تم إرسال طلب الإرجاع بنجاح.",
+    en: "Your return request was submitted successfully.",
+  },
   "سيتم إلغاء الطلب. لا يمكن التراجع عن هذه الخطوة.": {
     ar: "سيتم إلغاء الطلب. لا يمكن التراجع عن هذه الخطوة.",
     en: "The order will be cancelled. This cannot be undone.",
@@ -118,8 +122,13 @@ function typographyDefaults(type: string, props: Record<string, unknown>) {
     props.buttonSize ??= "theme-md";
     props.submitRedirectUrl ??= "";
     props.link ??= { kind: "none" };
-    props.zoneKey ??= "popup-main";
-    props.zoneAction ??= "open";
+    if (props.destinationType === "zone") {
+      props.zoneKey ??= "popup-main";
+      props.zoneAction ??= "open";
+    } else {
+      delete props.zoneKey;
+      delete props.zoneAction;
+    }
   }
 }
 

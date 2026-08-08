@@ -186,10 +186,18 @@ export function useOrdersState(authLoggedIn: boolean) {
       },
       setOrderDetail,
       refreshOrders,
-      downloadInvoice: async () => {
+      downloadInvoice: async (
+        explicitOrderId?: string,
+        explicitOrderNumber?: string | null
+      ) => {
         const order = orderDetail.order;
-        if (!order?.orderId) return;
-        await downloadOrderInvoice(order.orderId, order.orderNumber);
+        const orderId =
+          explicitOrderId ?? order?.orderId ?? returnDraft.orderId ?? undefined;
+        if (!orderId) {
+          throw new Error("تعذّر تحميل الفاتورة — لم يُحمَّل الطلب بعد.");
+        }
+        const orderNumber = explicitOrderNumber ?? order?.orderNumber ?? null;
+        await downloadOrderInvoice(orderId, orderNumber);
       },
       cancelOrder: async () => {
         const order = orderDetail.order;
@@ -205,7 +213,9 @@ export function useOrdersState(authLoggedIn: boolean) {
         if (!order?.orderId) return;
 
         const selected = Object.entries(returnDraft.items);
-        if (selected.length === 0) return;
+        if (selected.length === 0) {
+          throw new Error("اختر منتجاً واحداً على الأقل للإرجاع.");
+        }
 
         await createCustomerReturn({
           orderId: order.orderId,

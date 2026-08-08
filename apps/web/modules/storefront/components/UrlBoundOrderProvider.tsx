@@ -24,7 +24,7 @@ export function UrlBoundOrderProvider({
   children: React.ReactNode;
 }) {
   const { language } = useActiveLanguage();
-  const { errors, actions } = useStore();
+  const { errors, actions, returnDraft } = useStore();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: customerOrderKeys.detail(orderId),
@@ -41,13 +41,20 @@ export function UrlBoundOrderProvider({
       order: data ?? null,
       isCancellable: isOrderCancellable(data?.orderStatus),
       isReturnable: isOrderReturnable(data?.orderStatus),
+      returnSubmitted: returnDraft.submitted,
       errors: {
         invoice: errors.invoice,
         cancelOrder: errors.cancelOrder,
         submitReturn: errors.submitReturn,
       },
     }),
-    [data, errors.cancelOrder, errors.invoice, errors.submitReturn]
+    [
+      data,
+      errors.cancelOrder,
+      errors.invoice,
+      errors.submitReturn,
+      returnDraft.submitted,
+    ]
   );
 
   const value = useMemo<BoundDataContextValue>(

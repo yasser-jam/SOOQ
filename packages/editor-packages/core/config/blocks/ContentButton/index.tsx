@@ -494,8 +494,15 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       }
 
       if (action === "downloadInvoice") {
+        const orderRecord =
+          boundData?.order && typeof boundData.order === "object"
+            ? (boundData.order as { orderId?: string; orderNumber?: string })
+            : null;
         try {
-          await actions.orders.downloadInvoice();
+          await actions.orders.downloadInvoice(
+            orderRecord?.orderId,
+            orderRecord?.orderNumber ?? null
+          );
         } catch (err) {
           window.alert(
             err instanceof Error ? err.message : "تعذّر تحميل الفاتورة."

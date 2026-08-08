@@ -24,13 +24,18 @@ const getClassName = getClassNameFactory("LinkField", styles);
  * the final href string) is persisted — downstream renderers call
  * `resolveLinkHref` to derive it.
  */
+export type LinkDynamicSegment = {
+  param: string;
+  valueContext: string | { path?: string };
+};
+
 export type LinkValue =
   | { kind: "none" }
   | {
       kind: "page";
       pageId: string;
       newTab?: boolean;
-      dynamicSegment?: { param: string; valueContext: string };
+      dynamicSegment?: LinkDynamicSegment;
     }
   | { kind: "external"; url: string; newTab?: boolean }
   | { kind: "anchor"; hash: string };
@@ -46,6 +51,24 @@ type ResolveLinkOptions = {
   boundData?: Record<string, unknown> | null;
   locale?: "ar" | "en";
 };
+
+function resolveDynamicSegmentPath(
+  valueContext: LinkDynamicSegment["valueContext"] | undefined
+): string | undefined {
+  if (typeof valueContext === "string") {
+    const trimmed = valueContext.trim();
+    return trimmed || undefined;
+  }
+  if (
+    valueContext &&
+    typeof valueContext === "object" &&
+    typeof valueContext.path === "string"
+  ) {
+    const trimmed = valueContext.path.trim();
+    return trimmed || undefined;
+  }
+  return undefined;
+}
 
 /**
  * Turn a `LinkValue` into an `href` string the renderer can attach to `<a>`.
@@ -63,8 +86,13 @@ export function resolveLinkHref(
       if (!href) return null;
 
       if (link.dynamicSegment && options.boundData) {
+        const segmentPath = resolveDynamicSegmentPath(
+          link.dynamicSegment.valueContext
+        );
+        if (!segmentPath) return withStoreBasePath(href);
+
         const segmentValue = resolveValueContextAsString(
-          link.dynamicSegment.valueContext,
+          segmentPath,
           options.boundData,
           { locale: options.locale }
         );

@@ -108,12 +108,17 @@ function createOrderCardTemplate(): ComponentDataOptionalId {
           },
         }),
       ]),
-      createContentLink("عرض التفاصيل", {
-        kind: "page",
-        pageId: "/orders/:order-id",
-        dynamicSegment: {
-          param: "order-id",
-          valueContext: { path: "order.orderId" },
+      createPrimaryButton("عرض التفاصيل", {
+        destinationType: "link",
+        buttonAction: "link",
+        buttonVariant: "secondary",
+        link: {
+          kind: "page",
+          pageId: "/orders/:order-id",
+          dynamicSegment: {
+            param: "order-id",
+            valueContext: "order.orderId",
+          },
         },
       }),
     ],
@@ -534,6 +539,10 @@ export function createOrderDetailPageContent(): ComponentDataOptionalId[] {
         createPrimaryButton("طلب إرجاع المنتجات", {
           destinationType: "action",
           buttonAction: "submitReturn",
+        }),
+        createParagraph("تم إرسال طلب الإرجاع بنجاح.", {
+          textAlign: "center",
+          dataCondition: { path: "returnSubmitted", op: "truthy" },
         }),
         createParagraph("", {
           valueContext: { path: "errors.submitReturn" },

@@ -758,9 +758,7 @@
                             "textColor": "theme-surface",
                             "buttonSize": "theme-md",
                             "submitRedirectUrl": "",
-                            "id": "ContentButton-cancel-order-slot-0-content-4-content-1",
-                            "zoneKey": "popup-main",
-                            "zoneAction": "open"
+                            "id": "ContentButton-cancel-order-slot-0-content-4-content-1"
                           }
                         }
                       ],
@@ -5392,30 +5390,32 @@
                       }
                     },
                     {
-                      "type": "ContentLink",
+                      "type": "ContentButton",
                       "props": {
-                        "title": {
+                        "label": {
                           "ar": "عرض التفاصيل",
                           "en": "View details"
                         },
+                        "align": "left",
+                        "destinationType": "link",
+                        "buttonAction": "link",
                         "link": {
                           "kind": "page",
                           "pageId": "/orders/:order-id",
                           "dynamicSegment": {
                             "param": "order-id",
-                            "valueContext": {
-                              "path": "order.orderId"
-                            }
+                            "valueContext": "order.orderId"
                           }
                         },
-                        "align": "right",
-                        "color": "theme-text",
-                        "hoverColor": "theme-primary",
-                        "hoverEffect": "underline",
-                        "fontSize": "theme-sm",
-                        "icon": "none",
-                        "iconPosition": "end",
-                        "id": "ContentLink-orders-1-content-0-content-3"
+                        "buttonVariantMode": "variant",
+                        "buttonVariant": "secondary",
+                        "buttonVariantSize": "md",
+                        "radius": "theme-md",
+                        "bgColor": "theme-primary",
+                        "textColor": "theme-surface",
+                        "buttonSize": "theme-md",
+                        "submitRedirectUrl": "",
+                        "id": "ContentButton-orders-1-content-0-content-3"
                       }
                     }
                   ],
@@ -5626,30 +5626,32 @@
                       }
                     },
                     {
-                      "type": "ContentLink",
+                      "type": "ContentButton",
                       "props": {
-                        "title": {
+                        "label": {
                           "ar": "عرض التفاصيل",
                           "en": "View details"
                         },
+                        "align": "left",
+                        "destinationType": "link",
+                        "buttonAction": "link",
                         "link": {
                           "kind": "page",
                           "pageId": "/orders/:order-id",
                           "dynamicSegment": {
                             "param": "order-id",
-                            "valueContext": {
-                              "path": "order.orderId"
-                            }
+                            "valueContext": "order.orderId"
                           }
                         },
-                        "align": "right",
-                        "color": "theme-text",
-                        "hoverColor": "theme-primary",
-                        "hoverEffect": "underline",
-                        "fontSize": "theme-sm",
-                        "icon": "none",
-                        "iconPosition": "end",
-                        "id": "ContentLink-orders-1-cardTemplate-0-content-3"
+                        "buttonVariantMode": "variant",
+                        "buttonVariant": "secondary",
+                        "buttonVariantSize": "md",
+                        "radius": "theme-md",
+                        "bgColor": "theme-primary",
+                        "textColor": "theme-surface",
+                        "buttonSize": "theme-md",
+                        "submitRedirectUrl": "",
+                        "id": "ContentButton-orders-1-cardTemplate-0-content-3"
                       }
                     }
                   ],
@@ -5713,9 +5715,7 @@
                         "textColor": "theme-surface",
                         "buttonSize": "theme-md",
                         "submitRedirectUrl": "",
-                        "id": "ContentButton-orders-2-content-0-content-0",
-                        "zoneKey": "popup-main",
-                        "zoneAction": "open"
+                        "id": "ContentButton-orders-2-content-0-content-0"
                       }
                     },
                     {
@@ -5760,9 +5760,7 @@
                         "textColor": "theme-surface",
                         "buttonSize": "theme-md",
                         "submitRedirectUrl": "",
-                        "id": "ContentButton-orders-2-content-0-content-2",
-                        "zoneKey": "popup-main",
-                        "zoneAction": "open"
+                        "id": "ContentButton-orders-2-content-0-content-2"
                       }
                     }
                   ],
@@ -6050,9 +6048,7 @@
                         "textColor": "theme-surface",
                         "buttonSize": "theme-md",
                         "submitRedirectUrl": "",
-                        "id": "ContentButton-order-detail-1-content-3-content-0",
-                        "zoneKey": "popup-main",
-                        "zoneAction": "open"
+                        "id": "ContentButton-order-detail-1-content-3-content-0"
                       }
                     },
                     {
@@ -7584,9 +7580,29 @@
                   "textColor": "theme-surface",
                   "buttonSize": "theme-md",
                   "submitRedirectUrl": "",
-                  "id": "ContentButton-order-detail-7-content-0",
-                  "zoneKey": "popup-main",
-                  "zoneAction": "open"
+                  "id": "ContentButton-order-detail-7-content-0"
+                }
+              },
+              {
+                "type": "ContentParagraph",
+                "props": {
+                  "text": {
+                    "ar": "تم إرسال طلب الإرجاع بنجاح.",
+                    "en": "Your return request was submitted successfully."
+                  },
+                  "textAlign": "center",
+                  "fontFamily": "body",
+                  "fontSize": "theme-md",
+                  "fontWeight": "theme-normal",
+                  "lineHeight": "theme-relaxed",
+                  "fontStyle": "normal",
+                  "textTransform": "none",
+                  "color": "theme-text",
+                  "dataCondition": {
+                    "path": "returnSubmitted",
+                    "op": "truthy"
+                  },
+                  "id": "ContentParagraph-order-detail-7-content-1"
                 }
               },
               {
@@ -7611,7 +7627,7 @@
                     "path": "errors.submitReturn",
                     "op": "truthy"
                   },
-                  "id": "ContentParagraph-order-detail-7-content-1"
+                  "id": "ContentParagraph-order-detail-7-content-2"
                 }
               }
             ],

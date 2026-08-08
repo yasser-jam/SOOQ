@@ -634,11 +634,14 @@ export function StoreProvider({
 			setReturnItemCondition: ordersStateActions.setReturnItemCondition,
 			setOrderDetail: ordersStateActions.setOrderDetail,
 			refreshOrders: ordersStateActions.refreshOrders,
-			downloadInvoice: async () => {
+			downloadInvoice: async (
+				orderId?: string,
+				orderNumber?: string | null,
+			) => {
 				setLoading((prev) => ({ ...prev, invoice: true }))
 				setErrors((prev) => ({ ...prev, invoice: null }))
 				try {
-					await ordersStateActions.downloadInvoice()
+					await ordersStateActions.downloadInvoice(orderId, orderNumber)
 				} catch (err) {
 					setErrors((prev) => ({
 						...prev,

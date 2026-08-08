@@ -4,6 +4,7 @@ import { handleCheckoutMock } from "./handlers/checkout"
 import { handleCodMock } from "./handlers/cod"
 import { handleCollectionsMock } from "./handlers/collections"
 import { handleCustomerAuthMock } from "./handlers/customer-auth"
+import { handleCustomerOrdersMock } from "./handlers/customer-orders"
 import { handleDiscountCodesMock } from "./handlers/discount-codes"
 import { handleInvoicesMock } from "./handlers/invoices"
 import { handleProductsMock } from "./handlers/products"
@@ -25,6 +26,9 @@ export const routeMockRequest = async (
 
   const customerAuth = handleCustomerAuthMock(request)
   if (customerAuth.handled) return customerAuth
+
+  const customerOrders = handleCustomerOrdersMock(request)
+  if (customerOrders.handled) return customerOrders
 
   const settings = handleStoreSettingsMock(request)
   if (settings.handled) return settings
