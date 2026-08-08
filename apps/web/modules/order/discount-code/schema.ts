@@ -8,7 +8,7 @@ export const discountTypeSchema = z.enum([
 	"FREE_SHIPPING",
 ])
 
-export const discountScopeSchema = z.enum(["ALL", "PRODUCT", "CATEGORY"])
+export const discountScopeSchema = z.literal("ALL")
 
 const optionalPositiveNumber = z
 	.preprocess(
@@ -35,14 +35,13 @@ const optionalPositiveInteger = z
 export const createDiscountCodeSchema = z.object({
 	code: requiredString("الرمز"),
 	discountType: discountTypeSchema,
-	discountValue: z
-		.preprocess(
-			(value) =>
-				value === "" || value === null || value === undefined
-					? undefined
-					: Number(value),
-			z.number().min(0.01, "القيمة يجب أن تكون أكبر من صفر")
-		),
+	discountValue: z.preprocess(
+		(value) =>
+			value === "" || value === null || value === undefined
+				? undefined
+				: Number(value),
+		z.number().min(0.01, "القيمة يجب أن تكون أكبر من صفر")
+	),
 	minOrderAmount: optionalPositiveNumber,
 	maxDiscountCap: optionalPositiveNumber,
 	usageLimit: optionalPositiveInteger,

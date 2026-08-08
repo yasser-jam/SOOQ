@@ -5,8 +5,10 @@ import { ColumnDef } from "@tanstack/react-table"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { Percent, ShipWheel, Tag } from "lucide-react"
+import { toast } from "sonner"
 
 import DataTable from "@/components/system/table"
+import EmptyState from "@/components/system/empty-state"
 import TableActions from "@/components/system/table-actions"
 import { formatSyp } from "@/lib/money"
 import { useStorePath } from "@/lib/store-path"
@@ -16,7 +18,6 @@ import { Badge } from "@workspace/ui/components/badge"
 
 import { deleteDiscountCode, listDiscountCodes } from "../actions"
 import {
-  DISCOUNT_SCOPE_LABELS,
   DISCOUNT_STATUS_META,
   DISCOUNT_TYPE_LABELS,
   computeDiscountCodeStatus,
@@ -64,6 +65,7 @@ export default function DiscountCodesTable() {
       queryClient.removeQueries({
         queryKey: discountCodeQueryKeys.detail(id),
       })
+      toast.success("تم حذف كود الخصم")
     },
   })
 
@@ -104,15 +106,6 @@ export default function DiscountCodesTable() {
             row.original.maxDiscountCap
           )}
         </span>
-      ),
-    },
-    {
-      accessorKey: "applicableScope",
-      header: "النطاق",
-      cell: ({ row }) => (
-        <Badge variant="outline">
-          {DISCOUNT_SCOPE_LABELS[row.original.applicableScope ?? "ALL"]}
-        </Badge>
       ),
     },
     {
@@ -192,13 +185,25 @@ export default function DiscountCodesTable() {
   }, [pageCount])
 
   return (
-    <div className="w-full overflow-hidden rounded-lg border bg-white">
+    <div className="w-full overflow-hidden rounded-lg border">
       <DataTable
         columns={columns}
         isLoading={isPending}
         data={codes ?? []}
         pagination={{ pageIndex, pageSize, pageCount }}
         onPageChange={setPageIndex}
+        emptyState={
+          <EmptyState
+            icon={<Tag className="size-8" />}
+            title="لا توجد أكواد خصم"
+            description="أنشئ أكواد خصم ليمنح عملاؤك تخفيضات على الطلبات."
+            cta={{
+              label: "إضافة كود خصم",
+              onClick: () =>
+                router.push(storePath("/discount-codes/create")),
+            }}
+          />
+        }
       />
     </div>
   )
