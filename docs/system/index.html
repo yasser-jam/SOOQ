@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOOQ — System Documentation</title>
+<link rel="stylesheet" href="_assets/doc.css">
+<script src="_assets/doc.js"></script>
+</head>
+<body>
+
+<button class="theme-toggle" type="button">Dark</button>
+
+<div class="wrap">
+
+<nav class="toc">
+  <a class="brand" href="index.html">SOOQ</a>
+  <div class="sub">System Documentation</div>
+
+  <div class="doc-switch">
+    <a class="here" href="index.html"><span class="n">0</span>Overview</a>
+    <a href="admin.html"><span class="n">1</span>Admin</a>
+    <a class="pending" href="editor.html"><span class="n">2</span>Editor<span class="soon">soon</span></a>
+    <a class="pending" href="renderer.html"><span class="n">3</span>Renderer<span class="soon">soon</span></a>
+  </div>
+
+  <div class="grp">Overview</div>
+  <a href="#what">1 · What SOOQ is</a>
+  <a href="#pillars">2 · The three pillars</a>
+  <a href="#architecture">3 · System architecture</a>
+  <a href="#monorepo">4 · Monorepo layout</a>
+  <a href="#stack">5 · Technology stack</a>
+
+  <div class="grp">Cross-cutting</div>
+  <a href="#audiences">6 · Audiences &amp; routing</a>
+  <a href="#tenancy">7 · Multi-tenancy &amp; auth</a>
+  <a href="#api">8 · API contract</a>
+
+  <div class="grp">Meta</div>
+  <a href="#reading">9 · How to read this</a>
+</nav>
+
+<main>
+
+<header class="page">
+  <div class="eyebrow">Pillar 0 · Overview</div>
+  <h1>SOOQ — System Documentation</h1>
+  <p class="lede">
+    SOOQ is a multi-tenant e-commerce platform: it lets a merchant create an online store,
+    manage its catalogue and operations from an administrative dashboard, and design the
+    public storefront visually without writing code. This document set is the reference
+    for the implemented web platform — what it does, and how it is built.
+  </p>
+  <div class="meta">
+    <span><b>Scope</b> implemented web platform</span>
+    <span><b>Branch</b> <code>stage</code></span>
+    <span><b>Repository</b> <code>SOOQ</code> — pnpm + Turborepo monorepo</span>
+    <span><b>Last updated</b> 2026-08-13</span>
+  </div>
+</header>
+
+<!-- ===================================================================== -->
+<section id="what">
+  <h2><span class="num">1</span>What SOOQ is</h2>
+  <p class="section-lede">
+    The problem the platform solves, and the shape of the solution.
+  </p>
+
+  <h3>The problem</h3>
+  <p>
+    A merchant who wants to sell online has two bad options. Building a store from scratch
+    demands development skills and months of work. Using a generic website builder produces
+    a site that looks like a store but has no commerce engine behind it — no inventory, no
+    order lifecycle, no shipping or settlement.
+  </p>
+  <p>
+    SOOQ closes that gap. One merchant signs up, gets an isolated <strong>tenant</strong>, and
+    receives both halves at once: a complete operational back office, and a visual builder that
+    produces the customer-facing storefront. The platform is Arabic-first — the entire
+    interface is Arabic with a right-to-left layout, and content entities carry parallel
+    Arabic and English fields.
+  </p>
+
+  <h3>Product shape</h3>
+  <dl class="kv">
+    <dt>Model</dt>
+    <dd>Multi-tenant SaaS — one deployment serves many independent stores, isolated by tenant.</dd>
+    <dt>Merchant surface</dt>
+    <dd>A dashboard covering catalogue, inventory, orders, fulfilment, finance, customers, and staff.</dd>
+    <dt>Customer surface</dt>
+    <dd>A published storefront whose pages are designed by the merchant, not hard-coded by us.</dd>
+    <dt>Localisation</dt>
+    <dd>Arabic UI, RTL layout, <code>*Ar</code> / <code>*En</code> bilingual data fields, default currency SYP.</dd>
+    <dt>Backend</dt>
+    <dd>An external Spring REST service. This repository is the entire front-end platform.</dd>
+  </dl>
+
+  <div class="callout note">
+    <span class="label">Scope of this document</span>
+    <p>
+      This covers the <strong>web platform in this repository</strong>. The backend service is
+      described only through the contract it exposes (endpoints, envelope, headers) — its internal
+      implementation is out of scope. A mobile client is not part of the current system.
+    </p>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<section id="pillars">
+  <h2><span class="num">2</span>The three pillars</h2>
+  <p class="section-lede">
+    The system divides into three subsystems. Each has its own document in this set.
+  </p>
+
+  <div class="cards">
+    <a class="card" href="admin.html">
+      <div class="k">PILLAR 1</div>
+      <h3>Merchant Admin</h3>
+      <p>
+        The operational back office. A Next.js application built on a shadcn-style design system,
+        organised into domain modules — products, orders, shipping, finance, customers, staff.
+      </p>
+      <div class="foot">apps/web · 57 dashboard pages</div>
+    </a>
+    <a class="card" href="editor.html">
+      <div class="k">PILLAR 2</div>
+      <h3>Design Studio</h3>
+      <p>
+        The visual page builder. A customised fork of the Puck editor with a purpose-built block
+        library, letting merchants compose storefront pages by dragging blocks onto a canvas.
+      </p>
+      <div class="foot">@puckeditor/core · 60 blocks</div>
+    </a>
+    <a class="card" href="renderer.html">
+      <div class="k">PILLAR 3</div>
+      <h3>Template Renderer</h3>
+      <p>
+        The published storefront. Reads the same design document the editor produces and renders
+        it for customers, wired to live catalogue, cart, and order data.
+      </p>
+      <div class="foot">apps/store · port 3001</div>
+    </a>
+  </div>
+
+  <h3>How they relate</h3>
+  <p>
+    The admin and the editor are two areas of the same application: the Design Studio is reached
+    from the dashboard sidebar and runs inside <code>apps/web</code>. The renderer is a
+    <strong>separate application</strong>, <code>apps/store</code>, serving customers rather than
+    merchants. Editor and renderer are nonetheless two <em>modes of the same code</em> — they share
+    one block library and one configuration; the editor mounts it in an editable canvas, the
+    renderer mounts it read-only. That is why this document set treats them as a single subsystem
+    viewed from two sides, even though they ship as different applications.
+  </p>
+  <p>
+    The artefact that ties them together is the <strong>Site JSON</strong> — a serialisable document
+    holding the store's theme, its shared shell zones (header, footer, drawers), and its pages.
+    The editor writes it; the renderer reads it. Neither knows anything else about the other.
+  </p>
+
+  <div class="flow">
+    <div class="step">
+      <span class="n">01</span><span class="t">Merchant designs</span>
+      <span class="d">Drags blocks onto the canvas in Design Studio.</span>
+    </div>
+    <div class="step">
+      <span class="n">02</span><span class="t">Site JSON</span>
+      <span class="d">Theme + zones + pages serialised to one document.</span>
+    </div>
+    <div class="step">
+      <span class="n">03</span><span class="t">Renderer reads</span>
+      <span class="d">Storefront resolves the page and renders its blocks.</span>
+    </div>
+    <div class="step">
+      <span class="n">04</span><span class="t">Blocks bind data</span>
+      <span class="d">Product, cart, and order blocks fetch live tenant data.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<section id="architecture">
+  <h2><span class="num">3</span>System architecture</h2>
+  <p class="section-lede">
+    The layers, and what depends on what.
+  </p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 840 415" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Layered architecture: audiences, applications, shared layer, backend API">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="d-arrow"/>
+        </marker>
+      </defs>
+
+      <!-- Layer 1 — audiences -->
+      <rect x="120" y="6" width="170" height="30" rx="15" class="d-fill-2 d-stroke"/>
+      <text x="205" y="25" text-anchor="middle" class="d-text-b">Merchant &amp; staff</text>
+      <rect x="555" y="6" width="170" height="30" rx="15" class="d-fill-2 d-stroke"/>
+      <text x="640" y="25" text-anchor="middle" class="d-text-b">Customer</text>
+
+      <line x1="205" y1="36" x2="205" y2="56" class="d-line" marker-end="url(#ah)"/>
+      <line x1="640" y1="36" x2="640" y2="56" class="d-line" marker-end="url(#ah)"/>
+
+      <!-- Layer 2 — applications -->
+      <rect x="30" y="60" width="350" height="132" rx="8" class="d-fill d-stroke"/>
+      <text x="44" y="79" class="d-text-sm">apps/web — Next.js, port 3000</text>
+      <rect x="44" y="90" width="155" height="88" rx="6" class="d-fill-2 d-stroke"/>
+      <text x="121" y="122" text-anchor="middle" class="d-text-b">Merchant Admin</text>
+      <text x="121" y="140" text-anchor="middle" class="d-text">dashboard</text>
+      <text x="121" y="158" text-anchor="middle" class="d-text-sm">57 pages</text>
+      <rect x="211" y="90" width="155" height="88" rx="6" class="d-fill-2 d-stroke"/>
+      <text x="288" y="122" text-anchor="middle" class="d-text-b">Design Studio</text>
+      <text x="288" y="140" text-anchor="middle" class="d-text">editor host</text>
+      <text x="288" y="158" text-anchor="middle" class="d-text-sm">Puck fork</text>
+
+      <rect x="470" y="60" width="340" height="132" rx="8" class="d-fill d-stroke"/>
+      <text x="484" y="79" class="d-text-sm">apps/store — Next.js, port 3001</text>
+      <rect x="530" y="90" width="220" height="88" rx="6" class="d-fill-2 d-stroke"/>
+      <text x="640" y="122" text-anchor="middle" class="d-text-b">Template Renderer</text>
+      <text x="640" y="140" text-anchor="middle" class="d-text">published storefront</text>
+      <text x="640" y="158" text-anchor="middle" class="d-text-sm">/store/[tenantId]</text>
+
+      <!-- Site JSON handoff -->
+      <line x1="382" y1="130" x2="466" y2="130" class="d-accent" marker-end="url(#ah)"/>
+      <text x="424" y="122" text-anchor="middle" class="d-text-sm">Site JSON</text>
+
+      <line x1="205" y1="192" x2="205" y2="216" class="d-line" marker-end="url(#ah)"/>
+      <line x1="640" y1="192" x2="640" y2="216" class="d-line" marker-end="url(#ah)"/>
+
+      <!-- Layer 3 — shared -->
+      <rect x="30" y="220" width="780" height="76" rx="8" class="d-fill d-stroke"/>
+      <text x="44" y="240" class="d-text-sm">shared layer — packages/ + apps/web/modules</text>
+      <text x="44" y="262" class="d-text-b">@puckeditor/core</text>
+      <text x="44" y="279" class="d-text-sm">60 blocks · Site JSON model</text>
+      <text x="250" y="262" class="d-text-b">apps/web/modules</text>
+      <text x="250" y="279" class="d-text-sm">34 domain modules</text>
+      <text x="450" y="262" class="d-text-b">lib/api.ts</text>
+      <text x="450" y="279" class="d-text-sm">HTTP client · auth · tenancy</text>
+      <text x="650" y="262" class="d-text-b">@workspace/ui</text>
+      <text x="650" y="279" class="d-text-sm">37 components</text>
+
+      <line x1="420" y1="296" x2="420" y2="320" class="d-line" marker-end="url(#ah)"/>
+
+      <!-- Layer 4 — backend -->
+      <rect x="30" y="324" width="780" height="76" rx="8" class="d-fill-2 d-stroke"/>
+      <text x="44" y="348" class="d-text-b">Backend REST API — external Spring service (not in this repository)</text>
+      <text x="44" y="369" class="d-text-sm">NEXT_PUBLIC_API_URL/api/v1 · Bearer JWT · X-Tenant-Slug (merchant) / X-Tenant-Id (public)</text>
+      <text x="44" y="386" class="d-text-sm">every response wrapped in ApiResponse&lt;T&gt; or PagedApiResponse&lt;T&gt;</text>
+    </svg>
+    <figcaption>
+      <b>Layered architecture.</b> Both applications are pure clients: all persistence lives behind
+      the external REST API. The shared layer is where the API client, the domain logic, the design
+      system, and the editor engine live — which is why the storefront can reuse the admin's
+      modules rather than duplicating them.
+    </figcaption>
+  </figure>
+
+  <h3>Reading the diagram</h3>
+  <ul>
+    <li><strong>Two applications, split by audience.</strong> <code>apps/web</code> serves merchants —
+      the admin dashboard and the editor. <code>apps/store</code> serves customers — the published
+      storefront. They deploy independently and can be scaled independently.</li>
+    <li><strong>One handoff.</strong> The only thing crossing from editor to renderer is the Site JSON.
+      There is no shared runtime state between them.</li>
+    <li><strong>Downward dependency only.</strong> Applications import from the shared layer; the shared
+      layer never imports from an application — with one documented exception described in
+      §<a href="#monorepo">4</a>.</li>
+  </ul>
+
+  <div class="callout gap" id="temp-duplication">
+    <span class="label">Temporary implementation note</span>
+    <p>
+      The architecture above is the intended and documented design: the storefront is
+      <code>apps/store</code>, its own application. <strong>At the time of writing, the working
+      implementation of the storefront in fact lives inside <code>apps/web</code></strong>, under a
+      <code>published-store</code> route tree that <code>apps/web</code>'s middleware rewrites
+      <code>/store/[tenantId]</code> onto.
+    </p>
+    <p>
+      This duplication is <strong>temporary</strong> and exists only to keep the storefront and the
+      admin's modules moving together during development. The storefront is to be moved wholesale
+      into <code>apps/store</code>, after which <code>apps/web</code> will serve merchants only.
+      Nothing in the design depends on the current arrangement — the rest of this document set
+      describes the storefront as the separate application it is meant to be.
+    </p>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<section id="monorepo">
+  <h2><span class="num">4</span>Monorepo layout</h2>
+  <p class="section-lede">
+    Workspaces managed by pnpm, orchestrated by Turborepo.
+  </p>
+
+  <div class="table-scroll">
+    <table class="map">
+      <thead>
+        <tr><th>Path</th><th>Package</th><th>Role</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>apps/web</b></td>
+          <td><code>web</code></td>
+          <td>The merchant application: admin dashboard, authentication, onboarding,
+              platform-owner pages, and the Design Studio host. Port 3000.</td>
+        </tr>
+        <tr>
+          <td><b>apps/store</b></td>
+          <td><code>store</code></td>
+          <td>The customer application: the published storefront, rendering a tenant's pages from
+              Site JSON. Port 3001. See the
+              <a href="#temp-duplication">temporary implementation note</a>.</td>
+        </tr>
+        <tr>
+          <td><b>packages/editor-packages/core</b></td>
+          <td><code>@puckeditor/core</code></td>
+          <td>Fork of Puck 0.21.1, heavily customised. All editor blocks, fields, plugins, theme,
+              and the Site JSON model live under its <code>config/</code> directory.</td>
+        </tr>
+        <tr>
+          <td>packages/editor-packages/plugin-*</td>
+          <td><code>@puckeditor/plugin-…</code></td>
+          <td>Editor plugins: heading analyzer, emotion cache.</td>
+        </tr>
+        <tr>
+          <td><b>packages/ui</b></td>
+          <td><code>@workspace/ui</code></td>
+          <td>Shared design system — 37 shadcn-style components on Tailwind 4 tokens.</td>
+        </tr>
+        <tr>
+          <td>packages/eslint-config<br>packages/typescript-config</td>
+          <td><code>@workspace/*</code></td>
+          <td>Shared lint and compiler configuration.</td>
+        </tr>
+        <tr>
+          <td>docs/</td>
+          <td>—</td>
+          <td>Engineering documents, including this set under <code>docs/system/</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Path aliases</h3>
+  <p>
+    Aliases are what make the cross-package structure ergonomic. Three matter:
+  </p>
+  <div class="table-scroll">
+    <table class="map">
+      <thead><tr><th>Alias</th><th>Resolves to</th><th>Used by</th></tr></thead>
+      <tbody>
+        <tr><td><code>@/core</code>, <code>@/core/*</code></td>
+            <td><code>packages/editor-packages/core</code></td>
+            <td>apps/web, apps/store</td></tr>
+        <tr><td><code>@workspace/ui/*</code></td>
+            <td><code>packages/ui/src/*</code></td>
+            <td>apps/web</td></tr>
+        <tr><td><code>@/modules/*</code>, <code>@/lib/*</code>, <code>@/config/*</code></td>
+            <td><code>apps/web/modules</code>, <code>apps/web/lib</code>, <code>apps/web/config</code></td>
+            <td><strong>apps/store</strong> — resolves into apps/web</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout gap">
+    <span class="label">Known coupling</span>
+    <p>
+      The last row is a deliberate but risky shortcut: <code>apps/store</code> aliases
+      <code>@/modules</code> and <code>@/lib</code> into <strong>apps/web</strong>, so the storefront
+      reuses the admin's domain modules and API client instead of duplicating them. The benefit is a
+      single source of truth for API calls; the cost is that moving a file inside
+      <code>apps/web/lib</code> or <code>apps/web/modules</code> can break a different application.
+      This is examined further in the Renderer document.
+    </p>
+  </div>
+
+  <h3>Commands</h3>
+  <pre><code>pnpm dev          # turbo dev — all applications
+pnpm --filter web dev     # merchant admin + editor, port 3000
+pnpm --filter store dev   # customer storefront, port 3001
+
+pnpm build        # turbo build
+pnpm lint         # eslint across workspaces
+pnpm typecheck    # tsc --noEmit across workspaces
+pnpm test         # turbo test</code></pre>
+  <p>Requires Node ≥ 20 and pnpm 9.</p>
+</section>
+
+<!-- ===================================================================== -->
+<section id="stack">
+  <h2><span class="num">5</span>Technology stack</h2>
+  <p class="section-lede">
+    What each choice buys the system. Versions are those the repository is pinned to.
+  </p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Concern</th><th>Choice</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Framework</td><td>Next.js 16 (App Router), React 19</td>
+            <td>File-system routing with route groups maps cleanly onto the three audiences;
+                middleware gives a single place to enforce authentication and tenant rewrites.</td></tr>
+        <tr><td>Language</td><td>TypeScript 5.9</td>
+            <td>Types are derived from validation schemas, so the contract is checked once and
+                enforced everywhere.</td></tr>
+        <tr><td>Styling</td><td>Tailwind CSS 4</td>
+            <td>Token-driven theming; the same CSS variables drive the admin and the storefront theme.</td></tr>
+        <tr><td>Components</td><td><code>@workspace/ui</code> (shadcn-style)</td>
+            <td>Components are copied into the repository rather than imported from a vendor, so RTL
+                and Arabic adjustments can be made at source.</td></tr>
+        <tr><td>Server state</td><td>TanStack Query 5</td>
+            <td>Caching, refetching, and invalidation for a dashboard that is almost entirely
+                read-modify-write against a REST API.</td></tr>
+        <tr><td>Tables</td><td>TanStack Table 8</td>
+            <td>Headless — pagination, sorting, and filtering behaviour without imposing markup.</td></tr>
+        <tr><td>Forms</td><td>react-hook-form + Zod 4</td>
+            <td>Uncontrolled inputs keep large product forms fast; Zod schemas serve as both the
+                validator and the type source.</td></tr>
+        <tr><td>HTTP</td><td>axios 1.15</td>
+            <td>Interceptors are the natural place for token attachment, tenant headers, and
+                transparent refresh-and-retry on 401.</td></tr>
+        <tr><td>Visual editor</td><td>Fork of Puck 0.21.1</td>
+            <td>A mature drag-and-drop engine and field system; forking allowed replacing the block
+                library and Site JSON model wholesale.</td></tr>
+        <tr><td>Feedback / icons</td><td>sonner, lucide-react</td>
+            <td>Toast notifications and a consistent icon set across both applications.</td></tr>
+        <tr><td>Tooling</td><td>pnpm 9, Turborepo 2.8</td>
+            <td>Workspace linking without duplication, and cached task pipelines across packages.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<section id="audiences">
+  <h2><span class="num">6</span>Audiences and routing</h2>
+  <p class="section-lede">
+    Three audiences, separated by route namespace: merchants, the platform owner, and customers.
+  </p>
+
+  <p>
+    The first two are served by <code>apps/web</code>; customers are served by the storefront
+    application. Within <code>apps/web</code>, route groups — the parenthesised directories under
+    <code>app/</code> — split the application by audience without appearing in the URL. Each group
+    has its own layout and its own access rule.
+  </p>
+
+  <h3>Merchant and platform namespaces — <code>apps/web</code></h3>
+  <div class="table-scroll">
+    <table class="map">
+      <thead><tr><th>URL namespace</th><th>Audience</th><th>Access</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><b>/</b>, /products, /orders, …</td><td>Merchant &amp; staff</td>
+            <td><span class="badge info">session</span></td>
+            <td>The admin dashboard — 57 pages under the <code>(dashboard)</code> group.</td></tr>
+        <tr><td>/design-studio<b>/…</b></td><td>Merchant</td>
+            <td><span class="badge info">session</span></td>
+            <td>The Design Studio, mounted inside the dashboard group.</td></tr>
+        <tr><td>/request-otp<br>/verify-otp</td><td>Merchant</td>
+            <td><span class="badge done">public</span></td>
+            <td>Merchant login by one-time password.</td></tr>
+        <tr><td>/onboarding/create-store</td><td>New merchant</td>
+            <td><span class="badge done">public</span></td>
+            <td>Store creation after first login.</td></tr>
+        <tr><td>/welcome</td><td>Visitor</td>
+            <td><span class="badge done">public</span></td>
+            <td>Marketing landing page — interim, until it moves to its own domain.</td></tr>
+        <tr><td>/platform/tenants</td><td>Platform owner</td>
+            <td><span class="badge info">session</span></td>
+            <td>Cross-tenant administration for the platform operator.</td></tr>
+        <tr><td>/api/auth/*</td><td>—</td>
+            <td><span class="badge done">public</span></td>
+            <td>Internal route handlers for session, refresh, and logout.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Customer namespaces — storefront application</h3>
+  <div class="table-scroll">
+    <table class="map">
+      <thead><tr><th>URL namespace</th><th>Access</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><b>/store/[tenantId]/…</b></td>
+            <td><span class="badge done">public</span></td>
+            <td>The published storefront. The tenant UUID in the URL identifies the store, so the
+                pages work for a visitor with no session at all.</td></tr>
+        <tr><td>/shop/[storeSlug]/…</td>
+            <td><span class="badge done">public</span></td>
+            <td>Customer authentication — one-time-password login for a given store.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    These two namespaces belong to the customer-facing application and are documented in full in
+    the <a href="renderer.html">Template Renderer</a> document. They are listed here because both
+    are currently served from <code>apps/web</code> — see the
+    <a href="#temp-duplication">temporary implementation note</a>.
+  </p>
+
+  <div class="callout warn">
+    <span class="label">Correction to earlier project notes</span>
+    <p>
+      Merchant pages were originally addressed as <code>/store/[storeSlug]/…</code>. They are not any
+      more. Merchant routes now sit at the <strong>root</strong> and the tenant is resolved from the
+      session, while <code>/store/[uuid]</code> means the <strong>published storefront</strong>.
+      Old merchant links still work: <code>middleware.ts</code> issues a permanent redirect from
+      <code>/store/{slug}/x</code> to <code>/x</code>. The repository's <code>CLAUDE.md</code> still
+      describes the old scheme and should be corrected.
+    </p>
+  </div>
+
+  <h3>What middleware decides</h3>
+  <p>
+    A single <a href="../../apps/web/middleware.ts">middleware</a> runs before every request and
+    resolves three questions in order:
+  </p>
+  <div class="flow">
+    <div class="step">
+      <span class="n">01</span><span class="t">Storefront?</span>
+      <span class="d">If the path is <code>/store/&lt;uuid&gt;</code>, hand it to the storefront
+        route tree and stop — no authentication is required.</span>
+    </div>
+    <div class="step">
+      <span class="n">02</span><span class="t">Legacy link?</span>
+      <span class="d">If <code>/store/&lt;slug&gt;</code> — a non-UUID segment — redirect
+        permanently to the equivalent root path.</span>
+    </div>
+    <div class="step">
+      <span class="n">03</span><span class="t">Authenticated?</span>
+      <span class="d">Public prefixes pass through. Otherwise require a token; if none, redirect
+        to login carrying the original path.</span>
+    </div>
+  </div>
+  <p>
+    The distinction in the first two steps is made by testing the segment against a UUID pattern:
+    a UUID means a tenant's storefront, anything else means a legacy merchant slug.
+  </p>
+</section>
+
+<!-- ===================================================================== -->
+<section id="tenancy">
+  <h2><span class="num">7</span>Multi-tenancy and authentication</h2>
+  <p class="section-lede">
+    How a request is attributed to a store and a user.
+  </p>
+
+  <h3>Two independent sessions</h3>
+  <p>
+    A merchant signing into the dashboard and a customer signing into a storefront are different
+    identities that may exist in the same browser at the same time. The system therefore keeps two
+    separate token cookies and picks between them per request.
+  </p>
+
+  <div class="table-scroll">
+    <table class="map">
+      <thead><tr><th>Cookie</th><th>Holds</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>sooq-admin-access-token</td><td>Merchant / platform JWT</td><td>Used for admin endpoints.</td></tr>
+        <tr><td>sooq-store-access-token</td><td>Storefront customer JWT</td><td>Used for <code>/customer/**</code> endpoints.</td></tr>
+        <tr><td>sooq-refresh-token</td><td>Refresh token</td><td><strong>httpOnly</strong> — unreadable from JavaScript.</td></tr>
+        <tr><td>sooq-tenant-slug</td><td>Store slug</td><td>Human-readable tenant key for merchant requests.</td></tr>
+        <tr><td>sooq-tenant-id</td><td>Tenant UUID</td><td>Machine tenant key for public storefront requests.</td></tr>
+        <tr><td>sooq-user-name</td><td>Display name</td><td>Convenience only, not an authorisation input.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Token selection is by endpoint: a request whose URL contains <code>/customer/</code> is signed
+    with the customer token, everything else with the admin token. Only the refresh token is
+    <code>httpOnly</code>, because the access tokens must be readable by the client-side HTTP
+    interceptor that attaches them.
+  </p>
+
+  <h3>Tenant resolution</h3>
+  <p>
+    The backend needs to know <em>which store</em> a request concerns. Two headers carry that,
+    depending on the surface:
+  </p>
+  <dl class="kv">
+    <dt><code>X-Tenant-Slug</code></dt>
+    <dd>Merchant requests. The slug is stored client-side and attached automatically to every
+        admin call by the request interceptor.</dd>
+    <dt><code>X-Tenant-Id</code></dt>
+    <dd>Public storefront requests, where there may be no session at all. The tenant UUID comes
+        from the URL segment, a cookie, or — when a customer is signed in — from a claim inside
+        their token.</dd>
+  </dl>
+
+  <div class="callout note">
+    <span class="label">Why two keys</span>
+    <p>
+      The slug is what a merchant recognises and what appears in their links; the UUID is what an
+      anonymous storefront visitor can be given safely in a URL without leaking a guessable store
+      name. Both identify the same tenant.
+    </p>
+  </div>
+
+  <h3>Silent refresh</h3>
+  <p>
+    Access tokens expire during normal use. Rather than interrupting the merchant, the HTTP client
+    handles it transparently: a <code>401</code> triggers a refresh, and the original request is
+    retried with the new token. Concurrent failures share a single in-flight refresh — a common
+    source of duplicate-refresh bugs — and each request is retried only once, so a genuinely
+    invalid session ends in logout rather than a loop.
+  </p>
+  <p>
+    Middleware deliberately does <em>not</em> validate tokens. It only checks that <em>some</em>
+    token is present, letting the page render and leaving genuine expiry to the refresh mechanism.
+    Only when both the access and refresh tokens are absent does it redirect to login.
+  </p>
+</section>
+
+<!-- ===================================================================== -->
+<section id="api">
+  <h2><span class="num">8</span>The API contract</h2>
+  <p class="section-lede">
+    One envelope shape, used by every endpoint.
+  </p>
+
+  <p>
+    The backend is reached at <code>NEXT_PUBLIC_API_URL</code>, which must end in
+    <code>/api/v1</code>. Administrative endpoints are prefixed <code>/admin/…</code>, customer
+    endpoints <code>/customer/…</code>. Every response — success or failure — arrives inside a
+    uniform envelope, so the client has exactly one unwrapping rule.
+  </p>
+
+  <figure class="snippet">
+    <figcaption><b>apps/web/lib/types.ts</b> — the response envelope</figcaption>
+<pre><code>export type ApiResponse&lt;T&gt; = {
+  success?: boolean
+  data?: T
+  message?: string | null
+  timestamp?: number
+  errorCode?: string
+  fieldErrors?: FieldError[]
+}
+
+export type PagedApiResponse&lt;T&gt; = {
+  success?: boolean
+  data?: T[]
+  meta?: PaginationMeta      // page, size, total, totalPages, hasNext, hasPrev
+  message?: string | null
+  timestamp?: number
+  errorCode?: string
+  fieldErrors?: FieldError[]
+}</code></pre>
+  </figure>
+
+  <p>Three consequences shape the whole data layer:</p>
+  <ul>
+    <li><strong>Payloads are always unwrapped</strong> from <code>.data</code>, and list pagination
+      always read from <code>meta</code> — never from the array itself.</li>
+    <li><strong>Errors are structured.</strong> <code>errorCode</code> maps to a translated Arabic
+      message, and <code>fieldErrors</code> maps server-side validation failures onto individual
+      form fields, so backend validation surfaces in the same place as client-side validation.</li>
+    <li><strong>Backend shapes are not form shapes.</strong> Each module keeps explicit
+      <code>normalize*</code> mappers translating between the two, rather than letting API shapes
+      leak into components. This is detailed in the Admin document.</li>
+  </ul>
+
+  <div class="callout note">
+    <span class="label">Development without a backend</span>
+    <p>
+      The front end can run against an in-repository mock layer instead of the live service,
+      toggled by <code>NEXT_PUBLIC_USE_MOCK_API</code>. It intercepts requests before they leave
+      the HTTP client and serves seeded data for authentication, onboarding, catalogue, discount
+      codes, and shipping. Several modules additionally keep local-storage fallbacks used only in
+      that mode.
+    </p>
+  </div>
+</section>
+
+<!-- ===================================================================== -->
+<section id="reading">
+  <h2><span class="num">9</span>How to read this document</h2>
+  <p class="section-lede">
+    Structure, conventions, and where to start.
+  </p>
+
+  <h3>Structure</h3>
+  <p>
+    Each pillar document is split into a <strong>functional</strong> half — what the subsystem does,
+    written for a reader who will not open the code — and an <strong>implementation</strong> half,
+    which explains how it is built and ends with a file-level reference map. A reader evaluating the
+    product can stop after the functional half; a reader extending the code should read both.
+  </p>
+
+  <div class="cards">
+    <a class="card" href="admin.html">
+      <div class="k">NEXT</div>
+      <h3>1 · Merchant Admin</h3>
+      <p>Features and screens, then the module pattern, data layer, and route map.</p>
+    </a>
+    <a class="card" href="editor.html">
+      <div class="k">THEN</div>
+      <h3>2 · Design Studio</h3>
+      <p>Editor experience, the Site JSON model, block catalogue, and editor architecture.</p>
+    </a>
+    <a class="card" href="renderer.html">
+      <div class="k">THEN</div>
+      <h3>3 · Template Renderer</h3>
+      <p>Render pipeline, the two hosts, customer flows, and data binding.</p>
+    </a>
+  </div>
+
+  <h3>Conventions used throughout</h3>
+  <dl class="kv">
+    <dt>File references</dt>
+    <dd>Paths are given relative to the repository root, e.g. <code>apps/web/lib/api.ts</code>.</dd>
+    <dt>Code excerpts</dt>
+    <dd>Captioned with their source file. Excerpts are abridged for readability — the file is
+        authoritative.</dd>
+    <dt><span class="badge done">implemented</span></dt>
+    <dd>Feature is complete and working.</dd>
+    <dt><span class="badge partial">partial</span></dt>
+    <dd>Feature works but is incomplete or provisional.</dd>
+    <dt><span class="badge missing">gap</span></dt>
+    <dd>Known limitation, recorded deliberately rather than omitted.</dd>
+  </dl>
+
+  <div class="callout gap">
+    <span class="label">On gaps</span>
+    <p>
+      Limitations are documented, not hidden. Where the implementation is provisional — the Site
+      JSON persistence layer being the most significant example — this document says so and explains
+      the consequence. An honest account of the boundary is more useful than a claim of completeness.
+    </p>
+  </div>
+
+  <h3>Callouts</h3>
+  <p>
+    Blue callouts add context or rationale. Amber ones record a gap or a deliberate trade-off. Red
+    ones flag something that is wrong, out of date, or actively risky. Green ones confirm a
+    guarantee the system provides.
+  </p>
+</section>
+
+<footer class="page">
+  <span>SOOQ — System Documentation · Pillar 0 · Overview</span>
+  <span>Next: <a href="admin.html">1 · Merchant Admin</a></span>
+</footer>
+
+</main>
+</div>
+</body>
+</html>

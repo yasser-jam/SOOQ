@@ -1,0 +1,1362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOOQ — Merchant Admin</title>
+<link rel="stylesheet" href="_assets/doc.css">
+<script src="_assets/doc.js"></script>
+</head>
+<body>
+
+<button class="theme-toggle" type="button">Dark</button>
+
+<div class="wrap">
+
+<nav class="toc">
+  <a class="brand" href="index.html">SOOQ</a>
+  <div class="sub">System Documentation</div>
+
+  <div class="doc-switch">
+    <a href="index.html"><span class="n">0</span>Overview</a>
+    <a class="here" href="admin.html"><span class="n">1</span>Admin</a>
+    <a class="pending" href="editor.html"><span class="n">2</span>Editor<span class="soon">soon</span></a>
+    <a class="pending" href="renderer.html"><span class="n">3</span>Renderer<span class="soon">soon</span></a>
+  </div>
+
+  <div class="grp">Part A — What it does</div>
+  <a href="#shell">1 · The dashboard shell</a>
+  <a href="#access">2 · Access &amp; onboarding</a>
+  <a href="#catalogue">3 · Catalogue</a>
+  <a href="#inventory">4 · Inventory</a>
+  <a href="#orders">5 · Orders &amp; fulfilment</a>
+  <a href="#finance">6 · Finance</a>
+  <a href="#customers">7 · Customers &amp; marketing</a>
+  <a href="#administration">8 · Administration</a>
+  <a href="#platform">9 · Platform surface</a>
+
+  <div class="grp">Part B — How it is built</div>
+  <a href="#structure">10 · Application structure</a>
+  <a href="#module-pattern">11 · The module pattern</a>
+  <a href="#data-layer">12 · Data layer</a>
+  <a href="#forms">13 · Forms &amp; validation</a>
+  <a href="#server-state">14 · Server state</a>
+  <a href="#ui">15 · UI layer</a>
+
+  <div class="grp">Reference</div>
+  <a href="#map">16 · Reference map</a>
+  <a href="#map-routes" class="lvl2">Route index</a>
+  <a href="#map-modules" class="lvl2">Module index</a>
+</nav>
+
+<main>
+
+<header class="page">
+  <div class="eyebrow">Pillar 1 · Merchant Admin</div>
+  <h1>Merchant Admin</h1>
+  <p class="lede">
+    The operational back office of a SOOQ store. Everything a merchant does that is not designing
+    the storefront happens here: managing the catalogue, tracking stock, processing orders,
+    arranging shipment and settlement, issuing invoices and refunds, and administering staff and
+    store settings.
+  </p>
+  <div class="meta">
+    <span><b>Application</b> <code>apps/web</code></span>
+    <span><b>Routes</b> 57 dashboard pages</span>
+    <span><b>Modules</b> 34 domain modules</span>
+    <span><b>Audience</b> merchant owner, manager, staff</span>
+  </div>
+</header>
+
+<div class="callout note">
+  <span class="label">How to read this document</span>
+  <p>
+    <strong>Part A</strong> (§1–9) describes what the admin does, screen by screen — readable
+    without opening the code. <strong>Part B</strong> (§10–15) explains how it is built.
+    <strong>§16</strong> is an exhaustive index of every route and module.
+  </p>
+</div>
+
+<!-- ================================================================== -->
+<!-- PART A                                                              -->
+<!-- ================================================================== -->
+
+<section id="shell">
+  <h2><span class="num">1</span>The dashboard shell</h2>
+  <p class="section-lede">
+    The frame every admin page renders inside.
+  </p>
+
+  <p>
+    All merchant pages share one layout: a collapsible navigation sidebar pinned to the
+    <strong>right</strong> edge — the document is <code>dir="rtl"</code> — a header carrying the
+    store identity and the account menu, and the page body. The interface is entirely Arabic, set
+    in <em>Almarai</em>, a typeface chosen for Arabic legibility at interface sizes.
+  </p>
+
+  <figure class="shot">
+    <div class="shot-todo">screenshot slot — dashboard home with sidebar expanded<br>_assets/img/admin-shell.png</div>
+    <figcaption><b>The dashboard shell.</b> Sidebar right, header top, content body left.</figcaption>
+  </figure>
+
+  <h3>Navigation structure</h3>
+  <p>
+    The sidebar groups every area of the product into seven labelled sections. Entries with
+    sub-items are <em>grouping headers</em> — clicking one expands its children rather than
+    navigating, so a group like “Logistics” organises pages without needing a landing page of its
+    own.
+  </p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Group</th><th>Entries</th></tr></thead>
+      <tbody>
+        <tr><td>الرئيسية — Home</td><td>Dashboard</td></tr>
+        <tr><td>الكتالوج — Catalogue</td>
+            <td>Products (categories, tags, collections, custom attributes, import, import history),
+                Inventory (low stock, bulk adjust)</td></tr>
+        <tr><td>المبيعات — Sales</td>
+            <td>Orders, Logistics (shipping providers, shipments), Refunds</td></tr>
+        <tr><td>العملاء والتسويق — Customers &amp; marketing</td><td>Customers, Discount codes</td></tr>
+        <tr><td>المالية — Finance</td>
+            <td>Invoices (list, layout templates), Finance (COD settlement), Payment gateways</td></tr>
+        <tr><td>المتجر — Store</td><td>Design Studio</td></tr>
+        <tr><td>الإدارة — Administration</td><td>Staff, Settings (general, access control)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Two gates before any page renders</h3>
+  <p>
+    A merchant reaching a dashboard URL passes two checks. Middleware confirms a session token
+    exists (§<a href="index.html#tenancy">Overview 7</a>). Then
+    <strong>StoreConfigurationGate</strong> checks whether the store has actually been set up:
+    immediately after first login the merchant holds a provisional tenant, and until they choose a
+    public slug, name, and currency, every dashboard route redirects to the store-creation wizard.
+  </p>
+  <div class="callout ok">
+    <span class="label">Deliberate failure behaviour</span>
+    <p>
+      The gate redirects only when the settings endpoint <em>successfully</em> reports an
+      unconfigured store. A network or server error falls through and renders the dashboard rather
+      than trapping the merchant in a redirect loop — an unreachable settings endpoint should not
+      look like an unconfigured store.
+    </p>
+  </div>
+</section>
+
+<!-- ================================================================== -->
+<section id="access">
+  <h2><span class="num">2</span>Access and onboarding</h2>
+  <p class="section-lede">
+    Getting into the dashboard, and what a new merchant sees first.
+  </p>
+
+  <h3>Signing in</h3>
+  <p>
+    Authentication is by <strong>one-time password</strong> sent to a phone number — appropriate for
+    a market where phone identity is more reliable than email. The merchant enters a phone number,
+    receives a code, and submits it; a resend cooldown prevents request flooding. Sign-in with a
+    Google account is also supported as a second channel.
+  </p>
+  <div class="flow">
+    <div class="step"><span class="n">01</span><span class="t">Request code</span>
+      <span class="d">Phone submitted at <code>/request-otp</code>.</span></div>
+    <div class="step"><span class="n">02</span><span class="t">Verify</span>
+      <span class="d">Code entered at <code>/verify-otp</code>; tokens issued.</span></div>
+    <div class="step"><span class="n">03</span><span class="t">Gate</span>
+      <span class="d">Store configured? If not, the wizard.</span></div>
+    <div class="step"><span class="n">04</span><span class="t">Dashboard</span>
+      <span class="d">Landing at the requested page, or home.</span></div>
+  </div>
+
+  <h3>Creating a store</h3>
+  <p>
+    The wizard at <code>/onboarding/create-store</code> collects the minimum needed to make a tenant
+    real: store name, a URL-safe public slug, category, and currency. The slug is validated against
+    a strict pattern (lowercase words joined by hyphens) because it becomes part of the store's
+    public identity.
+  </p>
+
+  <h3>Roles</h3>
+  <p>
+    The system recognises six roles. A user's roles arrive as a claim in their token and are
+    re-checked by the backend on every request — the front end uses them only to decide what to
+    show.
+  </p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Role</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>OWNER</code></td><td>The merchant who created the store. Full access, including settings and deletion.</td></tr>
+        <tr><td><code>MANAGER</code></td><td>Elevated staff — day-to-day operations across the dashboard.</td></tr>
+        <tr><td><code>STAFF</code></td><td>Standard staff member. Capabilities are a fixed matrix defined by the backend.</td></tr>
+        <tr><td><code>CUSTOMER</code></td><td>A storefront shopper. Never reaches the dashboard.</td></tr>
+        <tr><td><code>DRIVER</code></td><td>Delivery role used by the shipping flow.</td></tr>
+        <tr><td><code>PLATFORM_ADMIN</code></td><td>Operator of the platform itself, across all tenants.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout note">
+    <span class="label">Design decision</span>
+    <p>
+      Staff capabilities are a <strong>fixed matrix on the backend</strong>, not per-user permission
+      strings stored and edited in the front end. An earlier design carried an editable permission
+      list; it was removed. The admin now assigns a role and the backend decides what that role can
+      do — one authority instead of two that can disagree.
+    </p>
+  </div>
+
+  <h3>Account security</h3>
+  <p>
+    Three self-service pages under <code>/account</code> let any signed-in user manage their own
+    credentials, independently of their role:
+  </p>
+  <ul>
+    <li><strong>Two-factor authentication</strong> — enrol an authenticator app by scanning a QR
+      code, then enable or disable time-based one-time passwords.</li>
+    <li><strong>Active sessions</strong> — list every session on the account and revoke any one
+      individually, which is the remedy for a lost or shared device.</li>
+    <li><strong>Phone number change</strong> — a two-step flow: request the change, then confirm it
+      with a code sent to the new number, so the number cannot be changed without proving control
+      of it.</li>
+  </ul>
+</section>
+
+<!-- ================================================================== -->
+<section id="catalogue">
+  <h2><span class="num">3</span>Catalogue</h2>
+  <p class="section-lede">
+    Products and everything that classifies them.
+  </p>
+
+  <h3>Products</h3>
+  <p>
+    The product editor is the largest single surface in the admin. It is organised as tabs so a
+    merchant can save a usable product from the first tab alone and enrich it later:
+  </p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Tab</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr><td>Basics</td><td>Bilingual title and description, slug, status (draft / active / archived), base price, compare-at price, currency.</td></tr>
+        <tr><td>Media</td><td>Image upload, ordering, and removal.</td></tr>
+        <tr><td>Categorisation</td><td>Categories, tags, and the default category. Both accept existing entries or new ones typed inline.</td></tr>
+        <tr><td>Variants</td><td>Option axes (e.g. size, colour) and the variant matrix they generate — per-variant SKU, price, cost, stock, barcode, weight.</td></tr>
+        <tr><td>Attributes</td><td>Custom attribute values, driven by the attribute schema defined for the product's category.</td></tr>
+        <tr><td>Inventory</td><td>Stock quantities, low-stock thresholds, and whether overselling is allowed.</td></tr>
+        <tr><td>SEO</td><td>Search title and description, editable on their own page at <code>/products/[id]/seo</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <figure class="shot">
+    <div class="shot-todo">screenshot slot — product editor, Variants tab with matrix<br>_assets/img/admin-product-variants.png</div>
+    <figcaption><b>The product editor.</b> Tabbed layout; the variant matrix is generated from the option axes.</figcaption>
+  </figure>
+
+  <p>
+    Two details in the product model are worth calling out because they shape the code as well as
+    the experience. First, <strong>variants are derived, not enumerated by hand</strong>: the
+    merchant defines option axes and their values, and the matrix of concrete variants follows.
+    Second, <strong>classification accepts new entries inline</strong> — typing a category or tag
+    that does not exist yet creates it on save, so cataloguing is not blocked by having to leave and
+    set up taxonomy first.
+  </p>
+
+  <h3>Categories</h3>
+  <p>
+    Categories are <strong>hierarchical</strong>: each has children, forming a tree the merchant
+    navigates and reorders. The platform ships category <em>templates</em> so a new store can adopt
+    a ready-made structure for its sector instead of building one from nothing.
+  </p>
+
+  <h3>Tags</h3>
+  <p>
+    A flat, free-form labelling layer, independent of the category tree — the same product may
+    carry any number of tags.
+  </p>
+
+  <h3>Collections</h3>
+  <p>
+    Collections are curated product groupings used for merchandising. They work two ways:
+  </p>
+  <ul>
+    <li><strong>Manual</strong> — products added explicitly and reordered by hand, so the merchant
+      controls exactly what appears and in what sequence.</li>
+    <li><strong>Rule-based</strong> — conditions on product fields (a field key, an operator, a
+      value) that select members automatically. Rules can be <em>previewed</em> and
+      <em>evaluated</em> before saving, so the merchant sees what a rule captures before committing
+      to it.</li>
+  </ul>
+
+  <h3>Custom attributes</h3>
+  <p>
+    Not every product type fits fixed columns — a shoe has a material, a phone has a storage size.
+    Custom attributes let the merchant define their own fields and attach them to categories; the
+    product editor then renders the right fields for whatever category a product belongs to.
+  </p>
+
+  <h3>Bulk import</h3>
+  <p>
+    Catalogues are usually migrated, not typed. The import flow is deliberately three-staged so a
+    bad file cannot silently corrupt a catalogue:
+  </p>
+  <div class="flow">
+    <div class="step"><span class="n">01</span><span class="t">Upload</span>
+      <span class="d">Submit the file at <code>/products/import</code>.</span></div>
+    <div class="step"><span class="n">02</span><span class="t">Preview</span>
+      <span class="d">Parsed rows and per-row errors shown before anything is written.</span></div>
+    <div class="step"><span class="n">03</span><span class="t">Commit</span>
+      <span class="d">Accepted rows imported as a tracked batch.</span></div>
+    <div class="step"><span class="n">04</span><span class="t">History</span>
+      <span class="d">Every batch kept with its status and row-level errors.</span></div>
+  </div>
+  <p>
+    Import history at <code>/products/import/batches</code> is a permanent record: each batch keeps
+    its status and the specific rows that failed, so a partial import can be diagnosed after the
+    fact rather than guessed at.
+  </p>
+</section>
+
+<!-- ================================================================== -->
+<section id="inventory">
+  <h2><span class="num">4</span>Inventory</h2>
+  <p class="section-lede">
+    Stock levels, and the operations that change them.
+  </p>
+
+  <p>
+    Stock is tracked per <strong>variant</strong>, not per product — a shirt is not in stock, a
+    medium blue shirt is. Inventory has no list page of its own; it is reached either from a
+    product (<code>/products/[id]/inventory</code>) or through two task-shaped pages:
+  </p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Page</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>/inventory/low-stock</code></td>
+            <td>Every variant at or below its low-stock threshold — the restocking work list.</td></tr>
+        <tr><td><code>/inventory/bulk-adjust</code></td>
+            <td>Apply stock adjustments to many variants in one submission, for stock-takes and deliveries.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Adjustments are <strong>movements, not overwrites</strong>. Each change is recorded against the
+    variant with a reason, and the movement history is retrievable per variant — so a discrepancy
+    can be traced to the operation that caused it. Thresholds are set per variant, which is what
+    makes the low-stock list meaningful across products of very different turnover.
+  </p>
+</section>
+
+<!-- ================================================================== -->
+<section id="orders">
+  <h2><span class="num">5</span>Orders and fulfilment</h2>
+  <p class="section-lede">
+    The order lifecycle, and the shipping operation that runs alongside it.
+  </p>
+
+  <h3>The order lifecycle</h3>
+  <p>
+    An order moves through a <strong>state machine</strong>. The admin does not offer free choice of
+    status; at any moment the interface exposes only the transitions the current state permits,
+    mirroring the state machine the backend enforces.
+  </p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 780 250" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Order status state machine">
+      <defs>
+        <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="d-arrow"/>
+        </marker>
+      </defs>
+
+      <!-- main chain -->
+      <rect x="20"  y="60" width="100" height="38" rx="6" class="d-fill-2 d-stroke"/>
+      <text x="70"  y="84"  text-anchor="middle" class="d-text-b">PENDING</text>
+      <rect x="145" y="60" width="100" height="38" rx="6" class="d-fill-2 d-stroke"/>
+      <text x="195" y="84"  text-anchor="middle" class="d-text-b">CONFIRMED</text>
+      <rect x="270" y="60" width="100" height="38" rx="6" class="d-fill-2 d-stroke"/>
+      <text x="320" y="84"  text-anchor="middle" class="d-text-b">PROCESSING</text>
+      <rect x="395" y="60" width="100" height="38" rx="6" class="d-fill-2 d-stroke"/>
+      <text x="445" y="84"  text-anchor="middle" class="d-text-b">SHIPPED</text>
+      <rect x="520" y="60" width="100" height="38" rx="6" class="d-fill-2 d-stroke"/>
+      <text x="570" y="84"  text-anchor="middle" class="d-text-b">DELIVERED</text>
+      <rect x="645" y="60" width="100" height="38" rx="6" class="d-fill-ok d-stroke-ok"/>
+      <text x="695" y="84"  text-anchor="middle" class="d-text-b">COMPLETED</text>
+
+      <line x1="120" y1="79" x2="141" y2="79" class="d-line" marker-end="url(#ah2)"/>
+      <line x1="245" y1="79" x2="266" y2="79" class="d-line" marker-end="url(#ah2)"/>
+      <line x1="370" y1="79" x2="391" y2="79" class="d-line" marker-end="url(#ah2)"/>
+      <line x1="495" y1="79" x2="516" y2="79" class="d-line" marker-end="url(#ah2)"/>
+      <line x1="620" y1="79" x2="641" y2="79" class="d-line" marker-end="url(#ah2)"/>
+
+      <!-- cancel bracket -->
+      <line x1="70"  y1="98" x2="70"  y2="120" class="d-line-dash"/>
+      <line x1="195" y1="98" x2="195" y2="120" class="d-line-dash"/>
+      <line x1="320" y1="98" x2="320" y2="120" class="d-line-dash"/>
+      <line x1="70"  y1="120" x2="320" y2="120" class="d-line-dash"/>
+      <line x1="70"  y1="120" x2="70"  y2="146" class="d-line-dash" marker-end="url(#ah2)"/>
+      <rect x="20" y="150" width="100" height="38" rx="6" class="d-fill-warn d-stroke-warn"/>
+      <text x="70" y="174" text-anchor="middle" class="d-text-b">CANCELLED</text>
+      <text x="132" y="139" class="d-text-sm">cancel — allowed while PENDING · CONFIRMED · PROCESSING</text>
+
+      <!-- failure and return branches -->
+      <line x1="445" y1="98" x2="445" y2="146" class="d-line" marker-end="url(#ah2)"/>
+      <rect x="395" y="150" width="100" height="38" rx="6" class="d-fill-warn d-stroke-warn"/>
+      <text x="445" y="174" text-anchor="middle" class="d-text-b">FAILED</text>
+
+      <line x1="570" y1="98" x2="570" y2="146" class="d-line" marker-end="url(#ah2)"/>
+      <rect x="520" y="150" width="100" height="38" rx="6" class="d-fill-warn d-stroke-warn"/>
+      <text x="570" y="174" text-anchor="middle" class="d-text-b">RETURNED</text>
+
+      <line x1="620" y1="169" x2="641" y2="169" class="d-line" marker-end="url(#ah2)"/>
+      <rect x="645" y="150" width="100" height="38" rx="6" class="d-fill-warn d-stroke-warn"/>
+      <text x="695" y="174" text-anchor="middle" class="d-text-b">REFUNDED</text>
+
+      <text x="20" y="215" class="d-text-sm">terminal states: COMPLETED · CANCELLED · REFUNDED · FAILED</text>
+      <text x="20" y="232" class="d-text-sm">editable: PENDING · CONFIRMED     refundable: DELIVERED · COMPLETED</text>
+    </svg>
+    <figcaption>
+      <b>Order state machine</b>, as encoded in <code>modules/order/order/model.ts</code>. Solid
+      arrows are status transitions; the dashed bracket is cancellation, available from three states
+      rather than as a step in the chain.
+    </figcaption>
+  </figure>
+
+  <p>
+    Three permission sets are derived from the current status and drive which buttons appear:
+    <strong>cancellable</strong> (before anything has shipped), <strong>editable</strong> (before
+    the order is committed to processing), and <strong>refundable</strong> (only once goods have
+    reached the customer). Each is a separate concept — an order can be past the point of editing
+    but still cancellable.
+  </p>
+
+  <h3>The order detail page</h3>
+  <p>
+    A single order gathers everything about it in one place: line items and totals, the customer's
+    address, payment status and method, the linked shipment with its tracking state, internal notes
+    visible only to staff, and an audit timeline recording who changed what and when. Four dedicated
+    sub-pages handle the actions that need their own form — transition, cancel, edit, and returns.
+  </p>
+
+  <figure class="shot">
+    <div class="shot-todo">screenshot slot — order detail with timeline and action buttons<br>_assets/img/admin-order-detail.png</div>
+    <figcaption><b>Order detail.</b> Summary, address, payment, shipment tracking, notes, and audit timeline.</figcaption>
+  </figure>
+
+  <h3>Shipping</h3>
+  <p>
+    Fulfilment is modelled separately from the order, because a shipment has its own lifecycle and
+    its own counterparties.
+  </p>
+  <ul>
+    <li><strong>Shipping providers</strong> — the couriers a store works with, each configured with
+      its own settings.</li>
+    <li><strong>Shipments</strong> — the physical consignment. A shipment moves through its own
+      status set (awaiting pickup → picked up → in transit → ready for office pickup → delivered,
+      with failure and return outcomes) and keeps an event history.</li>
+  </ul>
+
+  <h3>Cash on delivery</h3>
+  <p>
+    Cash on delivery is the dominant payment method in the target market, and it creates a problem
+    ordinary card payments do not: the courier collects money that then has to be handed back to the
+    merchant. A COD shipment therefore carries a <strong>collection entry</strong> — the amount the
+    courier took — and that entry has a settlement status of its own. Reconciling those entries is a
+    finance task, covered in §<a href="#finance">6</a>.
+  </p>
+
+  <h3>Refunds</h3>
+  <p>
+    Refunds are recorded against an order and listed centrally at <code>/refunds</code>. They can be
+    raised only for orders that reached the customer, which is why <em>refundable</em> is a narrower
+    set than <em>cancellable</em> — before delivery, the correct action is cancellation, not refund.
+  </p>
+</section>
+
+<!-- ================================================================== -->
+<section id="finance">
+  <h2><span class="num">6</span>Finance</h2>
+  <p class="section-lede">
+    Invoicing, settlement, and payment configuration.
+  </p>
+
+  <h3>Invoices</h3>
+  <p>
+    Invoices are <strong>generated from orders</strong>, never authored independently — the order is
+    the source of truth and the invoice is its document. Generation and regeneration are actions on
+    the order detail page; <code>/invoices</code> is a read-oriented list of what has been issued.
+    Regeneration exists because an order can legitimately change after an invoice was first cut.
+  </p>
+
+  <h3>Invoice layout templates</h3>
+  <p>
+    Merchants need invoices that carry their own branding and show the fields their business
+    requires. Layout profiles at <code>/invoice-layouts</code> control which fields appear on the
+    document, so the same order data can be presented differently per store without changing the
+    data.
+  </p>
+
+  <h3>COD reconciliation</h3>
+  <p>
+    The counterpart to COD collection. The merchant creates a <strong>reconciliation batch</strong>
+    grouping the collection entries expected from a courier, then moves that batch through its
+    settlement status as money actually arrives.
+  </p>
+  <div class="flow">
+    <div class="step"><span class="n">01</span><span class="t">Collect</span>
+      <span class="d">Courier takes cash on delivery; an entry is recorded per shipment.</span></div>
+    <div class="step"><span class="n">02</span><span class="t">Batch</span>
+      <span class="d">Entries grouped into a reconciliation batch.</span></div>
+    <div class="step"><span class="n">03</span><span class="t">Settle</span>
+      <span class="d">Batch marked settled — or disputed where amounts disagree.</span></div>
+  </div>
+  <p>
+    The <em>disputed</em> state is the point of the feature: it gives a disagreement between the
+    merchant's records and the courier's payment somewhere to live while it is resolved, instead of
+    forcing a premature settled/unsettled decision.
+  </p>
+
+  <h3>Payment gateways</h3>
+  <p>
+    Payment provider configurations at <code>/payment-providers</code> determine how a store accepts
+    money. The system currently recognises two payment methods: cash on delivery and the
+    <em>Paymera</em> gateway.
+  </p>
+</section>
+
+<!-- ================================================================== -->
+<section id="customers">
+  <h2><span class="num">7</span>Customers and marketing</h2>
+  <p class="section-lede">
+    Who buys, and the incentives offered to them.
+  </p>
+
+  <h3>Customers</h3>
+  <p>
+    The customer list is the store's address book, with a detail page per customer. Two capabilities
+    make it operational rather than merely informational:
+  </p>
+  <ul>
+    <li><strong>Internal notes</strong> — staff-only annotations on a customer record, for the
+      context that does not belong in an order (a delivery preference, a history of disputes).</li>
+    <li><strong>CSV export</strong> — the customer list can be exported, so the data is not trapped
+      inside the platform.</li>
+  </ul>
+
+  <h3>Discount codes</h3>
+  <p>
+    Codes that customers redeem at checkout, managed from <code>/discount-codes</code> with a detail
+    page for creating and editing each one.
+  </p>
+</section>
+
+<!-- ================================================================== -->
+<section id="administration">
+  <h2><span class="num">8</span>Administration</h2>
+  <p class="section-lede">
+    Staff, store configuration, and the record of what was done.
+  </p>
+
+  <h3>Staff</h3>
+  <p>
+    Staff are invited by full name and phone number — the same phone identity the login flow uses,
+    so an invited member signs in exactly as the owner does. Access control lives on its own page at
+    <code>/settings/access</code>, separate from staff records, because assigning capability is a
+    different decision from recording who someone is.
+  </p>
+
+  <h3>Store settings</h3>
+  <p>
+    Settings are the largest form in the application, split into eight tabs. It is a single form
+    over a single record, not eight independent forms — which matters for how saving works
+    (§<a href="#forms">13</a>).
+  </p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Tab</th><th>Controls</th></tr></thead>
+      <tbody>
+        <tr><td>Identity</td><td>Store name and public slug.</td></tr>
+        <tr><td>General</td><td>Core store details and contact information.</td></tr>
+        <tr><td>Address</td><td>Physical address, including map pin selection.</td></tr>
+        <tr><td>Branding</td><td>Logo and brand assets.</td></tr>
+        <tr><td>Currency &amp; display</td><td>Currency, symbol position (before or after the amount), and numeral system — Arabic or Latin digits.</td></tr>
+        <tr><td>Social links</td><td>Links to the store's social presence.</td></tr>
+        <tr><td>Business hours</td><td>Opening hours per day of the week.</td></tr>
+        <tr><td>Danger zone</td><td>Store deletion request.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout note">
+    <span class="label">Localisation is configuration, not code</span>
+    <p>
+      Symbol position and numeral system are per-store settings rather than fixed behaviour. A store
+      may display <span dir="ltr">١٢٥٠٠ ل.س</span> or <span dir="ltr">SYP 12,500</span> from the same
+      underlying number — the presentation belongs to the merchant, not the platform.
+    </p>
+  </div>
+
+  <h3>Audit log</h3>
+  <p>
+    <code>/audit-logs</code> is the store-wide record of security-relevant events. It complements
+    the per-order timeline: the order timeline answers “what happened to this order”, the audit log
+    answers “what has been done in this store”.
+  </p>
+</section>
+
+<!-- ================================================================== -->
+<section id="platform">
+  <h2><span class="num">9</span>Platform surface</h2>
+  <p class="section-lede">
+    The operator's view, across all tenants.
+  </p>
+  <p>
+    One area of the application serves the platform operator rather than any merchant. Under
+    <code>/platform</code>, a holder of <code>PLATFORM_ADMIN</code> can list every tenant on the
+    platform and disable one. Related controls exist for a tenant's status and rate limits.
+  </p>
+  <div class="callout gap">
+    <span class="label">Scope</span>
+    <p>
+      The platform surface is <strong>deliberately minimal</strong> — tenant listing and disabling,
+      no billing, plan management, or cross-tenant analytics. It exists to demonstrate that the
+      multi-tenant model has an operator dimension, not as a finished operations console.
+      An <code>apps/platform-admin</code> workspace directory exists but contains no application;
+      the platform pages currently live inside <code>apps/web</code>.
+    </p>
+  </div>
+</section>
+
+<hr>
+
+<!-- ================================================================== -->
+<!-- PART B                                                              -->
+<!-- ================================================================== -->
+
+<section id="structure">
+  <h2><span class="num">10</span>Application structure</h2>
+  <p class="section-lede">
+    How the Next.js application is laid out, and what wraps every page.
+  </p>
+
+  <h3>Route groups</h3>
+  <p>
+    Directories in parentheses group routes without contributing a URL segment. Each group carries
+    its own layout, which is how one application serves audiences with entirely different chrome.
+  </p>
+  <div class="table-scroll">
+    <table class="map">
+      <thead><tr><th>Group</th><th>URLs</th><th>Layout</th></tr></thead>
+      <tbody>
+        <tr><td>(dashboard)</td><td><code>/</code>, <code>/products</code>, …</td>
+            <td>Full shell — sidebar, header, providers, configuration gate.</td></tr>
+        <tr><td>(auth)</td><td><code>/request-otp</code>, <code>/verify-otp</code></td>
+            <td>Bare, centred authentication layout.</td></tr>
+        <tr><td>(platform)</td><td><code>/platform/…</code></td><td>Platform-operator pages.</td></tr>
+        <tr><td>—</td><td><code>/onboarding/create-store</code>, <code>/welcome</code></td>
+            <td>Standalone pages outside any group.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout gap">
+    <span class="label">Also present in apps/web</span>
+    <p>
+      The <code>published-store</code> and <code>shop</code> trees also live under
+      <code>apps/web/app</code>. They are <strong>not part of the admin</strong> — they are the
+      customer storefront, documented in the <a href="renderer.html">Renderer</a> document, and
+      belong in <code>apps/store</code>. Their presence here is the temporary duplication described
+      in the <a href="index.html#temp-duplication">overview</a>.
+    </p>
+  </div>
+
+  <h3>The provider stack</h3>
+  <p>
+    Every dashboard page is wrapped by one client component that composes the application's
+    cross-cutting concerns. Order matters — each layer depends on the one outside it.
+  </p>
+  <figure class="snippet">
+    <figcaption><b>apps/web/components/Providers.tsx</b> — abridged</figcaption>
+<pre><code>&lt;ThemeProvider&gt;                        {/* light/dark */}
+  &lt;QueryClientProvider client={queryClient}&gt;   {/* server state */}
+    &lt;DirectionProvider dir="rtl"&gt;      {/* RTL for all Radix primitives */}
+      &lt;SidebarProvider&gt;                {/* sidebar open/collapsed state */}
+        &lt;AppSidebarWithPathname /&gt;
+        &lt;SidebarInset&gt;
+          &lt;LayoutHeader /&gt;
+          &lt;StoreConfigurationGate&gt;{children}&lt;/StoreConfigurationGate&gt;
+        &lt;/SidebarInset&gt;
+      &lt;/SidebarProvider&gt;
+    &lt;/DirectionProvider&gt;
+  &lt;/QueryClientProvider&gt;
+&lt;/ThemeProvider&gt;
+&lt;Toaster position="top-right" /&gt;</code></pre>
+  </figure>
+
+  <p>Two decisions in this file are worth explaining:</p>
+  <ul>
+    <li><strong><code>DirectionProvider dir="rtl"</code></strong> tells every Radix primitive that
+      the document is right-to-left, so dropdowns, popovers, and sliders resolve “start” and “end”
+      correctly. Without it, RTL layout would have to be patched component by component.</li>
+    <li><strong>The sidebar reads store settings through the same query</strong> the settings page
+      uses. Because they share a cache key, saving settings in one tab refreshes the store name in
+      the sidebar without any explicit wiring between them.</li>
+  </ul>
+
+  <p>
+    The query client is created with <code>useState</code> rather than at module scope — one client
+    per browser session, never shared across users during server rendering — and configured with a
+    30-second freshness window and a single retry.
+  </p>
+</section>
+
+<!-- ================================================================== -->
+<section id="module-pattern">
+  <h2><span class="num">11</span>The domain module pattern</h2>
+  <p class="section-lede">
+    The organising idea of the codebase, and the reason 34 features look alike.
+  </p>
+
+  <p>
+    Business logic does not live in route files. Routes are thin; each feature lives in a
+    <strong>domain module</strong> under <code>apps/web/modules/&lt;domain&gt;/&lt;name&gt;</code>,
+    and every module repeats the same small set of files. The payoff is that learning one module
+    teaches all of them, and adding a feature is copying a shape rather than inventing one.
+  </p>
+
+  <div class="table-scroll">
+    <table class="map">
+      <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
+      <tbody>
+        <tr><td><b>schema.ts</b></td><td>Zod schemas. The single source of truth for both validation and types.</td></tr>
+        <tr><td><b>types.ts</b></td><td>API request/response shapes, mostly inferred from the schemas.</td></tr>
+        <tr><td><b>actions.ts</b></td><td>Every API call for the domain, plus the <code>normalize*</code> mappers between wire and form shapes.</td></tr>
+        <tr><td><b>queryKeys.ts</b></td><td>The cache key factory — the vocabulary for reading and invalidating cached data.</td></tr>
+        <tr><td><b>init.ts</b></td><td>Builds form default values. One initialiser shared by create and edit.</td></tr>
+        <tr><td>components/</td><td>UI owned by the module — its table, its cards, its dialogs, its editor tabs.</td></tr>
+        <tr><td>hooks/</td><td>Module-specific hooks, where a feature needs stateful behaviour of its own.</td></tr>
+        <tr><td>model.ts / helpers.ts</td><td>Pure domain logic, where there is any — the order state machine lives here.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>How a request flows</h3>
+  <div class="flow">
+    <div class="step"><span class="n">01</span><span class="t">Route</span>
+      <span class="d">Thin page renders the module's component.</span></div>
+    <div class="step"><span class="n">02</span><span class="t">Query</span>
+      <span class="d">Component calls <code>useQuery</code> with the module's key + action.</span></div>
+    <div class="step"><span class="n">03</span><span class="t">Action</span>
+      <span class="d">Action calls the API client, unwraps the envelope, normalises the shape.</span></div>
+    <div class="step"><span class="n">04</span><span class="t">Form</span>
+      <span class="d"><code>init.ts</code> turns the entity into defaults; the schema validates edits.</span></div>
+    <div class="step"><span class="n">05</span><span class="t">Mutate</span>
+      <span class="d">On success: invalidate the key, toast in Arabic, navigate back.</span></div>
+  </div>
+
+  <div class="callout note">
+    <span class="label">Deliberately no repository layer</span>
+    <p>
+      <code>useQuery</code> and <code>useMutation</code> are called <strong>inside the page or
+      detail component</strong>, using the module's own actions and keys. There is no intermediate
+      “service” or custom hook wrapping every entity. For a dashboard that is overwhelmingly
+      list → detail → save, an extra abstraction layer would add indirection without removing
+      duplication.
+    </p>
+  </div>
+
+  <h3>Worked example — the product module</h3>
+  <p>
+    <code>modules/product/product</code> is the largest module (25 files) and exercises every part
+    of the pattern. Following it end to end shows how the pieces fit.
+  </p>
+
+  <h4>1 — The cache key factory</h4>
+  <figure class="snippet">
+    <figcaption><b>modules/product/product/queryKeys.ts</b> — complete file</figcaption>
+<pre><code>export const productKeys = {
+  all: ["products"] as const,
+  detail: (id: string) =&gt; [...productKeys.all, id] as const,
+}</code></pre>
+  </figure>
+  <p>
+    Because <code>detail</code> is built by spreading <code>all</code>, invalidating
+    <code>productKeys.all</code> after a mutation also invalidates every product detail — the list
+    and the item the merchant just edited both refresh from one call. Every module defines this same
+    two-line shape.
+  </p>
+
+  <h4>2 — The schema as the source of truth</h4>
+  <figure class="snippet">
+    <figcaption><b>modules/product/product/schema.ts</b> — abridged</figcaption>
+<pre><code>export const productOptionSchema = z.object({
+  optionNameAr: requiredString("اسم الخيار بالعربية"),
+  optionNameEn: requiredString("اسم الخيار بالإنجليزية"),
+  sortOrder: z.number().int().min(0),
+  values: z.array(productOptionValueSchema)
+           .min(1, "يجب إضافة قيمة واحدة على الأقل"),
+})
+
+// Categories may be an existing reference *or* a name typed this session.
+export const categoryRefSchema = z
+  .object({
+    id:     z.string().trim().optional(),
+    nameAr: z.string().trim().optional(),
+    nameEn: z.string().trim().optional(),
+  })
+  .refine((v) =&gt; !!(v.id || v.nameAr), {
+    message: "category ref requires id or nameAr",
+  })</code></pre>
+  </figure>
+  <p>
+    Three things are visible here. Validation messages are <strong>Arabic</strong>, because they are
+    shown to the user unmodified. Bilingual fields appear as <code>*Ar</code> / <code>*En</code>
+    pairs throughout. And <code>refine</code> encodes a rule no single field can express — a
+    category reference is valid if it has <em>either</em> an identifier <em>or</em> a name, which is
+    exactly what makes inline creation possible.
+  </p>
+
+  <h4>3 — One initialiser for create and edit</h4>
+  <figure class="snippet">
+    <figcaption><b>modules/product/product/init.ts</b> — abridged</figcaption>
+<pre><code>export const initProduct = (product?: Product) =&gt; ({
+  titleAr:      product?.titleAr,
+  currencyCode: product?.currencyCode || "SYP",
+  status:       product?.status || "ACTIVE",
+  allowOversell: product?.allowOversell ?? false,
+
+  // null on edit  = leave existing images unchanged
+  mediaAssetIds: product?.mediaAssetIds ?? null,
+  // transient: only files added in this editing session
+  mediaFiles: [] as File[],
+  …
+})</code></pre>
+  </figure>
+  <p>
+    The optional parameter is the whole trick: called with no argument it yields create defaults,
+    called with an entity it yields edit defaults. Create and edit therefore cannot drift apart,
+    because there is only one definition of what a blank field means.
+  </p>
+
+  <h4>4 — Actions: unwrap, normalise, submit</h4>
+  <p>
+    <code>actions.ts</code> is where the wire format stops. Product submission has to build
+    <code>FormData</code> rather than JSON, because new images are uploaded in the same request as
+    the product fields; the action assembles the JSON part, strips client-only fields, and attaches
+    files:
+  </p>
+  <figure class="snippet">
+    <figcaption><b>modules/product/product/actions.ts</b> — abridged</figcaption>
+<pre><code>// Strip the transient `variantId` (used only to wire the inventory modal
+// to a saved row) before sending. Keeps the wire payload clean.
+if (Array.isArray(variants)) {
+  productJson.variants = variants.map((v) =&gt; {
+    const { variantId: _variantId, ...rest } = v as VariantRequest
+    return rest
+  })
+}
+
+// Tri-state media semantics:
+if (mediaAssetIds === null || mediaAssetIds === undefined) {
+  // omit entirely → backend leaves images unchanged
+} else if (mediaAssetIds.length === 0) {
+  // explicit empty → clear all images
+}</code></pre>
+  </figure>
+  <p>
+    That tri-state is a repo-wide convention, explained in §<a href="#data-layer">12</a>.
+  </p>
+
+  <h4>5 — Domain logic in model.ts</h4>
+  <p>
+    Where a feature has rules rather than just shapes, they live in a pure module with no UI. The
+    order state machine is the clearest case — the diagram in §<a href="#orders">5</a> is a direct
+    rendering of this table:
+  </p>
+  <figure class="snippet">
+    <figcaption><b>modules/order/order/model.ts</b> — the state machine</figcaption>
+<pre><code>/** Allowed status transitions per current state. Mirrors the backend. */
+export const ALLOWED_ORDER_TRANSITIONS: Record&lt;
+  OrderStatus, TransitionableOrderStatus[]
+&gt; = {
+  PENDING:    ["CONFIRMED"],
+  CONFIRMED:  ["PROCESSING"],
+  PROCESSING: ["SHIPPED"],
+  SHIPPED:    ["DELIVERED", "FAILED"],
+  DELIVERED:  ["COMPLETED", "RETURNED"],
+  RETURNED:   ["REFUNDED"],
+  COMPLETED: [], CANCELLED: [], REFUNDED: [], FAILED: [],
+}
+
+export const CANCELLABLE_STATUSES: OrderStatus[] =
+  ["PENDING", "CONFIRMED", "PROCESSING"]
+export const EDITABLE_STATUSES: OrderStatus[] = ["PENDING", "CONFIRMED"]
+export const REFUNDABLE_STATUSES: OrderStatus[] = ["DELIVERED", "COMPLETED"]</code></pre>
+  </figure>
+  <p>
+    Keeping this as data rather than conditionals scattered through components means the action
+    buttons, the transition page, and the validation all consult one table. The front end mirrors
+    the backend's machine for responsiveness; the backend remains the authority that enforces it.
+  </p>
+</section>
+
+<!-- ================================================================== -->
+<section id="data-layer">
+  <h2><span class="num">12</span>Data layer</h2>
+  <p class="section-lede">
+    One HTTP client, one envelope, one set of conventions for the awkward cases.
+  </p>
+
+  <h3>The API client</h3>
+  <p>
+    A single axios instance in <code>lib/api.ts</code> serves the whole application. Its request
+    interceptor is where authentication and tenancy are applied, so no calling code ever thinks
+    about either:
+  </p>
+  <figure class="snippet">
+    <figcaption><b>apps/web/lib/api.ts</b> — request interceptor, abridged</figcaption>
+<pre><code>/** Admin JWT for merchant APIs; customer JWT for `/customer/**`. */
+const resolveBearerToken = (url?: string) =&gt;
+  isCustomerApiRequest(url)
+    ? getCookie(cookiesConfig.storeAccessToken)
+    : getCookie(cookiesConfig.adminAccessToken)
+
+apiInstance.interceptors.request.use((config) =&gt; {
+  const token = resolveBearerToken(config.url)
+  if (token) config.headers.set("Authorization", `Bearer ${token}`)
+
+  // Merchant APIs carry the tenant slug; customer and internal auth do not.
+  if (!isCustomerApiRequest(config.url) &amp;&amp; !isInternalAuthRequest(config.url)) {
+    const tenantSlug = getTenantSlug()
+    if (tenantSlug &amp;&amp; !config.headers.get("X-Tenant-Slug")) {
+      config.headers.set("X-Tenant-Slug", tenantSlug)
+    }
+  }
+  return config
+})</code></pre>
+  </figure>
+
+  <div class="callout note">
+    <span class="label">A small but load-bearing detail</span>
+    <p>
+      The instance deliberately sets <strong>no default <code>Content-Type</code></strong>. Axios
+      infers it per request body — JSON for plain objects, multipart with the correct boundary for
+      <code>FormData</code>. Setting a default would break every file upload in the application,
+      including the product editor.
+    </p>
+  </div>
+
+  <h3>Single-flight token refresh</h3>
+  <p>
+    A dashboard page typically issues several requests at once. If the access token has expired,
+    all of them fail together — and a naive implementation would fire several refresh calls, most of
+    which are invalidated by the first. The client holds one shared promise instead:
+  </p>
+  <figure class="snippet">
+    <figcaption><b>apps/web/lib/api.ts</b> — refresh coordination, abridged</figcaption>
+<pre><code>let refreshPromise: Promise&lt;string | null&gt; | null = null
+
+const triggerRefresh = (): Promise&lt;string | null&gt; =&gt; {
+  if (!refreshPromise) {
+    refreshPromise = refreshSession()
+      .then((result) =&gt; { /* store new token + tenant slug */ })
+      .catch(() =&gt; null)
+      .finally(() =&gt; { refreshPromise = null })
+  }
+  return refreshPromise
+}</code></pre>
+  </figure>
+  <p>
+    Concurrent failures await the same refresh; each original request is retried once, marked by a
+    <code>_retry</code> flag so a genuinely dead session ends in logout rather than an infinite loop.
+  </p>
+
+  <h3>Unwrapping the envelope</h3>
+  <p>
+    Every response arrives wrapped (§<a href="index.html#api">Overview 8</a>). Actions unwrap
+    <code>.data</code> and read pagination from <code>meta</code>, so components never see the
+    envelope. Errors are handled centrally: <code>errorCode</code> maps to an Arabic message through
+    <code>lib/error-codes.ts</code>, and <code>fieldErrors</code> is applied onto the form so
+    server-side validation appears next to the offending input, exactly like client-side validation.
+  </p>
+
+  <h3>Normalisation</h3>
+  <p>
+    Backend shapes and form shapes are not the same, and pretending otherwise leaks API structure
+    into components. Each module keeps explicit mappers — <code>normalizeGetProduct</code>, for
+    instance, flattens the response's <code>variantMatrix.options[]</code> into the flat
+    <code>options</code> array the form expects. The rule is that the translation happens once, in
+    <code>actions.ts</code>, and nowhere else.
+  </p>
+
+  <h3>Media semantics</h3>
+  <p>
+    Editing images needs to express three different intentions, and a plain array cannot. The
+    repo-wide convention on <code>mediaAssetIds</code> is:
+  </p>
+  <div class="table-scroll">
+    <table class="map">
+      <thead><tr><th>Value</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>null</code></td><td>Leave existing media untouched. The default when opening an edit form.</td></tr>
+        <tr><td><code>[]</code></td><td>Clear all media. An explicit instruction, distinguishable from “unchanged”.</td></tr>
+        <tr><td><code>[ids]</code></td><td>This exact list, in this order.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Newly selected files travel separately as multipart <code>files</code> parts in the same
+    request. Without the tri-state, opening a product and saving it without touching the images
+    would be indistinguishable from deleting them all.
+  </p>
+
+  <h3>Client-side authorisation is presentation only</h3>
+  <p>
+    Role checks in the front end decide what to <em>render</em>. The <code>RequireRole</code>
+    component reads the current user's roles and renders a fallback — or a not-found page — when they
+    do not match. The JWT helper that reads token claims is explicit about the boundary:
+  </p>
+  <figure class="snippet">
+    <figcaption><b>apps/web/lib/jwt.ts</b> — header comment</figcaption>
+<pre><code>// Minimal JWT helpers — payload extraction only, no signature verification.
+// We never trust JWT contents for authorization decisions on the client; the
+// backend re-validates every request.</code></pre>
+  </figure>
+  <p>
+    Hiding a button is a usability measure, not a security control. Every request is authorised
+    again on the server.
+  </p>
+
+  <h3>Running without a backend</h3>
+  <p>
+    A mock layer under <code>lib/mock</code> intercepts requests before they leave the client when
+    <code>NEXT_PUBLIC_USE_MOCK_API</code> is set, serving seeded data for authentication,
+    onboarding, catalogue, discount codes, and shipping. Some modules additionally keep
+    local-storage fallbacks used only in this mode. It exists so the interface can be developed and
+    demonstrated against a backend that is unavailable or incomplete.
+  </p>
+</section>
+
+<!-- ================================================================== -->
+<section id="forms">
+  <h2><span class="num">13</span>Forms and validation</h2>
+  <p class="section-lede">
+    Zod schemas, react-hook-form, and the patterns that keep large forms manageable.
+  </p>
+
+  <h3>Schema first</h3>
+  <p>
+    A Zod schema is written once and used three ways: it validates input, it produces the
+    TypeScript type through <code>z.infer</code>, and it carries the Arabic error messages shown to
+    the user. There is no separate interface to keep in step with the validator, because the
+    validator <em>is</em> the type.
+  </p>
+  <p>
+    Forms use <strong>react-hook-form</strong> with <code>zodResolver</code>. The uncontrolled
+    approach matters at the scale of the product editor: a form with a large variant matrix does not
+    re-render the whole tree on every keystroke.
+  </p>
+
+  <h3>Input versus output types</h3>
+  <p>
+    Several modules distinguish <code>z.input</code> from <code>z.output</code> — the shape the form
+    holds before coercion versus after. A numeric field is a string while the user is typing and a
+    number once parsed; keeping both types explicit prevents the form state and the payload type
+    from being conflated.
+  </p>
+
+  <h3>Saving only what changed</h3>
+  <p>
+    Store settings is one form over eight tabs, and sending the entire settings object on every save
+    would overwrite fields another session may have changed. The module therefore pairs its
+    initialiser with a <code>diffSettingsPayload</code> function and submits only modified fields.
+    The pattern generalises: build defaults from the entity, diff against them on submit.
+  </p>
+
+  <h3>Detail-page pattern</h3>
+  <p>
+    Create and edit share one page component per entity, distinguished by whether a record was
+    loaded. Both call the same <code>init.ts</code>, both validate with the same schema, and both
+    finish the same way — invalidate the module's query key, show an Arabic toast, navigate back to
+    the list. Consistency here is what makes 34 modules feel like one application.
+  </p>
+</section>
+
+<!-- ================================================================== -->
+<section id="server-state">
+  <h2><span class="num">14</span>Server state</h2>
+  <p class="section-lede">
+    Caching, invalidation, and why there is almost no client state.
+  </p>
+
+  <p>
+    Nearly everything the admin displays belongs to the server. TanStack Query manages it directly,
+    which means the application keeps very little state of its own: no store of products, no
+    duplicated order list, no manual refresh logic. The defaults are set once on the client — data
+    stays fresh for 30 seconds and a failed request is retried once — and the query key is the unit
+    of coordination.
+  </p>
+
+  <h3>The invalidation contract</h3>
+  <p>
+    Every mutation ends the same way:
+  </p>
+  <ol>
+    <li>Invalidate the module's root key, e.g. <code>queryClient.invalidateQueries({ queryKey: productKeys.all })</code>.</li>
+    <li>Show an Arabic success toast through <em>sonner</em>.</li>
+    <li>Navigate back to the list.</li>
+  </ol>
+  <p>
+    Because detail keys are built by extending the root key, invalidating the root refreshes the
+    list and every open detail at once. This is the whole reason for the key-factory convention in
+    §<a href="#module-pattern">11</a>.
+  </p>
+
+  <h3>Shared queries as implicit wiring</h3>
+  <p>
+    Two components that call the same query with the same key are automatically consistent. The
+    sidebar and the settings page both read store settings; saving in one updates the other with no
+    code connecting them. Used deliberately, this replaces a good deal of state-management
+    machinery.
+  </p>
+</section>
+
+<!-- ================================================================== -->
+<section id="ui">
+  <h2><span class="num">15</span>UI layer</h2>
+  <p class="section-lede">
+    The design system, the shared building blocks, and the conventions that keep pages uniform.
+  </p>
+
+  <h3>Two layers of components</h3>
+  <div class="table-scroll">
+    <table class="map">
+      <thead><tr><th>Layer</th><th>Location</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr><td>Design system</td><td>packages/ui/src/components</td>
+            <td>37 primitives — button, table, dialog, popover, sidebar, tabs, skeleton, pagination.
+                Vendored shadcn-style components, editable at source.</td></tr>
+        <tr><td>System components</td><td>apps/web/components/system</td>
+            <td>19 composed, application-aware widgets — <code>DataTable</code>,
+                <code>FilterMenu</code>, <code>EmptyState</code>, image uploader, phone field, map
+                pin picker, confirm alert, creatable select.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    The distinction is intent: <code>packages/ui</code> knows nothing about commerce, while
+    <code>components/system</code> encodes decisions specific to this admin — how a table paginates,
+    what an empty list should say, how a phone number is entered.
+  </p>
+
+  <h3>DataTable</h3>
+  <p>
+    Every list in the admin renders through one component built on TanStack Table, which is why
+    pagination, sorting, loading skeletons, expandable sub-rows, and empty states behave identically
+    across 30-odd screens. An empty list is never a blank rectangle: the table takes an
+    <code>emptyState</code> node and renders it as a full-width row, so each list can explain its own
+    emptiness.
+  </p>
+
+  <h3>Page conventions</h3>
+  <p>
+    List pages follow a fixed anatomy — page title, a <code>FilterMenu</code> popover, and a
+    system-styled action button. The conventions are enforced by house rules rather than by types:
+  </p>
+  <ul>
+    <li>No raw <code>&lt;button&gt;</code> elements and no hard-coded colour values — always the
+      design-system <code>Button</code> and theme tokens.</li>
+    <li>List routes stay thin; the module owns the table component.</li>
+    <li>User-facing strings are Arabic; identifiers, file names, and comments are English.</li>
+    <li>Files are kebab-case; components are named exports rather than default exports.</li>
+  </ul>
+
+  <h3>Theming and RTL</h3>
+  <p>
+    Colour, radius, and spacing come from CSS custom properties defined once in
+    <code>packages/ui/src/styles/globals.css</code> — navy <code>#122640</code> as primary, gold
+    <code>#BA7B1B</code> as secondary. Right-to-left is handled at the root
+    (<code>dir="rtl"</code> on the document, <code>DirectionProvider</code> for primitives) rather
+    than per component, and the sidebar is anchored to the right accordingly.
+  </p>
+</section>
+
+<hr>
+
+<!-- ================================================================== -->
+<section id="map">
+  <h2><span class="num">16</span>Reference map</h2>
+  <p class="section-lede">
+    Every admin route and every domain module, with its responsibility.
+  </p>
+
+  <h3 id="map-routes">Route index</h3>
+  <p>
+    All 57 pages of the <code>(dashboard)</code> group, plus the authentication, onboarding, and
+    platform routes. Design Studio routes are listed for completeness and documented in the
+    <a href="editor.html">Editor</a> document.
+  </p>
+
+  <div class="table-scroll">
+    <table class="map">
+      <thead><tr><th>Route</th><th>Purpose</th><th>Module</th></tr></thead>
+      <tbody>
+        <tr><td><b>/</b></td><td>Dashboard home — store overview.</td><td>—</td></tr>
+
+        <tr><td>/request-otp</td><td>Merchant login — request a code.</td><td>auth/auth</td></tr>
+        <tr><td>/verify-otp</td><td>Merchant login — verify the code.</td><td>auth/auth</td></tr>
+        <tr><td>/onboarding/create-store</td><td>Store creation wizard.</td><td>auth/store</td></tr>
+        <tr><td>/welcome</td><td>Marketing landing page.</td><td>—</td></tr>
+
+        <tr><td>/account/two-factor</td><td>Enrol, enable, or disable TOTP.</td><td>auth/totp</td></tr>
+        <tr><td>/account/sessions</td><td>List and revoke active sessions.</td><td>auth/session</td></tr>
+        <tr><td>/account/phone</td><td>Request and confirm a phone-number change.</td><td>auth/phone-change</td></tr>
+        <tr><td>/audit-logs</td><td>Store-wide security event log.</td><td>auth/audit-log</td></tr>
+
+        <tr><td>/products</td><td>Product list.</td><td>product/product</td></tr>
+        <tr><td>/products/[product-id]</td><td>Product create / edit — tabbed editor.</td><td>product/product</td></tr>
+        <tr><td>/products/[product-id]/inventory</td><td>Per-product stock and thresholds.</td><td>inventory</td></tr>
+        <tr><td>/products/[product-id]/seo</td><td>Search title and description.</td><td>product/product</td></tr>
+        <tr><td>/products/categories</td><td>Category tree.</td><td>product/category</td></tr>
+        <tr><td>/products/categories/[category-id]</td><td>Category create / edit.</td><td>product/category</td></tr>
+        <tr><td>/products/tags</td><td>Tag list.</td><td>product/tag</td></tr>
+        <tr><td>/products/tags/[tag-id]</td><td>Tag create / edit.</td><td>product/tag</td></tr>
+        <tr><td>/products/collections</td><td>Collection list.</td><td>product/collection</td></tr>
+        <tr><td>/products/collections/[collection-id]</td><td>Collection editor — members, order, rules.</td><td>product/collection</td></tr>
+        <tr><td>/products/attributes</td><td>Custom attribute definitions.</td><td>product/attribute</td></tr>
+        <tr><td>/products/attributes/[attribute-id]</td><td>Attribute create / edit.</td><td>product/attribute</td></tr>
+        <tr><td>/products/import</td><td>Upload a product file.</td><td>product/import</td></tr>
+        <tr><td>/products/import/preview</td><td>Parsed rows and row-level errors before commit.</td><td>product/import</td></tr>
+        <tr><td>/products/import/batches</td><td>Import history.</td><td>product/import</td></tr>
+        <tr><td>/products/import/batches/[batch-id]</td><td>One batch — status and failed rows.</td><td>product/import</td></tr>
+
+        <tr><td>/inventory/low-stock</td><td>Variants at or below threshold.</td><td>inventory</td></tr>
+        <tr><td>/inventory/bulk-adjust</td><td>Multi-variant stock adjustment.</td><td>inventory</td></tr>
+
+        <tr><td>/orders</td><td>Order list with status filters.</td><td>order/order</td></tr>
+        <tr><td>/orders/[order_id]</td><td>Order detail — items, address, payment, shipment, notes, timeline.</td><td>order/order</td></tr>
+        <tr><td>/orders/[order_id]/transition</td><td>Advance the order to a permitted status.</td><td>order/order</td></tr>
+        <tr><td>/orders/[order_id]/cancel</td><td>Cancel an order.</td><td>order/order</td></tr>
+        <tr><td>/orders/[order_id]/edit</td><td>Edit an order before processing.</td><td>order/order</td></tr>
+        <tr><td>/orders/[order_id]/returns</td><td>Record a return.</td><td>order/order</td></tr>
+        <tr><td>/refunds</td><td>Refund list.</td><td>payment/refund</td></tr>
+
+        <tr><td>/logistics/shipping/providers</td><td>Courier list.</td><td>shipping/provider</td></tr>
+        <tr><td>/logistics/shipping/providers/[provider_id]</td><td>Courier configuration.</td><td>shipping/provider</td></tr>
+        <tr><td>/logistics/shipping/shipments</td><td>Shipment list.</td><td>shipping/shipment</td></tr>
+        <tr><td>/logistics/shipping/shipments/[shipment_id]</td><td>Shipment detail, status, and events.</td><td>shipping/shipment</td></tr>
+        <tr><td>/logistics/shipping/shipments/[shipment_id]/cod</td><td>Cash-on-delivery collection entry.</td><td>shipping/cod</td></tr>
+
+        <tr><td>/invoices</td><td>Issued invoice list.</td><td>order/invoice</td></tr>
+        <tr><td>/invoice-layouts</td><td>Invoice template list.</td><td>order/invoice-layout</td></tr>
+        <tr><td>/invoice-layouts/[profile-id]</td><td>Template editor — visible fields.</td><td>order/invoice-layout</td></tr>
+        <tr><td>/finance/shipping/cod-reconciliation</td><td>Settlement batch list.</td><td>shipping/cod</td></tr>
+        <tr><td>/finance/shipping/cod-reconciliation/create</td><td>Create a settlement batch.</td><td>shipping/cod</td></tr>
+        <tr><td>/finance/shipping/cod-reconciliation/[batch_id]</td><td>Batch detail and settlement status.</td><td>shipping/cod</td></tr>
+        <tr><td>/payment-providers</td><td>Payment gateway list.</td><td>payment/provider</td></tr>
+        <tr><td>/payment-providers/[config-id]</td><td>Gateway configuration.</td><td>payment/provider</td></tr>
+
+        <tr><td>/customers</td><td>Customer list, with CSV export.</td><td>customer/customer</td></tr>
+        <tr><td>/customers/[customer_id]</td><td>Customer detail and internal notes.</td><td>customer/customer-note</td></tr>
+        <tr><td>/discount-codes</td><td>Discount code list.</td><td>order/discount-code</td></tr>
+        <tr><td>/discount-codes/[discount-code-id]</td><td>Discount code create / edit.</td><td>order/discount-code</td></tr>
+
+        <tr><td>/staff</td><td>Staff list.</td><td>store/staff</td></tr>
+        <tr><td>/staff/new</td><td>Invite a staff member.</td><td>store/staff</td></tr>
+        <tr><td>/staff/[staffId]</td><td>Staff member detail.</td><td>store/staff</td></tr>
+        <tr><td>/settings</td><td>Store settings — eight tabs.</td><td>store/settings</td></tr>
+        <tr><td>/settings/access</td><td>Access control.</td><td>store/settings</td></tr>
+
+        <tr><td>/platform/tenants</td><td>Cross-tenant list; disable a tenant.</td><td>auth/platform</td></tr>
+
+        <tr><td>/design-studio</td><td>Template gallery — entry to the editor.</td><td>design-studio</td></tr>
+        <tr><td>/design-studio/[templateName]/edit</td><td>Editor canvas.</td><td>design-studio</td></tr>
+        <tr><td>/design-studio/[templateName]/preview</td><td>Preview of the edited design.</td><td>design-studio</td></tr>
+        <tr><td>/design-studio/[...puckPath]</td><td>Catch-all for editor sub-paths.</td><td>design-studio</td></tr>
+
+        <tr><td>/test</td><td><span class="badge partial">dev only</span> Development scratch page, not part of the product.</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="map-modules">Module index</h3>
+  <p>
+    All 34 domain modules under <code>apps/web/modules</code>. File counts indicate relative weight.
+  </p>
+
+  <div class="table-scroll">
+    <table class="map">
+      <thead><tr><th>Module</th><th>Files</th><th>Responsibility</th></tr></thead>
+      <tbody>
+        <tr><td><b>auth/auth</b></td><td>9</td><td>OTP and Google sign-in, current user, roles, logout, <code>RequireRole</code>.</td></tr>
+        <tr><td>auth/session</td><td>5</td><td>Active session listing and revocation.</td></tr>
+        <tr><td>auth/totp</td><td>5</td><td>Two-factor setup, enable, disable.</td></tr>
+        <tr><td>auth/phone-change</td><td>5</td><td>Two-step phone number change.</td></tr>
+        <tr><td>auth/audit-log</td><td>5</td><td>Security event log queries.</td></tr>
+        <tr><td>auth/store</td><td>9</td><td>Store creation, configuration gate, tenant status and rate limits.</td></tr>
+        <tr><td>auth/platform</td><td>5</td><td>Platform-operator tenant administration.</td></tr>
+        <tr><td>auth/customer-auth</td><td>4</td><td>Storefront customer OTP login. <em>Storefront concern.</em></td></tr>
+
+        <tr><td><b>product/product</b></td><td>25</td><td>Product CRUD, tabbed editor, variant matrix, media, draft hook.</td></tr>
+        <tr><td>product/category</td><td>13</td><td>Hierarchical categories, children, sector templates.</td></tr>
+        <tr><td>product/collection</td><td>13</td><td>Manual and rule-based collections, preview and evaluation, reordering.</td></tr>
+        <tr><td>product/tag</td><td>9</td><td>Flat tag taxonomy.</td></tr>
+        <tr><td>product/attribute</td><td>5</td><td>Custom attribute definitions, resolved per category.</td></tr>
+        <tr><td>product/import</td><td>4</td><td>Upload, preview, batch commit, import history.</td></tr>
+        <tr><td>product/variant</td><td>2</td><td>Shared variant types.</td></tr>
+        <tr><td>product/seed</td><td>5</td><td>Demo catalogue seeding for development.</td></tr>
+
+        <tr><td>inventory</td><td>4</td><td>Stock adjustments, bulk adjust, thresholds, movement history.</td></tr>
+
+        <tr><td><b>order/order</b></td><td>21</td><td>Order CRUD, the state machine, transition/cancel/edit/returns, timeline, notes.</td></tr>
+        <tr><td>order/invoice</td><td>4</td><td>Invoice listing, generation, regeneration from an order.</td></tr>
+        <tr><td>order/invoice-layout</td><td>8</td><td>Invoice template profiles and visible-field configuration.</td></tr>
+        <tr><td>order/discount-code</td><td>7</td><td>Discount code CRUD.</td></tr>
+
+        <tr><td>shipping/provider</td><td>8</td><td>Courier configuration.</td></tr>
+        <tr><td>shipping/shipment</td><td>12</td><td>Shipment lifecycle, transitions, event history.</td></tr>
+        <tr><td>shipping/cod</td><td>12</td><td>COD collection entries and reconciliation batches.</td></tr>
+
+        <tr><td>payment/provider</td><td>7</td><td>Payment gateway configuration.</td></tr>
+        <tr><td>payment/refund</td><td>6</td><td>Refunds against orders.</td></tr>
+
+        <tr><td>customer/customer</td><td>13</td><td>Customer list, detail, CSV export.</td></tr>
+        <tr><td>customer/customer-note</td><td>7</td><td>Staff-only notes on a customer.</td></tr>
+
+        <tr><td>store/settings</td><td>15</td><td>Eight-tab store settings, diffed saves, deletion request.</td></tr>
+        <tr><td>store/staff</td><td>6</td><td>Staff invitation and management.</td></tr>
+
+        <tr><td>media/upload</td><td>4</td><td>File upload used by every media-bearing form.</td></tr>
+        <tr><td>design-studio</td><td>7</td><td>Editor host glue — templates, drafts, local sync, theme presets. <em>See <a href="editor.html">Editor</a>.</em></td></tr>
+        <tr><td>storefront/*</td><td>32</td><td>Storefront components, config, and styles. <em>Storefront concern — see <a href="renderer.html">Renderer</a>.</em></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout gap">
+    <span class="label">Modules that do not belong to the admin</span>
+    <p>
+      <code>auth/customer-auth</code> and <code>storefront/*</code> serve the customer storefront,
+      not the merchant. They sit in <code>apps/web/modules</code> only because the storefront
+      currently runs inside <code>apps/web</code> — see the
+      <a href="index.html#temp-duplication">temporary implementation note</a>. They move to
+      <code>apps/store</code> with the rest of the storefront.
+    </p>
+  </div>
+</section>
+
+<footer class="page">
+  <span>SOOQ — System Documentation · Pillar 1 · Merchant Admin</span>
+  <span><a href="index.html">← 0 · Overview</a> · Next: <a href="editor.html">2 · Design Studio</a></span>
+</footer>
+
+</main>
+</div>
+</body>
+</html>
