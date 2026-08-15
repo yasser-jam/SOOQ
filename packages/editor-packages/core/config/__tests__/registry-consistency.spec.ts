@@ -45,7 +45,12 @@ const collectTypes = (value: unknown, sink: Set<string>): void => {
 const expectAllRegistered = (label: string, tree: unknown) => {
   const used = new Set<string>();
   collectTypes(tree, used);
-  const unknown = [...used].filter((type) => !registeredTypes.has(type));
+  // `appBar` is the Flutter/export spelling on `page.appBar` — not a Puck palette type
+  // (the editor block is registered as `AppBar`).
+  const exportOnlyTypes = new Set(["appBar"]);
+  const unknown = [...used].filter(
+    (type) => !registeredTypes.has(type) && !exportOnlyTypes.has(type)
+  );
   expect({ source: label, unknownTypes: unknown }).toEqual({
     source: label,
     unknownTypes: [],

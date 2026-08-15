@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import { settingsPlugin } from "@/core/config/plugins/settings"
 import { HtmlBlockPaletteSync } from "@/core/config/plugins/html-block-palette"
+import { MobilePaletteSync } from "@/core/config/plugins/mobile-palette"
 import headingAnalyzer from "@/plugin-heading-analyzer"
 import { pagesPlugin } from "@/core/config/plugins/pages"
 import { zonesPlugin } from "@/core/config/plugins/zones"
@@ -779,6 +780,7 @@ export function Client({
       puck: ({ children }) => (
         <>
           <HtmlBlockPaletteSync />
+          <MobilePaletteSync editorMode={editorMode} />
           {children}
           {/* Owns its own dialog/hint state so toggling it never recreates
               `overrides` (which would reset the whole Puck store). */}

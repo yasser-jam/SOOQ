@@ -53,6 +53,7 @@ import { SiteFooterProps } from "./blocks/SiteFooter";
 import { ZoneDrawerProps } from "./blocks/ZoneDrawer";
 import { ZonePopupProps } from "./blocks/ZonePopup";
 import { ZoneBottomSheetProps } from "./blocks/ZoneBottomSheet";
+import type { AppBarProps } from "./blocks/AppBar";
 import type { CartIconButtonProps } from "./blocks/CartIconButton";
 import type { OrdersIconButtonProps } from "./blocks/OrdersIconButton";
 
@@ -65,6 +66,7 @@ export type Components = {
   ZoneDrawer: ZoneDrawerProps;
   ZonePopup: ZonePopupProps;
   ZoneBottomSheet: ZoneBottomSheetProps;
+  AppBar: AppBarProps;
   Section: SectionProps;
   Group: GroupProps;
   RowGroup: RowGroupProps;
@@ -120,7 +122,7 @@ export type Components = {
 export type UserConfig = Config<{
   components: Components;
   root: RootProps;
-  categories: ["layout", "blocks", "storeBlocks", "legacy"];
+  categories: ["layout", "blocks", "storeBlocks", "mobileShell", "legacy"];
   fields: {
     userField: {
       type: "userField";

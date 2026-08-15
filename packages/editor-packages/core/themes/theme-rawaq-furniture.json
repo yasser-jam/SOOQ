@@ -3364,7 +3364,31 @@
       ]
      }
     }
-   ]
+   ],
+   "appBar": {
+    "id": "home-appbar",
+    "type": "appBar",
+    "props": {
+     "title": "روّاق",
+     "elevation": 0,
+     "height": 56,
+     "showMenu": true,
+     "menuIcon": "menu",
+     "menuAction": {
+      "type": "openDrawer"
+     },
+     "trailingIcon": "notifications",
+     "trailingAction": {
+      "type": "navigate",
+      "route": "/notifications",
+      "navigation_type": "push"
+     },
+     "foregroundColor": "#2f261d"
+    },
+    "style": {
+     "background": "#f7f2ea"
+    }
+   }
   },
   {
    "path": "/login",
@@ -3587,7 +3611,16 @@
       ]
      }
     }
-   ]
+   ],
+   "appBar": {
+    "id": "login-appbar",
+    "type": "appBar",
+    "props": {
+     "title": "تسجيل الدخول",
+     "elevation": 0,
+     "height": 56
+    }
+   }
   },
   {
    "path": "/verify-otp",
@@ -3781,7 +3814,16 @@
       ]
      }
     }
-   ]
+   ],
+   "appBar": {
+    "id": "verify-otp-appbar",
+    "type": "appBar",
+    "props": {
+     "title": "تأكيد الرمز",
+     "elevation": 0,
+     "height": 56
+    }
+   }
   },
   {
    "path": "/products",
@@ -4417,7 +4459,19 @@
       ]
      }
     }
-   ]
+   ],
+   "appBar": {
+    "id": "products-appbar",
+    "type": "appBar",
+    "props": {
+     "title": "المجموعة",
+     "elevation": 0,
+     "height": 56
+    },
+    "style": {
+     "background": "#FFFFFF"
+    }
+   }
   },
   {
    "path": "/products/:product-slug",
@@ -5378,7 +5432,26 @@
       ]
      }
     }
-   ]
+   ],
+   "appBar": {
+    "id": "product-details-appbar",
+    "type": "appBar",
+    "props": {
+     "title": "تفاصيل المنتج",
+     "elevation": 0,
+     "height": 56,
+     "showCartIcon": true,
+     "cartBadgePath": "cart.itemCount",
+     "cartAction": {
+      "type": "navigate",
+      "route": "/cart"
+     },
+     "foregroundColor": "#2f261d"
+    },
+    "style": {
+     "background": "#FFFFFF"
+    }
+   }
   },
   {
    "path": "/cart",
@@ -5535,7 +5608,20 @@
       ]
      }
     }
-   ]
+   ],
+   "appBar": {
+    "id": "cart-appbar",
+    "type": "appBar",
+    "props": {
+     "title": "سلة التسوق",
+     "elevation": 0,
+     "height": 62,
+     "foregroundColor": "#2f261d"
+    },
+    "style": {
+     "background": "#FFFFFF"
+    }
+   }
   },
   {
    "path": "/about",
@@ -6305,7 +6391,19 @@
       ]
      }
     }
-   ]
+   ],
+   "appBar": {
+    "id": "about-appbar",
+    "type": "appBar",
+    "props": {
+     "title": "الورشة",
+     "elevation": 0,
+     "height": 56
+    },
+    "style": {
+     "background": "#FFFFFF"
+    }
+   }
   },
   {
    "path": "/settings",
@@ -7320,7 +7418,244 @@
       ]
      }
     }
+   ],
+   "appBar": {
+    "id": "settings-appbar",
+    "type": "appBar",
+    "props": {
+     "title": "الإعدادات",
+     "elevation": 0,
+     "height": 56
+    },
+    "style": {
+     "background": "#FFFFFF"
+    }
+   }
+  }
+ ],
+ "sidebar": {
+  "type": "Sidebar",
+  "props": {
+   "id": "Sidebar-site",
+   "title": {
+    "ar": "القائمة",
+    "en": "Menu"
+   },
+   "showTitle": true,
+   "dock": "right",
+   "dockOffsetTop": "56px",
+   "width": "medium",
+   "stickyTop": "",
+   "borderStyle": "none",
+   "backgroundColor": "surface",
+   "showOnMobile": "always",
+   "layout": {
+    "grow": false
+   },
+   "items": [
+    {
+     "type": "ContentHeading",
+     "props": {
+      "id": "Heading-drawer-title",
+      "text": {
+       "ar": "روّاق",
+       "en": "RAWAQ"
+      },
+      "level": "3",
+      "textAlign": "right",
+      "fontFamily": "option1",
+      "fontSize": "theme-xl",
+      "fontWeight": "theme-bold",
+      "lineHeight": "theme-tight",
+      "fontStyle": "normal",
+      "textTransform": "none",
+      "color": "#2f261d"
+     }
+    },
+    {
+     "type": "ContentParagraph",
+     "props": {
+      "id": "Paragraph-drawer-tagline",
+      "text": {
+       "ar": "أثاث خشبي بصناعة يدوية",
+       "en": "Handcrafted wooden furniture"
+      },
+      "textAlign": "right",
+      "fontFamily": "option2",
+      "fontSize": "theme-sm",
+      "fontWeight": "theme-light",
+      "lineHeight": "theme-normal",
+      "fontStyle": "normal",
+      "textTransform": "none",
+      "color": "theme-neutral"
+     }
+    },
+    {
+     "type": "ContentDivider",
+     "props": {
+      "id": "Divider-drawer",
+      "thickness": "1px",
+      "colorMode": "theme",
+      "colorTheme": "neutral",
+      "colorFixed": "#efe6d8"
+     }
+    },
+    {
+     "type": "ContentLink",
+     "props": {
+      "id": "Link-drawer-home",
+      "title": {
+       "ar": "الرئيسية",
+       "en": "Home"
+      },
+      "link": {
+       "kind": "page",
+       "pageId": "/"
+      },
+      "align": "right",
+      "color": "theme-text",
+      "hoverEffect": "border",
+      "hoverColor": "theme-primary",
+      "fontSize": "theme-md",
+      "icon": "chevron-left",
+      "iconPosition": "end"
+     }
+    },
+    {
+     "type": "ContentLink",
+     "props": {
+      "id": "Link-drawer-products",
+      "title": {
+       "ar": "المجموعة",
+       "en": "Collection"
+      },
+      "link": {
+       "kind": "page",
+       "pageId": "/products"
+      },
+      "align": "right",
+      "color": "theme-text",
+      "hoverEffect": "border",
+      "hoverColor": "theme-primary",
+      "fontSize": "theme-md",
+      "icon": "chevron-left",
+      "iconPosition": "end"
+     }
+    },
+    {
+     "type": "ContentLink",
+     "props": {
+      "id": "Link-drawer-about",
+      "title": {
+       "ar": "الورشة",
+       "en": "Our workshop"
+      },
+      "link": {
+       "kind": "page",
+       "pageId": "/about"
+      },
+      "align": "right",
+      "color": "theme-text",
+      "hoverEffect": "border",
+      "hoverColor": "theme-primary",
+      "fontSize": "theme-md",
+      "icon": "chevron-left",
+      "iconPosition": "end"
+     }
+    },
+    {
+     "type": "ContentLink",
+     "props": {
+      "id": "Link-drawer-cart",
+      "title": {
+       "ar": "السلة",
+       "en": "Cart"
+      },
+      "link": {
+       "kind": "page",
+       "pageId": "/cart"
+      },
+      "align": "right",
+      "color": "theme-text",
+      "hoverEffect": "border",
+      "hoverColor": "theme-primary",
+      "fontSize": "theme-md",
+      "icon": "chevron-left",
+      "iconPosition": "end",
+      "showCondition": "loggedIn"
+     }
+    },
+    {
+     "type": "ContentLink",
+     "props": {
+      "id": "Link-drawer-orders",
+      "title": {
+       "ar": "طلباتي",
+       "en": "Orders"
+      },
+      "link": {
+       "kind": "page",
+       "pageId": "/orders"
+      },
+      "align": "right",
+      "color": "theme-text",
+      "hoverEffect": "border",
+      "hoverColor": "theme-primary",
+      "fontSize": "theme-md",
+      "icon": "chevron-left",
+      "iconPosition": "end",
+      "showCondition": "loggedIn"
+     }
+    },
+    {
+     "type": "ContentLink",
+     "props": {
+      "id": "Link-drawer-settings",
+      "title": {
+       "ar": "حسابي",
+       "en": "Account"
+      },
+      "link": {
+       "kind": "page",
+       "pageId": "/settings"
+      },
+      "align": "right",
+      "color": "theme-text",
+      "hoverEffect": "border",
+      "hoverColor": "theme-primary",
+      "fontSize": "theme-md",
+      "icon": "chevron-left",
+      "iconPosition": "end",
+      "showCondition": "loggedIn"
+     }
+    },
+    {
+     "type": "ContentButton",
+     "props": {
+      "id": "Button-drawer-login",
+      "label": {
+       "ar": "تسجيل الدخول",
+       "en": "Sign in"
+      },
+      "align": "right",
+      "destinationType": "link",
+      "buttonAction": "link",
+      "link": {
+       "kind": "page",
+       "pageId": "/login"
+      },
+      "buttonVariantMode": "variant",
+      "buttonVariant": "primary",
+      "buttonVariantSize": "md",
+      "radius": "theme-sm",
+      "bgColor": "theme-primary",
+      "textColor": "theme-surface",
+      "buttonSize": "theme-md",
+      "submitRedirectUrl": "",
+      "showCondition": "loggedOut"
+     }
+    }
    ]
   }
- ]
+ }
 }

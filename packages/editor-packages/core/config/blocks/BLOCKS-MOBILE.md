@@ -6,7 +6,11 @@ Mobile-facing subset of [BLOCKS.md](./BLOCKS.md). Only blocks intended for the m
 > Most blocks wrap their props with a `WithLayout` higher-order type that adds a shared `layout` object. The `layout` prop controls advanced positioning (padding, shadow, float, per-breakpoint visibility via `hideOnMobile` / `hideOnTablet` / `hideOnDesktop`, etc.). It is omitted from the examples below for brevity; add it only when you need non-default positioning.
 
 > **Mobile block set**  
-> Accordion, Blank, ButtonGroup, Chip, ContentButton, ContentDivider, ContentHeading, ContentIcon, ContentImage, ContentInput, ContentLink, ContentParagraph, ContentSwitch, Flex, Grid, Group, ImageGallery, Section, Testimonials, VideoEmbed, ZoneDrawer, ZoneBottomSheet.
+> Accordion, AppBar, Blank, ButtonGroup, Chip, ContentButton, ContentDivider, ContentHeading, ContentIcon, ContentImage, ContentInput, ContentLink, ContentParagraph, ContentSwitch, Flex, Grid, Group, ImageGallery, Section, Sidebar, Testimonials, VideoEmbed, ZoneBottomSheet.
+>
+> **AppBar + Sidebar (mobile shell)**  
+> - `AppBar` is a **per-page** fixed chrome block (no drop slot). It appears in the blocks palette **only in the mobile editor** (`?mode=mobile`). On save it is extracted to `page.appBar` (`type: "appBar"`, or `{}` when none).  
+> - `Sidebar` is the mobile drawer/nav **block** (not `ZoneDrawer` zone). On mobile it is stored at `SiteData.sidebar` and injected into the canvas for editing; seeding from desktop migrates `root:zone-drawer` → `sidebar`.
 
 > **Runtime metadata & data binding**  
 > Commerce sections use **`Group`** blocks as binding roots. When a product is picked on a Group, the editor auto-populates read-only `metadata` with `apiUrl`. Child blocks (`ContentHeading`, `ContentParagraph`, `ContentImage`, `ContentButton`) resolve live values via optional `valueContext.path` against the Group's bound data. Mobile converters should fetch from `metadata.apiUrl` at render time rather than embedding product payloads in JSON.
@@ -19,27 +23,28 @@ Mobile-facing subset of [BLOCKS.md](./BLOCKS.md). Only blocks intended for the m
 ## Table of Contents
 
 1. [Accordion](#accordion)
-2. [Blank](#blank)
-3. [ButtonGroup](#buttongroup)
-4. [Chip](#chip)
-5. [ContentButton](#contentbutton)
-6. [ContentDivider](#contentdivider)
-7. [ContentHeading](#contentheading)
-8. [ContentIcon](#contenticon)
-9. [ContentImage](#contentimage)
-10. [ContentInput](#contentinput)
-11. [ContentLink](#contentlink)
-12. [ContentParagraph](#contentparagraph)
-13. [ContentSwitch](#contentswitch)
-14. [Flex](#flex)
-15. [Grid](#grid)
-16. [Group](#group)
-17. [ImageGallery](#imagegallery)
-18. [Section](#section)
-19. [Testimonials](#testimonials)
-20. [VideoEmbed](#videoembed)
-21. [ZoneDrawer](#zonedrawer)
-22. [ZoneBottomSheet](#zonebottomsheet)
+2. [AppBar](#appbar)
+3. [Blank](#blank)
+4. [ButtonGroup](#buttongroup)
+5. [Chip](#chip)
+6. [ContentButton](#contentbutton)
+7. [ContentDivider](#contentdivider)
+8. [ContentHeading](#contentheading)
+9. [ContentIcon](#contenticon)
+10. [ContentImage](#contentimage)
+11. [ContentInput](#contentinput)
+12. [ContentLink](#contentlink)
+13. [ContentParagraph](#contentparagraph)
+14. [ContentSwitch](#contentswitch)
+15. [Flex](#flex)
+16. [Grid](#grid)
+17. [Group](#group)
+18. [ImageGallery](#imagegallery)
+19. [Section](#section)
+20. [Sidebar](#sidebar)
+21. [Testimonials](#testimonials)
+22. [VideoEmbed](#videoembed)
+23. [ZoneBottomSheet](#zonebottomsheet)
 
 **Site-wide reference sections**
 
@@ -88,6 +93,51 @@ Mobile-facing subset of [BLOCKS.md](./BLOCKS.md). Only blocks intended for the m
       { "title": "هل تقدّمون إرجاعاً للمنتجات؟", "body": "يمكنك طلب الإرجاع خلال 7 أيام للمنتجات غير المستخدمة بحالتها الأصلية.", "open": false }
     ]
   }
+}
+```
+
+---
+
+## AppBar
+
+**Label:** شريط التطبيق  
+**Description:** Fixed per-page mobile top bar. Not a drop zone — configure switches/fields only. Palette category **هيكل الجوال** (visible only in mobile editor). Persisted on the page as `appBar` (empty `{}` when none).
+
+### Editor fields → persisted props
+
+| Field | Persisted | Notes |
+|---|---|---|
+| `title` | `props.title` | |
+| `elevation` | `props.elevation` | number |
+| `height` | `props.height` | number |
+| `showMenu` | `props.showMenu` + `menuIcon` + `menuAction: { type: "openDrawer" }` | default icon `"menu"` |
+| `showNotifications` | `trailingIcon: "notifications"` + `trailingAction` navigate `/notifications` | |
+| `showCartIcon` | `showCartIcon` + `cartBadgePath` + `cartAction` navigate `/cart` | |
+| `foregroundColor` | `props.foregroundColor` | |
+| `backgroundColor` | `style.background` | |
+
+### JSON Example (`page.appBar`)
+
+```json
+{
+  "id": "home-appbar",
+  "type": "appBar",
+  "props": {
+    "title": "SOOQ",
+    "elevation": 0,
+    "height": 56,
+    "showMenu": true,
+    "menuIcon": "menu",
+    "menuAction": { "type": "openDrawer" },
+    "trailingIcon": "notifications",
+    "trailingAction": {
+      "type": "navigate",
+      "route": "/notifications",
+      "navigation_type": "push"
+    },
+    "foregroundColor": "#0F172A"
+  },
+  "style": { "background": "#FFFFFF" }
 }
 ```
 
@@ -1321,7 +1371,7 @@ objects on read by `normalizeEditorData`.
 ## ZoneDrawer
 
 **Label:** درج المنطقة  
-**Description:** Site-wide slide-in drawer with slot content. Opens via `sooq:zone` events. See [ZONES.md](./ZONES.md).
+**Description:** Site-wide slide-in drawer with slot content (desktop / legacy). Opens via `sooq:zone` events. See [ZONES.md](./ZONES.md). **On mobile Site JSON prefer `SiteData.sidebar` (`Sidebar` block)** — seeding from desktop migrates this zone automatically.
 
 | Property | Type | Default |
 |---|---|---|
@@ -1368,8 +1418,10 @@ Persisted as one JSON object per store (localStorage today; will move to backend
 ```ts
 type SiteData = {
   root: UserData["root"]; // theme + shell settings — see FullThemeProps below
-  zones: Record<string, ComponentData[]>; // site-wide zones (see ZONES.md)
+  zones: Record<string, ComponentData[]>; // site-wide zones (see ZONES.md) — desktop shell
   pages: SitePage[];
+  /** Mobile sidebar block (not a zone). Empty `{}` when none. */
+  sidebar?: { type: "Sidebar"; props: object } | Record<string, never>;
 };
 ```
 
@@ -1404,6 +1456,8 @@ type SitePage = {
   examplePath?: string; // concrete example URL for dynamic routes
   isCustom?: boolean;   // true when created by the merchant (not a built-in)
   content: ComponentData[]; // the page's Section blocks
+  /** Mobile app bar. Empty `{}` when none. Export type is `appBar`. */
+  appBar?: object;
 };
 ```
 

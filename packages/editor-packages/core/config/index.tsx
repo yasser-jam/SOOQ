@@ -56,6 +56,7 @@ import { SiteFooter } from "./blocks/SiteFooter";
 import { ZoneDrawer } from "./blocks/ZoneDrawer";
 import { ZonePopup } from "./blocks/ZonePopup";
 import { ZoneBottomSheet } from "./blocks/ZoneBottomSheet";
+import { AppBar } from "./blocks/AppBar";
 
 import Root from "./root";
 import { UserConfig } from "./types";
@@ -121,6 +122,13 @@ export const conf: UserConfig = {
         // "ContactForm",          // IGNORED
       ],
     },
+    mobileShell: {
+      title: "هيكل الجوال",
+      defaultExpanded: true,
+      // Hidden on web/desktop; `MobilePaletteSync` flips visible in mobile mode.
+      visible: false,
+      components: ["AppBar", "Sidebar"],
+    },
     legacy: {
       title: "إصدار سابق (مخفي)",
       visible: false,
@@ -179,6 +187,8 @@ export const conf: UserConfig = {
     ZonePopup: withShowCondition(ZonePopup),
     ZoneBottomSheet: withShowCondition(ZoneBottomSheet),
     SiteDrawerShell: withShowCondition(SiteDrawerShell),
+    // Mobile per-page chrome (palette only in mobile editor)
+    AppBar: withShowCondition(AppBar),
     // Sections
     Section: withShowCondition(Section),
     // Group / Layout

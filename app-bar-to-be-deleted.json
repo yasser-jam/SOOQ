@@ -1,0 +1,413 @@
+[
+  {
+    "id": "page-splash",
+    "route": "/splash",
+    "appBar": {}
+  },
+  {
+    "id": "page-splash-carousel",
+    "route": "/splash-carousel",
+    "appBar": {}
+  },
+  {
+    "id": "page-auth-login",
+    "route": "/auth/login",
+    "appBar": {
+      "id": "auth-login-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "تسجيل الدخول",
+        "elevation": 0
+      }
+    }
+  },
+  {
+    "id": "page-auth-otp-reset",
+    "route": "/auth/otp-reset",
+    "appBar": {
+      "id": "auth-otp-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "تأكيد الرمز",
+        "elevation": 0
+      }
+    }
+  },
+  {
+    "id": "page-home",
+    "route": "/home",
+    "appBar": {
+      "id": "home-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "SOOQ",
+        "titleAlign": "center",
+        "elevation": 0,
+        "showMenu": true,
+        "menuIcon": "menu",
+        "menuAction": {
+          "type": "openDrawer"
+        },
+        "trailingIcon": "notifications",
+        "trailingAction": {
+          "type": "navigate",
+          "route": "/notifications",
+          "navigation_type": "push"
+        },
+        "foregroundColor": "#0F172A"
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-categories",
+    "route": "/categories",
+    "appBar": {
+      "id": "categories-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "التصنيفات",
+        "height": 62,
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-products",
+    "route": "/products",
+    "appBar": {
+      "id": "products-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "المنتجات",
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-product-details",
+    "route": "/product/details/:productId",
+    "appBar": {
+      "id": "product-details-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "تفاصيل المنتج",
+        "backgroundColor": "#00000000",
+        "elevation": 0,
+        "foregroundColor": "#FFFFFF",
+        "showCartIcon": true,
+        "cartBadgePath": "cart.itemCount",
+        "cartAction": {
+          "type": "navigate",
+          "route": "/cart"
+        },
+        "trailingIconActive": "favorite",
+        "trailingIconInactive": "favorite_outline",
+        "trailingIconActivePath": "wishlist.isCurrentProductFavorite",
+        "trailingActiveColor": "#E11D48",
+        "trailingAction": {
+          "type": "cubitCall",
+          "cubit": "wishlist",
+          "method": "toggle",
+          "params": {
+            "productId": {
+              "source": "routeparams",
+              "field": "productId"
+            },
+            "productTitle": {
+              "source": "datacontext",
+              "field": "requests.product-detail.data.name"
+            },
+            "thumbnailUrl": {
+              "source": "datacontext",
+              "field": "requests.product-detail.data.primaryImageUrl"
+            },
+            "displayPrice": {
+              "source": "datacontext",
+              "field": "requests.product-detail.data.displayPrice"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "page-category-products",
+    "route": "/categories/:categorySlug/products",
+    "appBar": {
+      "id": "category-products-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "منتجات القسم",
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-search",
+    "route": "/search",
+    "appBar": {
+      "id": "search-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "البحث",
+        "height": 62,
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-cart",
+    "route": "/cart",
+    "appBar": {
+      "id": "cart-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "سلة التسوق",
+        "titleAlign": "center",
+        "height": 62,
+        "elevation": 0,
+        "foregroundColor": "#0F172A",
+        "backgroundGradient": true,
+        "trailingIcon": "delete_sweep",
+        "trailingAction": {
+          "type": "cubitCall",
+          "cubit": "cart",
+          "method": "clear"
+        }
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-checkout",
+    "route": "/checkout",
+    "appBar": {
+      "id": "checkout-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "إتمام الطلب",
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-address-details",
+    "route": "/checkout/address-details",
+    "appBar": {
+      "id": "address-details-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "تفاصيل العنوان الجديد",
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-address-selection",
+    "route": "/checkout/address",
+    "appBar": {
+      "id": "address-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "اختر العنوان",
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-payment-flow",
+    "route": "/checkout/payment",
+    "appBar": {
+      "id": "payment-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "الدفع",
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-order-success",
+    "route": "/order/success",
+    "appBar": {}
+  },
+  {
+    "id": "page-order-failure",
+    "route": "/order/failure",
+    "appBar": {}
+  },
+  {
+    "id": "page-profile",
+    "route": "/profile",
+    "appBar": {
+      "id": "profile-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "الحساب",
+        "height": 62,
+        "elevation": 0
+      }
+    }
+  },
+  {
+    "id": "page-orders",
+    "route": "/orders",
+    "appBar": {
+      "id": "orders-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "سجل الطلبات",
+        "elevation": 1
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-order-detail",
+    "route": "/orders/:orderId",
+    "appBar": {
+      "id": "order-detail-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "تفاصيل الطلب",
+        "elevation": 1
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-orders-track",
+    "route": "/orders/track",
+    "appBar": {
+      "id": "orders-track-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "تتبع الطلب",
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-wishlist",
+    "route": "/wishlist",
+    "appBar": {
+      "id": "wishlist-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "المفضلة",
+        "elevation": 0
+      }
+    }
+  },
+  {
+    "id": "page-notifications",
+    "route": "/notifications",
+    "appBar": {
+      "id": "notifications-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "الإشعارات",
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-settings",
+    "route": "/settings",
+    "appBar": {
+      "id": "settings-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "الإعدادات",
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-support",
+    "route": "/support",
+    "appBar": {
+      "id": "support-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "الدعم والمساعدة",
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  },
+  {
+    "id": "page-state-empty",
+    "route": "/state/empty",
+    "appBar": {}
+  },
+  {
+    "id": "page-state-error",
+    "route": "/state/error",
+    "appBar": {}
+  },
+  {
+    "id": "page-state-loading",
+    "route": "/state/loading",
+    "appBar": {}
+  },
+  {
+    "id": "page-component-coverage",
+    "route": "/component-coverage",
+    "appBar": {
+      "id": "coverage-appbar",
+      "type": "appBar",
+      "props": {
+        "title": "تغطية مكونات الـ Builder",
+        "elevation": 0
+      },
+      "style": {
+        "background": "#FFFFFF"
+      }
+    }
+  }
+]

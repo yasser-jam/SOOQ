@@ -15,12 +15,30 @@ import {
   getActiveEditorMode,
   isMobileEditorMetadata,
 } from "./editor-mode";
+import {
+  emptyAppBar,
+  isEmptyAppBar,
+  normalizeSitePageAppBar,
+  toEditorAppBarNode,
+  toPersistedAppBar,
+  type SitePageAppBar,
+} from "./app-bar";
+import {
+  emptySidebar,
+  isEmptySidebar,
+  normalizeSiteSidebar,
+  sidebarFromZoneDrawer,
+  toEditorSidebarNode,
+  toPersistedSidebar,
+  type SiteSidebar,
+} from "./site-sidebar";
 import type { UserData } from "../types";
 import {
   isBilingualValue,
   pickLang,
   type BilingualString,
 } from "../../lib/bilingual";
+import { ROOT_ZONE_DRAWER } from "../shell-zones";
 
 export type { EditorMode } from "./editor-mode";
 export {
@@ -30,6 +48,8 @@ export {
   parseEditorMode,
   setActiveEditorMode,
 } from "./editor-mode";
+export type { SitePageAppBar } from "./app-bar";
+export type { SiteSidebar } from "./site-sidebar";
 
 type JsonRecord = Record<string, unknown>;
 type ZoneMap = NonNullable<UserData["zones"]>;
@@ -63,7 +83,12 @@ const SHELL_COMPONENT_TYPES = new Set([
   "ZoneDrawer",
   "ZonePopup",
   "ZoneBottomSheet",
+  /** Per-page mobile chrome — extracted to `page.appBar` on save. */
+  "AppBar",
 ]);
+
+/** Site-level mobile sidebar — extracted to `site.sidebar` on save (mobile). */
+const SIDEBAR_COMPONENT_TYPE = "Sidebar";
 
 const isBrowser =
   typeof window !== "undefined" && typeof window.localStorage !== "undefined";
@@ -91,6 +116,11 @@ export type SitePage = {
   examplePath?: string;
   isCustom?: boolean;
   content: UserData["content"];
+  /**
+   * Mobile app bar for this page. Empty object `{}` when the page has none.
+   * Persisted shape uses `type: "appBar"` (Flutter contract).
+   */
+  appBar?: SitePageAppBar;
 };
 
 export type SiteData = {
@@ -99,6 +129,11 @@ export type SiteData = {
   /** Site-wide zones (shell rails, etc.) */
   zones: ZoneMap;
   pages: SitePage[];
+  /**
+   * Mobile sidebar block (not a zone). Empty `{}` when none.
+   * Desktop continues to use `zones["root:zone-drawer"]` / ZoneDrawer.
+   */
+  sidebar?: SiteSidebar;
 };
 
 export function getSiteStorageKey(mode: EditorMode = "desktop") {
@@ -204,6 +239,80 @@ const stripShellFromContent = (
   ) as UserData["content"];
 };
 
+const stripMobileShellFromContent = (
+  content: UserData["content"] | undefined
+): UserData["content"] => {
+  if (!Array.isArray(content)) return [];
+
+  return content.filter(
+    (item) =>
+      !SHELL_COMPONENT_TYPES.has(item.type) &&
+      item.type !== SIDEBAR_COMPONENT_TYPE
+  ) as UserData["content"];
+};
+
+const extractAppBarFromContent = (
+  content: UserData["content"] | undefined
+): { appBar: SitePageAppBar; content: UserData["content"] } => {
+  const list = Array.isArray(content) ? content : [];
+  const appBarNode = list.find((item) => item.type === "AppBar") as
+    | ComponentLike
+    | undefined;
+  return {
+    appBar: appBarNode ? toPersistedAppBar(appBarNode) : emptyAppBar(),
+    content: stripShellFromContent(list),
+  };
+};
+
+const extractSidebarFromContent = (
+  content: UserData["content"] | undefined
+): { sidebar: SiteSidebar; content: UserData["content"] } => {
+  const list = Array.isArray(content) ? content : [];
+  const sidebarNode = list.find((item) => item.type === SIDEBAR_COMPONENT_TYPE) as
+    | ComponentLike
+    | undefined;
+  return {
+    sidebar: sidebarNode ? toPersistedSidebar(sidebarNode) : emptySidebar(),
+    content: list.filter(
+      (item) => item.type !== SIDEBAR_COMPONENT_TYPE
+    ) as UserData["content"],
+  };
+};
+
+/** Pull ZoneDrawer out of zones into `site.sidebar` for mobile Site JSON. */
+export function migrateMobileDrawerToSidebar(site: SiteData): SiteData {
+  let next = site;
+
+  if (isEmptySidebar(site.sidebar)) {
+    const zones = { ...(site.zones ?? {}) } as ZoneMap;
+    const drawerZone = zones[ROOT_ZONE_DRAWER];
+    const drawerNode = Array.isArray(drawerZone)
+      ? (drawerZone.find((item) => item.type === "ZoneDrawer") as
+          | ComponentLike
+          | undefined)
+      : undefined;
+
+    const sidebar = sidebarFromZoneDrawer(drawerNode);
+    if (!isEmptySidebar(sidebar)) {
+      delete zones[ROOT_ZONE_DRAWER];
+      next = { ...site, zones, sidebar };
+    }
+  }
+
+  // Mobile uses `site.sidebar` (block), not the drawer zone.
+  if (
+    !isEmptySidebar(next.sidebar) &&
+    next.zones &&
+    ROOT_ZONE_DRAWER in next.zones
+  ) {
+    const zones = { ...next.zones } as ZoneMap;
+    delete zones[ROOT_ZONE_DRAWER];
+    next = { ...next, zones };
+  }
+
+  return next;
+}
+
 const extractGlobalRootProps = (rootProps: JsonRecord): JsonRecord => {
   const next = { ...rootProps };
   delete next.title;
@@ -261,6 +370,7 @@ const sitePageFromUserData = (
     examplePath: definition.examplePath,
     isCustom: definition.isCustom,
     content: stripShellFromContent(normalized.content),
+    appBar: emptyAppBar(),
   };
 };
 
@@ -470,6 +580,12 @@ export function normalizeSiteData(value: Partial<SiteData> | null | undefined): 
         ? (composedTitle as SitePageText)
         : definition.label);
 
+    // Prefer explicit page.appBar; also accept an AppBar left in content (legacy).
+    const fromContent = extractAppBarFromContent(composed.content);
+    const appBar = !isEmptyAppBar(normalizeSitePageAppBar(page.appBar))
+      ? normalizeSitePageAppBar(page.appBar)
+      : fromContent.appBar;
+
     return {
       path: definition.path,
       slug: page.slug ?? definition.path,
@@ -481,9 +597,25 @@ export function normalizeSiteData(value: Partial<SiteData> | null | undefined): 
       dynamic: definition.dynamic,
       examplePath: definition.examplePath,
       isCustom: definition.isCustom,
-      content: stripShellFromContent(composed.content),
+      content: stripMobileShellFromContent(fromContent.content),
+      appBar,
     } satisfies SitePage;
   });
+
+  const sidebarFromContent = (() => {
+    for (const page of Array.isArray(input.pages) ? input.pages : []) {
+      const list = Array.isArray(page.content) ? page.content : [];
+      const node = list.find((item) => item.type === SIDEBAR_COMPONENT_TYPE) as
+        | ComponentLike
+        | undefined;
+      if (node) return toPersistedSidebar(node);
+    }
+    return emptySidebar();
+  })();
+
+  const sidebar = !isEmptySidebar(normalizeSiteSidebar(input.sidebar))
+    ? normalizeSiteSidebar(input.sidebar)
+    : sidebarFromContent;
 
   return {
     root: {
@@ -492,6 +624,7 @@ export function normalizeSiteData(value: Partial<SiteData> | null | undefined): 
     },
     zones: (rootNormalized.zones ?? input.zones ?? {}) as ZoneMap,
     pages: dedupeSitePages(pages.length > 0 ? pages : buildInitialSiteData().pages),
+    sidebar,
   };
 }
 
@@ -534,11 +667,20 @@ function readDesktopSiteFromStorage(): SiteData {
 /** Copy the desktop site into the mobile storage key on first mobile edit. */
 export function seedMobileSiteFromDesktop(): SiteData {
   const desktop = readDesktopSiteFromStorage();
-  const seeded = normalizeSiteData(
-    JSON.parse(JSON.stringify(desktop)) as SiteData
+  const seeded = migrateMobileDrawerToSidebar(
+    normalizeSiteData(JSON.parse(JSON.stringify(desktop)) as SiteData)
   );
-  writeSiteData(seeded, "mobile");
-  return seeded;
+  // Ensure every page has an appBar key (empty if none).
+  const withAppBars: SiteData = {
+    ...seeded,
+    pages: seeded.pages.map((page) => ({
+      ...page,
+      appBar: page.appBar ?? emptyAppBar(),
+    })),
+    sidebar: seeded.sidebar ?? emptySidebar(),
+  };
+  writeSiteData(withAppBars, "mobile");
+  return withAppBars;
 }
 
 export function readSiteData(mode?: EditorMode): SiteData {
@@ -632,6 +774,7 @@ export { applyMobileEditorFieldGroups } from "./mobile-field-groups";
 
 export function composePuckData(site: SiteData, editPath: string): UserData {
   const page = findSitePage(site, editPath);
+  const mode = getActiveEditorMode();
 
   if (!page) {
     return normalizeEditorData({
@@ -639,6 +782,26 @@ export function composePuckData(site: SiteData, editPath: string): UserData {
       content: [],
       zones: site.zones ?? {},
     });
+  }
+
+  let content = [...(page.content ?? [])] as UserData["content"];
+
+  if (mode === "mobile") {
+    const shell: UserData["content"] = [];
+
+    const appBarNode = toEditorAppBarNode(page.appBar ?? emptyAppBar());
+    if (appBarNode) {
+      shell.push(appBarNode as UserData["content"][number]);
+    }
+
+    const sidebarNode = toEditorSidebarNode(site.sidebar ?? emptySidebar());
+    if (sidebarNode) {
+      shell.push(sidebarNode as UserData["content"][number]);
+    }
+
+    // Avoid duplicating if content already carries them (unsaved edit path).
+    const withoutShell = stripMobileShellFromContent(content);
+    content = [...shell, ...withoutShell] as UserData["content"];
   }
 
   return normalizeEditorData({
@@ -649,7 +812,7 @@ export function composePuckData(site: SiteData, editPath: string): UserData {
         title: page.title ?? page.name,
       },
     },
-    content: page.content ?? [],
+    content,
     zones: site.zones ?? {},
   });
 }
@@ -664,6 +827,14 @@ export function applyPuckSave(
   const globalRootProps = extractGlobalRootProps(
     (normalized.root?.props ?? {}) as JsonRecord
   );
+  const mode = getActiveEditorMode();
+
+  const { appBar: extractedAppBar, content: afterAppBar } =
+    extractAppBarFromContent(normalized.content);
+  const { sidebar: extractedSidebar, content: pageContent } =
+    mode === "mobile"
+      ? extractSidebarFromContent(afterAppBar)
+      : { sidebar: site.sidebar ?? emptySidebar(), content: afterAppBar };
 
   const matchedPage = findSitePage(site, editPath);
   const pageIndex = matchedPage
@@ -677,7 +848,11 @@ export function applyPuckSave(
             ? {
                 ...page,
                 title: pageTitle || page.title || page.name,
-                content: stripShellFromContent(normalized.content),
+                content: stripMobileShellFromContent(pageContent),
+                appBar:
+                  mode === "mobile"
+                    ? extractedAppBar
+                    : (page.appBar ?? emptyAppBar()),
               }
             : page
         )
@@ -692,9 +867,17 @@ export function applyPuckSave(
             description: "Custom page",
             iconName: "FileText" as const,
             isCustom: true,
-            content: stripShellFromContent(normalized.content),
+            content: stripMobileShellFromContent(pageContent),
+            appBar: mode === "mobile" ? extractedAppBar : emptyAppBar(),
           },
         ];
+
+  const nextSidebar =
+    mode === "mobile"
+      ? // If the merchant removed the Sidebar block, keep previous unless they
+        // explicitly had one in content this save (extracted empty = cleared).
+        extractedSidebar
+      : (site.sidebar ?? emptySidebar());
 
   return normalizeSiteData({
     root: {
@@ -703,6 +886,7 @@ export function applyPuckSave(
     },
     zones: normalized.zones ?? site.zones ?? {},
     pages: updatedPages,
+    sidebar: nextSidebar,
   });
 }
 
@@ -737,6 +921,7 @@ export function addSitePage(
         examplePath: definition.examplePath,
         isCustom: definition.isCustom ?? true,
         content: starterContent ?? [],
+        appBar: definition.appBar ?? emptyAppBar(),
       },
     ],
   });
