@@ -1,4 +1,8 @@
 export { runProductSeed } from "./actions"
+export { SeedDatasetCard } from "./seed-dataset-card"
 export { SeedProductsButton } from "./seed-products-button"
+export { SeedFurnitureButton } from "./seed-furniture-button"
 export { SEED_DATASET } from "./dataset"
+export { FURNITURE_SEED_DATASET } from "./furniture-dataset"
+export type { SeedDataset } from "./dataset"
 export type { SeedProgress, SeedPhase } from "./types"

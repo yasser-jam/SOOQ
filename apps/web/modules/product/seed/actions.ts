@@ -40,6 +40,7 @@ import {
   type SeedAttributeDef,
   type SeedCategoryDef,
   type SeedCollectionDef,
+  type SeedDataset,
   type SeedProductAttributeValue,
   type SeedProductDef,
   type SeedTagDef,
@@ -622,9 +623,15 @@ async function ensureCollections(
  * Full seed pipeline: categories → tags → attributes → products → collections.
  * Each phase reports fine-grained progress; individual errors are collected
  * without aborting the pipeline so a partial seed still lands in the store.
+ *
+ * `dataset` defaults to the general demo catalog; pass `FURNITURE_SEED_DATASET`
+ * (or any other `SeedDataset`) to seed a different catalog through the same
+ * pipeline. Datasets may share categories/tags/attributes — anything that
+ * already exists is reused instead of recreated.
  */
 export async function runProductSeed(
-  onProgress: SeedProgressCallback
+  onProgress: SeedProgressCallback,
+  dataset: SeedDataset = SEED_DATASET
 ): Promise<void> {
   const errors: string[] = []
 
@@ -638,22 +645,22 @@ export async function runProductSeed(
     })
 
     const categoryIds = await ensureCategories(
-      SEED_DATASET.categories,
+      dataset.categories,
       onProgress,
       errors
     )
 
-    const tagIds = await ensureTags(SEED_DATASET.tags, onProgress, errors)
+    const tagIds = await ensureTags(dataset.tags, onProgress, errors)
 
     const attributeMap = await ensureAttributes(
-      SEED_DATASET.attributes,
+      dataset.attributes,
       categoryIds,
       onProgress,
       errors
     )
 
     const productIds = await ensureProducts(
-      SEED_DATASET.products,
+      dataset.products,
       categoryIds,
       tagIds,
       attributeMap,
@@ -662,7 +669,7 @@ export async function runProductSeed(
     )
 
     await ensureCollections(
-      SEED_DATASET.collections,
+      dataset.collections,
       productIds,
       onProgress,
       errors

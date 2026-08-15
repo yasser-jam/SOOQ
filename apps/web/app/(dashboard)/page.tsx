@@ -2,6 +2,7 @@
 
 import { HomeMockDashboard } from "@/components/home-mock-dashboard"
 import { FullPageLoader } from "@/components/full-page-loader"
+import { SeedFurnitureButton } from "@/modules/product/seed/seed-furniture-button"
 import { SeedProductsButton } from "@/modules/product/seed/seed-products-button"
 import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 import { useQuery } from "@tanstack/react-query"
@@ -29,7 +30,10 @@ export default function HomePage() {
       <FullPageLoader active={isPending || loading} loopMessages={false} />
 
       <div className="container space-y-6 py-6">
-        <SeedProductsButton />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <SeedProductsButton />
+          <SeedFurnitureButton />
+        </div>
         <HomeMockDashboard />
       </div>
     </>

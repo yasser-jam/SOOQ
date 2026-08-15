@@ -25,6 +25,7 @@ export type BuiltinThemeSummary = {
 const builtinThemeLoaders: Record<string, () => Promise<unknown>> = {
   "builtin-sooq-modern": () => import("./theme-sooq-modern.json"),
   "builtin-meridian-almarai": () => import("./theme-meridian-almarai.json"),
+  "builtin-rawaq-furniture": () => import("./theme-rawaq-furniture.json"),
 };
 
 export const builtinThemeCatalog: BuiltinThemeSummary[] = [
@@ -43,6 +44,14 @@ export const builtinThemeCatalog: BuiltinThemeSummary[] = [
       "قالب بنفسجي ملوّن بخط المراعي — هيرو بصورة، مزايا، صفحة منتجات بالبحث والفئات، تفاصيل منتج، سلة، وتسجيل دخول.",
     previewImageUrl:
       "https://placehold.co/400x250/7c3aed/ffffff?text=%D9%85%D9%8A%D8%B1%D9%8A%D8%AF%D9%8A%D8%A7%D9%86",
+  },
+  {
+    templateKey: "builtin-rawaq-furniture",
+    templateName: "روّاق للأثاث",
+    description:
+      "قالب أثاث دافئ بخط المسيري وألوان الزيتوني والكتان والبنّي الداكن — واجهة بصورة، فئات بالشبكة، معرض غرف بالسلايدر، خامات، آراء، وبطاقة منتج مسطّحة بالسعر وزر مضغوط.",
+    previewImageUrl:
+      "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=400&h=250&q=70",
   },
 ];
 

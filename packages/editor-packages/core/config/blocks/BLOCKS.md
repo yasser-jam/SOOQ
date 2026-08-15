@@ -2,87 +2,170 @@
 
 Each block is described with its **properties**, accepted **values**, and a ready-to-use **JSON example** (the exact shape stored in `store_config.json`).
 
-> **Common note — `layout`**  
-> Most blocks wrap their props with a `WithLayout` higher-order type that adds a shared `layout` object. The `layout` prop controls advanced positioning (padding, shadow, float, per-breakpoint visibility via `hideOnMobile` / `hideOnTablet` / `hideOnDesktop`, etc.). It is omitted from the examples below for brevity; add it only when you need non-default positioning.
+> **Sibling doc:** [BLOCKS-MOBILE.md](./BLOCKS-MOBILE.md) documents the mobile-only subset of this
+> registry. Zones (header / footer / drawer / popup / bottom sheet) live in [ZONES.md](./ZONES.md).
 
-> **Block registry** (`config/index.tsx`)  
-> Blocks registered in the editor are grouped as:
-> - **layout** — `Section`, `Group`, `RowGroup`
-> - **blocks** — `ContentHeading`, `ContentParagraph`, `ContentImage`, `ContentButton`, `Chip`, `ButtonGroup`, `ContentLink`, `ContentInput`, `ContentSwitch`, `ContentDivider`, `Space`, `ImageGallery`, `VideoEmbed`, `Accordion`
-> - **storeBlocks** — currently `Testimonials` is the only entry surfaced in the palette; `ProductImageCarousel`, `ProductVariants`, `CategoryListMenu`, `CheckoutForm`, `ProductSearchMenu`, `OrderHistory`, `Wishlist`, `ContactForm` are all registered but commented out of the visible palette (used inside presets or bound `Group` slots). Header cart / orders use `ContentButton` presets — legacy `CartIconButton` / `OrdersIconButton` are in **legacy**.
-> - **legacy** — hidden from picker; still resolvable so old `store_config.json` payloads render
->
-> **Site zones** (`SiteHeader`, `SiteFooter`, `ZoneDrawer`, `ZonePopup`, `ZoneBottomSheet`, plus the legacy `SiteDrawerShell`) are managed via the **المناطق** sidebar plugin — not the blocks palette. They also carry fixed permissions `{ insert: false, duplicate: false, drag: false, delete: false }`. See [ZONES.md](./ZONES.md).
->
-> **Legacy blocks** (registered but hidden from the picker; kept so old `store_config.json` still loads): `CartSection`, `CartList`, `CartItem`, `CartQuantity`, `CartIconButton`, `OrdersIconButton`, `ProductCard`, `SiteDrawerShell`, `SideDrawer`, `Heading`, `Text`, `RichText`, `Button`, `Card`, `Grid`, `Flex`, `Hero`, `Logos`, `Stats`, `Template`, `NavMenu`, `ContentIcon`, `ContentHtml`, `ProductImage`, `ProductInfo`. `ProductsGrid` is fully removed — replaced by the Products Grid section preset.
+> **Common note — `layout`**  
+> Most blocks wrap their props with a `WithLayout` higher-order type that adds a shared `layout` object. The `layout` prop controls advanced positioning (padding, border, shadow, float placement, per-breakpoint visibility via `hideOnMobile` / `hideOnTablet` / `hideOnDesktop`, etc.). It is omitted from the examples below for brevity; add it only when you need non-default positioning. See [Layout (`layout` prop)](#layout-layout-prop).
+
+> **Common note — `showCondition`**  
+> **Every** registered block also carries a `showCondition` prop, injected by `withShowCondition()`
+> (`config/lib/with-show-condition.tsx`). Values: `"always"` (default) / `"loggedIn"` / `"loggedOut"`.
+> It is evaluated against the customer session at render time and always renders in the editor.
+> See [showCondition](#showcondition).
+
+> **Common note — bilingual text (`{ ar, en }`)**  
+> Most user-visible text props are **`BilingualString`** objects, not plain strings. The registry of
+> which prop on which block is bilingual is `config/lib/bilingual-props.ts`. Legacy plain strings and
+> legacy `*Ar` siblings still load (they are migrated on read). See
+> [Bilingual text](#bilingual-text-bilingualstring) for the full contract and the per-block table.
+
+---
+
+## Block status — what to use, what to avoid
+
+Source of truth: the single registry in [`config/index.tsx`](../index.tsx). Status legend:
+
+| Status | Meaning |
+|---|---|
+| ✅ **Active** | Shown in the blocks palette. Use these. |
+| 🧩 **Preset-only** | Registered and rendered, but **hidden from the palette** — inserted only by section/zone presets and built-in themes. Don't hand-place; edit through the preset. |
+| ⛔ **IGNORED** | Registered so old `store_config.json` keeps rendering, but **do not use in new work**. Not in the palette, not in any preset or shipped theme. Treat as scheduled for deletion. |
+| 🗄️ **Legacy** | Superseded by a documented replacement; kept render-only for old payloads. **Do not use.** |
+| ❌ **Removed** | No longer registered at all. Old JSON referencing it renders nothing. |
+
+### ✅ Active — the palette (`categories` in `config/index.tsx`)
+
+| Category (Arabic label) | Blocks |
+|---|---|
+| `layout` — **تخطيط** | [`Section`](#section), [`Group`](#group), [`RowGroup`](#rowgroup) |
+| `blocks` — **عناصر** | [`ContentHeading`](#contentheading), [`ContentParagraph`](#contentparagraph), [`ContentImage`](#contentimage), [`ContentButton`](#contentbutton), [`Chip`](#chip), [`ButtonGroup`](#buttongroup), [`ContentLink`](#contentlink), [`ContentInput`](#contentinput), [`ContentSwitch`](#contentswitch), [`ContentMap`](#contentmap), [`ContentDivider`](#contentdivider), [`Space`](#space), [`ImageGallery`](#imagegallery), [`VideoEmbed`](#videoembed), [`Accordion`](#accordion) |
+
+Site zones (`SiteHeader`, `SiteFooter`, `ZoneDrawer`, `ZonePopup`, `ZoneBottomSheet`) are also active,
+but managed through the **المناطق** sidebar plugin instead of the palette, and carry fixed permissions
+`{ insert: false, duplicate: false, drag: false, delete: false }`. See [ZONES.md](./ZONES.md).
+
+### 🧩 Preset-only — hidden, but still used
+
+| Block | Used by |
+|---|---|
+| [`NavMenu`](#navmenu) | `presets/zone-shell.ts`, `presets/drawer.ts`, all shipped themes |
+| [`Card`](#card) | `presets/general.ts` (`three-feature-cards`), `theme-sooq-modern`, `theme-meridian-almarai` |
+| [`ContentIcon`](#contenticon) | `theme-sooq-modern`, `theme-meridian-almarai` |
+| [`Hero`](#hero) | `presets/shared.ts` (legacy hero body; new hero presets are `Section`-based) |
+| [`Stats`](#stats) | `theme-sooq-modern` |
+| [`ProductImageCarousel`](#productimagecarousel), [`ProductVariants`](#productvariants) | `theme-meridian-almarai` product-detail page |
+| [`Testimonials`](#testimonials) | `theme-meridian-almarai` |
+
+> These are listed in the hidden `legacy` category in `config/index.tsx` even though presets still emit
+> them. Removing one means editing the presets/themes above first.
+
+### ⛔ IGNORED — do not use (registered for old JSON only)
+
+| Block | Why it's ignored |
+|---|---|
+| [`CategoryListMenu`](#categorylistmenu), [`CheckoutForm`](#checkoutform), [`ProductSearchMenu`](#productsearchmenu), [`OrderHistory`](#orderhistory), [`Wishlist`](#wishlist), [`ContactForm`](#contactform) | In the `storeBlocks` category, which is `visible: false` **with every entry commented out** — the explicit "IGNORED" marker in `config/index.tsx` |
+| [`ContentHtml`](#contenthtml), [`SideDrawer`](#sidedrawer), [`Template`](#template), [`Logos`](#logos) | Listed in the hidden `legacy` category and emitted by **no** preset or shipped theme |
+| [`Sidebar`](#sidebar) | Registered in `components` but listed in **no** category at all, so it lands in the hidden `other` bucket |
+| [`Blank`](#blank) | Never registered — dev-only placeholder |
+
+Do not re-enable one without also wiring it into a preset or theme (and updating this doc).
+
+### 🗄️ Legacy — superseded, use the replacement
+
+| Legacy block | Use instead |
+|---|---|
+| [`CartSection`](#cartsection), [`CartList`](#cartlist), [`CartItem`](#cartitem), [`CartQuantity`](#cartquantity) | `Section` with `metadata.preset: "shopping-cart"` + `Group` with `cartLineId` |
+| [`ProductCard`](#productcard) | `Group` with a `product` picker (Products Grid preset) |
+| [`ProductImage`](#productimage), [`ProductInfo`](#productinfo) | Bound `Group` + `ContentImage` / `ContentHeading` with `valueContext` |
+| [`CartIconButton`](#carticonbutton), [`OrdersIconButton`](#ordersiconbutton) | `ContentButton` presets (`CART_ICON_BUTTON` / `ORDERS_ICON_BUTTON` in `presets/zone-shell.ts`) |
+| [`SiteDrawerShell`](#sitedrawershell) | [`ZoneDrawer`](#zonedrawer) |
+| [`Heading`](#heading), [`Text`](#text), [`RichText`](#richtext) | [`ContentHeading`](#contentheading) / [`ContentParagraph`](#contentparagraph) |
+| [`Button`](#button) | [`ContentButton`](#contentbutton) |
+| [`Grid`](#grid), [`Flex`](#flex) | `Section` columns, [`Group`](#group), [`RowGroup`](#rowgroup) |
+
+### ❌ Removed
+
+- **`ProductsGrid`** — deleted from the registry. Use `Section` with `metadata.preset: "products-grid"`.
+  Documented [below](#productsgrid) only so old payloads can be read.
+- There is **no** `LoginButton`, `CartButton`, or `MyOrdersButton` block — use `ContentButton`
+  with the presets in `config/presets/zone-shell.ts` / `config/presets/header-layouts.ts`.
+
+---
 
 > **Runtime metadata & data binding**  
 > Commerce sections use **`Group`** blocks as binding roots — not standalone `ProductCard` / `ProductsGrid` blocks. When a product is picked on a Group, the editor auto-populates read-only `metadata` with `apiUrl`. Child blocks (`ContentHeading`, `ContentParagraph`, `ContentImage`, `ContentButton`) resolve live values via optional `valueContext.path` against the Group's bound data. Mobile converters should fetch from `metadata.apiUrl` at render time rather than embedding product payloads in JSON.
 >
 > **Commerce section presets (preferred)**  
-> Insert via Design Studio → **Products Grid** or **Shopping Cart** section presets. Both are `Section` blocks with `metadata.preset` set. Legacy standalone blocks `ProductsGrid`, `ProductCard`, and `CartSection` remain in old `store_config.json` but are hidden from the block picker.
+> Insert via Design Studio → **Products Grid**, **Products Page**, **Shopping Cart**, or **Account** section presets. All are `Section` blocks with `metadata.preset` set — see [Section preset metadata](#section-preset-metadata).
 
 ---
 
 ## Table of Contents
 
-1. [Accordion](#accordion)
-2. [Blank](#blank)
-3. [Button](#button)
-4. [ButtonGroup](#buttongroup)
-5. [CartIconButton](#carticonbutton)
-6. [CartItem](#cartitem)
-7. [CartList](#cartlist)
-8. [CartQuantity](#cartquantity)
-9. [CartSection](#cartsection)
-10. [Card](#card)
-11. [CategoryListMenu](#categorylistmenu)
-12. [CheckoutForm](#checkoutform)
-13. [Chip](#chip)
-14. [ContactForm](#contactform)
-15. [ContentButton](#contentbutton)
-16. [ContentDivider](#contentdivider)
-17. [ContentHeading](#contentheading)
-18. [ContentHtml](#contenthtml)
-19. [ContentIcon](#contenticon)
-20. [ContentImage](#contentimage)
-21. [ContentInput](#contentinput)
-22. [ContentLink](#contentlink)
-23. [ContentParagraph](#contentparagraph)
-24. [ContentSwitch](#contentswitch)
-25. [Flex](#flex)
-26. [Grid](#grid)
-27. [Group](#group)
-28. [Heading](#heading)
-29. [Hero](#hero)
-30. [ImageGallery](#imagegallery)
-31. [Logos](#logos)
-32. [NavMenu](#navmenu)
-33. [OrderHistory](#orderhistory)
-34. [ProductCard](#productcard)
-35. [ProductImage](#productimage)
-36. [ProductImageCarousel](#productimagecarousel)
-37. [ProductInfo](#productinfo)
-38. [ProductSearchMenu](#productsearchmenu)
-39. [ProductVariants](#productvariants)
-40. [RichText](#richtext)
-41. [RowGroup](#rowgroup)
-42. [Section](#section)
-43. [Sidebar](#sidebar)
-44. [SideDrawer](#sidedrawer)
-45. [SiteDrawerShell](#sitedrawershell) *(legacy)*
-46. [SiteFooter](#sitefooter)
-47. [SiteHeader](#siteheader)
-48. [Space](#space)
-49. [Stats](#stats)
-50. [Template](#template)
-51. [Testimonials](#testimonials)
-52. [Text](#text)
-53. [VideoEmbed](#videoembed)
-54. [Wishlist](#wishlist)
-55. [ZoneBottomSheet](#zonebottomsheet)
-56. [ZoneDrawer](#zonedrawer)
-57. [ZonePopup](#zonepopup)
+Status tags mirror the [block status matrix](#block-status--what-to-use-what-to-avoid):
+✅ active · 🧩 preset-only · ⛔ ignored · 🗄️ legacy · ❌ removed.
+
+1. [Accordion](#accordion) ✅
+2. [Blank](#blank) ⛔
+3. [Button](#button) 🗄️
+4. [ButtonGroup](#buttongroup) ✅
+5. [CartIconButton](#carticonbutton) 🗄️
+6. [CartItem](#cartitem) 🗄️
+7. [CartList](#cartlist) 🗄️
+8. [CartQuantity](#cartquantity) 🗄️
+9. [CartSection](#cartsection) 🗄️
+10. [Card](#card) 🧩
+11. [CategoryListMenu](#categorylistmenu) ⛔
+12. [CheckoutForm](#checkoutform) ⛔
+13. [Chip](#chip) ✅
+14. [ContactForm](#contactform) ⛔
+15. [ContentButton](#contentbutton) ✅
+16. [ContentDivider](#contentdivider) ✅
+17. [ContentHeading](#contentheading) ✅
+18. [ContentHtml](#contenthtml) ⛔
+19. [ContentIcon](#contenticon) 🧩
+20. [ContentImage](#contentimage) ✅
+21. [ContentInput](#contentinput) ✅
+22. [ContentLink](#contentlink) ✅
+23. [ContentMap](#contentmap) ✅
+24. [ContentParagraph](#contentparagraph) ✅
+25. [ContentSwitch](#contentswitch) ✅
+26. [Flex](#flex) 🗄️
+27. [Grid](#grid) 🗄️
+28. [Group](#group) ✅
+29. [Heading](#heading) 🗄️
+30. [Hero](#hero) 🧩
+31. [ImageGallery](#imagegallery) ✅
+32. [Logos](#logos) ⛔
+33. [NavMenu](#navmenu) 🧩
+34. [OrderHistory](#orderhistory) ⛔
+35. [OrdersIconButton](#ordersiconbutton) 🗄️
+36. [ProductCard](#productcard) 🗄️
+37. [ProductImage](#productimage) 🗄️
+38. [ProductImageCarousel](#productimagecarousel) 🧩
+39. [ProductInfo](#productinfo) 🗄️
+40. [ProductSearchMenu](#productsearchmenu) ⛔
+41. [ProductVariants](#productvariants) 🧩
+42. [ProductsGrid](#productsgrid) ❌
+43. [RichText](#richtext) 🗄️
+44. [RowGroup](#rowgroup) ✅
+45. [Section](#section) ✅
+46. [Sidebar](#sidebar) ⛔
+47. [SideDrawer](#sidedrawer) ⛔
+48. [SiteDrawerShell](#sitedrawershell) 🗄️
+49. [SiteFooter](#sitefooter) ✅ *(zone)*
+50. [SiteHeader](#siteheader) ✅ *(zone)*
+51. [Space](#space) ✅
+52. [Stats](#stats) 🧩
+53. [Template](#template) ⛔
+54. [Testimonials](#testimonials) 🧩
+55. [Text](#text) 🗄️
+56. [VideoEmbed](#videoembed) ✅
+57. [Wishlist](#wishlist) ⛔
+58. [ZoneBottomSheet](#zonebottomsheet) ✅ *(zone)*
+59. [ZoneDrawer](#zonedrawer) ✅ *(zone)*
+60. [ZonePopup](#zonepopup) ✅ *(zone)*
 
 **Site-wide reference sections**
 
@@ -91,7 +174,7 @@ Each block is described with its **properties**, accepted **values**, and a read
 - [Theme root props (`FullThemeProps`)](#theme-root-props-fullthemeprops)
 - [Section preset catalog](#section-preset-catalog)
 - [Products page filters](#products-page-filters)
-- [Shared concepts (data binding, LinkValue, tokens…)](#shared-concepts)
+- [Shared concepts (bilingual text, data binding, LinkValue, showCondition, tokens…)](#shared-concepts)
 
 ---
 
@@ -104,15 +187,18 @@ Each block is described with its **properties**, accepted **values**, and a read
 
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
-| `heading` | `string` | Section heading | `"الأسئلة الشائعة"` |
-| `description` | `string` | Subtitle below heading | `"إجابات مختصرة وعملية لتسهّل على الزائر قراءتها بسرعة."` |
+| `heading` | **`BilingualString`** | Section heading | `{ ar: "الأسئلة الشائعة", en: "FAQ" }` |
+| `description` | **`BilingualString`** | Subtitle below heading | `{ ar: "إجابات مختصرة وعملية…", en: "Short, practical answers…" }` |
 | `variant` | `"soft" \| "outline" \| "minimal"` | Visual style | `"soft"` |
 | `backgroundColor` | `string` | CSS color or empty (use theme) | `""` |
 | `textColor` | `string` | CSS color or empty | `""` |
-| `items` | `AccordionItem[]` | Array of accordion items | see below |
-| `items[].title` | `string` | Item question/title | `"سؤال"` |
-| `items[].body` | `string` | Item answer/body | `"إجابة"` |
+| `items` | `AccordionItem[]` | Array of accordion items | 3 sample items |
+| `items[].title` | **`BilingualString`** | Item question/title | `{ ar, en }` |
+| `items[].body` | **`BilingualString`** | Item answer/body | `{ ar, en }` |
 | `items[].open` | `boolean` | Open by default | `false` |
+
+> **Bilingual:** `heading`, `description`, `items[].title`, `items[].body`. Plain strings from older
+> payloads still render (treated as Arabic). See [Bilingual text](#bilingual-text-bilingualstring).
 
 ### JSON Example
 
@@ -120,15 +206,28 @@ Each block is described with its **properties**, accepted **values**, and a read
 {
   "type": "Accordion",
   "props": {
-    "heading": "الأسئلة الشائعة",
-    "description": "إجابات مختصرة وعملية.",
+    "heading": { "ar": "الأسئلة الشائعة", "en": "FAQ" },
+    "description": { "ar": "إجابات مختصرة وعملية.", "en": "Short, practical answers." },
     "variant": "soft",
     "backgroundColor": "",
     "textColor": "",
     "items": [
-      { "title": "كم يستغرق التوصيل؟", "body": "معظم الطلبات في سوريا تصل خلال 2-4 أيام عمل حسب المدينة.", "open": true },
-      { "title": "هل يمكن الدفع عند الاستلام؟", "body": "نعم، الدفع عند الاستلام متاح لجميع المناطق المؤهلة.", "open": false },
-      { "title": "هل تقدّمون إرجاعاً للمنتجات؟", "body": "يمكنك طلب الإرجاع خلال 7 أيام للمنتجات غير المستخدمة بحالتها الأصلية.", "open": false }
+      {
+        "title": { "ar": "كم يستغرق التوصيل؟", "en": "How long does delivery take?" },
+        "body": {
+          "ar": "معظم الطلبات في سوريا تصل خلال 2-4 أيام عمل حسب المدينة.",
+          "en": "Most orders in Syria arrive within 2–4 business days depending on the city."
+        },
+        "open": true
+      },
+      {
+        "title": { "ar": "هل يمكن الدفع عند الاستلام؟", "en": "Is cash on delivery available?" },
+        "body": {
+          "ar": "نعم، الدفع عند الاستلام متاح لجميع المناطق المؤهلة.",
+          "en": "Yes — cash on delivery is available in all eligible areas."
+        },
+        "open": false
+      }
     ]
   }
 }
@@ -137,6 +236,8 @@ Each block is described with its **properties**, accepted **values**, and a read
 ---
 
 ## Blank
+
+> ⛔ **Not registered.** Dev-only placeholder — never appears in merchant `store_config.json`.
 
 **Label:** Placeholder  
 **Description:** A simple placeholder block used during development or as a fallback. **Not registered** in the editor config — will not appear in `store_config.json` from merchant stores.
@@ -163,6 +264,8 @@ Each block is described with its **properties**, accepted **values**, and a read
 ---
 
 ## Button
+
+> 🗄️ **Legacy — use [`ContentButton`](#contentbutton).** Hidden from the palette; kept so old `store_config.json` renders.
 
 **Label:** الزر  
 **Description:** A standalone CTA button supporting link navigation or in-app actions.
@@ -197,6 +300,8 @@ Each block is described with its **properties**, accepted **values**, and a read
 
 ## Card
 
+> 🧩 **Preset-only.** Hidden from the palette but still emitted by `presets/general.ts` (`three-feature-cards`) and the shipped themes. Edit it through the preset rather than inserting it by hand.
+
 **Label:** Card  
 **Description:** A feature card with an icon, title, and description.
 
@@ -204,8 +309,8 @@ Each block is described with its **properties**, accepted **values**, and a read
 
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
-| `title` | `string` | Card title | `"Title"` |
-| `description` | `string` | Card description | `"Description"` |
+| `title` | **`BilingualString`** | Card title | `{ ar: "عنوان", en: "Title" }` |
+| `description` | **`BilingualString`** | Card description | `{ ar: "وصف", en: "Description" }` |
 | `icon` | `string` *(optional)* | Lucide icon key (lowercase kebab-case, e.g. `"feather"`, `"truck"`) | `"feather"` |
 | `mode` | `"flat" \| "card"` | Visual style | `"flat"` |
 
@@ -215,8 +320,11 @@ Each block is described with its **properties**, accepted **values**, and a read
 {
   "type": "Card",
   "props": {
-    "title": "شحن سريع",
-    "description": "توصيل خلال يومي عمل لجميع المحافظات.",
+    "title": { "ar": "شحن سريع", "en": "Fast shipping" },
+    "description": {
+      "ar": "توصيل خلال يومي عمل لجميع المحافظات.",
+      "en": "Delivered within two business days to every governorate."
+    },
     "icon": "truck",
     "mode": "card"
   }
@@ -300,6 +408,8 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 
 ## CategoryListMenu
 
+> ⛔ **IGNORED — do not use.** Registered only so old `store_config.json` renders; commented out of the `storeBlocks` palette and used by no preset or theme.
+
 **Label:** Category list menu  
 **Description:** A browsable category list menu that displays product categories and their items.
 
@@ -330,6 +440,8 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 
 ## CheckoutForm
 
+> ⛔ **IGNORED — do not use.** Registered only so old `store_config.json` renders. Build checkout from `Section` + `ContentInput` blocks with `inputAction` bindings instead (see the `forms` presets).
+
 **Label:** Checkout Form  
 **Description:** Full checkout form bound to the store's checkout flow.
 
@@ -354,6 +466,8 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 
 ## ContactForm
 
+> ⛔ **IGNORED — do not use.** Registered only so old `store_config.json` renders; commented out of the `storeBlocks` palette.
+
 **Label:** نموذج اتصال  
 **Description:** A contact form that submits to the tenant's contact endpoint. Supports bilingual labels.
 
@@ -367,8 +481,8 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 | `showPhone` | `boolean` | Show phone field | `true` |
 | `requirePhone` | `boolean` | Make phone required | `false` |
 | `showSubject` | `boolean` | Show subject field | `true` |
-| `submitLabel` | `string` | Submit button label | `"إرسال"` |
-| `successMessage` | `string` | Message after successful submission | `"شكراً — تم إرسال رسالتك."` |
+| `submitLabel` | **`BilingualString`** | Submit button label | `{ ar: "إرسال", en: "Send" }` |
+| `successMessage` | **`BilingualString`** | Message after successful submission | `{ ar: "شكراً — تم إرسال رسالتك.", en: "Thanks — your message was sent." }` |
 | `enableCaptcha` | `boolean` | Enable CAPTCHA protection | `true` |
 | `submitWidth` | `"auto" \| "full"` | Submit button width | `"auto"` |
 
@@ -384,8 +498,11 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
     "showPhone": true,
     "requirePhone": false,
     "showSubject": true,
-    "submitLabel": "إرسال",
-    "successMessage": "شكراً — تم إرسال رسالتك.",
+    "submitLabel": { "ar": "إرسال", "en": "Send" },
+    "successMessage": {
+      "ar": "شكراً — تم إرسال رسالتك.",
+      "en": "Thanks — your message was sent."
+    },
     "enableCaptcha": true,
     "submitWidth": "auto"
   }
@@ -403,12 +520,12 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
-| `label` | `string` | Button text | `"زر"` |
+| `label` | **`BilingualString`** | Button text | `{ ar: "زر", en: "Button" }` |
 | `align` | `"left" \| "center" \| "right"` | Horizontal alignment | `"center"` |
 | `destinationType` | `"link" \| "action" \| "zone"` | Navigate, trigger action, or open/close a zone | `"link"` |
 | `link` | `LinkValue` | Navigation target | `EMPTY_LINK` |
-| `labelValueContext` | `ValueContext \| null` | Optional path-based label override (e.g. bound product title) | `null` |
-| `buttonAction` | `ButtonAction` | In-app action key (when `destinationType = "action"`): `login`, `logout`, `verifyOtp`, `addToCart`, `addToWishlist`, `makeOrder`, `cartQtyIncrease`, `cartQtyDecrease` | `"login"` |
+| `labelValueContext` | `ValueContext \| null` | Optional path-based label override (e.g. bound product title) — **overrides the bilingual label** | `null` |
+| `buttonAction` | `ButtonAction` | In-app action key (when `destinationType = "action"`) — see [the full list](#buttonaction-values) | `"link"` |
 | `submitRedirectUrl` | `string` | Redirect after successful login / OTP / order | `""` |
 | `zoneKey` | `string` | Zone event key (when `destinationType = "zone"`) | `"login"` |
 | `zoneAction` | `"open" \| "close" \| "toggle"` | Zone event action | `"open"` |
@@ -420,13 +537,34 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 | `textColor` | `string` | Text color | `"theme-surface"` |
 | `buttonSize` | `string` | Size in fixed mode (e.g. `"theme-md"`) | `"theme-md"` |
 
+> **Bilingual:** `label`. Resolution: `pickLang(label, activeLanguage)` → then `labelValueContext`
+> wins if set.
+
+#### `buttonAction` values
+
+Defined in `config/content/button-actions.ts`.
+
+| Action | Arabic label | Notes |
+|---|---|---|
+| `link` | رابط | Default; uses `link` instead of an action |
+| `login` / `logout` / `verifyOtp` | تسجيل الدخول / الخروج / تحقق من الرمز | Auth flow; `submitRedirectUrl` applies |
+| `addToCart` | إضافة إلى السلة | Requires a product-bound `Group` ancestor |
+| `addToWishlist` | إضافة إلى المفضلة | Requires a product-bound `Group` ancestor |
+| `makeOrder` | إتمام الطلب | Checkout from the current `store-cart` |
+| `cartQtyIncrease` / `cartQtyDecrease` | زيادة / تقليل الكمية | Inside a `cartLineId` `Group` |
+| `saveProfile` | حفظ الملف الشخصي | Customer-account section — writes the profile draft |
+| `createAddress` | حفظ العنوان | Customer-addresses section — submits `customer.addressDraft` |
+| `setDefaultAddress` | تعيين كعنوان افتراضي | Inside an address-repeater cell |
+| `deleteAddress` | حذف العنوان | Inside an address-repeater cell |
+| `toggleLanguage` | تبديل اللغة | **Flips the storefront language** (ar ⇄ en) via `LanguageProvider` — this is what makes bilingual props switch at runtime |
+
 ### JSON Example
 
 ```json
 {
   "type": "ContentButton",
   "props": {
-    "label": "اشتر الآن",
+    "label": { "ar": "اشتر الآن", "en": "Buy now" },
     "align": "center",
     "destinationType": "link",
     "link": { "kind": "page", "pageId": "/products" },
@@ -443,7 +581,7 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 {
   "type": "ContentButton",
   "props": {
-    "label": "إضافة إلى السلة",
+    "label": { "ar": "إضافة إلى السلة", "en": "Add to cart" },
     "align": "center",
     "destinationType": "action",
     "buttonAction": "addToCart",
@@ -459,7 +597,7 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 {
   "type": "ContentButton",
   "props": {
-    "label": "+",
+    "label": { "ar": "+", "en": "+" },
     "align": "center",
     "destinationType": "action",
     "buttonAction": "cartQtyIncrease",
@@ -476,7 +614,7 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 {
   "type": "ContentButton",
   "props": {
-    "label": "السلة",
+    "label": { "ar": "السلة", "en": "Cart" },
     "align": "center",
     "destinationType": "link",
     "buttonAction": "link",
@@ -497,7 +635,7 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 {
   "type": "ContentButton",
   "props": {
-    "label": "طلباتي",
+    "label": { "ar": "طلباتي", "en": "My orders" },
     "align": "center",
     "destinationType": "link",
     "buttonAction": "link",
@@ -526,7 +664,7 @@ When `bindingMode` is `"categories"` or `"pagination"`, items are generated at r
 |---|---|---|---|
 | `bindingMode` | `"static" \| "categories" \| "pagination"` | `static` = manual items; `categories` = category filters; `pagination` = page numbers | `"static"` |
 | `prependAllButton` | `boolean` | Prepend an "All" chip when `bindingMode = "categories"` | `true` |
-| `allButtonTitle` | `string` | Label for the All chip | `"الكل"` |
+| `allButtonTitle` | **`BilingualString`** | Label for the All chip | `{ ar: "الكل", en: "All" }` |
 | `items` | `ButtonGroupItem[]` | Array of buttons (see below); hidden when `bindingMode !== "static"` | two default items |
 | `inactiveStyle` | `ButtonStyle` | Shared style for non-active buttons | surface / text defaults |
 | `activeStyle` | `ButtonStyle` | Shared style for the active button | primary / surface defaults |
@@ -538,7 +676,7 @@ When `bindingMode` is `"categories"` or `"pagination"`, items are generated at r
 
 | Property | Type | Notes |
 |---|---|---|
-| `title` | `string` | Button label |
+| `title` | **`BilingualString`** | Button label |
 | `value` | `string` | Unique identifier; used for selection state and `sooq:button-group-select` event |
 | `destinationType` | `"link" \| "action" \| "zone"` | Same as `ContentButton` |
 | `link` | `LinkValue` | When `destinationType = "link"` |
@@ -586,13 +724,13 @@ When `bindingMode` is `"categories"` or `"pagination"`, items are generated at r
     },
     "items": [
       {
-        "title": "الخيار أ",
+        "title": { "ar": "الخيار أ", "en": "Option A" },
         "value": "option-a",
         "destinationType": "link",
         "link": { "kind": "page", "pageId": "/" }
       },
       {
-        "title": "الخيار ب",
+        "title": { "ar": "الخيار ب", "en": "Option B" },
         "value": "option-b",
         "destinationType": "link",
         "link": { "kind": "page", "pageId": "/products" }
@@ -623,7 +761,7 @@ When `bindingMode` is `"categories"` or `"pagination"`, items are generated at r
     },
     "items": [
       {
-        "title": "تسجيل الدخول",
+        "title": { "ar": "تسجيل الدخول", "en": "Sign in" },
         "value": "login",
         "destinationType": "zone",
         "zoneKey": "popup-main",
@@ -705,25 +843,45 @@ The `radius` / `bgColor` / `textColor` fields are only exposed in `"custom"` mod
 
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
-| `label` | `string` | Field label (empty = search-bar layout with no label) | `"حقل"` |
+| `label` | **`BilingualString`** | Field label (empty = search-bar layout with no label) | `{ ar: "حقل", en: "Field" }` |
 | `name` | `string` | Input `name` attribute (form submission) | `"field"` |
 | `inputType` | `"text" \| "number" \| "search" \| "email" \| "password" \| "tel"` | HTML input type. Hidden (and forced to `number`) for the price-filter actions | `"text"` |
-| `placeholder` | `string` | Placeholder text | `""` |
+| `placeholder` | **`BilingualString`** | Placeholder text | `{ ar: "", en: "" }` |
 | `required` | `boolean` | Mark input as required | `false` |
 | `prependIcon` | `"none" \| "search"` | Leading icon inside the field | `"none"` |
-| `inputAction` | `"" \| "search_products" \| "filter_min_price" \| "filter_max_price" \| "profile_full_name" \| "address_*"` | Wired store action (`""` = none) | `""` |
+| `inputAction` | `InputAction \| ""` | Wired store action (`""` = none) — see the table below | `""` |
 | `valueContext` | `ValueContext \| null` | When set with `inputAction = ""`, resolves the displayed value from bound data (read-only) | `null` |
 | `debounceMs` | `number` | Debounce for search/price actions only (hidden for profile/address actions) | `250` |
 
-### Behavior
+> **Bilingual:** `label`, `placeholder`.
 
-All three actions bind to the shared `productsPage` slice on `StoreContext`; the storefront turns that slice into query params on `GET /public/products/search`. See [Products page filters](#products-page-filters).
+### `inputAction` values (`config/content/input-actions.ts`)
+
+**Products-page filters** — bind to the shared `productsPage` slice on `StoreContext`; the storefront
+turns that slice into query params on `GET /public/products/search`. See
+[Products page filters](#products-page-filters).
 
 | `inputAction` | Reads | Writes | Query param |
 |---|---|---|---|
 | `search_products` | `productsPage.search` | `actions.searchProducts(q)` | `q` |
 | `filter_min_price` | `productsPage.minPrice` | `actions.productsPage.setMinPrice(n)` | `minPrice` |
 | `filter_max_price` | `productsPage.maxPrice` | `actions.productsPage.setMaxPrice(n)` | `maxPrice` |
+
+**Customer account / address draft** — write into `customer` state; submitted by a `ContentButton`
+with `buttonAction: "saveProfile"` or `"createAddress"`. Used by the `account` section presets.
+
+| `inputAction` | Writes to |
+|---|---|
+| `profile_full_name` | `customer.profile.fullName` draft |
+| `address_label` | `customer.addressDraft.label` |
+| `address_recipient_name` | `customer.addressDraft.recipientName` |
+| `address_recipient_phone` | `customer.addressDraft.recipientPhone` |
+| `address_governorate` | `customer.addressDraft.governorate` |
+| `address_city` | `customer.addressDraft.city` |
+| `address_street` | `customer.addressDraft.streetAddress` |
+| `address_notes` | `customer.addressDraft.notes` |
+
+### Behavior
 
 - Bound inputs are **controlled** by store state, so URL hydration and `resetProductsPage()` stay in sync; keystrokes are debounced by `debounceMs` before they hit the store.
 - **Price filters** — an empty field clears the filter (`null`); a negative or unparseable value is ignored and the previous filter stays. Rendered as `type="number"`, `dir="ltr"`, `inputMode="numeric"`, `min="0"`.
@@ -737,10 +895,10 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 {
   "type": "ContentInput",
   "props": {
-    "label": "",
+    "label": { "ar": "", "en": "" },
     "name": "product-search",
     "inputType": "search",
-    "placeholder": "ابحث عن منتج...",
+    "placeholder": { "ar": "ابحث عن منتج...", "en": "Search for a product..." },
     "prependIcon": "search",
     "inputAction": "search_products",
     "debounceMs": 300
@@ -754,10 +912,10 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 {
   "type": "ContentInput",
   "props": {
-    "label": "أقل سعر",
+    "label": { "ar": "أقل سعر", "en": "Min price" },
     "name": "min-price",
     "inputType": "number",
-    "placeholder": "0",
+    "placeholder": { "ar": "0", "en": "0" },
     "required": false,
     "prependIcon": "none",
     "inputAction": "filter_min_price",
@@ -773,10 +931,10 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 {
   "type": "ContentInput",
   "props": {
-    "label": "البريد الإلكتروني",
+    "label": { "ar": "البريد الإلكتروني", "en": "Email" },
     "name": "email",
     "inputType": "email",
-    "placeholder": "you@example.com",
+    "placeholder": { "ar": "you@example.com", "en": "you@example.com" },
     "required": true,
     "prependIcon": "none",
     "inputAction": ""
@@ -795,13 +953,24 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
-| `label` | `string` | Text beside the switch (empty = unlabelled, falls back to `name` for a11y) | `"المتوفر فقط"` |
+| `label` | **`BilingualString`** | Text beside the switch (empty = unlabelled, falls back to `name` for a11y) | `{ ar: "المتوفر فقط", en: "In stock only" }` |
 | `name` | `string` | Input `name` attribute (form submission) | `"in-stock-only"` |
-| `helperText` | `string` | Small hint below the row (empty = hidden) | `""` |
+| `helperText` | **`BilingualString`** | Small hint below the row (empty = hidden) | `{ ar: "", en: "" }` |
 | `defaultChecked` | `boolean` | Initial state when **not** bound to a store action | `false` |
 | `labelPosition` | `"start" \| "end"` | Label before or after the switch (RTL-aware) | `"start"` |
 | `switchAction` | `"" \| "filter_in_stock_only" \| "marketing_email_opt_in" \| "marketing_sms_opt_in" \| "address_is_default"` | Wired store action (`""` = none) | `""` |
 | `checkedValueContext` | `ValueContext \| null` | When set, resolves checked state from bound data (`=== "true"`) | `null` |
+
+> **Bilingual:** `label`, `helperText`.
+
+### `switchAction` values (`config/content/switch-actions.ts`)
+
+| Value | Binds to |
+|---|---|
+| `filter_in_stock_only` | `productsPage.inStockOnly` (products page filter) |
+| `marketing_email_opt_in` | `customer.preferences.emailOptIn` (account preset) |
+| `marketing_sms_opt_in` | `customer.preferences.smsOptIn` (account preset) |
+| `address_is_default` | `customer.addressDraft.isDefault` (address form preset) |
 
 ### Behavior
 
@@ -817,9 +986,9 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 {
   "type": "ContentSwitch",
   "props": {
-    "label": "المتوفر فقط",
+    "label": { "ar": "المتوفر فقط", "en": "In stock only" },
     "name": "in-stock-only",
-    "helperText": "",
+    "helperText": { "ar": "", "en": "" },
     "defaultChecked": false,
     "labelPosition": "start",
     "switchAction": "filter_in_stock_only"
@@ -833,9 +1002,12 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 {
   "type": "ContentSwitch",
   "props": {
-    "label": "أوافق على تلقّي العروض",
+    "label": { "ar": "أوافق على تلقّي العروض", "en": "Email me offers" },
     "name": "marketing-opt-in",
-    "helperText": "يمكنك إلغاء الاشتراك في أي وقت.",
+    "helperText": {
+      "ar": "يمكنك إلغاء الاشتراك في أي وقت.",
+      "en": "You can unsubscribe at any time."
+    },
     "defaultChecked": false,
     "labelPosition": "end",
     "switchAction": ""
@@ -858,7 +1030,33 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 | `zoom` | `number` | Initial zoom level | `13` |
 | `defaultLat` / `defaultLng` | `number` | Default center (Damascus) | `33.5138` / `36.2765` |
 | `interactive` | `boolean` | Allow click/drag pin | `true` |
-| `mapAction` | `"" \| "address_draft_location"` | Writes coords to `actions.customer.setAddressDraftLocation` | `""` |
+| `mapAction` | `"" \| "address_draft_location"` | When set, the pin reads/writes `customer.addressDraft.latitude/longitude` via `actions.customer.setAddressDraftLocation` | `""` |
+
+### Behavior
+
+- **Editor canvas and SSR** render a dashed placeholder — Leaflet is only imported on the published
+  storefront (`typeof window !== "undefined"` and not `puck.isEditing`).
+- With `mapAction: "address_draft_location"` the map is rendered through an isolated
+  `BoundAddressDraftMap` subscriber, so typing in sibling address inputs does not remount the map.
+- With `mapAction: ""` it is a static display map — no store subscription, no writes.
+- Pairs with the `account-address-form` preset (`ContentInput` `address_*` actions + a
+  `ContentButton` with `buttonAction: "createAddress"`).
+
+### JSON Example
+
+```json
+{
+  "type": "ContentMap",
+  "props": {
+    "heightPx": 260,
+    "zoom": 13,
+    "defaultLat": 33.5138,
+    "defaultLng": 36.2765,
+    "interactive": true,
+    "mapAction": "address_draft_location"
+  }
+}
+```
 
 ---
 
@@ -871,7 +1069,7 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
-| `title` | `string` | Link text (content-editable in the canvas) | `"رابط"` |
+| `title` | **`BilingualString`** | Link text (content-editable in the canvas — bilingual inline editor) | `{ ar: "رابط", en: "Link" }` |
 | `link` | `LinkValue` | Navigation target | `EMPTY_LINK` |
 | `align` | `"left" \| "center" \| "right"` | Horizontal alignment | `"right"` |
 | `color` | `string` | Text color (theme token or CSS color) | `"theme-primary"` |
@@ -889,7 +1087,7 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 {
   "type": "ContentLink",
   "props": {
-    "title": "اقرأ المزيد",
+    "title": { "ar": "اقرأ المزيد", "en": "Read more" },
     "link": { "kind": "page", "pageId": "/about" },
     "align": "right",
     "color": "theme-primary",
@@ -942,8 +1140,8 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
-| `text` | `string` | Heading text (static fallback) | `"عنوان"` |
-| `valueContext` | `ValueContext \| null` | When set, resolves `text` from the nearest bound `Group` ancestor | `null` |
+| `text` | **`BilingualString`** | Heading text (static fallback) | `{ ar: "عنوان", en: "Heading" }` |
+| `valueContext` | `ValueContext \| null` | When set, resolves `text` from the nearest bound `Group` ancestor — **overrides the bilingual value** | `null` |
 | `level` | `"1"…"6"` | Semantic HTML heading level (`h1`–`h6`) | `"2"` |
 | `textAlign` | `"left" \| "center" \| "right"` | Text alignment | `"right"` |
 | `fontFamily` | `"body" \| "option1" \| "option2"` | Font family | `"body"` |
@@ -953,6 +1151,10 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 | `fontStyle` | `"normal" \| "italic"` | Font style | `"normal"` |
 | `textTransform` | `"none" \| "uppercase" \| "lowercase" \| "capitalize"` | Text transform | `"none"` |
 | `color` | `string` | `"theme-text"` or CSS color | `"theme-text"` |
+| `visibility` | `{ showOnMobile, showOnTablet, showOnDesktop }` | Per-viewport visibility toggles (`VisibilityToggle` field) | all `true` |
+
+> **Bilingual:** `text`. Resolution order at render: `pickLang(text, activeLanguage)` → then
+> `valueContext` (bound product/cart data) wins if set.
 
 ### JSON Example
 
@@ -960,7 +1162,7 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 {
   "type": "ContentHeading",
   "props": {
-    "text": "مرحباً بك في متجرنا",
+    "text": { "ar": "مرحباً بك في متجرنا", "en": "Welcome to our store" },
     "level": "2",
     "textAlign": "center",
     "fontFamily": "body",
@@ -977,6 +1179,8 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 ---
 
 ## ContentHtml
+
+> ⛔ **IGNORED — do not use.** Raw HTML escapes theming, RTL and the mobile converter. Kept registered for old payloads only.
 
 **Label:** HTML  
 **Description:** A raw HTML block for advanced custom markup. Not shown on mobile/small screens.
@@ -1001,6 +1205,8 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 ---
 
 ## ContentIcon
+
+> 🧩 **Preset-only.** Hidden from the palette, still used by `theme-sooq-modern` and `theme-meridian-almarai`.
 
 **Label:** أيقونة  
 **Description:** Renders a single Lucide icon with size and color options.
@@ -1042,7 +1248,7 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 |---|---|---|---|
 | `src` | `string` | Image URL (static fallback) | placeholder URL |
 | `valueContext` | `ValueContext \| null` | When set, resolves `src` from bound data (e.g. `images[0].url`) | `null` |
-| `alt` | `string` | Alt text (static fallback) | `""` |
+| `alt` | **`BilingualString`** | Alt text (static fallback) | `{ ar: "", en: "" }` |
 | `altValueContext` | `ValueContext \| null` | When set, resolves `alt` from bound data (e.g. `product.title`) | `null` |
 | `align` | `"left" \| "center" \| "right"` | Horizontal alignment | `"center"` |
 | `objectFit` | `"cover" \| "contain" \| "fill" \| "none" \| "scale-down"` | CSS object-fit | `"cover"` |
@@ -1056,7 +1262,7 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
   "type": "ContentImage",
   "props": {
     "src": "https://example.com/banner.jpg",
-    "alt": "صورة البانر الرئيسي",
+    "alt": { "ar": "صورة البانر الرئيسي", "en": "Main banner image" },
     "align": "center",
     "objectFit": "cover",
     "radius": "theme-lg",
@@ -1076,8 +1282,8 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
-| `text` | `string` | Paragraph text (static fallback) | `"نص"` |
-| `valueContext` | `ValueContext \| null` | When set, resolves `text` from the nearest bound `Group` ancestor | `null` |
+| `text` | **`BilingualString`** | Paragraph text (static fallback) | `{ ar: "نص", en: "Text" }` |
+| `valueContext` | `ValueContext \| null` | When set, resolves `text` from the nearest bound `Group` ancestor — **overrides the bilingual value** | `null` |
 | `textAlign` | `"left" \| "center" \| "right"` | Text alignment | `"right"` |
 | `fontFamily` | `"body" \| "option1" \| "option2"` | Font family | `"body"` |
 | `fontSize` | `string` | `"theme-md"` or pixel value | `"theme-md"` |
@@ -1086,6 +1292,9 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 | `fontStyle` | `"normal" \| "italic"` | Font style | `"normal"` |
 | `textTransform` | `"none" \| "uppercase" \| "lowercase" \| "capitalize"` | Transform | `"none"` |
 | `color` | `string` | Color token or hex | `"theme-text"` |
+| `visibility` | `{ showOnMobile, showOnTablet, showOnDesktop }` | Per-viewport visibility toggles (`VisibilityToggle` field) | all `true` |
+
+> **Bilingual:** `text`.
 
 ### JSON Example
 
@@ -1093,7 +1302,10 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 {
   "type": "ContentParagraph",
   "props": {
-    "text": "نحن نقدم أفضل المنتجات بأسعار تنافسية مع ضمان الجودة.",
+    "text": {
+      "ar": "نحن نقدم أفضل المنتجات بأسعار تنافسية مع ضمان الجودة.",
+      "en": "We offer the best products at competitive prices, quality guaranteed."
+    },
     "textAlign": "right",
     "fontFamily": "body",
     "fontSize": "theme-md",
@@ -1109,6 +1321,8 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 ---
 
 ## Flex
+
+> 🗄️ **Legacy — use [`Group`](#group) / [`RowGroup`](#rowgroup)** (or `Section` columns). Hidden from the palette.
 
 **Label:** Flex  
 **Description:** A flexible container (CSS flexbox) that holds child blocks.
@@ -1141,6 +1355,8 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 ---
 
 ## Grid
+
+> 🗄️ **Legacy — use `Section` columns or [`Group`](#group).** Hidden from the palette.
 
 **Label:** Grid  
 **Description:** A CSS grid container for laying out child blocks in columns.
@@ -1192,6 +1408,7 @@ All three actions bind to the shared `productsPage` slice on `StoreContext`; the
 | `metadata` | `ProductResourceMetadata \| null` | **Read-only.** Auto-populated when `product` is set | `null` |
 | `language` | `"ar" \| "en"` | Locale for shorthand paths like `product.title` → `product.titleAr` / `product.titleEn` | `"ar"` |
 | `cartLineId` | `string \| null` | Binds this Group to a `store-cart` line (cart section preset rows). Skips API fetch; maps line to bound data at runtime | `null` |
+| `skipProductDetailFetch` | `boolean` | When `true`, product data comes from the parent products-grid list / `BoundDataProvider` — **do not call the product detail API**. Set by the repeater presets on cloned cells | `false` |
 | `content` | `Slot` | Child blocks (Section not allowed) | starter content |
 
 ### Product & cart binding
@@ -1345,6 +1562,8 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 
 ## Heading
 
+> 🗄️ **Legacy — use [`ContentHeading`](#contentheading).** Hidden from the palette.
+
 **Label:** Heading  
 **Description:** A section heading with size, level, alignment, font family, and color controls.
 
@@ -1381,6 +1600,8 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 ---
 
 ## Hero
+
+> 🧩 **Preset-only.** The hero *presets* (`hero-bg-image`, `hero-bg-video`, `hero-image-left`) are `Section`-based; this block is only emitted by the legacy body in `presets/shared.ts`. Don't insert it by hand.
 
 **Label:** Hero  
 **Description:** A full-featured hero section with title, rich-text description, CTA buttons, and optional background/inline image.
@@ -1438,7 +1659,7 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
 | `mode` | `"grid" \| "slider"` | Display mode | `"grid"` |
-| `images` | `GalleryImageItem[]` | Array of `{ src, alt }` | 3 placeholders |
+| `images` | `GalleryImageItem[]` | Array of `{ src, alt }` — **`alt` is a `BilingualString`** | 3 placeholders |
 | `aspectRatio` | `"landscape" \| "portrait" \| "square"` | Image aspect ratio | `"landscape"` |
 | `objectFit` | `"cover" \| "contain" \| "fill" \| "none" \| "scale-down"` | CSS object-fit | `"cover"` |
 | `radius` | `string` | Border radius | `"theme-md"` |
@@ -1458,9 +1679,9 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
   "props": {
     "mode": "grid",
     "images": [
-      { "src": "https://example.com/img1.jpg", "alt": "صورة 1" },
-      { "src": "https://example.com/img2.jpg", "alt": "صورة 2" },
-      { "src": "https://example.com/img3.jpg", "alt": "صورة 3" }
+      { "src": "https://example.com/img1.jpg", "alt": { "ar": "صورة 1", "en": "Image 1" } },
+      { "src": "https://example.com/img2.jpg", "alt": { "ar": "صورة 2", "en": "Image 2" } },
+      { "src": "https://example.com/img3.jpg", "alt": { "ar": "صورة 3", "en": "Image 3" } }
     ],
     "aspectRatio": "landscape",
     "objectFit": "cover",
@@ -1480,8 +1701,8 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
   "props": {
     "mode": "slider",
     "images": [
-      { "src": "https://example.com/slide1.jpg", "alt": "" },
-      { "src": "https://example.com/slide2.jpg", "alt": "" }
+      { "src": "https://example.com/slide1.jpg", "alt": { "ar": "", "en": "" } },
+      { "src": "https://example.com/slide2.jpg", "alt": { "ar": "", "en": "" } }
     ],
     "aspectRatio": "landscape",
     "objectFit": "cover",
@@ -1498,6 +1719,8 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 ---
 
 ## Logos
+
+> ⛔ **IGNORED — do not use.** No preset or shipped theme emits it. Use [`ImageGallery`](#imagegallery) or a `Group` of `ContentImage` blocks.
 
 **Label:** Logos  
 **Description:** A horizontal strip of partner / brand logos.
@@ -1528,6 +1751,8 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 ---
 
 ## NavMenu
+
+> 🧩 **Preset-only.** Hidden from the palette, but actively used by `presets/zone-shell.ts`, `presets/drawer.ts` and every shipped theme for header / drawer navigation.
 
 **Label:** قائمة التنقل  
 **Description:** A generic navigation list (header, footer columns, breadcrumbs). Supports bilingual labels and structured link values.
@@ -1573,6 +1798,8 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 ---
 
 ## OrderHistory
+
+> ⛔ **IGNORED — do not use.** Registered only so old `store_config.json` renders. `/orders` is a real `apps/store` route, not a Site JSON block.
 
 **Label:** Order History  
 **Description:** Displays the authenticated customer's recent orders. Data is bound at render time; JSON carries display config only.
@@ -1676,6 +1903,8 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 
 ## ProductImage
 
+> 🗄️ **Legacy — use a bound [`Group`](#group) + [`ContentImage`](#contentimage) with `valueContext`.** Hidden from the palette.
+
 **Label:** Product Image  
 **Description:** Displays the image of a bound product with aspect ratio, width, and badge options.
 
@@ -1708,8 +1937,10 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 
 ## ProductImageCarousel
 
+> 🧩 **Preset-only.** Hidden from the palette; still used by the `theme-meridian-almarai` product-detail page.
+
 **Label:** معرض صور المنتج  
-**Description:** Data-bound product image carousel — reads image URLs from the nearest bound `Group` (via `resolveBoundImageUrls`) and shows a main image plus a thumbnail strip. Falls back to `placeholderSrc` when no product data is available. Registered but currently commented out of the visible palette; used inside the product detail preset.
+**Description:** Data-bound product image carousel — reads image URLs from the nearest bound `Group` (via `resolveBoundImageUrls`) and shows a main image plus a thumbnail strip. Falls back to `placeholderSrc` when no product data is available. Hidden from the palette; still emitted by the `theme-meridian-almarai` product-detail page.
 
 ### Properties
 
@@ -1735,6 +1966,8 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 ---
 
 ## ProductInfo
+
+> 🗄️ **Legacy — use a bound [`Group`](#group) + [`ContentHeading`](#contentheading) / [`ContentParagraph`](#contentparagraph) with `valueContext`.** Hidden from the palette.
 
 **Label:** Product Info  
 **Description:** Displays textual information (title, description, price, categories, stock) of a bound product.
@@ -1778,6 +2011,8 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 
 ## ProductSearchMenu
 
+> ⛔ **IGNORED — do not use.** Product search is a [`ContentInput`](#contentinput) with `inputAction: "search_products"` (see [Products page filters](#products-page-filters)).
+
 **Label:** Product search menu  
 **Description:** A search menu overlay for finding products by name or category.
 
@@ -1808,8 +2043,10 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 
 ## ProductVariants
 
+> 🧩 **Preset-only.** Hidden from the palette; still used by the `theme-meridian-almarai` product-detail page.
+
 **Label:** متغيّرات المنتج  
-**Description:** Renders the variant option matrix for a bound product (color, size, etc.) as tap-selectable chips. Reads `data.variantMatrix.options` + `.variants` from the bound product and calls `setSelectedVariantId(...)` on the surrounding `BoundDataProvider` when a valid combination is chosen. Automatically disables unavailable / out-of-stock combinations. Registered but currently commented out of the visible palette; used inside the product detail preset.
+**Description:** Renders the variant option matrix for a bound product (color, size, etc.) as tap-selectable chips. Reads `data.variantMatrix.options` + `.variants` from the bound product and calls `setSelectedVariantId(...)` on the surrounding `BoundDataProvider` when a valid combination is chosen. Automatically disables unavailable / out-of-stock combinations. Hidden from the palette; still emitted by the `theme-meridian-almarai` product-detail page.
 
 ### Properties
 
@@ -1860,11 +2097,15 @@ If any value has a `colorHex`, a matching swatch dot is rendered inside its chip
 
 ## ProductsGrid
 
-> **Legacy — use Products Grid section preset instead.**  
-> New stores should insert a `Section` with `metadata.preset: "products-grid"` and a `collection` picker. The editor expands the section into one bound `Group` per product. See [Section — Products Grid preset](#section-products-grid-preset).
+> ❌ **REMOVED — no longer registered.**  
+> The block was deleted from `config/index.tsx`; JSON with `"type": "ProductsGrid"` now renders
+> **nothing**. Insert a `Section` with `metadata.preset: "products-grid"` and a `collection` picker
+> instead — the editor expands it into one bound `Group` per product. See
+> [Section — Products Grid preset](#section-products-grid-preset). This entry is kept only so old
+> payloads can be interpreted during migration.
 
 **Label:** Products Grid  
-**Description:** *(Legacy block.)* A responsive grid of product cards sourced from a collection.
+**Description:** *(Removed block.)* A responsive grid of product cards sourced from a collection.
 
 ### Properties
 
@@ -1903,6 +2144,8 @@ If any value has a `colorHex`, a matching swatch dot is rendered inside its chip
 ---
 
 ## RichText
+
+> 🗄️ **Legacy — use [`ContentParagraph`](#contentparagraph) / [`ContentHeading`](#contentheading).** Hidden from the palette.
 
 **Label:** RichText  
 **Description:** A WYSIWYG rich-text block supporting headings, lists, and inline formatting.
@@ -1950,26 +2193,32 @@ If any value has a `colorHex`, a matching swatch dot is rendered inside its chip
 | `columnsMobile` | `number \| string` | Grid columns at ≤768px viewport | `1` |
 | `gridGap` | `string` | Gap between columns | `"24px"` |
 | `metadata` | `SectionPresetMetadata \| null` | Identifies preset-driven sections — see below | `null` |
-| `sectionKind` | `"products-grid" \| "shopping-cart" \| null` | **Deprecated.** Prefer `metadata.preset` | `null` |
+| `sectionKind` | preset id \| `null` | **Deprecated.** Same values as `metadata.preset`; prefer `metadata.preset` | `null` |
 | `collection` | `CollectionPickerRef \| null` | Selected collection (products-grid preset only) | `null` |
 | `cartSlotItems` | `ComponentData[] \| null` | Editable cart shell snapshot persisted for storefront re-render (shopping-cart preset) | `null` |
+| `cardTemplate` | `ComponentData[] \| null` | **Read-only, one-item array.** Snapshot of `content[0]` used by the storefront repeaters (products-grid, products-page, customer-addresses) to clone the card template into non-editable cells 1..N. Kept in sync by `resolveData`; shaped as an array so Puck's field walker leaves it alone | `null` |
 | `content` | `Slot` | Child blocks (no nested Section) | starter content |
 
 ### Section preset metadata
 
 ```json
 { "preset": "products-grid" }
-{ "preset": "shopping-cart" }
 ```
 
-When `metadata.preset` is set, the section behaves as a commerce preset:
+Preset ids live in `blocks/Section/section-preset-kinds.ts`. When `metadata.preset` is set, the
+section changes behaviour:
 
 | `preset` | Insert source | `resolveData` behaviour | Storefront render |
 |---|---|---|---|
-| `"products-grid"` | Design Studio → Products Grid | Fetches collection products by `collection.slug`; replaces `content` with one bound `Group` per product; sets `columns` (1–3) | Renders `content` slot as-is (editable groups) |
-| `"shopping-cart"` | Design Studio → Shopping Cart | Reads `store-cart` from localStorage; merges shell blocks + one `Group` per line into `content`; stores snapshot in `cartSlotItems` | Uses `CartSectionStorefront` to re-merge live cart lines with `cartSlotItems` shell at runtime |
+| `"products-grid"` | Design Studio → شبكة المنتجات | Fetches collection products by `collection.slug`; replaces `content` with one bound `Group` per product; sets `columns` (1–3); snapshots the card into `cardTemplate` | `ProductsGridTemplateRepeater` clones `cardTemplate` per product |
+| `"products-page"` | Design Studio → صفحة المنتجات | Reads the shared `productsPage` store slice (search / category / price / stock / page) instead of a fixed collection; snapshots `cardTemplate` | `ProductsPageTemplateRepeater` clones per result |
+| `"shopping-cart"` | Design Studio → سلة التسوق | Reads `store-cart` from localStorage; merges shell blocks + one `Group` per line into `content`; stores snapshot in `cartSlotItems` | `CartSectionStorefront` re-merges live cart lines with the `cartSlotItems` shell |
+| `"customer-account"` | Design Studio → الحساب (الملف الشخصي / تفضيلات التسويق) | — | Wraps `content` in a `BoundDataProvider` carrying `{ profile, preferences }`; child blocks bind via `valueContext` / `inputAction` / `switchAction`. Sample data in the editor canvas |
+| `"customer-addresses"` | Design Studio → عناويني | Snapshots `content[0]` into `cardTemplate` (never wiped while the slot is temporarily empty) | `CustomerAddressesTemplateRepeater` clones the template per saved address |
+| `"zone-header"` | Zone (header) presets | — | Marks a `Section` that lives inside the header zone; carries `ZONE_SHELL_SECTION_PERMISSIONS` |
 
-The HTML `<section>` element receives `data-section-preset="products-grid"` or `"shopping-cart"` for mobile converters.
+The HTML `<section>` element receives `data-section-preset="<preset>"` for mobile converters, plus
+`data-section-id`.
 
 ### Section: Products Grid preset
 
@@ -2100,6 +2349,8 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 
 ## Sidebar
 
+> ⛔ **IGNORED — do not use.** Registered in `components` but listed in **no** palette category, so it falls into the hidden `other` bucket. Use a `Section` column with a [`Group`](#group).
+
 **Label:** الشريط الجانبي  
 **Description:** A vertical sidebar container. Can be inline (flows in document), or docked to the left/right of the viewport.
 
@@ -2141,6 +2392,8 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 ---
 
 ## SideDrawer
+
+> ⛔ **IGNORED — do not use.** Superseded by [`ZoneDrawer`](#zonedrawer) (see [ZONES.md](./ZONES.md)). No preset or theme emits it.
 
 **Label:** درج جانبي  
 **Description:** A slide-in panel from the left or right edge. Supports link lists, trigger types, animation, and external control via `window.sooqDrawers`.
@@ -2225,13 +2478,11 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 | `animation` | `"slide" \| "fade" \| "scale" \| "none"` | Animation type | `"slide"` |
 | `animationDurationMs` | `number` | Duration in ms | `260` |
 | `trigger` | `"external" \| "floating" \| "auto" \| "none"` | Open trigger | `"external"` |
-| `triggerLabel` | `string` | Button label (EN) | `"Menu"` |
-| `triggerLabelAr` | `string` | Button label (AR) | `"القائمة"` |
+| `triggerLabel` | **`BilingualString`** | Button label (legacy `triggerLabelAr` collapsed in on load) | `{ ar: "القائمة", en: "Menu" }` |
 | `triggerIcon` | `"menu" \| "filter" \| "cart" \| "user" \| "panel" \| "none"` | Trigger icon | `"menu"` |
-| `title` | `string` | Title (EN) | `"Menu"` |
-| `titleAr` | `string` | Title (AR) | `"القائمة"` |
+| `title` | **`BilingualString`** | Title (legacy `titleAr` collapsed in on load) | `{ ar: "القائمة", en: "Menu" }` |
 | `showTitle` | `boolean` | Show title | `true` |
-| `links` | `SiteDrawerLink[]` | `[{ label, labelAr, link }]` | default links |
+| `links` | `SiteDrawerLink[]` | `[{ label: BilingualString, link }]` (legacy `labelAr` collapsed in) | default links |
 | `backgroundColor` | `string` | Panel background color | `"#ffffff"` |
 | `textColor` | `string` | Text color | `"#111827"` |
 | `accentColor` | `string` | Hover/link accent | `"#2563eb"` |
@@ -2261,15 +2512,13 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
     "animation": "slide",
     "animationDurationMs": 260,
     "trigger": "external",
-    "triggerLabel": "Menu",
-    "triggerLabelAr": "القائمة",
+    "triggerLabel": { "ar": "القائمة", "en": "Menu" },
     "triggerIcon": "menu",
-    "title": "Menu",
-    "titleAr": "القائمة",
+    "title": { "ar": "القائمة", "en": "Menu" },
     "showTitle": true,
     "links": [
-      { "label": "Home", "labelAr": "الرئيسية", "link": { "kind": "page", "pageId": "/" } },
-      { "label": "Shop", "labelAr": "المتجر", "link": { "kind": "page", "pageId": "/products" } }
+      { "label": { "ar": "الرئيسية", "en": "Home" }, "link": { "kind": "page", "pageId": "/" } },
+      { "label": { "ar": "المتجر", "en": "Shop" }, "link": { "kind": "page", "pageId": "/products" } }
     ],
     "backgroundColor": "#ffffff",
     "textColor": "#111827",
@@ -2301,21 +2550,23 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
-| `title` | `string` | Brand name in footer | `""` |
+| `title` | **`BilingualString`** | Brand name in footer | `{ ar: "", en: "" }` |
 | `variant` | `"commerce" \| "default"` | Layout style | `"commerce"` |
-| `language` | `"ar" \| "en"` | Display language | `"ar"` |
+| `language` | `"ar" \| "en"` | **Fallback** display language — the live `LanguageProvider` (language toggle / cookie) wins when mounted | `"ar"` |
 | `visible` | `boolean` | Show/hide footer | `true` |
 | `is_mobile_only` | `boolean` | Show only on mobile viewports | `false` |
-| `tagline` | `string` | Tagline (EN) | `""` |
-| `taglineAr` | `string` | Tagline (AR) | `""` |
+| `tagline` | **`BilingualString`** | Tagline | `{ ar: "", en: "" }` |
 | `showBottomBar` | `boolean` | Show bottom bar | `true` |
-| `bottomBarText` | `string` | Bottom bar text (EN) | `""` |
-| `bottomBarTextAr` | `string` | Bottom bar text (AR) | `""` |
-| `columns` | `FooterColumn[]` | Link columns `[{ title, titleAr, links[] }]` | default columns |
-| `columns[].title` | `string` | Column title (EN) | — |
-| `columns[].titleAr` | `string` | Column title (AR) | — |
-| `columns[].links` | `FooterLinkData[]` | `[{ label, labelAr, link }]` | — |
+| `bottomBarText` | **`BilingualString`** | Bottom bar text | `{ ar: "", en: "" }` |
+| `columns` | `FooterColumn[]` | Link columns `[{ title, links[] }]` | default columns |
+| `columns[].title` | **`BilingualString`** | Column title | — |
+| `columns[].links` | `FooterLinkData[]` | `[{ label: BilingualString, link: LinkValue, showCondition? }]` | — |
 | `bottomLinks` | `FooterLinkData[]` | Bottom bar links | default links |
+
+> **Bilingual:** `title`, `tagline`, `bottomBarText`, `columns[].title`, `columns[].links[].label`,
+> `bottomLinks[].label`. The old `taglineAr` / `bottomBarTextAr` / `titleAr` / `labelAr` siblings are
+> **deprecated**: they are still read as the Arabic fallback and collapsed into `{ ar, en }` on load
+> (`collapseFrom` in `config/lib/bilingual-props.ts`). Don't write them in new payloads.
 | `backgroundColor` | `string` | Background color (empty = theme) | `""` |
 | `textColor` | `string` | Text color (empty = theme) | `""` |
 
@@ -2325,27 +2576,30 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 {
   "type": "SiteFooter",
   "props": {
-    "title": "متجري",
+    "title": { "ar": "متجري", "en": "My Store" },
     "variant": "commerce",
     "language": "ar",
     "visible": true,
     "is_mobile_only": false,
-    "tagline": "Your one-stop shop.",
-    "taglineAr": "متجرك الشامل.",
+    "tagline": { "ar": "متجرك الشامل.", "en": "Your one-stop shop." },
     "showBottomBar": true,
-    "bottomBarText": "© 2026 Meridian",
-    "bottomBarTextAr": "© ٢٠٢٦ متجري",
+    "bottomBarText": { "ar": "© ٢٠٢٦ متجري", "en": "© 2026 My Store" },
     "columns": [
       {
-        "title": "Shop",
-        "titleAr": "التسوق",
+        "title": { "ar": "التسوق", "en": "Shop" },
         "links": [
-          { "label": "Products", "labelAr": "المنتجات", "link": { "kind": "page", "pageId": "/products" } }
+          {
+            "label": { "ar": "المنتجات", "en": "Products" },
+            "link": { "kind": "page", "pageId": "/products" }
+          }
         ]
       }
     ],
     "bottomLinks": [
-      { "label": "Privacy", "labelAr": "الخصوصية", "link": { "kind": "page", "pageId": "/privacy" } }
+      {
+        "label": { "ar": "الخصوصية", "en": "Privacy" },
+        "link": { "kind": "page", "pageId": "/privacy" }
+      }
     ],
     "backgroundColor": "",
     "textColor": ""
@@ -2364,13 +2618,13 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 
 | Property | Type | Values / Notes | Default |
 |---|---|---|---|
-| `title` | `string` | Brand/site title | `""` |
+| `title` | **`BilingualString`** | Brand/site title | `{ ar: "", en: "" }` |
 | `variant` | `"commerce" \| "default"` | Layout style | `"commerce"` |
-| `language` | `"ar" \| "en"` | Display language | `"ar"` |
+| `language` | `"ar" \| "en"` | **Fallback** display language — the live `LanguageProvider` wins when mounted | `"ar"` |
 | `visible` | `boolean` | Show/hide header | `true` |
 | `is_mobile_only` | `boolean` | Show only on mobile viewports | `false` |
 | `brandHref` | `string` | Brand logo/title link | `"/"` |
-| `links` | `HeaderLink[]` | Nav links `[{ label, labelAr, link }]` | default links |
+| `links` | `HeaderLink[]` | Nav links `[{ label: BilingualString, link: LinkValue, showCondition? }]` | default links |
 | `backgroundColor` | `string` | Background color (empty = theme) | `""` |
 | `textColor` | `string` | Text color (empty = theme) | `""` |
 | `layoutMode` | `"split" \| "centered"` | `centered` puts nav in the middle; `split` keeps brand and nav on opposite sides | `"split"` |
@@ -2379,7 +2633,10 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 | `showDrawerButton` | `boolean` | Show hamburger button | `false` |
 | `drawerButtonIcon` | `"menu" \| "filter" \| "cart" \| "user" \| "none"` | Icon type | `"menu"` |
 | `drawerName` | `string` | Target zone/drawer key for menu button | `"site-drawer"` |
-| `rightSlot` | `Slot` | Nested blocks (e.g. `ContentButton` cart / orders / login) at header end | `[]` |
+| `rightSlot` | `Slot` | Nested blocks (e.g. `ContentButton` cart / orders / login / language toggle) at header end | `[]` |
+
+> **Bilingual:** `title`, `links[].label`. Legacy `labelAr` siblings are collapsed into `{ ar, en }`
+> on load and should not be written in new payloads.
 
 ### JSON Example
 
@@ -2387,16 +2644,16 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 {
   "type": "SiteHeader",
   "props": {
-    "title": "متجري",
+    "title": { "ar": "متجري", "en": "My Store" },
     "variant": "commerce",
     "language": "ar",
     "visible": true,
     "is_mobile_only": false,
     "brandHref": "/",
     "links": [
-      { "label": "Home", "labelAr": "الرئيسية", "link": { "kind": "page", "pageId": "/" } },
-      { "label": "Products", "labelAr": "المنتجات", "link": { "kind": "page", "pageId": "/products" } },
-      { "label": "Cart", "labelAr": "السلة", "link": { "kind": "page", "pageId": "/cart" } }
+      { "label": { "ar": "الرئيسية", "en": "Home" }, "link": { "kind": "page", "pageId": "/" } },
+      { "label": { "ar": "المنتجات", "en": "Products" }, "link": { "kind": "page", "pageId": "/products" } },
+      { "label": { "ar": "السلة", "en": "Cart" }, "link": { "kind": "page", "pageId": "/cart" } }
     ],
     "backgroundColor": "",
     "textColor": "",
@@ -2647,6 +2904,8 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 
 ## Stats
 
+> 🧩 **Preset-only.** Hidden from the palette; still used by `theme-sooq-modern`.
+
 **Label:** Stats  
 **Description:** A horizontal strip of statistic numbers with labels.
 
@@ -2677,6 +2936,8 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 
 ## Template
 
+> ⛔ **IGNORED — do not use.** Its `localStorage` template store predates section presets. Use [Section presets](#section-preset-catalog).
+
 **Label:** Template  
 **Description:** A slot-based container that can be pre-populated from saved templates (stored in `localStorage`). Useful for reusable section patterns.
 
@@ -2702,6 +2963,8 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 ---
 
 ## Testimonials
+
+> 🧩 **Preset-only.** Commented out of the `storeBlocks` palette (`// "Testimonials", // IGNORED — do not use; kept registered for old JSON`) but still emitted by `theme-meridian-almarai`. Don't insert it by hand.
 
 **Label:** آراء العملاء  
 **Description:** Customer review cards in grid, carousel, or minimal layout. Supports inline or CMS data sources, bilingual names.
@@ -2758,6 +3021,8 @@ objects on read by `normalizeEditorData`.
 ---
 
 ## Text
+
+> 🗄️ **Legacy — use [`ContentParagraph`](#contentparagraph).** Hidden from the palette.
 
 **Label:** نص  
 **Description:** A `<span>` text block with alignment, font, size, weight, and color customisation.
@@ -2825,6 +3090,8 @@ objects on read by `normalizeEditorData`.
 
 ## Wishlist
 
+> ⛔ **IGNORED — do not use.** Registered only so old `store_config.json` renders; commented out of the `storeBlocks` palette.
+
 **Label:** Wishlist  
 **Description:** Displays the authenticated customer's saved (wishlisted) products. Data is bound at render time.
 
@@ -2859,7 +3126,13 @@ objects on read by `normalizeEditorData`.
 
 ## Site JSON (`SiteData`)
 
-Persisted as one JSON object per store (localStorage today; will move to backend). Defined in `config/lib/site-data.ts`.
+Persisted as one JSON object per store. Defined in `config/lib/site-data.ts`.
+
+**Where it lives:** `site-data.ts` itself still reads/writes **localStorage only** — that is the
+editor's working copy. `apps/web/modules/design-studio/local-site-sync.ts` syncs that copy with the
+backend design draft (`GET`/`PUT /admin/design/draft`) and with the built-in theme JSON files in
+`packages/editor-packages/core/themes/`, in this order: API draft → built-in theme file → leave
+localStorage alone.
 
 ```ts
 type SiteData = {
@@ -2880,6 +3153,8 @@ Helper API in the same file:
 | `normalizeSiteData(raw)` | Coerce a raw JSON into a valid `SiteData` |
 | `composePuckData(site, page)` | Merge zones + a specific page's content into `UserData` for `<Render>` |
 | `findSitePage(site, path)` | Look up a page by route pattern (supports dynamic segments) |
+| `resolveSitePageText(value, lang)` | Resolve a bilingual-or-plain page meta field (`name` / `title` / `description`) |
+| `backfillEmptyBilingual(target, source)` | Fill empty `en` slots from a built-in theme payload, matching nodes by `props.id` (`config/lib/backfill-bilingual.ts`) |
 
 ---
 
@@ -2888,13 +3163,16 @@ Helper API in the same file:
 Each entry in `SiteData.pages` describes one route.
 
 ```ts
+/** Page meta text — plain string (legacy) or bilingual `{ ar, en }`. */
+type SitePageText = string | BilingualString;
+
 type SitePage = {
   path: string;         // route pattern, e.g. "/" or "/products/:product-slug"
   slug: string;         // URL slug / concrete path (used for storage + routing)
-  name: string;         // display name in the pages panel
+  name: SitePageText;   // display name in the pages panel (bilingual)
   link: string;         // concrete href (published)
-  title?: string;       // <title> for the page
-  description?: string; // meta description
+  title?: SitePageText;       // <title> for the page (bilingual)
+  description?: SitePageText; // meta description (bilingual)
   iconName?: string;    // Lucide icon key for the pages panel
   dynamic?: boolean;    // true when `path` contains a `:param`
   examplePath?: string; // concrete example URL for dynamic routes
@@ -2909,6 +3187,11 @@ type SitePage = {
 - Dynamic pages use the same `LinkValue.dynamicSegment` mechanism as `ContentButton` (see [LinkValue](#linkvalue)). Example: `/products/:product-slug` binds `product-slug` from `product.slug` on the surrounding `Group`.
 - Built-in pages come from `config/page-registry.ts` (`PAGES`); merchant-created pages are marked `isCustom: true`.
 - Pages emit a `PAGES_UPDATED_EVENT` on writes so plugins (e.g. `plugin: pages`, `plugin: pages-menu`) can refresh their state.
+- `name` / `title` / `description` accept either a plain string (legacy) or `{ ar, en }`. Read them
+  through `resolveSitePageText(value, language)` — the editor UI resolves them as Arabic.
+- Built-in routes today (`config/page-registry.ts`): `/`, `/themes`, `/products/:product-slug`,
+  `/cart`, `/login`, `/verify-otp`, `/pricing`, `/about`, `/settings`. `/orders` is a real
+  `apps/store` route, not a Site JSON page.
 
 ### JSON Example
 
@@ -2918,9 +3201,9 @@ type SitePage = {
     {
       "path": "/",
       "slug": "/",
-      "name": "الرئيسية",
+      "name": { "ar": "الرئيسية", "en": "Home" },
       "link": "/",
-      "title": "الرئيسية",
+      "title": { "ar": "الرئيسية", "en": "Home" },
       "content": [
         { "type": "Section", "props": { "name": "Hero", "content": [] } }
       ]
@@ -2928,7 +3211,7 @@ type SitePage = {
     {
       "path": "/products/:product-slug",
       "slug": "products",
-      "name": "تفاصيل المنتج",
+      "name": { "ar": "تفاصيل المنتج", "en": "Product details" },
       "link": "/products",
       "dynamic": true,
       "examplePath": "/products/classic-shirt",
@@ -3080,7 +3363,8 @@ type SectionPresetCategory =
   | "hero"
   | "products-grid"
   | "forms"
-  | "cart";
+  | "cart"
+  | "account";
 
 type SectionPreset = {
   id: string;
@@ -3093,13 +3377,14 @@ type SectionPreset = {
 
 Category labels (Arabic) come from `PRESET_CATEGORY_LABELS`:
 
-| Category | Label | Export | Notable presets |
+| Category | Label | Export | Preset ids |
 |---|---|---|---|
-| `general` | عام | `GENERAL_PRESETS` | image-text-two-columns, three-feature-cards, asymmetric-promo-cards, plain heading section |
-| `hero` | هيرو | `HERO_PRESETS` | hero-background-image, hero-inline-image, hero-simple |
-| `products-grid` | شبكة المنتجات | `PRODUCTS_GRID_PRESETS` + `PRODUCTS_PAGE_PRESETS` | Products Grid (`metadata.preset: "products-grid"`), product detail, full Products Page (search + filters + grid) |
-| `forms` | استبيانات | `FORMS_PRESETS` | Contact form section, checkout section |
-| `cart` | السلة | `CART_PRESETS` | Shopping Cart preset (`metadata.preset: "shopping-cart"`), cart page shell |
+| `general` | عام | `GENERAL_PRESETS` | `image-text-two-columns`, `three-feature-cards`, `asymmetric-promo-cards` |
+| `hero` | هيرو | `HERO_PRESETS` | `hero-bg-image`, `hero-bg-video`, `hero-image-left` |
+| `products-grid` | شبكة المنتجات | `PRODUCTS_GRID_PRESETS` + `PRODUCTS_PAGE_PRESETS` | `product-card-vertical`, `products-grid-three-columns`, `product-detail-layout`, `products-page` |
+| `forms` | استبيانات | `FORMS_PRESETS` | `form-login`, `form-verify-otp` |
+| `cart` | السلة | `CART_PRESETS` | `cart-section` (`metadata.preset: "shopping-cart"`), `cart-item-row` |
+| `account` | الحساب | `ACCOUNT_PRESETS` | `account-profile`, `account-marketing`, `account-addresses`, `account-address-form` |
 
 APIs:
 
@@ -3112,7 +3397,9 @@ import {
 } from "@/core/config/presets";
 ```
 
-The commerce presets (`products-grid`, `shopping-cart`) rely on `Section.props.metadata.preset` for storefront resolution — see [Section — Products Grid preset](#section-products-grid-preset) and [Section — Shopping Cart preset](#section-shopping-cart-preset).
+The commerce and account presets (`products-grid`, `products-page`, `shopping-cart`,
+`customer-account`, `customer-addresses`) rely on `Section.props.metadata.preset` for storefront
+resolution — see [Section — Products Grid preset](#section-products-grid-preset) and [Section — Shopping Cart preset](#section-shopping-cart-preset).
 
 For zone presets (header / footer / drawer / popup / bottom sheet), see [ZONES.md — Zone presets](./ZONES.md#zone-presets).
 
@@ -3217,7 +3504,19 @@ Path-based binding for a block field. The nearest ancestor `Group` with `product
 | `quantity` | Cart line quantity | Cart lines only |
 | `lineId` | Cart line identifier | Cart lines only |
 
-Blocks that support `valueContext`: `ContentHeading`, `ContentParagraph`, `ContentImage` (`valueContext` on `src`, `altValueContext` on `alt`), `ContentButton` (`labelValueContext` on `label`).
+Blocks that support binding:
+
+| Block | Prop | Binds |
+|---|---|---|
+| `ContentHeading`, `ContentParagraph` | `valueContext` | `text` |
+| `ContentImage` | `valueContext`, `altValueContext` | `src`, `alt` |
+| `ContentButton` | `labelValueContext` | `label` |
+| `ContentInput` | `valueContext` | displayed value (read-only, when `inputAction` is empty) |
+| `ContentSwitch` | `checkedValueContext` | checked state (`=== "true"`) |
+| `Chip` | `listValueContext` | the chip array (e.g. `product.tags`) |
+| `ContentLink` | `link.dynamicSegment.valueContext` | a dynamic URL segment |
+
+A bound value **overrides** the block's static (bilingual) prop.
 
 When `fallbackToStatic` is `true` (default), the static prop (e.g. `text: "عنوان المنتج"`) is shown in the editor before data loads or when the path is empty.
 
@@ -3237,6 +3536,9 @@ Cart line id format: `{productId}:{variantIdOrSerializedAttributes}`.
 | `cartQtyIncrease` | Reads `lineId` + `quantity` from bound cart line data; increments in `store-cart` |
 | `cartQtyDecrease` | Decrements quantity; removes line when quantity &lt; 1 |
 | `makeOrder` | Calls store checkout action with current cart |
+
+Account actions (`saveProfile`, `createAddress`, `setDefaultAddress`, `deleteAddress`) and
+`toggleLanguage` are listed in [`buttonAction` values](#buttonaction-values).
 
 #### Cart storage schema (`store-cart`)
 
@@ -3288,14 +3590,19 @@ Cart line groups map this to bound data via `mapCartLineToBoundData()` — same 
 
 ### SectionPresetMetadata
 
-Identifies commerce section presets on `Section.props.metadata`:
+Identifies preset-driven sections on `Section.props.metadata`. One of:
 
 ```json
 { "preset": "products-grid" }
+{ "preset": "products-page" }
 { "preset": "shopping-cart" }
+{ "preset": "customer-account" }
+{ "preset": "customer-addresses" }
+{ "preset": "zone-header" }
 ```
 
-Legacy configs may also set `sectionKind` to the same string values. Detection accepts either field.
+Legacy configs may also set `sectionKind` to the same string values. Detection accepts either field
+(`blocks/Section/section-preset-kinds.ts`).
 
 ### ProductPickerRef
 
@@ -3376,12 +3683,123 @@ Used by `Button`, `ContentButton`, `NavMenu`, `SideDrawer`, `SiteHeader`, `SiteF
 }
 ```
 
-### BilingualString
+### Bilingual text (`BilingualString`)
 
-Used where text appears in both Arabic and English:
+Every user-visible text prop that a merchant can type into is stored in **both languages** in one
+JSON value — never two sibling props:
 
 ```json
 { "ar": "العربية", "en": "English" }
+```
+
+Type + helpers: `core/lib/bilingual.ts` (`BilingualString`, `EMPTY_BILINGUAL`, `isBilingualValue`,
+`normalizeBilingual`, `pickLang`).
+
+#### Which prop on which block
+
+The single source of truth is `config/lib/bilingual-props.ts` (`BILINGUAL_PROPS`) — consumed by the
+migration, the theme codemod and the registry-consistency tests. Adding a bilingual prop to a block
+**must** include an entry here.
+
+| Block | Bilingual props |
+|---|---|
+| `ContentHeading` | `text` |
+| `ContentParagraph` | `text` |
+| `ContentButton` | `label` |
+| `ContentLink` | `title` |
+| `ContentInput` | `label`, `placeholder` |
+| `ContentSwitch` | `label`, `helperText` |
+| `ContentImage` | `alt` |
+| `Card` | `title`, `description` |
+| `ButtonGroup` | `allButtonTitle`, `items[].title` |
+| `Accordion` | `heading`, `description`, `items[].title`, `items[].body` |
+| `Testimonials` | `inlineItems[].name`, `.role`, `.text` *(collapses `nameAr` / `roleAr` / `textAr`)* |
+| `ImageGallery` | `images[].alt` |
+| `NavMenu` | `items[].label` |
+| `Sidebar` | `title` |
+| `SideDrawer` | `title`, `triggerLabel`, `links[].label` |
+| `ContactForm` | `title`, `subtitle`, `submitLabel`, `successMessage` |
+| `SiteHeader` | `title`, `links[].label` *(collapses `links[].labelAr`)* |
+| `SiteFooter` | `title`, `tagline`, `bottomBarText`, `columns[].title`, `columns[].links[].label`, `bottomLinks[].label` *(all collapse their `*Ar` siblings)* |
+| `SiteDrawerShell` *(legacy)* | `triggerLabel`, `title`, `links[].label` *(collapse `*Ar`)* |
+| `root` | `title`, `headerBrandTitle`, `headerLinks[].label`, `footerBrandTitle`, `footerTagline`, `footerColumns[].title`, `footerColumns[].links[].label`, `drawerTriggerLabel`, `drawerTitle`, `drawerLinks[].label` |
+| `SitePage` meta | `name`, `title`, `description` — see [Pages](#pages-sitepage) |
+
+#### Which language is displayed
+
+1. **`LanguageProvider`** (`config/locale/LanguageProvider.tsx`) holds the active language +
+   direction for the storefront and the editor canvas.
+2. Blocks read it with `useActiveLanguage()`, or with
+   **`useDisplayLanguage(fallbackFromProps)`** (`config/locale/use-display-language.ts`) when the
+   block also has its own `language` prop. The live provider **wins** over the prop: block
+   `language` props are frozen at the theme default (`"ar"`) in Site JSON and would otherwise
+   ignore the toggle.
+3. A `ContentButton` with `buttonAction: "toggleLanguage"` flips it at runtime (ar ⇄ en) — that is
+   how a merchant exposes a language switcher in the header.
+
+`pickLang(value, language)` resolves with the fallback chain **requested → other language → `""`**,
+and passes non-bilingual values through untouched (important in the editor, where contentEditable
+field transforms temporarily replace a prop with a React element).
+
+For blocks that also support data binding, the order is: `pickLang(staticProp, language)` first,
+then `valueContext` — **bound product/cart data wins over the bilingual static text**.
+
+#### Editing UI
+
+- `bilingualTextField({ label, mode })` — `config/fields/BilingualText` — renders one panel row with
+  an Arabic input (first, Arabic-first per DSN-001) and an English input. Stores plain JSON, no
+  functions (OTA-serializable).
+- `BilingualInlineTextField` — canvas-inline editing for contentEditable blocks
+  (`ContentHeading`, `ContentParagraph`, `ContentLink`).
+
+#### Legacy payloads & migration
+
+- **Plain strings** still load: `normalizeBilingual("نص") → { ar: "نص", en: "" }`.
+- **Legacy `*Ar` siblings** (`taglineAr`, `labelAr`, `titleAr`, `nameAr`…) are collapsed into the
+  bilingual object on read by `normalizeEditorData()`, driven by the `collapseFrom` field in
+  `BILINGUAL_PROPS`. In those payloads the **base prop held English** and the `*Ar` sibling Arabic.
+  Do not write `*Ar` props in new payloads.
+- **Missing English:** `needsBilingualBackfill(site)` / `backfillEmptyBilingual(target, source)`
+  (`config/lib/backfill-bilingual.ts`) copy non-empty `en` strings from the built-in theme payload
+  into empty `en` slots, matching components by `props.id` and pages by `path`. Wired into
+  `apps/web/modules/design-studio/local-site-sync.ts` when a draft loads.
+
+#### Adding a bilingual prop to a block
+
+1. Type the prop as `BilingualString`.
+2. Use `bilingualTextField(...)` in `fields` and an `{ ar, en }` object in `defaultProps`.
+3. Render with `pickLang(prop, language)` where `language` comes from `useActiveLanguage()` /
+   `useDisplayLanguage()`.
+4. Register the path in `BILINGUAL_PROPS`.
+5. Update this table and the block's entry above.
+
+### showCondition
+
+Auth-aware visibility, injected onto **every registered block** by `withShowCondition()`
+(`config/lib/with-show-condition.tsx`) and also supported on `SiteHeader` / `NavMenu` items.
+Defined in `config/lib/show-condition.tsx`.
+
+| Value | Arabic label | Renders when |
+|---|---|---|
+| `"always"` *(default)* | دائماً | Always |
+| `"loggedIn"` | للمسجّلين فقط | Customer session is signed in |
+| `"loggedOut"` | لغير المسجّلين فقط | No customer session |
+
+- Evaluated by `ShowConditionGate`, which subscribes to **auth only** (not the whole `StoreContext`)
+  so form typing doesn't re-render every gated block.
+- In the editor it **always renders**, so hidden blocks stay selectable.
+- Field lives under the «متقدم» tab (`metadata.group: "advanced"`).
+
+```json
+{
+  "type": "ContentButton",
+  "props": {
+    "label": { "ar": "تسجيل الخروج", "en": "Sign out" },
+    "destinationType": "action",
+    "buttonAction": "logout",
+    "showCondition": "loggedIn"
+  }
+}
 ```
 
 ### Theme Tokens
@@ -3400,15 +3818,25 @@ Many color and size fields accept `"theme-*"` tokens which resolve to CSS variab
 
 Most blocks accept an optional `layout` object on `props`. Common fields for mobile converters:
 
+Full shape: `config/components/Layout/layout-shared.ts`.
+
 | Field | Type | Notes |
 |---|---|---|
-| `hideOnMobile` | `boolean` | Hide block below tablet breakpoint |
-| `hideOnTablet` | `boolean` | Hide block at tablet width |
-| `hideOnDesktop` | `boolean` | Hide block at desktop width |
-| `paddingTop` / `paddingBottom` / `paddingLeft` / `paddingRight` | `string` | Per-side padding |
+| `hideOnMobile` / `hideOnTablet` / `hideOnDesktop` | `boolean` | Hide at that viewport bucket (theme breakpoints) |
+| `paddingTop` / `paddingBottom` / `paddingLeft` / `paddingRight` | `string` | Per-side padding (`padding` is deprecated, still read) |
 | `marginTop` / `marginRight` / `marginBottom` / `marginLeft` | `string` | Per-side margin |
-| `positionMode` | `"static" \| "float"` | Out-of-flow floating placement |
 | `spanCol` / `spanRow` | `number` | Grid span inside parent Section |
+| `grow` | `boolean` | Fill available space |
+| `displayMode` | `"block" \| "flex" \| "grid"` | `display` of the block wrapper |
+| `positionMode` | `"static" \| "float"` | Out-of-flow floating placement |
+| `floatCssPosition` | `"absolute" \| "fixed" \| "sticky"` | CSS `position` when floating (`floatUseFixedPosition` is the deprecated boolean form) |
+| `floatPlacementMode` | `"preset" \| "custom"` | Named anchor vs. custom insets |
+| `floatPreset` | `"top-left" … "bottom-right"` (8 anchors) | Anchor when `floatPlacementMode: "preset"` |
+| `fixedTop` / `fixedRight` / `fixedBottom` / `fixedLeft` | `string` | Insets when `floatPlacementMode: "custom"` — `auto` or `0%`–`100%` |
+| `borderWidth` / `borderStyle` / `borderColor` / `borderRadius` | `string` | Border box; `borderStyle: "none"` hides it, radius still applies |
+| `shadowMode` | `"none" \| "preset" \| "custom"` | Shadow source |
+| `shadowPreset` | `"sm" \| "md" \| "lg" \| "xl"` | When `shadowMode: "preset"` |
+| `shadowOffsetX` / `shadowOffsetY` / `shadowBlur` / `shadowSpread` / `shadowColor` | `string` | When `shadowMode: "custom"` |
 
 Example:
 
