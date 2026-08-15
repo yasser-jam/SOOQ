@@ -17,11 +17,16 @@ import {
 import {
   DESIGN_SCHEMA_VERSION,
   applyDesignTemplate,
-  listDesignTemplatesQueryOptions,
+  listAdminDesignTemplatesQueryOptions,
   saveDesignDraft,
 } from "./actions"
 import { applyDesignConfigToLocalStorage } from "./local-site-sync"
-import type { DesignConfigJson, DesignVersion } from "./types"
+import type {
+  AdminDesignTemplateSummary,
+  DesignConfigJson,
+  DesignVersion,
+  TemplateSource,
+} from "./types"
 
 /** Marks a draft built by the custom-theme wizard rather than a template. */
 export const CUSTOM_TEMPLATE_KEY = "custom"
@@ -31,47 +36,47 @@ export const CUSTOM_TEMPLATE_KEY = "custom"
  * comes from `GET /public/design/templates`.
  */
 export type StudioTemplateCard = {
+  templateId?: string | null
   templateKey: string
   templateName: string
   description: string
   previewImageUrl: string | null
-  source: "builtin" | "remote"
+  source: TemplateSource | "builtin"
+  editable: boolean
+  isActive: boolean
 }
 
 const builtinTemplateCards: StudioTemplateCard[] = builtinThemeCatalog.map(
   (theme) => ({
+    templateId: null,
     templateKey: theme.templateKey,
     templateName: theme.templateName,
     description: theme.description,
     previewImageUrl: theme.previewImageUrl,
     source: "builtin",
+    editable: false,
+    isActive: false,
   })
 )
 
-/**
- * Backend templates are seeded with empty `templateJson`, so applying one
- * produces a blank storefront. Hide those until they carry real content.
- */
-const hasUsableJson = (config: DesignConfigJson | undefined | null): boolean => {
-  const web = config?.web as { pages?: unknown[] } | undefined
-  return Array.isArray(web?.pages) && web.pages.length > 0
-}
-
 export function useStudioTemplates() {
-  const { data: remoteTemplates = [], isPending } = useQuery(
-    listDesignTemplatesQueryOptions()
+  const { data: adminTemplates = [], isPending } = useQuery(
+    listAdminDesignTemplatesQueryOptions()
   )
 
   const templates = useMemo<StudioTemplateCard[]>(() => {
-    const remote: StudioTemplateCard[] = remoteTemplates
-      .filter((template) => template.active)
-      .map((template) => ({
+    const remote: StudioTemplateCard[] = adminTemplates.map(
+      (template: AdminDesignTemplateSummary) => ({
+        templateId: template.templateId,
         templateKey: template.templateKey,
         templateName: template.templateName,
         description: template.industryType,
         previewImageUrl: template.previewImageUrl,
-        source: "remote",
-      }))
+        source: template.source,
+        editable: template.editable,
+        isActive: template.isActive,
+      })
+    )
 
     const remoteKeys = new Set(remote.map((t) => t.templateKey))
 
@@ -79,7 +84,7 @@ export function useStudioTemplates() {
       ...remote,
       ...builtinTemplateCards.filter((t) => !remoteKeys.has(t.templateKey)),
     ]
-  }, [remoteTemplates])
+  }, [adminTemplates])
 
   return { templates, isPending }
 }
@@ -87,12 +92,16 @@ export function useStudioTemplates() {
 /** Guarantees the `{ web, mobile }` pair the backend validates on write. */
 const withTemplateKey = (
   config: DesignConfigJson | undefined | null,
-  templateKey: string
+  templateKey: string,
+  templateSource: DesignConfigJson["templateSource"] = null,
+  seededFromTenantTemplateId: string | null = null
 ): DesignConfigJson => ({
   ...(config ?? {}),
   web: config?.web ?? {},
   mobile: config?.mobile ?? {},
   templateKey,
+  templateSource,
+  seededFromTenantTemplateId,
 })
 
 export async function applyStudioTemplate(
@@ -107,7 +116,8 @@ export async function applyStudioTemplate(
     const version = await saveDesignDraft({
       configJson: withTemplateKey(
         { web: normalizeSiteData(siteData), mobile: {} },
-        card.templateKey
+        card.templateKey,
+        "builtin"
       ),
       schemaVersion: DESIGN_SCHEMA_VERSION,
     })
@@ -117,12 +127,20 @@ export async function applyStudioTemplate(
     return version
   }
 
-  const applied = await applyDesignTemplate({ templateKey: card.templateKey })
+  const applied = await applyDesignTemplate({
+    templateKey: card.templateKey,
+    source: card.source,
+  })
 
   // apply-template overwrites the draft from the template, which carries no
   // templateKey of its own — stamp it back so the gallery can mark the card.
   const version = await saveDesignDraft({
-    configJson: withTemplateKey(applied.configJson, card.templateKey),
+    configJson: withTemplateKey(
+      applied.configJson,
+      card.templateKey,
+      card.source,
+      applied.seededFromTemplateId
+    ),
     schemaVersion: applied.schemaVersion || DESIGN_SCHEMA_VERSION,
   })
   applyDesignConfigToLocalStorage(version.configJson)

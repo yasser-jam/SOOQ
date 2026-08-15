@@ -1,10 +1,9 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { MoreHorizontal, Pencil, Eye, Copy, Trash2 } from "lucide-react";
+import { CheckCircle2, Pencil, Play, Trash2 } from "lucide-react"
 
-import { Badge } from "@workspace/ui/components/badge";
-import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
 import {
   Card,
   CardContent,
@@ -12,121 +11,88 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@workspace/ui/components/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
-import { cn } from "@workspace/ui/lib/utils";
+} from "@workspace/ui/components/card"
 
-type TemplateCardProps = {
-  title: string;
-  description: string;
-  updatedAt: string;
-  editHref: string;
-  previewHref?: string;
-  badge?: string;
-  previewClassName?: string;
-};
+export type MineTemplateCardProps = {
+  title: string
+  description: string
+  updatedAt: string
+  badge?: string
+  isActive?: boolean
+  editable?: boolean
+  onEdit?: () => void
+  onDelete?: () => void
+  onToggleActive?: () => void
+  onApply?: () => void
+}
 
-export default function TemplateCard({
+export default function MineTemplateCard({
   title,
   description,
   updatedAt,
-  editHref,
-  previewHref,
   badge,
-  previewClassName,
-}: TemplateCardProps) {
+  isActive,
+  editable = false,
+  onEdit,
+  onDelete,
+  onToggleActive,
+  onApply,
+}: MineTemplateCardProps) {
   return (
     <Card size="sm" className="border border-border/60">
       <CardHeader className="gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
             <CardTitle className="text-lg">{title}</CardTitle>
-            <CardDescription className="text-sm">
-              {description}
-            </CardDescription>
+            <CardDescription className="text-sm">{description}</CardDescription>
           </div>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="إجراءات القالب"
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>إجراءات القالب</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={editHref}>
-                  <Pencil className="size-4" />
-                  تعديل القالب
-                </Link>
-              </DropdownMenuItem>
-              {previewHref ? (
-                <DropdownMenuItem asChild>
-                  <Link href={previewHref}>
-                    <Eye className="size-4" />
-                    معاينة
-                  </Link>
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem disabled>
-                  <Eye className="size-4" />
-                  معاينة
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Copy className="size-4" />
-                إنشاء نسخة
-              </DropdownMenuItem>
-              <DropdownMenuItem variant="destructive">
-                <Trash2 className="size-4" />
-                حذف
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex flex-col items-end gap-2">
+            {badge ? <Badge variant="secondary-tonal">{badge}</Badge> : null}
+            {isActive ? (
+              <Badge variant="outline" className="gap-1">
+                <CheckCircle2 className="size-3" />
+                مفعّل
+              </Badge>
+            ) : null}
+          </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3">
-        <div
-          className={cn(
-            "relative h-28 overflow-hidden rounded-xl border border-border/60 bg-gradient-to-br from-muted/40 via-background to-muted/10",
-            previewClassName
-          )}
-        >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.6),_transparent_60%)]" />
-          <div className="relative h-full p-3">
-            <div className="text-xs font-medium text-muted-foreground">
-              معاينة سريعة
-            </div>
-            <div className="mt-3 h-2 w-2/3 rounded-full bg-foreground/10" />
-            <div className="mt-2 h-2 w-1/2 rounded-full bg-foreground/10" />
+      <CardContent className="space-y-4">
+        <div className="rounded-xl border border-border/60 bg-muted/25 p-4">
+          <div className="text-xs font-medium text-muted-foreground">
+            آخر تحديث: {updatedAt}
           </div>
-        </div>
-
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>آخر تحديث: {updatedAt}</span>
-          {badge ? <Badge variant="secondary-tonal">{badge}</Badge> : null}
+          <div className="mt-3 h-2 w-2/3 rounded-full bg-foreground/10" />
+          <div className="mt-2 h-2 w-1/2 rounded-full bg-foreground/10" />
         </div>
       </CardContent>
 
-      <CardFooter className="justify-end">
-        <Button variant="primary" size="sm">
-          <Link href={editHref}>تحرير القالب</Link>
-        </Button>
+      <CardFooter className="flex flex-wrap gap-2">
+        {onApply ? (
+          <Button variant={isActive ? "outline" : "secondary"} size="sm" onClick={onApply} disabled={isActive}>
+            <Play className="size-4" />
+            {isActive ? "مطبق حالياً" : "إعادة التطبيق"}
+          </Button>
+        ) : null}
+        {editable && onToggleActive ? (
+          <Button variant="outline" size="sm" onClick={onToggleActive}>
+            {isActive ? "إلغاء التفعيل" : "تفعيل"}
+          </Button>
+        ) : null}
+        {editable && onEdit ? (
+          <Button variant="outline" size="sm" onClick={onEdit}>
+            <Pencil className="size-4" />
+            تعديل
+          </Button>
+        ) : null}
+        {editable && onDelete ? (
+          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={onDelete}>
+            <Trash2 className="size-4" />
+            حذف
+          </Button>
+        ) : null}
       </CardFooter>
     </Card>
-  );
+  )
 }

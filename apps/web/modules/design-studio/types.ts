@@ -1,5 +1,9 @@
 import type { SiteData } from "@/core/config/lib/site-data"
 
+export type TemplateSource = "SYSTEM" | "MINE"
+
+export type GalleryTemplateSource = TemplateSource | "builtin"
+
 /**
  * The frontend-owned JSON payload the DSN backend stores per tenant.
  * The backend only enforces that this is an object containing both
@@ -14,6 +18,8 @@ export type DesignConfigJson = {
    * its own `seededFromTemplateId`, which cannot describe builtin templates.
    */
   templateKey?: string | null
+  templateSource?: GalleryTemplateSource | null
+  seededFromTenantTemplateId?: string | null
   [extra: string]: unknown
 }
 
@@ -28,9 +34,39 @@ export type DesignTemplateSummary = {
   active: boolean
 }
 
+export type AdminDesignTemplateSummary = {
+  templateId: string
+  templateKey: string
+  templateName: string
+  industryType: string
+  previewImageUrl: string | null
+  source: TemplateSource
+  editable: boolean
+  isActive: boolean
+  createdAt?: string | null
+  updatedAt?: string | null
+}
+
 /** GET /public/design/templates/{key} */
 export type DesignTemplateDetail = DesignTemplateSummary & {
   templateJson: DesignConfigJson
+}
+
+export type TenantTemplateDetail = AdminDesignTemplateSummary & {
+  templateJson: DesignConfigJson
+}
+
+export type CreateMineTemplateInput = {
+  templateName: string
+  templateKey: string
+  industryType?: string | null
+  previewImageUrl?: string | null
+  configJson?: DesignConfigJson
+}
+
+export type UpdateMineTemplateInput = Partial<CreateMineTemplateInput> & {
+  templateId: string
+  isActive?: boolean
 }
 
 /** GET /public/design/config?platform=... */
@@ -55,6 +91,7 @@ export type DesignVersion = {
   schemaVersion: string
   configJson: DesignConfigJson
   seededFromTemplateId: string | null
+  templateSource?: GalleryTemplateSource | null
   createdByUserId: string
   publishedAt: string | null
   createdAt: string
@@ -67,4 +104,5 @@ export type SaveDraftInput = {
 
 export type ApplyTemplateInput = {
   templateKey: string
+  source?: TemplateSource
 }

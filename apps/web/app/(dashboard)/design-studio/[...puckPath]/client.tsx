@@ -57,6 +57,7 @@ import { toast } from "sonner"
 import { saveWebDesignDraft } from "@/modules/design-studio/draft"
 import { hydrateLocalSiteFromSources } from "@/modules/design-studio/local-site-sync"
 import { designStudioKeys } from "@/modules/design-studio/queryKeys"
+import { useCurrentUser } from "@/modules/auth/auth/hooks/useCurrentUser"
 import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell"
 import { PreviewPageShell } from "../_components/preview-page-shell"
 import { PreviewThemeProvider } from "../_components/preview-theme-provider"
@@ -483,6 +484,8 @@ export function Client({
 
   const router = useRouter()
   const queryClient = useQueryClient()
+    const { hasRole } = useCurrentUser()
+    const canWrite = hasRole(["OWNER", "MANAGER"])
   const designStudioHref = useMemo(() => "/design-studio", [])
 
   const previewHref = useMemo(
@@ -722,6 +725,7 @@ export function Client({
   // today — the mobile app builder has no screens to send yet.
   const handleSave = useCallback(
     async (puckData: UserData) => {
+      if (!canWrite) return
       savePageData(puckData)
       siteDataRef.current = readSiteData(editorMode)
       markPageSaved(puckData)
@@ -734,7 +738,7 @@ export function Client({
         toast.error("تعذر حفظ التصميم على الخادم. التغييرات محفوظة محلياً فقط.")
       }
     },
-    [editorMode, markPageSaved, queryClient, savePageData]
+    [canWrite, editorMode, markPageSaved, queryClient, savePageData]
   )
 
   const handleExportJson = () => {
@@ -824,11 +828,18 @@ export function Client({
             <Eye size={16} />
             معاينة
           </Button>
-          {children}
+          {canWrite ? children : null}
         </div>
       ),
     }),
-    [designStudioHref, getSiteSnapshot, handleOpenPreview, modKeyLabel, editorMode]
+    [
+      canWrite,
+      designStudioHref,
+      getSiteSnapshot,
+      handleOpenPreview,
+      modKeyLabel,
+      editorMode,
+    ]
   )
 
   const previewRootProps = useMemo(() => {
@@ -919,6 +930,17 @@ export function Client({
           config={config}
           data={editorData}
           height="100%"
+          permissions={
+            canWrite
+              ? undefined
+              : {
+                  drag: false,
+                  duplicate: false,
+                  delete: false,
+                  edit: false,
+                  insert: false,
+                }
+          }
           ui={{
             rightSideBarVisible: true,
             leftSideBarVisible: true,
@@ -926,10 +948,11 @@ export function Client({
           }}
           viewports={isMobileEditor ? MOBILE_VIEWPORTS : undefined}
           onChange={(nextData) => {
+            if (!canWrite) return
             exportDataRef.current = nextData
             scheduleDraftWrite(nextData)
           }}
-          onPublish={(data) => handleSave(data as UserData)}
+          onPublish={canWrite ? (data) => handleSave(data as UserData) : undefined}
           plugins={plugins}
           // "blocks" = drag-and-drop palette; "outline" = شجرة العناصر tree.
           // shopifyOutlinePlugin ("sections" / الأقسام) is a separate tab.

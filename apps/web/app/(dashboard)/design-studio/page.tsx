@@ -22,6 +22,14 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
+import { Input } from "@workspace/ui/components/input"
+import { Label } from "@workspace/ui/components/label"
+import {
   Card,
   CardContent,
   CardDescription,
@@ -30,10 +38,13 @@ import {
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { cn } from "@workspace/ui/lib/utils"
 import { useStorePath } from "@/lib/store-path"
+import RequireRole from "@/modules/auth/auth/components/RequireRole"
+import { useCurrentUser } from "@/modules/auth/auth/hooks/useCurrentUser"
 import { buildStoreBasePath } from "@/modules/storefront/lib/store-config"
 import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 
 import ThemeMarketplaceCard from "./_components/theme-marketplace-card"
+import MineTemplateCard from "./_components/template-card"
 import { ThemeOnboardingDialog } from "./_components/theme-onboarding-dialog"
 import {
   buildStudioMobileEditHref,
@@ -42,6 +53,10 @@ import {
 import {
   getDesignDraftQueryOptions,
   listDesignVersionsQueryOptions,
+  listMineTemplatesQueryOptions,
+  createMineTemplate,
+  updateMineTemplate,
+  deleteMineTemplate,
   publishDesign,
 } from "@/modules/design-studio/actions"
 import { designStudioKeys } from "@/modules/design-studio/queryKeys"
@@ -53,8 +68,41 @@ import {
   useStudioTemplates,
   type StudioTemplateCard,
 } from "@/modules/design-studio/templates"
+import type {
+  CreateMineTemplateInput,
+  TenantTemplateDetail,
+  UpdateMineTemplateInput,
+} from "@/modules/design-studio/types"
+import { humanizeError } from "@/lib/error-codes"
+import { createBlankDraft } from "@/modules/design-studio/actions"
+
+type MineTemplateFormState = {
+  templateName: string
+  templateKey: string
+  industryType: string
+  previewImageUrl: string
+}
+
+const slugifyTemplateKey = (value: string): string =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\u0600-\u06FF]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+
+const buildMineTemplateDefaults = (
+  templateName: string,
+  previewImageUrl?: string | null
+): MineTemplateFormState => ({
+  templateName,
+  templateKey: slugifyTemplateKey(templateName),
+  industryType: "",
+  previewImageUrl: previewImageUrl ?? "",
+})
 
 export default function DesignStudioPage() {
+  const { hasRole } = useCurrentUser()
+  const canWrite = hasRole(["OWNER", "MANAGER"])
   const storePath = useStorePath()
   const queryClient = useQueryClient()
   const { data: settings, isPending: isSettingsPending } = useQuery(
@@ -65,7 +113,18 @@ export default function DesignStudioPage() {
     getDesignDraftQueryOptions()
   )
   const { data: versions = [] } = useQuery(listDesignVersionsQueryOptions())
+  const { data: mineTemplates = [], isPending: isMineTemplatesPending } = useQuery(
+    listMineTemplatesQueryOptions()
+  )
   const [onboardingOpen, setOnboardingOpen] = useState(false)
+  const [mineTemplateOpen, setMineTemplateOpen] = useState(false)
+  const [editingMineTemplate, setEditingMineTemplate] =
+    useState<TenantTemplateDetail | null>(null)
+  const [mineTemplateForm, setMineTemplateForm] = useState<MineTemplateFormState>(
+    buildMineTemplateDefaults("", "")
+  )
+  const [mineTemplateSubmitting, setMineTemplateSubmitting] = useState(false)
+  const [mineTemplateError, setMineTemplateError] = useState<string | null>(null)
 
   const applyTemplateMutation = useMutation({
     mutationFn: applyStudioTemplate,
@@ -73,8 +132,19 @@ export default function DesignStudioPage() {
       await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
       toast.success("تم تطبيق القالب. افتح المحرر لتخصيصه.")
     },
-    onError: () => {
-      toast.error("تعذر تطبيق القالب. حاول مرة أخرى.")
+    onError: (error: { errorCode?: string; message?: string }) => {
+      toast.error(humanizeError(error?.errorCode, error?.message))
+    },
+  })
+
+  const blankDraftMutation = useMutation({
+    mutationFn: createBlankDraft,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
+      toast.success("تم إنشاء مسودة فارغة.")
+    },
+    onError: (error: { errorCode?: string; message?: string }) => {
+      toast.error(humanizeError(error?.errorCode, error?.message))
     },
   })
 
@@ -84,8 +154,51 @@ export default function DesignStudioPage() {
       await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
       toast.success("تم نشر التصميم.")
     },
-    onError: () => {
-      toast.error("تعذر النشر. تحقق من وجود مسودة قابلة للنشر.")
+    onError: (error: { errorCode?: string; message?: string }) => {
+      toast.error(humanizeError(error?.errorCode, error?.message))
+    },
+  })
+
+  const saveMineTemplate = useMutation({
+    mutationFn: async (input: {
+      mode: "create" | "edit"
+      payload: CreateMineTemplateInput | UpdateMineTemplateInput
+    }) => {
+      if (input.mode === "create") {
+        return createMineTemplate(input.payload as CreateMineTemplateInput)
+      }
+      return updateMineTemplate(input.payload as UpdateMineTemplateInput)
+    },
+    onMutate: () => {
+      setMineTemplateSubmitting(true)
+      setMineTemplateError(null)
+    },
+    onSettled: () => {
+      setMineTemplateSubmitting(false)
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
+      await queryClient.invalidateQueries({ queryKey: designStudioKeys.mineTemplates })
+      toast.success("تم حفظ القالب في مكتبتي الخاصة.")
+      setMineTemplateOpen(false)
+      setEditingMineTemplate(null)
+    },
+    onError: (error: { errorCode?: string; message?: string }) => {
+      const message = humanizeError(error?.errorCode, error?.message)
+      setMineTemplateError(message)
+      toast.error(message)
+    },
+  })
+
+  const deleteMineTemplateMutation = useMutation({
+    mutationFn: deleteMineTemplate,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
+      await queryClient.invalidateQueries({ queryKey: designStudioKeys.mineTemplates })
+      toast.success("تم حذف القالب الخاص.")
+    },
+    onError: (error: { errorCode?: string; message?: string }) => {
+      toast.error(humanizeError(error?.errorCode, error?.message))
     },
   })
 
@@ -119,6 +232,99 @@ export default function DesignStudioPage() {
   )
   const themesGalleryHref = themeEditHref
 
+  const openCreateMineTemplateDialog = () => {
+    const baseName = activeThemeName || draft?.configJson?.templateKey || "قالب جديد"
+    setEditingMineTemplate(null)
+    setMineTemplateForm(
+      buildMineTemplateDefaults(baseName, activeTemplate?.previewImageUrl ?? null)
+    )
+    setMineTemplateError(null)
+    setMineTemplateOpen(true)
+  }
+
+  const openEditMineTemplateDialog = (template: TenantTemplateDetail) => {
+    setEditingMineTemplate(template)
+    setMineTemplateForm({
+      templateName: template.templateName,
+      templateKey: template.templateKey,
+      industryType: template.industryType ?? "",
+      previewImageUrl: template.previewImageUrl ?? "",
+    })
+    setMineTemplateError(null)
+    setMineTemplateOpen(true)
+  }
+
+  const submitMineTemplate = () => {
+    if (!canWrite) return
+
+    const templateName = mineTemplateForm.templateName.trim()
+    const templateKey = slugifyTemplateKey(mineTemplateForm.templateKey || templateName)
+
+    if (!templateName || !templateKey) {
+      setMineTemplateError("الاسم والمفتاح مطلوبان")
+      return
+    }
+
+    const payloadBase = {
+      templateName,
+      templateKey,
+      industryType: mineTemplateForm.industryType.trim() || null,
+      previewImageUrl: mineTemplateForm.previewImageUrl.trim() || null,
+    }
+
+    if (editingMineTemplate) {
+      saveMineTemplate.mutate({
+        mode: "edit",
+        payload: {
+          templateId: editingMineTemplate.templateId,
+          ...payloadBase,
+          isActive: editingMineTemplate.isActive,
+        },
+      })
+      return
+    }
+
+    saveMineTemplate.mutate({
+      mode: "create",
+      payload: payloadBase,
+    })
+  }
+
+  const toggleMineTemplateActive = (template: TenantTemplateDetail) => {
+    if (!canWrite) return
+    updateMineTemplate({
+      templateId: template.templateId,
+      templateName: template.templateName,
+      templateKey: template.templateKey,
+      industryType: template.industryType,
+      previewImageUrl: template.previewImageUrl,
+      isActive: !template.isActive,
+    })
+      .then(async () => {
+        await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
+        await queryClient.invalidateQueries({ queryKey: designStudioKeys.mineTemplates })
+        toast.success(template.isActive ? "تم إلغاء التفعيل." : "تم تفعيل القالب.")
+      })
+      .catch((error: { errorCode?: string; message?: string }) => {
+        toast.error(humanizeError(error?.errorCode, error?.message))
+      })
+  }
+
+  const handleDeleteMineTemplate = (template: TenantTemplateDetail) => {
+    if (!canWrite) return
+    if (!window.confirm(`حذف القالب الخاص "${template.templateName}" نهائياً؟`)) return
+    deleteMineTemplateMutation.mutate(template.templateId)
+  }
+
+  const applyMineTemplate = (template: TenantTemplateDetail) => {
+    if (!canWrite) return
+    if (hasDraft && !window.confirm("سيتم استبدال المسودة الحالية بهذا القالب الخاص. هل تريد المتابعة؟")) return
+    applyTemplateMutation.mutate({
+      templateKey: template.templateKey,
+      source: "MINE",
+    })
+  }
+
   const tenantId = settings?.tenantId ?? ""
   const shopUrl = useMemo(() => {
     if (!tenantId) return ""
@@ -132,7 +338,8 @@ export default function DesignStudioPage() {
   const isReady = !isDraftPending
 
   return (
-    <div className="container space-y-8 py-8">
+    <RequireRole roles={["OWNER", "MANAGER", "STAFF"]}>
+      <div className="container space-y-8 py-8">
       {/* Page header */}
       <header className="space-y-2">
         <p className="text-sm font-medium text-muted-foreground">
@@ -147,7 +354,7 @@ export default function DesignStudioPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {hasDraft && (
+            {canWrite && hasDraft && (
               <Button
                 variant="default"
                 onClick={() => publishMutation.mutate()}
@@ -161,10 +368,33 @@ export default function DesignStudioPage() {
                 نشر التصميم
               </Button>
             )}
-            <Button variant="secondary" onClick={() => setOnboardingOpen(true)}>
-              <Plus data-icon="inline-start" className="size-4" />
-              إنشاء ثيم مخصص
-            </Button>
+            {canWrite && (
+              <Button variant="secondary" onClick={() => setOnboardingOpen(true)}>
+                <Plus data-icon="inline-start" className="size-4" />
+                إنشاء ثيم مخصص
+              </Button>
+            )}
+            {canWrite && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (hasDraft && !window.confirm("سيتم استبدال المسودة الحالية بمسودة فارغة. هل تريد المتابعة؟")) {
+                    return
+                  }
+                  blankDraftMutation.mutate()
+                }}
+                disabled={blankDraftMutation.isPending}
+              >
+                <Sparkles data-icon="inline-start" className="size-4" />
+                بدء من الصفر
+              </Button>
+            )}
+            {canWrite && hasDraft && (
+              <Button variant="outline" onClick={openCreateMineTemplateDialog}>
+                <Check data-icon="inline-start" className="size-4" />
+                حفظ كقالب
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -173,7 +403,8 @@ export default function DesignStudioPage() {
       {!hasCompletedConfig && <StoreConfigCta storePath={storePath} />}
 
       {/* Stage 2: Config done, no design draft yet */}
-      {hasCompletedConfig && isReady && !hasDraft && <NoThemeCta />}
+      {hasCompletedConfig && isReady && !hasDraft && canWrite && <NoThemeCta />}
+      {hasCompletedConfig && isReady && !hasDraft && !canWrite && <ReadOnlyCta />}
 
       {/* Stage 3: Active design hero */}
       {hasDraft && draft && (
@@ -186,6 +417,7 @@ export default function DesignStudioPage() {
           themeEditHref={themeEditHref}
           themeMobileEditHref={themeMobileEditHref}
           shopUrl={shopUrl}
+          canWrite={canWrite}
           isPending={isSettingsPending}
         />
       )}
@@ -196,12 +428,14 @@ export default function DesignStudioPage() {
           <div className="space-y-1">
             <h2 className="text-text text-xl font-semibold">قوالب التصميم</h2>
             <p className="text-sm text-muted-foreground">
-              استكشف قوالب جاهزة أو طبّق قالباً جديداً على متجرك.
+              استكشف القوالب المعتمدة في القالب الإداري وطبّق ما يناسب متجرك.
             </p>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link href={themesGalleryHref}>افتح المحرر</Link>
-          </Button>
+          {canWrite && (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={themesGalleryHref}>افتح المحرر</Link>
+            </Button>
+          )}
         </div>
 
         {isTemplatesPending ? (
@@ -220,12 +454,79 @@ export default function DesignStudioPage() {
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {templates.map((template) => (
               <ThemeMarketplaceCard
-                key={template.templateKey}
+                key={`${template.source}:${template.templateId ?? template.templateKey}`}
                 title={template.templateName}
                 description={template.description}
                 previewImage={template.previewImageUrl ?? undefined}
                 isActive={activeTemplateKey === template.templateKey}
-                onSelect={() => applyTemplateMutation.mutate(template)}
+                badge={
+                  template.source === "SYSTEM"
+                    ? "نظامي"
+                    : template.source === "MINE"
+                      ? "قالبي"
+                      : "محلي"
+                }
+                onSelect={
+                  canWrite ? () => {
+                    if (hasDraft && !window.confirm("سيتم استبدال المسودة الحالية بهذا القالب. هل تريد المتابعة؟")) {
+                      return
+                    }
+                    applyTemplateMutation.mutate(template)
+                  } : undefined
+                }
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-5">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-text text-xl font-semibold">قوالبي</h2>
+            <p className="text-sm text-muted-foreground">
+              أدر قوالب مكتبتك الخاصة: فعّل، عدّل، احذف، أو أعد تطبيق أي قالب.
+            </p>
+          </div>
+          {canWrite && hasDraft && (
+            <Button variant="secondary" size="sm" onClick={openCreateMineTemplateDialog}>
+              <Plus data-icon="inline-start" className="size-4" />
+              حفظ كقالب
+            </Button>
+          )}
+        </div>
+
+        {isMineTemplatesPending ? (
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="aspect-[4/3] w-full rounded-xl" />
+            ))}
+          </div>
+        ) : mineTemplates.length === 0 ? (
+          <Card className="border border-border/60">
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              لا توجد قوالب خاصة بعد. احفظ المسودة الحالية كقالب للبدء.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {mineTemplates.map((template) => (
+              <MineTemplateCard
+                key={template.templateId}
+                title={template.templateName}
+                description={template.industryType || template.templateKey}
+                updatedAt={
+                  template.updatedAt || template.createdAt
+                    ? new Date(template.updatedAt || template.createdAt || "").toLocaleDateString("ar")
+                    : "—"
+                }
+                badge="قالبي"
+                isActive={template.isActive}
+                editable={template.editable}
+                onApply={() => applyMineTemplate(template)}
+                onToggleActive={() => toggleMineTemplateActive(template)}
+                onEdit={() => openEditMineTemplateDialog(template)}
+                onDelete={() => handleDeleteMineTemplate(template)}
               />
             ))}
           </div>
@@ -240,7 +541,126 @@ export default function DesignStudioPage() {
         open={onboardingOpen}
         onOpenChange={setOnboardingOpen}
       />
-    </div>
+      <MineTemplateDialog
+        open={mineTemplateOpen}
+        onOpenChange={(open) => {
+          setMineTemplateOpen(open)
+          if (!open) {
+            setEditingMineTemplate(null)
+            setMineTemplateError(null)
+          }
+        }}
+        isSubmitting={mineTemplateSubmitting || saveMineTemplate.isPending}
+        errorMessage={mineTemplateError}
+        form={mineTemplateForm}
+        setForm={setMineTemplateForm}
+        onSubmit={submitMineTemplate}
+        mode={editingMineTemplate ? "edit" : "create"}
+      />
+      </div>
+    </RequireRole>
+  )
+}
+
+function MineTemplateDialog({
+  open,
+  onOpenChange,
+  isSubmitting,
+  errorMessage,
+  form,
+  setForm,
+  onSubmit,
+  mode,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  isSubmitting: boolean
+  errorMessage: string | null
+  form: MineTemplateFormState
+  setForm: (updater: MineTemplateFormState | ((prev: MineTemplateFormState) => MineTemplateFormState)) => void
+  onSubmit: () => void
+  mode: "create" | "edit"
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[640px]">
+        <DialogTitle>{mode === "create" ? "حفظ كقالب" : "تعديل القالب"}</DialogTitle>
+        <DialogDescription>
+          احفظ المسودة الحالية في مكتبتك الخاصة أو عدّل بيانات القالب الحالي.
+        </DialogDescription>
+
+        <div className="grid gap-4 py-2">
+          <div className="grid gap-2">
+            <Label htmlFor="mine-template-name">اسم القالب</Label>
+            <Input
+              id="mine-template-name"
+              value={form.templateName}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  templateName: event.target.value,
+                  templateKey: prev.templateKey || slugifyTemplateKey(event.target.value),
+                }))
+              }
+              placeholder="مثال: متجر أنيق"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="mine-template-key">مفتاح القالب</Label>
+            <Input
+              id="mine-template-key"
+              value={form.templateKey}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, templateKey: slugifyTemplateKey(event.target.value) }))
+              }
+              placeholder="store-theme"
+              dir="ltr"
+            />
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="mine-template-industry">نوع النشاط</Label>
+              <Input
+                id="mine-template-industry"
+                value={form.industryType}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, industryType: event.target.value }))
+                }
+                placeholder="ملابس، إلكترونيات..."
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="mine-template-preview">رابط المعاينة</Label>
+              <Input
+                id="mine-template-preview"
+                value={form.previewImageUrl}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, previewImageUrl: event.target.value }))
+                }
+                placeholder="https://..."
+                dir="ltr"
+              />
+            </div>
+          </div>
+
+          {errorMessage ? (
+            <p className="text-sm text-destructive">{errorMessage}</p>
+          ) : null}
+        </div>
+
+        <div className="flex items-center justify-end gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            إلغاء
+          </Button>
+          <Button onClick={onSubmit} disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : null}
+            {mode === "create" ? "حفظ القالب" : "حفظ التعديلات"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -378,6 +798,24 @@ function NoThemeCta() {
   )
 }
 
+function ReadOnlyCta() {
+  return (
+    <Card className="border border-border/60">
+      <CardContent className="py-6">
+        <div className="flex items-center justify-between gap-6">
+          <div>
+            <CardTitle className="mb-1 text-xl">وضع القراءة فقط</CardTitle>
+            <CardDescription className="text-sm leading-relaxed">
+              يمكنك استعراض القوالب والمسودة الحالية، لكن التعديل والنشر متاحان فقط لمالك المتجر أو المدير.
+            </CardDescription>
+          </div>
+          <Badge variant="outline">STAFF</Badge>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 // ─── Stage 3: Active Theme Hero ──────────────────────────────────────────────
 
 function ActiveThemeCard({
@@ -389,6 +827,7 @@ function ActiveThemeCard({
   themeEditHref,
   themeMobileEditHref,
   shopUrl,
+  canWrite,
   isPending,
 }: {
   themeName: string
@@ -399,6 +838,7 @@ function ActiveThemeCard({
   themeEditHref: string
   themeMobileEditHref: string
   shopUrl: string
+  canWrite: boolean
   isPending: boolean
 }) {
   const statusLabel =
@@ -466,18 +906,22 @@ function ActiveThemeCard({
                 معاينة
               </Link>
             </Button>
-            <Button variant="secondary" asChild>
-              <Link href={themeMobileEditHref}>
-                <Smartphone data-icon="inline-start" className="size-4" />
-                محرر الجوال
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href={themeEditHref}>
-                <Monitor data-icon="inline-start" className="size-4" />
-                محرر سطح المكتب
-              </Link>
-            </Button>
+            {canWrite && (
+              <Button variant="secondary" asChild>
+                <Link href={themeMobileEditHref}>
+                  <Smartphone data-icon="inline-start" className="size-4" />
+                  محرر الجوال
+                </Link>
+              </Button>
+            )}
+            {canWrite && (
+              <Button asChild>
+                <Link href={themeEditHref}>
+                  <Monitor data-icon="inline-start" className="size-4" />
+                  محرر سطح المكتب
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>

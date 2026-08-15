@@ -7,15 +7,21 @@ import type { ApiResponse } from "@/lib/types"
 import { designStudioKeys } from "./queryKeys"
 import type {
   ApplyTemplateInput,
+  AdminDesignTemplateSummary,
+  CreateMineTemplateInput,
   DesignPlatform,
   DesignTemplateDetail,
   DesignTemplateSummary,
   DesignVersion,
   PublishedDesignConfig,
+  TenantTemplateDetail,
+  UpdateMineTemplateInput,
   SaveDraftInput,
 } from "./types"
 
 const ADMIN_BASE = "/admin/design"
+const ADMIN_TEMPLATES_BASE = `${ADMIN_BASE}/templates`
+const ADMIN_MINE_TEMPLATES_BASE = `${ADMIN_TEMPLATES_BASE}/mine`
 const PUBLIC_BASE = "/public/design"
 
 export const DESIGN_SCHEMA_VERSION = "1.0"
@@ -38,6 +44,36 @@ export const listDesignTemplatesQueryOptions = () =>
     staleTime: 5 * 60_000,
   })
 
+export const listAdminDesignTemplates = async (): Promise<
+  AdminDesignTemplateSummary[]
+> => {
+  const res = await api<ApiResponse<AdminDesignTemplateSummary[]>>(
+    ADMIN_TEMPLATES_BASE
+  )
+  return res.data ?? []
+}
+
+export const listAdminDesignTemplatesQueryOptions = () =>
+  queryOptions({
+    queryKey: designStudioKeys.adminTemplates,
+    queryFn: listAdminDesignTemplates,
+    staleTime: 60_000,
+  })
+
+export const listMineTemplates = async (): Promise<TenantTemplateDetail[]> => {
+  const res = await api<ApiResponse<TenantTemplateDetail[]>>(
+    ADMIN_MINE_TEMPLATES_BASE
+  )
+  return res.data ?? []
+}
+
+export const listMineTemplatesQueryOptions = () =>
+  queryOptions({
+    queryKey: designStudioKeys.mineTemplates,
+    queryFn: listMineTemplates,
+    staleTime: 30_000,
+  })
+
 export const getDesignTemplate = async (
   templateKey: string
 ): Promise<DesignTemplateDetail> => {
@@ -54,6 +90,24 @@ export const getDesignTemplateQueryOptions = (templateKey: string) =>
     queryFn: () => getDesignTemplate(templateKey),
     enabled: Boolean(templateKey),
     staleTime: 5 * 60_000,
+  })
+
+export const getMineTemplate = async (
+  templateId: string
+): Promise<TenantTemplateDetail> => {
+  const res = await api<ApiResponse<TenantTemplateDetail>>(
+    `${ADMIN_MINE_TEMPLATES_BASE}/${encodeURIComponent(templateId)}`
+  )
+  if (!res.data) throw new Error("Empty mine-template response")
+  return res.data
+}
+
+export const getMineTemplateQueryOptions = (templateId: string) =>
+  queryOptions({
+    queryKey: designStudioKeys.mineTemplate(templateId),
+    queryFn: () => getMineTemplate(templateId),
+    enabled: Boolean(templateId),
+    staleTime: 30_000,
   })
 
 /** Storefront read: needs tenant UUID because it's unauthenticated. */
@@ -107,6 +161,42 @@ export const createBlankDraft = async (): Promise<DesignVersion> => {
   })
   if (!res.data) throw new Error("Empty blank-draft response")
   return res.data
+}
+
+export const createMineTemplate = async (
+  input: CreateMineTemplateInput
+): Promise<TenantTemplateDetail> => {
+  const res = await api<ApiResponse<TenantTemplateDetail>>(
+    ADMIN_MINE_TEMPLATES_BASE,
+    {
+      method: "POST",
+      body: input,
+    }
+  )
+  if (!res.data) throw new Error("Empty create-mine-template response")
+  return res.data
+}
+
+export const updateMineTemplate = async (
+  input: UpdateMineTemplateInput
+): Promise<TenantTemplateDetail> => {
+  const { templateId, ...body } = input
+  const res = await api<ApiResponse<TenantTemplateDetail>>(
+    `${ADMIN_MINE_TEMPLATES_BASE}/${encodeURIComponent(templateId)}`,
+    {
+      method: "PUT",
+      body,
+    }
+  )
+  if (!res.data) throw new Error("Empty update-mine-template response")
+  return res.data
+}
+
+export const deleteMineTemplate = async (templateId: string): Promise<void> => {
+  await api<ApiResponse<null>>(
+    `${ADMIN_MINE_TEMPLATES_BASE}/${encodeURIComponent(templateId)}`,
+    { method: "DELETE" }
+  )
 }
 
 export const getDesignDraft = async (): Promise<DesignVersion | null> => {

@@ -1,5 +1,6 @@
 import resolvePuckPath from "@/lib/resolve-puck-path";
 import { Metadata } from "next";
+import RequireRole from "@/modules/auth/auth/components/RequireRole"
 import Client from "./client";
 
 export async function generateMetadata({
@@ -35,7 +36,11 @@ export default async function Page({
   const { puckPath } = await params;
   const { isEdit, path } = resolvePuckPath(puckPath);
 
-  return <Client isEdit={isEdit} path={path} />;
+  return (
+    <RequireRole roles={["OWNER", "MANAGER", "STAFF"]}>
+      <Client isEdit={isEdit} path={path} />
+    </RequireRole>
+  );
 }
 
 export const dynamic = "force-dynamic";
