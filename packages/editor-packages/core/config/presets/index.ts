@@ -138,3 +138,12 @@ export {
   createCartPageContent,
 } from "./cart";
 export { createSettingsPageContent } from "./account";
+export {
+  createSplashPageContent,
+  getSplashVariant,
+  SPLASH_PAGE_PATH,
+  SPLASH_PLACEHOLDER_IMAGE,
+  SPLASH_VARIANTS,
+  type SplashVariant,
+  type SplashVariantId,
+} from "./splash-page";

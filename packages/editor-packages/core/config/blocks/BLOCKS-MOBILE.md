@@ -10,7 +10,8 @@ Mobile-facing subset of [BLOCKS.md](./BLOCKS.md). Only blocks intended for the m
 >
 > **AppBar + Sidebar (mobile shell)**  
 > - `AppBar` is a **per-page** fixed chrome block (no drop slot). It appears in the blocks palette **only in the mobile editor** (`?mode=mobile`). On save it is extracted to `page.appBar` (`type: "appBar"`, or `{}` when none).  
-> - `Sidebar` is the mobile drawer/nav **block** (not `ZoneDrawer` zone). On mobile it is stored at `SiteData.sidebar` and injected into the canvas for editing; seeding from desktop migrates `root:zone-drawer` → `sidebar`.
+> - `Sidebar` is the mobile drawer/nav **block** (not `ZoneDrawer` zone). On mobile it is stored at `SiteData.sidebar` and injected into the canvas for editing; seeding from desktop migrates `root:zone-drawer` → `sidebar`.  
+> - Neither is composed into a **full-screen page** (`page.fullScreen: true`) — see [Full-screen pages & splash](#full-screen-pages--splash).
 
 > **Runtime metadata & data binding**  
 > Commerce sections use **`Group`** blocks as binding roots. When a product is picked on a Group, the editor auto-populates read-only `metadata` with `apiUrl`. Child blocks (`ContentHeading`, `ContentParagraph`, `ContentImage`, `ContentButton`) resolve live values via optional `valueContext.path` against the Group's bound data. Mobile converters should fetch from `metadata.apiUrl` at render time rather than embedding product payloads in JSON.
@@ -50,6 +51,7 @@ Mobile-facing subset of [BLOCKS.md](./BLOCKS.md). Only blocks intended for the m
 
 - [Site JSON (`SiteData`)](#site-json-sitedata)
 - [Pages (`SitePage`)](#pages-sitepage)
+- [Full-screen pages & splash](#full-screen-pages--splash)
 - [Theme root props (`FullThemeProps`)](#theme-root-props-fullthemeprops)
 - [Section preset catalog](#section-preset-catalog)
 - [Products page filters](#products-page-filters)
@@ -1458,12 +1460,15 @@ type SitePage = {
   content: ComponentData[]; // the page's Section blocks
   /** Mobile app bar. Empty `{}` when none. Export type is `appBar`. */
   appBar?: object;
+  /** Chrome-less page (splash/onboarding) — no app bar, no header/footer zones. */
+  fullScreen?: boolean;
 };
 ```
 
 **Rules**
 
 - `content[]` at the page root accepts only `Section` blocks — `normalizeEditorData()` and `stripShellFromContent()` remove any header/footer/overlay blocks that leak in.
+- `fullScreen: true` forces `appBar: {}` and suppresses the site shell — see [Full-screen pages & splash](#full-screen-pages--splash).
 - Dynamic pages use the same `LinkValue.dynamicSegment` mechanism as `ContentButton` (see [LinkValue](#linkvalue)). Example: `/products/:product-slug` binds `product-slug` from `product.slug` on the surrounding `Group`.
 - Built-in pages come from `config/page-registry.ts` (`PAGES`); merchant-created pages are marked `isCustom: true`.
 - Pages emit a `PAGES_UPDATED_EVENT` on writes so plugins (e.g. `plugin: pages`, `plugin: pages-menu`) can refresh their state.
@@ -1495,6 +1500,112 @@ type SitePage = {
   ]
 }
 ```
+
+---
+
+## Full-screen pages & splash
+
+A page with `fullScreen: true` renders **outside the app shell**: no app bar, no sidebar, and no header/footer zones. This is the editor's representation of the mobile app's launch surfaces (`/splash`, `/splash-carousel`) and of anything the runtime lists in `shellExcludeRoutes`.
+
+### What the editor does
+
+| Layer | Behaviour on a full-screen page |
+|---|---|
+| `composePuckData` | Skips the `AppBar` + `Sidebar` injection and sets the page-scoped root prop `pageFullScreen: true` |
+| `Root` (`config/root.tsx`) | Does not render the `zone-header` / `zone-footer` DropZones |
+| Blocks palette | The **هيكل الجوال** category (AppBar, Sidebar) is hidden — `MobilePaletteSync` |
+| `applyPuckSave` | Keeps `appBar: {}`, and leaves `SiteData.sidebar` untouched (the save carries no evidence about it) |
+| `normalizeSiteData` | Re-asserts `appBar: {}` for any page flagged `fullScreen` |
+
+`pageFullScreen` is **page-scoped** — `extractGlobalRootProps` strips it before persisting, exactly like `title`, so it never lands in `SiteData.root.props`.
+
+### Converter mapping
+
+| Editor | Mobile JSON |
+|---|---|
+| `page.fullScreen: true` | `page.layout: "centered"` + `page.padding: 0`, and the route added to `config.shellExcludeRoutes` |
+| Section `backgroundColor` | `page.background` |
+| `page.appBar` (always `{}`) | no `appBar` node |
+
+### Authoring a splash page
+
+Mobile editor → **الصفحات** → **شاشة البداية**. Pick a variant, then **إضافة شاشة البداية**. The page is created at `/splash` with `fullScreen: true`.
+
+| Variant | `id` | Status |
+|---|---|---|
+| شاشة بداية عادية — image, headline, CTA | `basic` | Available |
+| شاشة تعريفية متعددة الخطوات | `onboarding` | Disabled — needs a stepper/carousel block |
+
+The `basic` variant (`config/presets/splash-page.ts`) is composed from ordinary blocks, so every part stays editable:
+
+```json
+{
+  "type": "Section",
+  "props": {
+    "name": "شاشة البداية",
+    "backgroundColor": "#132A4F",
+    "theme": "light",
+    "maxWidth": "480px",
+    "columns": 1,
+    "columnsMobile": 1,
+    "gridGap": "24px",
+    "paddingTop": "120px",
+    "paddingBottom": "120px",
+    "paddingHorizontal": "24px",
+    "content": [
+      {
+        "type": "Flex",
+        "props": {
+          "direction": "column",
+          "justifyContent": "center",
+          "gap": 24,
+          "wrap": "nowrap",
+          "items": [
+            {
+              "type": "ContentImage",
+              "props": {
+                "src": "https://placehold.co/440x440/132a4f/e8912b?text=Splash",
+                "alt": { "ar": "شعار المتجر", "en": "Store logo" },
+                "align": "center",
+                "objectFit": "contain",
+                "radius": "theme-md",
+                "maxWidth": "220px"
+              }
+            },
+            {
+              "type": "ContentHeading",
+              "props": {
+                "text": "تسوّق.. اختر واستلم",
+                "level": "1",
+                "textAlign": "center",
+                "fontSize": "theme-2xl",
+                "fontWeight": "theme-bold",
+                "color": "#FFFFFF"
+              }
+            },
+            {
+              "type": "ContentButton",
+              "props": {
+                "label": "ابدأ الآن",
+                "align": "center",
+                "destinationType": "link",
+                "link": { "kind": "page", "pageId": "/" },
+                "buttonVariantMode": "fixed",
+                "bgColor": "#D7DCE5",
+                "textColor": "#12244A",
+                "radius": "theme-md",
+                "buttonSize": "theme-md"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+> **Not the same as `splashHero`.** The reference `mobile_production_v2` file uses a single composite `splashHero` node carrying a ring of six decorative icons. That node has no web block and none is planned; the atomic composition above covers the image + headline + CTA, and the icon ring is dropped. `splashOnboarding` (the multi-step variant) is likewise still unauthorable.
 
 ---
 

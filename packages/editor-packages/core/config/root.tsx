@@ -78,6 +78,12 @@ export type RootProps = DefaultRootRenderProps<
   Partial<FullThemeProps> &
     LocaleProps & {
       title?: BilingualString | string;
+      /**
+       * Page-scoped, injected by `composePuckData` from `SitePage.fullScreen`
+       * (never persisted on the site root). Splash/onboarding pages live
+       * outside the shell, so the header and footer zones are not rendered.
+       */
+      pageFullScreen?: boolean;
       /** When true, the HTML block appears in the Content palette (Settings → Editor). */
       enableHtmlRichTextBlock?: boolean;
 
@@ -234,6 +240,7 @@ function RootShell(props: DefaultRootRenderProps<RootProps>) {
     const {
       badgeShape = DEFAULT_BADGE.badgeShape,
       badgeStyle = DEFAULT_BADGE.badgeStyle,
+      pageFullScreen = false,
       puck: { isEditing, renderDropZone: DropZone },
     } = p;
 
@@ -306,19 +313,21 @@ function RootShell(props: DefaultRootRenderProps<RootProps>) {
           lang={language}
           {...fonts.dataAttrs}
         >
-          <DropZone
-            zone={ZONE_HEADER}
-            allow={["Section"]}
-            disallow={["SiteHeader", "SiteFooter"]}
-            minEmptyHeight={isEditing ? 72 : 0}
-            style={
-              isEditing
-                ? { borderBottom: "1px dashed rgba(37, 99, 235, 0.25)" }
-                : // Avoid a wrapper box so sticky/fixed Layout on the header
-                  // Section sticks relative to the page, not a short parent.
-                  { display: "contents" }
-            }
-          />
+          {pageFullScreen ? null : (
+            <DropZone
+              zone={ZONE_HEADER}
+              allow={["Section"]}
+              disallow={["SiteHeader", "SiteFooter"]}
+              minEmptyHeight={isEditing ? 72 : 0}
+              style={
+                isEditing
+                  ? { borderBottom: "1px dashed rgba(37, 99, 235, 0.25)" }
+                  : // Avoid a wrapper box so sticky/fixed Layout on the header
+                    // Section sticks relative to the page, not a short parent.
+                    { display: "contents" }
+              }
+            />
+          )}
 
           <div style={{ display: "flex", flexGrow: 1, minHeight: 0, flexDirection: "column" }}>
             <DropZone
@@ -328,17 +337,19 @@ function RootShell(props: DefaultRootRenderProps<RootProps>) {
             />
           </div>
 
-          <DropZone
-            zone={ZONE_FOOTER}
-            allow={["Section"]}
-            disallow={["SiteHeader", "SiteFooter"]}
-            minEmptyHeight={isEditing ? 72 : 0}
-            style={
-              isEditing
-                ? { borderTop: "1px dashed rgba(37, 99, 235, 0.25)" }
-                : { display: "contents" }
-            }
-          />
+          {pageFullScreen ? null : (
+            <DropZone
+              zone={ZONE_FOOTER}
+              allow={["Section"]}
+              disallow={["SiteHeader", "SiteFooter"]}
+              minEmptyHeight={isEditing ? 72 : 0}
+              style={
+                isEditing
+                  ? { borderTop: "1px dashed rgba(37, 99, 235, 0.25)" }
+                  : { display: "contents" }
+              }
+            />
+          )}
 
           {/* Overlay zones — managed via Zones plugin; hidden drop chrome in editor */}
           <DropZone
