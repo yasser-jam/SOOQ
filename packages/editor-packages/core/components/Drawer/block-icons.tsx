@@ -1,5 +1,6 @@
 import {
   AlignRight,
+  ChevronDownSquare,
   Columns2,
   CreditCard,
   GalleryHorizontal,
@@ -63,6 +64,7 @@ const BLOCK_ICONS: Record<
   ButtonGroup: { icon: SquareStack, category: "element" },
   ContentLink: { icon: Link, category: "element" },
   ContentInput: { icon: TextCursorInput, category: "element" },
+  ContentDropdown: { icon: ChevronDownSquare, category: "element" },
   ContentDivider: { icon: Minus, category: "element" },
   Space: { icon: MoveVertical, category: "element" },
   ImageGallery: { icon: Images, category: "element" },

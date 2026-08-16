@@ -18,6 +18,12 @@ export const BILINGUAL_PROPS: Record<string, BilingualPropDef[]> = {
   ContentLink: [{ path: "title" }],
   ContentInput: [{ path: "label" }, { path: "placeholder" }],
   ContentSwitch: [{ path: "label" }, { path: "helperText" }],
+  ContentDropdown: [
+    { path: "label" },
+    { path: "placeholder" },
+    { path: "options[].groupLabel" },
+    { path: "options[].values[].title" },
+  ],
   ContentImage: [{ path: "alt" }],
   Card: [{ path: "title" }, { path: "description" }],
 

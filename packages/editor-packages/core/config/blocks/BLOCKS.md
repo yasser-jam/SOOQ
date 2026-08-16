@@ -39,7 +39,7 @@ Source of truth: the single registry in [`config/index.tsx`](../index.tsx). Stat
 | Category (Arabic label) | Blocks |
 |---|---|
 | `layout` — **تخطيط** | [`Section`](#section), [`Group`](#group), [`RowGroup`](#rowgroup) |
-| `blocks` — **عناصر** | [`ContentHeading`](#contentheading), [`ContentParagraph`](#contentparagraph), [`ContentImage`](#contentimage), [`ContentButton`](#contentbutton), [`Chip`](#chip), [`ButtonGroup`](#buttongroup), [`ContentLink`](#contentlink), [`ContentInput`](#contentinput), [`ContentSwitch`](#contentswitch), [`ContentMap`](#contentmap), [`ContentDivider`](#contentdivider), [`Space`](#space), [`ImageGallery`](#imagegallery), [`VideoEmbed`](#videoembed), [`Accordion`](#accordion) |
+| `blocks` — **عناصر** | [`ContentHeading`](#contentheading), [`ContentParagraph`](#contentparagraph), [`ContentImage`](#contentimage), [`ContentButton`](#contentbutton), [`Chip`](#chip), [`ButtonGroup`](#buttongroup), [`ContentLink`](#contentlink), [`ContentInput`](#contentinput), [`ContentSwitch`](#contentswitch), [`ContentDropdown`](#contentdropdown), [`ContentMap`](#contentmap), [`ContentDivider`](#contentdivider), [`Space`](#space), [`ImageGallery`](#imagegallery), [`VideoEmbed`](#videoembed), [`Accordion`](#accordion) |
 
 Site zones (`SiteHeader`, `SiteFooter`, `ZoneDrawer`, `ZonePopup`, `ZoneBottomSheet`) are also active,
 but managed through the **المناطق** sidebar plugin instead of the palette, and carry fixed permissions
@@ -122,50 +122,51 @@ Status tags mirror the [block status matrix](#block-status--what-to-use-what-to-
 14. [ContactForm](#contactform) ⛔
 15. [ContentButton](#contentbutton) ✅
 16. [ContentDivider](#contentdivider) ✅
-17. [ContentHeading](#contentheading) ✅
-18. [ContentHtml](#contenthtml) ⛔
-19. [ContentIcon](#contenticon) 🧩
-20. [ContentImage](#contentimage) ✅
-21. [ContentInput](#contentinput) ✅
-22. [ContentLink](#contentlink) ✅
-23. [ContentMap](#contentmap) ✅
-24. [ContentParagraph](#contentparagraph) ✅
-25. [ContentSwitch](#contentswitch) ✅
-26. [Flex](#flex) 🗄️
-27. [Grid](#grid) 🗄️
-28. [Group](#group) ✅
-29. [Heading](#heading) 🗄️
-30. [Hero](#hero) 🧩
-31. [ImageGallery](#imagegallery) ✅
-32. [Logos](#logos) ⛔
-33. [NavMenu](#navmenu) 🧩
-34. [OrderHistory](#orderhistory) ⛔
-35. [OrdersIconButton](#ordersiconbutton) 🗄️
-36. [ProductCard](#productcard) 🗄️
-37. [ProductImage](#productimage) 🗄️
-38. [ProductImageCarousel](#productimagecarousel) 🧩
-39. [ProductInfo](#productinfo) 🗄️
-40. [ProductSearchMenu](#productsearchmenu) ⛔
-41. [ProductVariants](#productvariants) 🧩
-42. [ProductsGrid](#productsgrid) ❌
-43. [RichText](#richtext) 🗄️
-44. [RowGroup](#rowgroup) ✅
-45. [Section](#section) ✅
-46. [Sidebar](#sidebar) ⛔
-47. [SideDrawer](#sidedrawer) ⛔
-48. [SiteDrawerShell](#sitedrawershell) 🗄️
-49. [SiteFooter](#sitefooter) ✅ *(zone)*
-50. [SiteHeader](#siteheader) ✅ *(zone)*
-51. [Space](#space) ✅
-52. [Stats](#stats) 🧩
-53. [Template](#template) ⛔
-54. [Testimonials](#testimonials) 🧩
-55. [Text](#text) 🗄️
-56. [VideoEmbed](#videoembed) ✅
-57. [Wishlist](#wishlist) ⛔
-58. [ZoneBottomSheet](#zonebottomsheet) ✅ *(zone)*
-59. [ZoneDrawer](#zonedrawer) ✅ *(zone)*
-60. [ZonePopup](#zonepopup) ✅ *(zone)*
+17. [ContentDropdown](#contentdropdown) ✅
+18. [ContentHeading](#contentheading) ✅
+19. [ContentHtml](#contenthtml) ⛔
+20. [ContentIcon](#contenticon) 🧩
+21. [ContentImage](#contentimage) ✅
+22. [ContentInput](#contentinput) ✅
+23. [ContentLink](#contentlink) ✅
+24. [ContentMap](#contentmap) ✅
+25. [ContentParagraph](#contentparagraph) ✅
+26. [ContentSwitch](#contentswitch) ✅
+27. [Flex](#flex) 🗄️
+28. [Grid](#grid) 🗄️
+29. [Group](#group) ✅
+30. [Heading](#heading) 🗄️
+31. [Hero](#hero) 🧩
+32. [ImageGallery](#imagegallery) ✅
+33. [Logos](#logos) ⛔
+34. [NavMenu](#navmenu) 🧩
+35. [OrderHistory](#orderhistory) ⛔
+36. [OrdersIconButton](#ordersiconbutton) 🗄️
+37. [ProductCard](#productcard) 🗄️
+38. [ProductImage](#productimage) 🗄️
+39. [ProductImageCarousel](#productimagecarousel) 🧩
+40. [ProductInfo](#productinfo) 🗄️
+41. [ProductSearchMenu](#productsearchmenu) ⛔
+42. [ProductVariants](#productvariants) 🧩
+43. [ProductsGrid](#productsgrid) ❌
+44. [RichText](#richtext) 🗄️
+45. [RowGroup](#rowgroup) ✅
+46. [Section](#section) ✅
+47. [Sidebar](#sidebar) ⛔
+48. [SideDrawer](#sidedrawer) ⛔
+49. [SiteDrawerShell](#sitedrawershell) 🗄️
+50. [SiteFooter](#sitefooter) ✅ *(zone)*
+51. [SiteHeader](#siteheader) ✅ *(zone)*
+52. [Space](#space) ✅
+53. [Stats](#stats) 🧩
+54. [Template](#template) ⛔
+55. [Testimonials](#testimonials) 🧩
+56. [Text](#text) 🗄️
+57. [VideoEmbed](#videoembed) ✅
+58. [Wishlist](#wishlist) ⛔
+59. [ZoneBottomSheet](#zonebottomsheet) ✅ *(zone)*
+60. [ZoneDrawer](#zonedrawer) ✅ *(zone)*
+61. [ZonePopup](#zonepopup) ✅ *(zone)*
 
 **Site-wide reference sections**
 
@@ -1011,6 +1012,209 @@ with `buttonAction: "saveProfile"` or `"createAddress"`. Used by the `account` s
     "defaultChecked": false,
     "labelPosition": "end",
     "switchAction": ""
+  }
+}
+```
+
+---
+
+## ContentDropdown
+
+**Label:** قائمة منسدلة
+**Description:** A native `<select>` whose option list is assembled from one or more **option sources**. A source is either a hand-typed list, a **repeater** over an array inside the bound payload, or the storefront category list. With `dropdownAction` set it stops being a plain form control and becomes a real selector — the product-variant picker on a product-detail page, or the category filter on a products page.
+
+### Properties
+
+| Property | Type | Values / Notes | Default |
+|---|---|---|---|
+| `label` | **`BilingualString`** | Field label (empty = no label; the placeholder becomes the `aria-label`) | `{ ar: "اختر", en: "Select" }` |
+| `name` | `string` | `name` attribute — also the key under which `collectSooqInputValues` submits it | `"dropdown"` |
+| `placeholder` | **`BilingualString`** | Text of the leading empty option (disabled when `required`) | `{ ar: "اختر قيمة", en: "Choose a value" }` |
+| `required` | `boolean` | Marks the field required and disables the empty option | `false` |
+| `options` | `DropdownOptionSource[]` | The option sources — see below. Add as many as you need | one static source with two options |
+| `dropdownAction` | `"" \| "select_variant" \| "filter_category"` | Wired store action (`""` = plain form control) | `""` |
+| `defaultValue` | `string` | Initial selection. **Hidden** while `dropdownAction` is set | `""` |
+| `autoSelectFirst` | `boolean` | Adopt the first option on mount so bound pricing has a variant. **Hidden** while `dropdownAction` is empty | `true` |
+| `valueContext` | `ValueContext \| null` | Preset-only — seeds the initial selection from bound data | `null` |
+
+> **Bilingual:** `label`, `placeholder`, `options[].groupLabel`, `options[].values[].title`.
+
+### Option sources (`options[]`)
+
+Each entry produces a block of options. A non-empty `groupLabel` wraps them in an `<optgroup>`;
+leave it empty to merge them in flat. Because Puck array items share one field schema, **all** the
+fields below show on every entry — `mode` decides which ones are actually read.
+
+| Field | Type | Read when | Notes |
+|---|---|---|---|
+| `mode` | `"static" \| "bound" \| "categories"` | always | مصدر القيم |
+| `groupLabel` | **`BilingualString`** | always | `<optgroup label>` — empty = ungrouped |
+| `values` | `{ title: BilingualString; value: string }[]` | `static` | The hand-typed options |
+| `sourcePath` | `string` | `bound` | Path to an **array** in the bound payload (e.g. `variantMatrix.variants`) |
+| `titlePath` | `string` | `bound` | Path **inside each row** for the visible text |
+| `valuePath` | `string` | `bound` | Path **inside each row** for the submitted value |
+
+**`mode: "static"`** — a value-less option falls back to its own title, so a merchant can type
+titles only and still get a working select.
+
+**`mode: "bound"` (the repeater)** — `sourcePath` is resolved with the same
+[`valueContext`](#valuecontext) path resolver used everywhere else, then each row is mapped through
+`titlePath` / `valuePath`. Row-level paths get three conveniences:
+
+- **Locale siblings** — `titlePath: "value"` tries `valueAr` → `value` → `valueEn` in Arabic
+  (reversed in English), so API fields don't need the suffix spelled out.
+- **Object titles** — when the resolved title is an object or array its values are joined with
+  `" / "`, which turns a variant's `attributes` map (`{ Color: "أحمر", Size: "M" }`) into `أحمر / M`.
+- **Primitive rows** — leave both paths empty to bind an array of plain strings (`["S","M","L"]`).
+
+Rows with no resolvable value are skipped; a row with a value but no title shows its value.
+
+**`mode: "categories"`** — the storefront category list (`productsPage.categories`), titled by
+`nameAr`/`nameEn` with the `slug` as value. The edit canvas uses `getSampleCategories()` so the
+dropdown is populated without a network call.
+
+**Across all sources:** values are de-duplicated (first wins — a `<select>` can't tell two options
+with the same value apart) and sources that resolve to nothing are dropped.
+
+### `dropdownAction` values (`config/content/dropdown-actions.ts`)
+
+| Value | Reads | Writes |
+|---|---|---|
+| `select_variant` | `selectedVariantId` from the nearest bound `Group` / product provider | `setSelectedVariantId(value)` — the same binding [`ProductVariants`](#productvariants) drives, so `pricing.*` swaps to the picked variant and `addToCart` submits it |
+| `filter_category` | `productsPage.selectedCategorySlug` | `actions.productsPage.setCategory(slug)`; an empty value or `__all__` clears the filter |
+
+### Behavior
+
+- **Bound actions win** — while `dropdownAction` is set the selection is read from store/binding
+  state, so the dropdown stays in sync with a `ProductVariants` chip group or a `ButtonGroup`
+  category bar on the same page. `defaultValue` is ignored.
+- **`autoSelectFirst`** — with `select_variant`, the first resolved option is adopted once the
+  repeater resolves and nothing is selected yet, so bound price blocks never render variant-less.
+  Never fires in the editor.
+- **No action** — an ordinary controlled select; its value is picked up by
+  `collectSooqInputValues` (it carries `data-sooq-input`) when a `ContentButton` submits the form.
+- **Editor** — the select is disabled (`puck.isEditing`), and when no source resolves it shows the
+  disabled hint `لا توجد خيارات — تحقّق من مصدر القيم` instead of looking silently broken. The
+  built-in sample product payload has no option matrix, so a variant repeater is expected to show
+  that hint on the canvas and fill in on the storefront.
+- The native arrow is suppressed in favour of an RTL-aware chevron (`inset-inline-end`).
+
+### JSON Example (product-variant selector — product detail page)
+
+```json
+{
+  "type": "ContentDropdown",
+  "props": {
+    "label": { "ar": "المتغيّر", "en": "Variant" },
+    "name": "variant",
+    "placeholder": { "ar": "اختر المتغيّر", "en": "Choose a variant" },
+    "required": true,
+    "options": [
+      {
+        "mode": "bound",
+        "groupLabel": { "ar": "", "en": "" },
+        "values": [],
+        "sourcePath": "variantMatrix.variants",
+        "titlePath": "attributes",
+        "valuePath": "variantId"
+      }
+    ],
+    "dropdownAction": "select_variant",
+    "autoSelectFirst": true
+  }
+}
+```
+
+Place it inside the product-bound `Group` — the same binding root that feeds
+`ContentHeading`/`ContentImage`. Picking an option swaps `pricing.*` for every sibling block.
+
+### JSON Example (option-values repeater)
+
+Binds one option group (`المقاس`) from the variant matrix rather than whole variants:
+
+```json
+{
+  "type": "ContentDropdown",
+  "props": {
+    "label": { "ar": "المقاس", "en": "Size" },
+    "name": "size",
+    "placeholder": { "ar": "اختر المقاس", "en": "Choose a size" },
+    "required": false,
+    "options": [
+      {
+        "mode": "bound",
+        "groupLabel": { "ar": "المقاس", "en": "Size" },
+        "values": [],
+        "sourcePath": "variantMatrix.options[0].values",
+        "titlePath": "value",
+        "valuePath": "optionValueId"
+      }
+    ],
+    "dropdownAction": ""
+  }
+}
+```
+
+### JSON Example (category filter — products page)
+
+```json
+{
+  "type": "ContentDropdown",
+  "props": {
+    "label": { "ar": "التصنيف", "en": "Category" },
+    "name": "category",
+    "placeholder": { "ar": "كل التصنيفات", "en": "All categories" },
+    "required": false,
+    "options": [
+      {
+        "mode": "categories",
+        "groupLabel": { "ar": "", "en": "" },
+        "values": [],
+        "sourcePath": "",
+        "titlePath": "",
+        "valuePath": ""
+      }
+    ],
+    "dropdownAction": "filter_category"
+  }
+}
+```
+
+### JSON Example (plain form select, grouped)
+
+```json
+{
+  "type": "ContentDropdown",
+  "props": {
+    "label": { "ar": "المحافظة", "en": "Governorate" },
+    "name": "governorate",
+    "placeholder": { "ar": "اختر المحافظة", "en": "Choose a governorate" },
+    "required": true,
+    "options": [
+      {
+        "mode": "static",
+        "groupLabel": { "ar": "الجنوب", "en": "South" },
+        "values": [
+          { "title": { "ar": "دمشق", "en": "Damascus" }, "value": "damascus" },
+          { "title": { "ar": "درعا", "en": "Daraa" }, "value": "daraa" }
+        ],
+        "sourcePath": "",
+        "titlePath": "",
+        "valuePath": ""
+      },
+      {
+        "mode": "static",
+        "groupLabel": { "ar": "الشمال", "en": "North" },
+        "values": [
+          { "title": { "ar": "حلب", "en": "Aleppo" }, "value": "aleppo" }
+        ],
+        "sourcePath": "",
+        "titlePath": "",
+        "valuePath": ""
+      }
+    ],
+    "dropdownAction": "",
+    "defaultValue": ""
   }
 }
 ```
@@ -3421,6 +3625,9 @@ The **صفحة المنتجات** preset (`createProductsPagePreset()`) ships wi
 | `Section` | `metadata.preset: "products-page"` | `createProductsPageInnerSection()` |
 | `ButtonGroup` | `bindingMode: "pagination"` | inline in `products-page.ts` |
 
+`ContentDropdown` with `dropdownAction: "filter_category"` is a drop-in alternative to the
+categories `ButtonGroup` — same `productsPage.setCategory` binding, rendered as a select.
+
 The price + availability controls are grouped into one wrapping row by `createProductsFilterBar()` in [`config/presets/products-grid.ts`](../presets/products-grid.ts).
 
 ### Shared state
@@ -3513,6 +3720,7 @@ Blocks that support binding:
 | `ContentButton` | `labelValueContext` | `label` |
 | `ContentInput` | `valueContext` | displayed value (read-only, when `inputAction` is empty) |
 | `ContentSwitch` | `checkedValueContext` | checked state (`=== "true"`) |
+| `ContentDropdown` | `options[].sourcePath` *(repeater)*, `valueContext` | the option list, and the initial selection |
 | `Chip` | `listValueContext` | the chip array (e.g. `product.tags`) |
 | `ContentLink` | `link.dynamicSegment.valueContext` | a dynamic URL segment |
 
@@ -3709,6 +3917,7 @@ migration, the theme codemod and the registry-consistency tests. Adding a biling
 | `ContentLink` | `title` |
 | `ContentInput` | `label`, `placeholder` |
 | `ContentSwitch` | `label`, `helperText` |
+| `ContentDropdown` | `label`, `placeholder`, `options[].groupLabel`, `options[].values[].title` |
 | `ContentImage` | `alt` |
 | `Card` | `title`, `description` |
 | `ButtonGroup` | `allButtonTitle`, `items[].title` |

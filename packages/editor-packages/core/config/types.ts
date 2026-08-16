@@ -35,6 +35,7 @@ import { ButtonGroupProps } from "./blocks/ButtonGroup";
 import { ContentLinkProps } from "./blocks/ContentLink";
 import { ContentInputProps } from "./blocks/ContentInput";
 import { ContentSwitchProps } from "./blocks/ContentSwitch";
+import { ContentDropdownProps } from "./blocks/ContentDropdown";
 import { ContentDividerProps } from "./blocks/ContentDivider";
 import { ImageGalleryProps } from "./blocks/ImageGallery";
 import { VideoEmbedProps } from "./blocks/VideoEmbed";
@@ -105,6 +106,7 @@ export type Components = {
   ContentLink: ContentLinkProps;
   ContentInput: ContentInputProps;
   ContentSwitch: ContentSwitchProps;
+  ContentDropdown: ContentDropdownProps;
   ContentDivider: ContentDividerProps;
   ImageGallery: ImageGalleryProps;
   VideoEmbed: VideoEmbedProps;
