@@ -38,16 +38,17 @@ function toSlug(title: string): string {
 
 export default function BasicInfoSection({ isSubmitting, isEdit }: Props) {
   const form = useFormContext()
-  const prevTitleAr = useRef("")
+  const prevTitleEn = useRef("")
 
-  const titleAr =
-    (useWatch({ control: form.control, name: "titleAr" }) as string) ?? ""
+  const titleEn =
+    (useWatch({ control: form.control, name: "titleEn" }) as string) ?? ""
 
   useEffect(() => {
-    if (titleAr === prevTitleAr.current) return
-    prevTitleAr.current = titleAr
-    form.setValue("slug", toSlug(titleAr), { shouldDirty: false })
-  }, [titleAr, form])
+    if (isEdit) return
+    if (titleEn === prevTitleEn.current) return
+    prevTitleEn.current = titleEn
+    form.setValue("slug", toSlug(titleEn), { shouldDirty: false })
+  }, [titleEn, form])
 
   return (
     <Card>

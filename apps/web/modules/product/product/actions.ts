@@ -8,12 +8,25 @@ import type {
   VariantRequest,
 } from "./types"
 import api from "@/lib/api"
+import { resolveMediaUrl } from "@/lib/media"
 import { ApiResponse } from "@/lib/types"
 import { ProductCategory } from "../category/types"
 import { ProductTag } from "../tag/types"
 
 const normalizeProduct = (data: any): Product => {
   const media = (data.media ?? []) as Array<any>
+
+  // `mediaAssetIds[i]` must describe the same asset as `mediaUrls[i]` — the
+  // editor pairs them by index to build its thumbnail list. Filter the pairs
+  // once, together, so an asset missing either half drops from BOTH arrays
+  // instead of shifting one of them out of alignment.
+  const mediaPairs = media
+    .map((m) => ({
+      id: m.mediaAssetId ?? m.assetId ?? m.id,
+      url: m.url ?? m.thumbnailUrl,
+    }))
+    .filter((m) => Boolean(m.id) && Boolean(m.url))
+
   return {
     ...data,
     id: data.productId,
@@ -21,9 +34,44 @@ const normalizeProduct = (data: any): Product => {
     titleEn: data.titleEn,
     descriptionAr: data.descriptionAr,
     descriptionEn: data.descriptionEn,
-    mediaUrls: media.map((m) => m.url ?? m.thumbnailUrl).filter(Boolean),
-    // server-known IDs in their current order. null = unchanged on update; we hydrate with current list so the editor can manipulate it.
-    mediaAssetIds: media.map((m) => m.mediaAssetId ?? m.assetId ?? m.id).filter(Boolean),
+    mediaUrls: mediaPairs.map((m) => m.url),
+    // Server-known IDs in their current order (index 0 = primary). The editor
+    // manipulates this list; `buildProductFormData` turns it into `mediaAssets`.
+    mediaAssetIds: mediaPairs.map((m) => m.id),
+  }
+}
+
+/**
+ * `GET /admin/products/{id}` returns the gallery as a top-level `images[]`
+ * (AdminProductDetailResponseDto), NOT as `product.media[]` — which is why
+ * `normalizeProduct` alone leaves the media section of the editor empty.
+ *
+ * Each entry carries `mediaAssetId` + a tenant-relative `publicUrl`, so the
+ * path is resolved against `NEXT_PUBLIC_MEDIA_URL` here. Primary first, then
+ * `sortOrder`: the uploader treats index 0 as the primary image, and that same
+ * order is what gets sent back as `mediaAssets.set` on save.
+ */
+const normalizeDetailImages = (
+  images: any
+): { mediaUrls: string[]; mediaAssetIds: string[] } => {
+  const pairs = (Array.isArray(images) ? images : [])
+    .map((image: any, index: number) => ({
+      id: image?.mediaAssetId ?? image?.assetId ?? image?.id,
+      url: resolveMediaUrl(
+        image?.publicUrl ?? image?.url ?? image?.thumbnailUrls?.["600"]
+      ),
+      // Falsy `isPrimary` and a missing `sortOrder` must not collapse every
+      // image onto the same rank — fall back to the server's own ordering.
+      rank: image?.isPrimary ? -1 : (image?.sortOrder ?? index),
+    }))
+    // Drop an entry missing either half: the two arrays are paired by index
+    // downstream, so filtering them separately would shift them out of sync.
+    .filter((image) => Boolean(image.id) && Boolean(image.url))
+    .sort((a, b) => a.rank - b.rank)
+
+  return {
+    mediaUrls: pairs.map((image) => image.url as string),
+    mediaAssetIds: pairs.map((image) => image.id as string),
   }
 }
 
@@ -40,32 +88,60 @@ const normalizeGetProduct = (data: any): Product => {
 
   // Dedupe options by name (lowercased EN, fallback AR). Backend has been
   // observed to leak duplicate axes when a product is saved without echoing
-  // productOptionId for existing options. Keep the first one.
-  const dedupSeen = new Set<string>()
-  const dedupedOptions = matrixOptions.filter((o: any) => {
-    const k = String(o.optionNameEn ?? o.titleEn ?? o.optionNameAr ?? o.titleAr ?? "")
+  // productOptionId for existing options.
+  //
+  // MERGE the duplicate's values into the surviving axis rather than dropping
+  // it: variants reference option *values* by id, so discarding a duplicate
+  // axis orphans its value ids. Those variants then resolve to an empty
+  // `attributes` map and trip the "same axes"/"duplicate combo" superRefine —
+  // a validation error on a field with no input to render it, i.e. a save
+  // button that does nothing.
+  const optionsByName = new Map<string, any>()
+  for (const o of matrixOptions) {
+    const key = String(
+      o.optionNameEn ?? o.titleEn ?? o.optionNameAr ?? o.titleAr ?? ""
+    )
       .trim()
       .toLowerCase()
-    if (!k || dedupSeen.has(k)) return false
-    dedupSeen.add(k)
-    return true
-  })
+    if (!key) continue
 
-  const normalizedOptions = dedupedOptions.map((o: any, i: number) => ({
-    id: o.productOptionId ?? o.optionId,
-    // Schema-aligned names (form uses these via productOptionSchema)
-    optionNameAr: o.optionNameAr ?? o.titleAr ?? "",
-    optionNameEn: o.optionNameEn ?? o.titleEn ?? "",
-    sortOrder: i,
-    values:
-      (o.values ?? o.optionValues ?? []).map((v: any, vi: number) => ({
-        id: v.optionValueId,
-        valueAr: v.valueAr ?? v.titleAr ?? "",
-        valueEn: v.valueEn ?? v.titleEn ?? "",
-        colorHex: v.colorHex ?? null,
-        sortOrder: vi,
-      })),
-  }))
+    const values = o.values ?? o.optionValues ?? []
+    const existing = optionsByName.get(key)
+    if (existing) {
+      existing.rawValues.push(...values)
+      continue
+    }
+    optionsByName.set(key, { raw: o, rawValues: [...values] })
+  }
+
+  const normalizedOptions = [...optionsByName.values()].map(
+    ({ raw: o, rawValues }, i: number) => {
+      // A merged axis can repeat the same value id across duplicates.
+      const seenValueIds = new Set<string>()
+      return {
+        id: o.productOptionId ?? o.optionId,
+        // Schema-aligned names (form uses these via productOptionSchema)
+        optionNameAr: o.optionNameAr ?? o.titleAr ?? "",
+        optionNameEn: o.optionNameEn ?? o.titleEn ?? "",
+        sortOrder: i,
+        values: rawValues
+          .filter((v: any) => {
+            const id = v.optionValueId ?? v.id
+            if (!id) return true
+            if (seenValueIds.has(id)) return false
+            seenValueIds.add(id)
+            return true
+          })
+          .map((v: any, vi: number) => ({
+            id: v.optionValueId,
+            valueAr: v.valueAr ?? v.titleAr ?? "",
+            valueEn: v.valueEn ?? v.titleEn ?? "",
+            colorHex: v.colorHex ?? null,
+            sortOrder: vi,
+          })),
+      }
+    }
+  )
 
   // Phase 2 (PRD): convert read-side variants into the new request shape so the
   // matrix UI can bind directly to form.variants. Each variant comes back from
@@ -125,6 +201,9 @@ const normalizeGetProduct = (data: any): Product => {
 
   return {
     ...normalizeProduct(data.product),
+    // Overrides the (always empty) media of `data.product` — the detail
+    // endpoint ships the gallery alongside it, not inside it.
+    ...normalizeDetailImages(data.images),
     // Phase 1: form state uses TagRef[]/CategoryRef[]. Server returns full
     // entities here, so every entry is an id-shaped ref. The merchant adds
     // `{name}`/`{nameAr,nameEn}` entries through the inline creator UI.

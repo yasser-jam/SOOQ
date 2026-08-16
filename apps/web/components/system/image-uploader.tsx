@@ -16,6 +16,8 @@ import {
   FileUploadTrigger,
 } from "@workspace/ui/components/file-upload"
 
+import ImgPreview from "@/components/system/img-preview"
+
 export const title = "Image Dropzone"
 
 export type ExistingImage = {
@@ -226,11 +228,16 @@ export default function ImageUploader({
                 key={img.id}
                 className="relative group rounded-md overflow-hidden border bg-muted/50 aspect-square"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={img.url}
-                  alt=""
+                {/* Server URLs come back tenant-relative (`/api/v1/public/…`);
+                    ImgPreview resolves them against NEXT_PUBLIC_MEDIA_URL. */}
+                <ImgPreview
+                  url={img.url}
                   className="object-cover w-full h-full"
+                  fallback={
+                    <div className="flex size-full items-center justify-center">
+                      <ImageIcon className="text-muted-foreground size-5" />
+                    </div>
+                  }
                 />
                 {showPrimaryBadge && primaryHint === img.id ? (
                   <span className="absolute top-1 right-1 inline-flex items-center gap-1 rounded-sm bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0.5">

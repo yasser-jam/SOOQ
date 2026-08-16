@@ -26,6 +26,11 @@ import {
   updateProduct,
 } from "@/modules/product/product/actions"
 import { productKeys } from "@/modules/product/product/queryKeys"
+import {
+  PRODUCT_SECTION_IDS,
+  flattenFormErrors,
+  sectionValidationFromErrors,
+} from "@/modules/product/product/helpers"
 import { useProductDraft } from "@/modules/product/product/hooks/use-product-draft"
 import { inventoryQueryKeys } from "@/modules/inventory/queryKeys"
 import type { ImageUploaderState } from "@/components/system/image-uploader"
@@ -51,14 +56,7 @@ const PRODUCT_FIELD_ALIASES: Record<string, Path<ProductFormInput>> = {
   titleEn: "titleEn",
 }
 
-const SECTION_IDS = [
-  "basic-info",
-  "media",
-  "pricing-inventory",
-  "variants",
-  "categorization-attributes",
-  "seo",
-] as const
+const SECTION_IDS = PRODUCT_SECTION_IDS
 
 export default function ProductDetailsPage() {
   const router = useRouter()
@@ -193,6 +191,51 @@ export default function ProductDetailsPage() {
     [createProductMutation, isEdit, productId, updateProductMutation]
   )
 
+  /**
+   * Without this, `handleSubmit` swallows every validation failure: no toast,
+   * no request, and nothing at all happens when the merchant clicks "حفظ" —
+   * because several product fields (`options`, `variants[].attributes`,
+   * `mediaAssetIds`) have no input bound to them and so render no inline error.
+   * Surface the failure, then scroll the offending section into view.
+   */
+  const handleInvalid = (errors: typeof form.formState.errors) => {
+    const flat = flattenFormErrors(errors)
+    if (flat.length === 0) return
+
+    const first = flat[0]!
+
+    // Logged unconditionally: this only fires on a blocked submit, which is
+    // precisely when the full list of offending paths is worth having.
+    console.warn("[product-form] submit blocked by validation:", flat)
+
+    toast.error(first.message, {
+      description:
+        flat.length > 1
+          ? `و${flat.length - 1} خطأ آخر — تحقق من الأقسام المعلّمة بالأحمر`
+          : undefined,
+    })
+
+    if (first.section) {
+      setActiveSection(first.section)
+      const root = formScrollRef.current
+      const el = root?.querySelector<HTMLElement>(`#${first.section}`)
+      if (root && el) {
+        const top =
+          el.getBoundingClientRect().top -
+          root.getBoundingClientRect().top +
+          root.scrollTop
+        root.scrollTo({ top, behavior: "smooth" })
+      }
+    }
+
+    form.setFocus(first.name as Path<ProductFormInput>, { shouldSelect: true })
+  }
+
+  const sectionValidation = useMemo(
+    () => sectionValidationFromErrors(form.formState.errors),
+    [form.formState.errors]
+  )
+
   const isSubmitting = isUpdating || isLoading || isCreating
 
   const handleImageChange = useCallback(
@@ -244,7 +287,7 @@ export default function ProductDetailsPage() {
           activeSection={activeSection}
           onSectionChange={setActiveSection}
           scrollContainerRef={formScrollRef}
-          sectionValidation={{}}
+          sectionValidation={sectionValidation}
         />
 
         <div
@@ -265,7 +308,12 @@ export default function ProductDetailsPage() {
           <FormProvider {...form}>
             <form
               id="product-form"
-              onSubmit={form.handleSubmit(handleSubmit)}
+              // Built inside the event handler, not during render:
+              // `handleInvalid` reads `formScrollRef` to scroll to the failing
+              // section, which react-hooks/refs flags if passed at render time.
+              onSubmit={(event) =>
+                form.handleSubmit(handleSubmit, handleInvalid)(event)
+              }
               className="space-y-6 pb-6"
             >
               <section id="basic-info" className="scroll-mt-2">
