@@ -4834,6 +4834,38 @@
               }
              },
              {
+              "type": "ContentDropdown",
+              "props": {
+               "id": "Dropdown-product-variant",
+               "label": {
+                "ar": "الخيار",
+                "en": "Option"
+               },
+               "name": "variant",
+               "placeholder": {
+                "ar": "اختر الخيار المناسب",
+                "en": "Choose an option"
+               },
+               "required": false,
+               "options": [
+                {
+                 "mode": "bound",
+                 "groupLabel": {
+                  "ar": "",
+                  "en": ""
+                 },
+                 "values": [],
+                 "sourcePath": "variantMatrix.variants",
+                 "titlePath": "optionValues[].value",
+                 "valuePath": "variantId"
+                }
+               ],
+               "dropdownAction": "select_variant",
+               "autoSelectFirst": true,
+               "hideWhenSingle": true
+              }
+             },
+             {
               "type": "RowGroup",
               "props": {
                "id": "RowGroup-product-actions",

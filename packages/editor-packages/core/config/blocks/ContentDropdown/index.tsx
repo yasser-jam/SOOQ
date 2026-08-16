@@ -45,6 +45,8 @@ export type ContentDropdownProps = WithLayout<{
   defaultValue: string;
   /** Select the first option on mount so bound pricing has a variant. */
   autoSelectFirst: boolean;
+  /** Render nothing on the storefront unless there are 2+ options to pick. */
+  hideWhenSingle: boolean;
   valueContext?: ValueContext | null;
 }>;
 
@@ -59,6 +61,33 @@ const MODE_SUMMARY: Record<string, string> = {
   bound: "مكرِّر",
   categories: "تصنيفات",
 };
+
+/**
+ * Resolve every option source against the live bound payload / store.
+ * Shared by the render and by the `hideWhenSingle` gate, which has to know
+ * the option count *before* the layout wrapper is rendered.
+ */
+function useResolvedDropdownGroups(
+  options: DropdownOptionSource[],
+  isEditing: boolean
+) {
+  const { language } = useActiveLanguage();
+  const { data } = useBoundData();
+  const { productsPage } = useStore();
+  const adapter = getEditorDataAdapter();
+  const usesSampleData = useSampleDataInEditor();
+  const sampleMode = isEditing && usesSampleData;
+
+  const categories = useMemo(
+    () => (sampleMode ? adapter.getSampleCategories() : productsPage.categories),
+    [adapter, productsPage.categories, sampleMode]
+  );
+
+  return useMemo(
+    () => resolveDropdownGroups(options, { data, locale: language, categories }),
+    [options, data, language, categories]
+  );
+}
 
 const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
   label: "قائمة منسدلة",
@@ -154,6 +183,14 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
         { label: "لا", value: false },
       ],
     },
+    hideWhenSingle: {
+      type: "radio",
+      label: "إخفاء عند عدم وجود خيارات متعددة",
+      options: [
+        { label: "نعم", value: true },
+        { label: "لا", value: false },
+      ],
+    },
   },
 
   defaultProps: {
@@ -177,6 +214,7 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
     dropdownAction: "",
     defaultValue: "",
     autoSelectFirst: true,
+    hideWhenSingle: false,
   },
 
   render: ({
@@ -188,6 +226,7 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
     dropdownAction = "",
     defaultValue = "",
     autoSelectFirst = true,
+    hideWhenSingle = false,
     valueContext,
     puck,
   }) => {
@@ -195,21 +234,10 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
     const resolvedLabel = pickLang(label, language);
     const resolvedPlaceholder = pickLang(placeholder, language);
 
-    const { data, selectedVariantId, setSelectedVariantId } = useBoundData();
+    const { selectedVariantId, setSelectedVariantId } = useBoundData();
     const { productsPage, actions } = useStore();
-    const adapter = getEditorDataAdapter();
-    const usesSampleData = useSampleDataInEditor();
-    const sampleMode = puck.isEditing && usesSampleData;
 
-    const categories = useMemo(
-      () => (sampleMode ? adapter.getSampleCategories() : productsPage.categories),
-      [adapter, productsPage.categories, sampleMode]
-    );
-
-    const groups = useMemo(
-      () => resolveDropdownGroups(options, { data, locale: language, categories }),
-      [options, data, language, categories]
-    );
+    const groups = useResolvedDropdownGroups(options, puck.isEditing);
 
     const isVariantSelect = dropdownAction === "select_variant";
     const isCategoryFilter = dropdownAction === "filter_category";
@@ -326,8 +354,35 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
 
 const WithLayoutContentDropdown = withLayout(ContentDropdownInner);
 
+const LayoutRender = WithLayoutContentDropdown.render;
+
+/**
+ * `hideWhenSingle` has to drop the layout wrapper too, not just the select —
+ * an empty wrapper still consumes a slot in its parent's flex `gap`. Sits
+ * outside `withLayout` for that reason, and never hides while editing so the
+ * merchant can still select the block.
+ */
+const ContentDropdownGate = ((props: any) => {
+  const groups = useResolvedDropdownGroups(
+    props.options ?? [],
+    props.puck?.isEditing === true
+  );
+
+  const optionCount = groups.reduce(
+    (total, group) => total + group.options.length,
+    0
+  );
+
+  if (props.hideWhenSingle && !props.puck?.isEditing && optionCount < 2) {
+    return null;
+  }
+
+  return <LayoutRender {...props} />;
+}) as typeof LayoutRender;
+
 export const ContentDropdown: typeof WithLayoutContentDropdown = {
   ...WithLayoutContentDropdown,
+  render: ContentDropdownGate,
   resolveFields: (data, params) => {
     const resolver = (
       WithLayoutContentDropdown as {

@@ -137,6 +137,43 @@ describe("bound (repeater) option sources", () => {
     ).toEqual([]);
   });
 
+  it("composes a title from a nested array with the [] wildcard", () => {
+    // The real storefront payload shape: a variant carries its labels as
+    // optionValues rows, with no flat title field to point at.
+    const storefrontPayload = {
+      variantMatrix: {
+        variants: [
+          {
+            variantId: "v-1",
+            optionValues: [
+              { optionValueId: "ov-1", valueAr: "أحمر", valueEn: "Red" },
+              { optionValueId: "ov-2", valueAr: "وسط", valueEn: "Medium" },
+            ],
+          },
+          { variantId: "v-2", optionValues: [] },
+        ],
+      },
+    };
+
+    const groups = resolveDropdownGroups(
+      [
+        source({
+          mode: "bound",
+          sourcePath: "variantMatrix.variants",
+          titlePath: "optionValues[].value",
+          valuePath: "variantId",
+        }),
+      ],
+      context({ data: storefrontPayload })
+    );
+
+    expect(groups[0]?.options).toEqual([
+      { title: "أحمر / وسط", value: "v-1" },
+      // No option values at all — falls back to the variant id.
+      { title: "v-2", value: "v-2" },
+    ]);
+  });
+
   it("supports arrays of primitives via empty paths", () => {
     const groups = resolveDropdownGroups(
       [source({ mode: "bound", sourcePath: "sizes" })],

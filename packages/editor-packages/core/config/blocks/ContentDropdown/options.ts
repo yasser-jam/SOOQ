@@ -100,12 +100,33 @@ function resolveRowField(
   path: string,
   locale: "ar" | "en"
 ): string {
-  if (!path.trim()) {
+  const trimmed = path.trim();
+
+  if (!trimmed) {
     return row != null && typeof row === "object" ? "" : stringifyOptionText(row);
   }
 
+  // `optionValues[].value` — map over a NESTED array and join the parts. A
+  // storefront variant carries its labels as `optionValues[{ valueAr, … }]`
+  // with no flat title, so this is what composes one row into "أحمر / M".
+  const wildcard = trimmed.indexOf("[]");
+  if (wildcard !== -1) {
+    const prefix = trimmed.slice(0, wildcard);
+    const rest = trimmed.slice(wildcard + 2).replace(/^\./, "");
+    const nested = prefix
+      ? resolveValueContext(prefix, row, { locale })
+      : row;
+
+    if (!Array.isArray(nested)) return "";
+
+    return nested
+      .map((item) => resolveRowField(item, rest, locale))
+      .filter(Boolean)
+      .join(" / ");
+  }
+
   for (const suffix of LOCALE_SUFFIXES[locale]) {
-    const resolved = resolveValueContext(`${path}${suffix}`, row, { locale });
+    const resolved = resolveValueContext(`${trimmed}${suffix}`, row, { locale });
     const text = stringifyOptionText(resolved);
     if (text) return text;
   }

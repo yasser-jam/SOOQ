@@ -3,11 +3,7 @@
 import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-import {
-  builtinThemeCatalog,
-  isBuiltinThemeKey,
-  loadBuiltinThemeSiteData,
-} from "@/core/themes"
+import { isBuiltinThemeKey, loadBuiltinThemeSiteData } from "@/core/themes"
 import { normalizeSiteData } from "@/core/config/lib/site-data"
 import {
   FALLBACK_THEME_NAME,
@@ -32,8 +28,9 @@ import type {
 export const CUSTOM_TEMPLATE_KEY = "custom"
 
 /**
- * One gallery card, regardless of whether the design ships in the bundle or
- * comes from `GET /public/design/templates`.
+ * A gallery card for the server-backed template catalog.
+ * Builtin themes are intentionally hidden for now to keep the gallery as a
+ * single source of truth from the admin/server template list.
  */
 export type StudioTemplateCard = {
   templateId?: string | null
@@ -41,23 +38,10 @@ export type StudioTemplateCard = {
   templateName: string
   description: string
   previewImageUrl: string | null
-  source: TemplateSource | "builtin"
+  source: TemplateSource
   editable: boolean
   isActive: boolean
 }
-
-const builtinTemplateCards: StudioTemplateCard[] = builtinThemeCatalog.map(
-  (theme) => ({
-    templateId: null,
-    templateKey: theme.templateKey,
-    templateName: theme.templateName,
-    description: theme.description,
-    previewImageUrl: theme.previewImageUrl,
-    source: "builtin",
-    editable: false,
-    isActive: false,
-  })
-)
 
 export function useStudioTemplates() {
   const { data: adminTemplates = [], isPending } = useQuery(
@@ -65,25 +49,16 @@ export function useStudioTemplates() {
   )
 
   const templates = useMemo<StudioTemplateCard[]>(() => {
-    const remote: StudioTemplateCard[] = adminTemplates.map(
-      (template: AdminDesignTemplateSummary) => ({
-        templateId: template.templateId,
-        templateKey: template.templateKey,
-        templateName: template.templateName,
-        description: template.industryType,
-        previewImageUrl: template.previewImageUrl,
-        source: template.source,
-        editable: template.editable,
-        isActive: template.isActive,
-      })
-    )
-
-    const remoteKeys = new Set(remote.map((t) => t.templateKey))
-
-    return [
-      ...remote,
-      ...builtinTemplateCards.filter((t) => !remoteKeys.has(t.templateKey)),
-    ]
+    return adminTemplates.map((template: AdminDesignTemplateSummary) => ({
+      templateId: template.templateId,
+      templateKey: template.templateKey,
+      templateName: template.templateName,
+      description: template.industryType,
+      previewImageUrl: template.previewImageUrl,
+      source: template.source,
+      editable: template.editable,
+      isActive: template.isActive,
+    }))
   }, [adminTemplates])
 
   return { templates, isPending }
@@ -108,23 +83,7 @@ export async function applyStudioTemplate(
   card: StudioTemplateCard
 ): Promise<DesignVersion> {
   if (card.source === "builtin") {
-    const siteData = await loadBuiltinThemeSiteData(card.templateKey)
-    if (!siteData) {
-      throw new Error(`Unknown builtin theme: ${card.templateKey}`)
-    }
-
-    const version = await saveDesignDraft({
-      configJson: withTemplateKey(
-        { web: normalizeSiteData(siteData), mobile: {} },
-        card.templateKey,
-        "builtin"
-      ),
-      schemaVersion: DESIGN_SCHEMA_VERSION,
-    })
-    // Mirror into localStorage immediately so opening the editor never
-    // boots the previous cached Site JSON.
-    applyDesignConfigToLocalStorage(version.configJson)
-    return version
+    throw new Error("Builtin templates are hidden and not available in this gallery.")
   }
 
   const applied = await applyDesignTemplate({

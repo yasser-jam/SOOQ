@@ -1035,6 +1035,7 @@ with `buttonAction: "saveProfile"` or `"createAddress"`. Used by the `account` s
 | `dropdownAction` | `"" \| "select_variant" \| "filter_category"` | Wired store action (`""` = plain form control) | `""` |
 | `defaultValue` | `string` | Initial selection. **Hidden** while `dropdownAction` is set | `""` |
 | `autoSelectFirst` | `boolean` | Adopt the first option on mount so bound pricing has a variant. **Hidden** while `dropdownAction` is empty | `true` |
+| `hideWhenSingle` | `boolean` | Render nothing on the storefront unless 2+ options resolve — a one-variant product shouldn't show a picker | `false` |
 | `valueContext` | `ValueContext \| null` | Preset-only — seeds the initial selection from bound data | `null` |
 
 > **Bilingual:** `label`, `placeholder`, `options[].groupLabel`, `options[].values[].title`.
@@ -1059,12 +1060,16 @@ titles only and still get a working select.
 
 **`mode: "bound"` (the repeater)** — `sourcePath` is resolved with the same
 [`valueContext`](#valuecontext) path resolver used everywhere else, then each row is mapped through
-`titlePath` / `valuePath`. Row-level paths get three conveniences:
+`titlePath` / `valuePath`. Row-level paths get four conveniences:
 
 - **Locale siblings** — `titlePath: "value"` tries `valueAr` → `value` → `valueEn` in Arabic
   (reversed in English), so API fields don't need the suffix spelled out.
-- **Object titles** — when the resolved title is an object or array its values are joined with
-  `" / "`, which turns a variant's `attributes` map (`{ Color: "أحمر", Size: "M" }`) into `أحمر / M`.
+- **Nested arrays (`[]`)** — a `[]` segment maps over a nested array and joins the parts with
+  `" / "`. This is what makes whole-variant options readable: the storefront payload gives a
+  variant its labels as `optionValues: [{ valueAr, valueEn }, …]` with no flat title, so
+  `titlePath: "optionValues[].value"` composes one row into `سنديان / صغير`.
+- **Object titles** — when the resolved title is an object its values are joined the same way,
+  which covers card-shaped variants that carry an `attributes` map (`{ Color: "أحمر" }`).
 - **Primitive rows** — leave both paths empty to bind an array of plain strings (`["S","M","L"]`).
 
 Rows with no resolvable value are skipped; a row with a value but no title shows its value.
@@ -1091,6 +1096,9 @@ with the same value apart) and sources that resolve to nothing are dropped.
 - **`autoSelectFirst`** — with `select_variant`, the first resolved option is adopted once the
   repeater resolves and nothing is selected yet, so bound price blocks never render variant-less.
   Never fires in the editor.
+- **`hideWhenSingle`** — the block removes itself (layout wrapper included, so it doesn't eat a
+  slot in its parent's flex `gap`) when fewer than two options resolve. Never applies in the
+  editor, or the merchant couldn't select the block to configure it.
 - **No action** — an ordinary controlled select; its value is picked up by
   `collectSooqInputValues` (it carries `data-sooq-input`) when a `ContentButton` submits the form.
 - **Editor** — the select is disabled (`puck.isEditing`), and when no source resolves it shows the
@@ -1115,18 +1123,27 @@ with the same value apart) and sources that resolve to nothing are dropped.
         "groupLabel": { "ar": "", "en": "" },
         "values": [],
         "sourcePath": "variantMatrix.variants",
-        "titlePath": "attributes",
+        "titlePath": "optionValues[].value",
         "valuePath": "variantId"
       }
     ],
     "dropdownAction": "select_variant",
-    "autoSelectFirst": true
+    "autoSelectFirst": true,
+    "hideWhenSingle": true
   }
 }
 ```
 
-Place it inside the product-bound `Group` — the same binding root that feeds
-`ContentHeading`/`ContentImage`. Picking an option swaps `pricing.*` for every sibling block.
+This is the exact node shipped on the Rawaq Furniture product-detail page
+(`themes/theme-rawaq-furniture.json` → `Dropdown-product-variant`), sitting between the closing
+divider and the add-to-cart row.
+
+On a dynamic `/products/:product-slug` page the blocks carry `product: null` and inherit from
+[`UrlBoundProductProvider`](../../../../apps/web/modules/storefront/components/UrlBoundProductProvider.tsx),
+which owns `selectedVariantId` and runs `applyVariantPricing`. So picking an option swaps
+`pricing.*` for every sibling block — the price and compare-at paragraphs update, and
+`addToCart` submits the chosen variant. Inside a statically-picked product `Group` the same
+wiring works through the Group's own binding root.
 
 ### JSON Example (option-values repeater)
 

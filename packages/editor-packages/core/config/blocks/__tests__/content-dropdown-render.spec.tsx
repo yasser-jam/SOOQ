@@ -126,6 +126,55 @@ describe("ContentDropdown render", () => {
     );
   });
 
+  it("hides itself on the storefront when there is nothing to pick", () => {
+    const { container } = renderDropdown(
+      {
+        name: "variant",
+        options: [VARIANT_SOURCE],
+        dropdownAction: "select_variant",
+        hideWhenSingle: true,
+      },
+      {
+        data: {
+          variantMatrix: { variants: [{ variantId: "only", attributes: {} }] },
+        },
+      }
+    );
+
+    // Nothing at all — not even the layout wrapper, which would still eat a
+    // slot in the parent Group's flex gap.
+    expect(container.innerHTML).toBe("");
+  });
+
+  it("still renders a single-option dropdown in the editor", () => {
+    render(
+      <BoundDataProvider
+        value={{
+          data: {
+            variantMatrix: { variants: [{ variantId: "only", attributes: {} }] },
+          },
+          isLoading: false,
+          isError: false,
+          metadata: null,
+          language: "ar",
+          selectedVariantId: null,
+          setSelectedVariantId: () => {},
+        }}
+      >
+        <Dropdown
+          {...ContentDropdown.defaultProps}
+          name="variant"
+          options={[VARIANT_SOURCE]}
+          dropdownAction="select_variant"
+          hideWhenSingle
+          puck={{ isEditing: true, dragRef: null }}
+        />
+      </BoundDataProvider>
+    );
+
+    expect(screen.getByLabelText("اختر")).toBeTruthy();
+  });
+
   it("shows an editor hint instead of an empty list while editing", () => {
     render(
       <BoundDataProvider
