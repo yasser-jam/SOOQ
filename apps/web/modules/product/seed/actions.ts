@@ -45,9 +45,20 @@ import {
   type SeedProductDef,
   type SeedTagDef,
 } from "./dataset"
+import { loadSeedImages, pickSeedImageFiles, type SeedImage } from "./seed-images"
 import type { SeedProgress } from "./types"
 
 export type SeedProgressCallback = (progress: SeedProgress) => void
+
+/**
+ * `false` turns a phase into a lookup-only pass: existing rows are mapped to
+ * their ids, nothing is created. Used by the products-only run, which seeds
+ * into a store whose categories/tags/attributes are already in place.
+ */
+type EnsureOptions = { createMissing: boolean }
+
+const CREATE_MISSING: EnsureOptions = { createMissing: true }
+const RESOLVE_ONLY: EnsureOptions = { createMissing: false }
 
 const errorMessage = (error: unknown, fallback: string): string => {
   if (error instanceof Error) return error.message
@@ -72,7 +83,8 @@ const eqSlug = (a: string | undefined, b: string): boolean =>
 async function ensureCategories(
   defs: SeedCategoryDef[],
   progress: SeedProgressCallback,
-  errors: string[]
+  errors: string[],
+  { createMissing }: EnsureOptions = CREATE_MISSING
 ): Promise<Map<string, string>> {
   progress({
     phase: "categories",
@@ -87,6 +99,8 @@ async function ensureCategories(
   for (const c of existing) {
     if (c.slug && c.id) slugToId.set(c.slug.toLowerCase(), c.id)
   }
+
+  if (!createMissing) return slugToId
 
   // Two passes: parents first, then children (so parentCategoryId resolves).
   const parents = defs.filter((c) => !c.parentSlug)
@@ -153,7 +167,8 @@ async function ensureCategories(
 async function ensureTags(
   defs: SeedTagDef[],
   progress: SeedProgressCallback,
-  errors: string[]
+  errors: string[],
+  { createMissing }: EnsureOptions = CREATE_MISSING
 ): Promise<Map<string, string>> {
   progress({
     phase: "tags",
@@ -193,6 +208,8 @@ async function ensureTags(
       })
       continue
     }
+
+    if (!createMissing) continue
 
     progress({
       phase: "tags",
@@ -236,7 +253,8 @@ async function ensureAttributes(
   defs: SeedAttributeDef[],
   categoryIdBySlug: Map<string, string>,
   progress: SeedProgressCallback,
-  errors: string[]
+  errors: string[],
+  { createMissing }: EnsureOptions = CREATE_MISSING
 ): Promise<Map<string, ResolvedAttribute>> {
   progress({
     phase: "attributes",
@@ -278,6 +296,12 @@ async function ensureAttributes(
       : null
 
     let apiDef = findByKey(scopeId, def.attributeKey)
+
+    if (!apiDef && !createMissing) {
+      // Products referencing this attribute simply drop the value — the
+      // definitions phase of a full seed is what creates them.
+      continue
+    }
 
     if (!apiDef) {
       progress({
@@ -354,11 +378,26 @@ async function ensureAttributes(
  * Products
  * ==========================================================================*/
 
+/**
+ * Slug/SKU suffix for a run that is allowed to re-add a catalog the store
+ * already holds. Both are unique per tenant on the backend, so the dataset's
+ * fixed values can only ever be inserted once — a second pass needs fresh
+ * ones. Generated once per run so every product of the batch shares it.
+ */
+const randomRunSuffix = (): string =>
+  Math.random().toString(36).slice(2, 7)
+
+/** `""` (a plain seed) leaves the dataset's slugs and SKUs untouched. */
+const withSuffix = (value: string, suffix: string): string =>
+  suffix ? `${value}-${suffix}` : value
+
 function buildProductPayload(
   def: SeedProductDef,
   categoryIdBySlug: Map<string, string>,
   tagIdBySlug: Map<string, string>,
-  attributeBySeedKey: Map<string, ResolvedAttribute>
+  attributeBySeedKey: Map<string, ResolvedAttribute>,
+  mediaFiles: File[],
+  suffix: string
 ): CreateProductInput {
   const categories: CategoryRef[] = def.categorySlugs
     .map((slug) => {
@@ -403,7 +442,7 @@ function buildProductPayload(
     def.variants && def.variants.length > 0
       ? def.variants.map((v) => ({
           attributes: v.attributes,
-          sku: v.sku,
+          sku: withSuffix(v.sku, suffix.toUpperCase()),
           price: v.price ?? null,
           compareAtPrice: v.compareAtPrice ?? null,
           stockQty: v.stockQty,
@@ -416,7 +455,7 @@ function buildProductPayload(
             // Backend rejects an empty variants list — send a single default
             // axis for simple products without matrix options.
             attributes: { "العنوان": "افتراضي" },
-            sku: def.slug.toUpperCase(),
+            sku: withSuffix(def.slug, suffix).toUpperCase(),
             price: def.basePrice,
             compareAtPrice: def.compareAtPrice,
             stockQty: 20,
@@ -440,7 +479,7 @@ function buildProductPayload(
     titleEn: def.titleEn,
     descriptionAr: def.descriptionAr,
     descriptionEn: def.descriptionEn,
-    slug: def.slug,
+    slug: withSuffix(def.slug, suffix),
     basePrice: def.basePrice,
     compareAtPrice: def.compareAtPrice,
     currencyCode: def.currencyCode,
@@ -451,7 +490,9 @@ function buildProductPayload(
     defaultCategoryId,
     categories,
     tags,
-    mediaFiles: [],
+    // Multipart `files` parts. `mediaAssetIds` stays unset so the backend just
+    // prepends the uploaded asset ids — there is nothing to preserve on create.
+    mediaFiles,
     options: normalizedOptions,
     variants,
   }
@@ -470,7 +511,9 @@ async function ensureProducts(
   tagIdBySlug: Map<string, string>,
   attributeBySeedKey: Map<string, ResolvedAttribute>,
   progress: SeedProgressCallback,
-  errors: string[]
+  errors: string[],
+  /** `""` seeds the dataset's own slugs/SKUs and skips products that exist. */
+  suffix = ""
 ): Promise<Map<string, string>> {
   const existing = await listProducts()
   const slugToId = new Map<string, string>()
@@ -478,10 +521,34 @@ async function ensureProducts(
     if (p.slug && p.id) slugToId.set(p.slug.toLowerCase(), p.id)
   }
 
+  progress({
+    phase: "images",
+    current: 0,
+    total: defs.length,
+    message: "تحضير صور المنتجات…",
+    errors: [...errors],
+  })
+
+  // One fetch + JPEG conversion pass for the whole run; every product slices
+  // its one or two pictures out of this shared pool.
+  let images: SeedImage[] = []
+  try {
+    images = await loadSeedImages()
+    if (images.length === 0) {
+      errors.push("صور: تعذّر تحميل أي صورة من public/seed-images")
+    }
+  } catch (error) {
+    errors.push(`صور: ${errorMessage(error, "unknown")}`)
+  }
+
   let done = 0
   for (const def of defs) {
     done++
-    if (slugToId.has(def.slug.toLowerCase())) {
+    const slug = withSuffix(def.slug, suffix)
+
+    // A suffixed run is deliberately re-adding the catalog, so its slugs are
+    // new by construction and nothing can match.
+    if (slugToId.has(slug.toLowerCase())) {
       progress({
         phase: "products",
         current: done,
@@ -492,11 +559,15 @@ async function ensureProducts(
       continue
     }
 
+    // Keyed on the dataset slug, not the suffixed one, so a product keeps the
+    // same pictures across runs.
+    const mediaFiles = pickSeedImageFiles(images, def.slug)
+
     progress({
       phase: "products",
       current: done,
       total: defs.length,
-      message: `إنشاء منتج: ${def.titleAr}`,
+      message: `إنشاء منتج: ${def.titleAr} (${mediaFiles.length} صورة)`,
       errors: [...errors],
     })
 
@@ -506,7 +577,9 @@ async function ensureProducts(
           def,
           categoryIdBySlug,
           tagIdBySlug,
-          attributeBySeedKey
+          attributeBySeedKey,
+          mediaFiles,
+          suffix
         )
       )
     } catch (error) {
@@ -516,10 +589,21 @@ async function ensureProducts(
 
   // Refresh once at the end so collections can resolve product ids by slug.
   const refreshed = await listProducts()
+  const idByActualSlug = new Map<string, string>()
   for (const p of refreshed.data ?? []) {
-    if (p.slug && p.id) slugToId.set(p.slug.toLowerCase(), p.id)
+    if (p.slug && p.id) idByActualSlug.set(p.slug.toLowerCase(), p.id)
   }
-  return slugToId
+
+  // Returned map is keyed by the DATASET slug — collections reference products
+  // by that name and know nothing about this run's suffix.
+  const result = new Map<string, string>()
+  for (const def of defs) {
+    const id =
+      idByActualSlug.get(withSuffix(def.slug, suffix).toLowerCase()) ??
+      idByActualSlug.get(def.slug.toLowerCase())
+    if (id) result.set(def.slug.toLowerCase(), id)
+  }
+  return result
 }
 
 /* ============================================================================
@@ -683,6 +767,87 @@ export async function runProductSeed(
         errors.length > 0
           ? `اكتمل مع ${errors.length} خطأ`
           : "اكتمل الـ seeder بنجاح",
+      errors,
+    })
+  } catch (error) {
+    const message = errorMessage(error, "فشل تشغيل الـ seeder")
+    onProgress({
+      phase: "error",
+      current: 0,
+      total: 0,
+      message,
+      errors: [message, ...errors],
+    })
+  }
+}
+
+/**
+ * Products-only pass for a store that has already been seeded once: the
+ * categories/tags/attributes phases run in lookup-only mode (nothing is
+ * created, ids are just resolved so products can reference them) and
+ * collections are skipped entirely.
+ *
+ * Every product is created fresh with a random per-run slug/SKU suffix — the
+ * dataset's own slugs are already taken in a seeded store, and both are unique
+ * per tenant. So this always ADDS a full copy of the catalog rather than
+ * backfilling the existing rows.
+ */
+export async function runProductsOnlySeed(
+  onProgress: SeedProgressCallback,
+  dataset: SeedDataset = SEED_DATASET
+): Promise<void> {
+  const errors: string[] = []
+  const suffix = randomRunSuffix()
+
+  try {
+    onProgress({
+      phase: "checking",
+      current: 0,
+      total: 0,
+      message: `قراءة الفئات والوسوم والسمات الحالية… (لاحقة: ${suffix})`,
+      errors: [],
+    })
+
+    const categoryIds = await ensureCategories(
+      dataset.categories,
+      onProgress,
+      errors,
+      RESOLVE_ONLY
+    )
+
+    const tagIds = await ensureTags(
+      dataset.tags,
+      onProgress,
+      errors,
+      RESOLVE_ONLY
+    )
+
+    const attributeMap = await ensureAttributes(
+      dataset.attributes,
+      categoryIds,
+      onProgress,
+      errors,
+      RESOLVE_ONLY
+    )
+
+    await ensureProducts(
+      dataset.products,
+      categoryIds,
+      tagIds,
+      attributeMap,
+      onProgress,
+      errors,
+      suffix
+    )
+
+    onProgress({
+      phase: errors.length > 0 ? "error" : "done",
+      current: 1,
+      total: 1,
+      message:
+        errors.length > 0
+          ? `اكتمل مع ${errors.length} خطأ`
+          : `اكتملت إضافة المنتجات بنجاح (لاحقة: ${suffix})`,
       errors,
     })
   } catch (error) {

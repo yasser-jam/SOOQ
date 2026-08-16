@@ -98,5 +98,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-	matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+	// `seed-images` is a public/ folder the seeder fetches as binary. Without the
+	// exclusion an unauthenticated fetch gets the login page's HTML back with a
+	// 200, which then fails to decode as an image.
+	matcher: ["/((?!_next/static|_next/image|favicon.ico|seed-images).*)"],
 }

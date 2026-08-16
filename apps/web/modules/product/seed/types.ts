@@ -4,6 +4,7 @@ export type SeedPhase =
   | "categories"
   | "tags"
   | "attributes"
+  | "images"
   | "products"
   | "collections"
   | "done"

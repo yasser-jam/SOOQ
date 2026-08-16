@@ -12,7 +12,10 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 
-import { runProductSeed } from "@/modules/product/seed/actions"
+import {
+  runProductSeed,
+  runProductsOnlySeed,
+} from "@/modules/product/seed/actions"
 import type { SeedDataset } from "@/modules/product/seed/dataset"
 import type { SeedProgress } from "@/modules/product/seed/types"
 
@@ -40,6 +43,8 @@ function phaseLabel(phase: SeedProgress["phase"]): string {
       return "وسوم"
     case "attributes":
       return "سمات"
+    case "images":
+      return "صور"
     case "products":
       return "منتجات"
     case "collections":
@@ -59,6 +64,11 @@ export type SeedDatasetCardProps = {
   /** optional lead-in sentence shown before the auto-generated counts */
   description?: string
   actionLabel: string
+  /**
+   * Seed the products phase only, against a store whose categories/tags/
+   * attributes already exist. Collections are skipped too.
+   */
+  productsOnly?: boolean
 }
 
 /**
@@ -71,6 +81,7 @@ export function SeedDatasetCard({
   title,
   description,
   actionLabel,
+  productsOnly = false,
 }: SeedDatasetCardProps) {
   const [running, setRunning] = useState(false)
   const [progress, setProgress] = useState<SeedProgress>(INITIAL_PROGRESS)
@@ -100,9 +111,10 @@ export function SeedDatasetCard({
       errors: [],
     })
 
-    await runProductSeed(setProgress, dataset)
+    const run = productsOnly ? runProductsOnlySeed : runProductSeed
+    await run(setProgress, dataset)
     setRunning(false)
-  }, [running, dataset])
+  }, [running, dataset, productsOnly])
 
   return (
     <Card size="sm" className="border-dashed">
@@ -113,10 +125,21 @@ export function SeedDatasetCard({
         </CardTitle>
         <CardDescription>
           {description ? `${description} ` : null}
-          ينشئ بالتسلسل: {counts.categories} فئة (مع فئات متداخلة)،{" "}
-          {counts.tags} وسم، {counts.attributes} سمة، {counts.products} منتج،{" "}
-          و {counts.collections} مجموعة (يدوية وتلقائية). يتخطى ما هو موجود
-          مسبقاً.
+          {productsOnly ? (
+            <>
+              يضيف {counts.products} منتج فقط مع صورة أو صورتين لكل منتج،
+              ويستخدم الفئات والوسوم والسمات الموجودة مسبقاً كما هي (بدون
+              إنشاء أي منها ولا المجموعات). كل تشغيل يضيف نسخة جديدة بلاحقة
+              عشوائية على الـ slug والـ SKU.
+            </>
+          ) : (
+            <>
+              ينشئ بالتسلسل: {counts.categories} فئة (مع فئات متداخلة)،{" "}
+              {counts.tags} وسم، {counts.attributes} سمة، {counts.products} منتج
+              (مع صورة أو صورتين لكل منتج)، و {counts.collections} مجموعة (يدوية
+              وتلقائية). يتخطى ما هو موجود مسبقاً.
+            </>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
