@@ -121,6 +121,13 @@ export type SitePage = {
    * Persisted shape uses `type: "appBar"` (Flutter contract).
    */
   appBar?: SitePageAppBar;
+  /**
+   * Chrome-less page (splash, onboarding). The header/footer zones are not
+   * rendered and no app bar is composed into the canvas. The mobile converter
+   * maps this to `{ layout: "centered", padding: 0 }` plus an entry in
+   * `shellExcludeRoutes`.
+   */
+  fullScreen?: boolean;
 };
 
 export type SiteData = {
@@ -313,9 +320,17 @@ export function migrateMobileDrawerToSidebar(site: SiteData): SiteData {
   return next;
 }
 
+/**
+ * Page-scoped root prop injected by `composePuckData` so `Root` can drop the
+ * header/footer zones for a chrome-less page. Like `title` it never belongs to
+ * the site-wide theme, so it is stripped back out before persisting.
+ */
+export const PAGE_FULL_SCREEN_ROOT_PROP = "pageFullScreen";
+
 const extractGlobalRootProps = (rootProps: JsonRecord): JsonRecord => {
   const next = { ...rootProps };
   delete next.title;
+  delete next[PAGE_FULL_SCREEN_ROOT_PROP];
   return next;
 };
 
@@ -582,9 +597,12 @@ export function normalizeSiteData(value: Partial<SiteData> | null | undefined): 
 
     // Prefer explicit page.appBar; also accept an AppBar left in content (legacy).
     const fromContent = extractAppBarFromContent(composed.content);
-    const appBar = !isEmptyAppBar(normalizeSitePageAppBar(page.appBar))
-      ? normalizeSitePageAppBar(page.appBar)
-      : fromContent.appBar;
+    const fullScreen = page.fullScreen === true;
+    const appBar = fullScreen
+      ? emptyAppBar()
+      : !isEmptyAppBar(normalizeSitePageAppBar(page.appBar))
+        ? normalizeSitePageAppBar(page.appBar)
+        : fromContent.appBar;
 
     return {
       path: definition.path,
@@ -599,6 +617,7 @@ export function normalizeSiteData(value: Partial<SiteData> | null | undefined): 
       isCustom: definition.isCustom,
       content: stripMobileShellFromContent(fromContent.content),
       appBar,
+      fullScreen,
     } satisfies SitePage;
   });
 
@@ -785,8 +804,9 @@ export function composePuckData(site: SiteData, editPath: string): UserData {
   }
 
   let content = [...(page.content ?? [])] as UserData["content"];
+  const fullScreen = page.fullScreen === true;
 
-  if (mode === "mobile") {
+  if (mode === "mobile" && !fullScreen) {
     const shell: UserData["content"] = [];
 
     const appBarNode = toEditorAppBarNode(page.appBar ?? emptyAppBar());
@@ -802,6 +822,8 @@ export function composePuckData(site: SiteData, editPath: string): UserData {
     // Avoid duplicating if content already carries them (unsaved edit path).
     const withoutShell = stripMobileShellFromContent(content);
     content = [...shell, ...withoutShell] as UserData["content"];
+  } else if (mode === "mobile") {
+    content = stripMobileShellFromContent(content);
   }
 
   return normalizeEditorData({
@@ -810,6 +832,7 @@ export function composePuckData(site: SiteData, editPath: string): UserData {
       props: {
         ...((site.root?.props ?? {}) as JsonRecord),
         title: page.title ?? page.name,
+        [PAGE_FULL_SCREEN_ROOT_PROP]: fullScreen,
       },
     },
     content,
@@ -829,17 +852,21 @@ export function applyPuckSave(
   );
   const mode = getActiveEditorMode();
 
-  const { appBar: extractedAppBar, content: afterAppBar } =
-    extractAppBarFromContent(normalized.content);
-  const { sidebar: extractedSidebar, content: pageContent } =
-    mode === "mobile"
-      ? extractSidebarFromContent(afterAppBar)
-      : { sidebar: site.sidebar ?? emptySidebar(), content: afterAppBar };
-
   const matchedPage = findSitePage(site, editPath);
   const pageIndex = matchedPage
     ? site.pages.findIndex((page) => page.path === matchedPage.path)
     : -1;
+
+  // A chrome-less page never composes the app bar or the site sidebar into the
+  // canvas, so this save carries no evidence about either — reading them back
+  // out would clear both.
+  const editsMobileShell = mode === "mobile" && matchedPage?.fullScreen !== true;
+
+  const { appBar: extractedAppBar, content: afterAppBar } =
+    extractAppBarFromContent(normalized.content);
+  const { sidebar: extractedSidebar, content: pageContent } = editsMobileShell
+    ? extractSidebarFromContent(afterAppBar)
+    : { sidebar: site.sidebar ?? emptySidebar(), content: afterAppBar };
 
   const updatedPages =
     pageIndex >= 0
@@ -849,10 +876,10 @@ export function applyPuckSave(
                 ...page,
                 title: pageTitle || page.title || page.name,
                 content: stripMobileShellFromContent(pageContent),
-                appBar:
-                  mode === "mobile"
-                    ? extractedAppBar
-                    : (page.appBar ?? emptyAppBar()),
+                // `normalizeSiteData` below forces `{}` on full-screen pages.
+                appBar: editsMobileShell
+                  ? extractedAppBar
+                  : (page.appBar ?? emptyAppBar()),
               }
             : page
         )
@@ -868,16 +895,15 @@ export function applyPuckSave(
             iconName: "FileText" as const,
             isCustom: true,
             content: stripMobileShellFromContent(pageContent),
-            appBar: mode === "mobile" ? extractedAppBar : emptyAppBar(),
+            appBar: editsMobileShell ? extractedAppBar : emptyAppBar(),
           },
         ];
 
-  const nextSidebar =
-    mode === "mobile"
-      ? // If the merchant removed the Sidebar block, keep previous unless they
-        // explicitly had one in content this save (extracted empty = cleared).
-        extractedSidebar
-      : (site.sidebar ?? emptySidebar());
+  const nextSidebar = editsMobileShell
+    ? // If the merchant removed the Sidebar block, keep previous unless they
+      // explicitly had one in content this save (extracted empty = cleared).
+      extractedSidebar
+    : (site.sidebar ?? emptySidebar());
 
   return normalizeSiteData({
     root: {
@@ -922,6 +948,7 @@ export function addSitePage(
         isCustom: definition.isCustom ?? true,
         content: starterContent ?? [],
         appBar: definition.appBar ?? emptyAppBar(),
+        fullScreen: definition.fullScreen ?? false,
       },
     ],
   });

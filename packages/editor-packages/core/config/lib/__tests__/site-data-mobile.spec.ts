@@ -219,6 +219,94 @@ describe("mobile appBar + sidebar (compose/save)", () => {
     expect(composed.content?.[1]?.type).toBe("Sidebar");
   });
 
+  it("keeps a full-screen page free of app bar, sidebar and site chrome", () => {
+    const {
+      addSitePage,
+      applyPuckSave,
+      composePuckData,
+    } = require("../site-data") as typeof import("../site-data");
+
+    const withSidebar = normalizeSiteData({
+      root: { props: {} },
+      zones: {},
+      pages: [{ path: "/", slug: "/", name: "Home", link: "/", content: [] }],
+      sidebar: {
+        type: "Sidebar",
+        props: { id: "Sidebar-site", items: [] },
+      },
+    });
+
+    const site = addSitePage(
+      withSidebar,
+      {
+        path: "/splash",
+        name: "شاشة البداية",
+        link: "/splash",
+        isCustom: true,
+        fullScreen: true,
+      },
+      [{ type: "Section", props: { id: "Section-splash", content: [] } }] as any
+    );
+
+    const splash = site.pages.find((page) => page.path === "/splash");
+    expect(splash?.fullScreen).toBe(true);
+    expect(splash?.appBar).toEqual({});
+
+    // Neither shell block is composed in, and Root is told to drop the
+    // header/footer zones.
+    const composed = composePuckData(site, "/splash");
+    expect(composed.content?.some((item) => item.type === "AppBar")).toBe(false);
+    expect(composed.content?.some((item) => item.type === "Sidebar")).toBe(
+      false
+    );
+    expect(composed.root?.props?.pageFullScreen).toBe(true);
+
+    // Saving a page that never showed the sidebar must not clear it, and a
+    // stray AppBar dropped onto the page is discarded rather than persisted.
+    const saved = applyPuckSave(site, "/splash", {
+      root: { props: { title: "شاشة البداية" } },
+      content: [
+        { type: "AppBar", props: { id: "stray-appbar", title: "SOOQ" } },
+        { type: "Section", props: { id: "Section-splash", content: [] } },
+      ],
+      zones: {},
+    } as any);
+
+    expect(saved.sidebar).toMatchObject({ type: "Sidebar" });
+    expect(saved.pages.find((page) => page.path === "/splash")?.appBar).toEqual(
+      {}
+    );
+    expect(
+      saved.pages.find((page) => page.path === "/splash")?.fullScreen
+    ).toBe(true);
+    // The page-scoped flag never leaks into the site-wide theme root.
+    expect(saved.root?.props?.pageFullScreen).toBeUndefined();
+  });
+
+  it("still composes the app bar on a normal mobile page", () => {
+    const { composePuckData } =
+      require("../site-data") as typeof import("../site-data");
+
+    const site = normalizeSiteData({
+      root: { props: {} },
+      zones: {},
+      pages: [
+        {
+          path: "/",
+          slug: "/",
+          name: "Home",
+          link: "/",
+          content: [],
+          appBar: { type: "appBar", props: { title: "SOOQ" } },
+        },
+      ],
+    });
+
+    const composed = composePuckData(site, "/");
+    expect(composed.content?.[0]?.type).toBe("AppBar");
+    expect(composed.root?.props?.pageFullScreen).toBe(false);
+  });
+
   it("migrates ZoneDrawer to sidebar on mobile seed", () => {
     const {
       migrateMobileDrawerToSidebar,
