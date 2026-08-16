@@ -36,7 +36,7 @@ export const createDiscountCode = async (
 ): Promise<void> => {
 	await api<ApiResponse<unknown>>("/admin/discount-codes", {
 		method: "POST",
-		body: data,
+		body: { ...data, applicableScope: "ALL" },
 	})
 }
 
@@ -46,7 +46,7 @@ export const updateDiscountCode = async ({
 }: UpdateDiscountCodeInput): Promise<void> => {
 	await api<ApiResponse<unknown>>(`/admin/discount-codes/${id}`, {
 		method: "PUT",
-		body: data,
+		body: { ...data, applicableScope: "ALL" },
 	})
 }
 

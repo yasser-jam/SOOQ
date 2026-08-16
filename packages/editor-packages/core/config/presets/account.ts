@@ -77,7 +77,10 @@ const accountProfilePreset: SectionPreset = {
         createRowGroup([
           createParagraph("إجمالي الإنفاق"),
           createParagraph("", {
-            valueContext: { path: "profile.totalSpendSyp" },
+            valueContext: {
+              path: "profile.totalSpendSyp",
+              format: "money",
+            },
           }),
         ]),
         createInput("الاسم الكامل", "fullName", {

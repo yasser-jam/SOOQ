@@ -15,6 +15,11 @@ export const BUTTON_ACTIONS = [
   "setDefaultAddress",
   "deleteAddress",
   "toggleLanguage",
+  "ordersNextPage",
+  "ordersPrevPage",
+  "downloadInvoice",
+  "cancelOrder",
+  "submitReturn",
 ] as const;
 
 export type ButtonAction = (typeof BUTTON_ACTIONS)[number];
@@ -34,6 +39,11 @@ export const BUTTON_ACTION_OPTIONS: { label: string; value: ButtonAction }[] = [
   { label: "تعيين كعنوان افتراضي", value: "setDefaultAddress" },
   { label: "حذف العنوان", value: "deleteAddress" },
   { label: "تبديل اللغة", value: "toggleLanguage" },
+  { label: "الصفحة التالية للطلبات", value: "ordersNextPage" },
+  { label: "الصفحة السابقة للطلبات", value: "ordersPrevPage" },
+  { label: "تحميل الفاتورة", value: "downloadInvoice" },
+  { label: "إلغاء الطلب", value: "cancelOrder" },
+  { label: "إرسال طلب الإرجاع", value: "submitReturn" },
 ];
 
 export const BUTTON_FUNCTIONAL_ACTION_OPTIONS = BUTTON_ACTION_OPTIONS.filter(
@@ -57,6 +67,11 @@ export function buttonActionLabel(action: ButtonAction): string {
     setDefaultAddress: "تعيين كعنوان افتراضي",
     deleteAddress: "حذف العنوان",
     toggleLanguage: "تبديل اللغة",
+    ordersNextPage: "الصفحة التالية",
+    ordersPrevPage: "الصفحة السابقة",
+    downloadInvoice: "تحميل الفاتورة",
+    cancelOrder: "إلغاء الطلب",
+    submitReturn: "طلب إرجاع المنتجات",
   };
   return map[action];
 }

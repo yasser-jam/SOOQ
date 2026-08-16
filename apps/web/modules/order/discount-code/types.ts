@@ -2,13 +2,14 @@ import type * as z from "zod"
 
 import type {
   createDiscountCodeSchema,
-  discountScopeSchema,
   discountTypeSchema,
   updateDiscountCodeSchema,
 } from "./schema"
 
 export type DiscountType = z.infer<typeof discountTypeSchema>
-export type DiscountScope = z.infer<typeof discountScopeSchema>
+
+/** API may still return legacy scopes; creates/updates always send ALL. */
+export type DiscountScope = "ALL" | "PRODUCT" | "CATEGORY"
 
 export type CreateDiscountCodeFormValues = z.input<
   typeof createDiscountCodeSchema

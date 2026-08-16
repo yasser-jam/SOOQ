@@ -8,6 +8,11 @@ import { resolveColor, colorField } from "../../content/color-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import type { ValueContext } from "../../binding";
 import { resolveValueContext, useBoundData } from "../../binding";
+import {
+  isEnumMapKey,
+  lookupEnumEntry,
+  type EnumMapKey,
+} from "../../content/enum-labels";
 
 export type ChipVariant =
   | "primary"
@@ -28,6 +33,8 @@ export type ChipProps = WithLayout<{
   textColor: string;
   radius: string;
   listValueContext?: ValueContext | null;
+  valueContext?: ValueContext | null;
+  enumMap?: EnumMapKey | null;
 }>;
 
 type ChipItem = {
@@ -250,8 +257,30 @@ const ChipInner: ComponentConfig<ChipProps> = {
     layout: { grow: true },
   },
   render: (props) => {
-    const { listValueContext, gap, maxItems } = props;
+    const { listValueContext, valueContext, enumMap, gap, maxItems } = props;
     const { data, language } = useBoundData();
+
+    const single = useMemo(() => {
+      if (!valueContext?.path?.trim()) return null;
+
+      const resolved = resolveValueContext(valueContext.path, data, {
+        locale: language,
+      });
+      if (resolved == null) return null;
+
+      const raw =
+        typeof resolved === "string" || typeof resolved === "number"
+          ? String(resolved)
+          : null;
+      if (!raw?.trim()) return null;
+
+      if (enumMap && isEnumMapKey(enumMap)) {
+        const entry = lookupEnumEntry(enumMap, raw.trim());
+        if (entry) return entry;
+      }
+
+      return { label: raw.trim(), variant: null as ChipVariant | null };
+    }, [data, enumMap, language, valueContext?.path]);
 
     const items = useMemo(() => {
       if (!listValueContext?.path?.trim()) return null;
@@ -262,6 +291,15 @@ const ChipInner: ComponentConfig<ChipProps> = {
 
       return parseChipList(resolved, language);
     }, [data, language, listValueContext?.path]);
+
+    if (single) {
+      const style = resolveChipStyle(
+        single.variant && props.chipVariantMode !== "custom"
+          ? { ...props, chipVariant: single.variant }
+          : props
+      );
+      return <span style={style}>{single.label}</span>;
+    }
 
     if (!items) return null;
 

@@ -10,7 +10,7 @@ import {
   type SwitchAction,
 } from "../../content/switch-actions";
 import type { ValueContext } from "../../binding";
-import { useBoundValue } from "../../binding";
+import { useBoundData, useBoundValue } from "../../binding";
 import { useStore } from "../../store-context";
 import {
   bilingualTextField,
@@ -84,15 +84,36 @@ const ContentSwitchInner: ComponentConfig<ContentSwitchProps> = {
     const { language } = useActiveLanguage();
     const resolvedLabel = pickLang(label, language);
     const resolvedHelperText = pickLang(helperText, language);
-    const { productsPage, customer, actions } = useStore();
+    const { productsPage, customer, returnDraft, actions } = useStore();
+    const { data } = useBoundData();
     const contextChecked = useBoundValue("", checkedValueContext) === "true";
+
+    const orderItemId =
+      typeof data?.item === "object" &&
+      data.item != null &&
+      "orderItemId" in data.item
+        ? String((data.item as { orderItemId?: string }).orderItemId ?? "")
+        : "";
+
+    const itemMaxQuantity =
+      typeof data?.item === "object" &&
+      data.item != null &&
+      "quantity" in data.item &&
+      typeof (data.item as { quantity?: number }).quantity === "number"
+        ? Math.max(1, (data.item as { quantity: number }).quantity)
+        : 1;
 
     const isInStockFilter = switchAction === "filter_in_stock_only";
     const isMarketingEmail = switchAction === "marketing_email_opt_in";
     const isMarketingSms = switchAction === "marketing_sms_opt_in";
     const isAddressDefault = switchAction === "address_is_default";
+    const isReturnItemSelected = switchAction === "return_item_selected";
     const isSwitchActionBound =
-      isInStockFilter || isMarketingEmail || isMarketingSms || isAddressDefault;
+      isInStockFilter ||
+      isMarketingEmail ||
+      isMarketingSms ||
+      isAddressDefault ||
+      isReturnItemSelected;
 
     const boundChecked = isInStockFilter
       ? productsPage.inStockOnly
@@ -102,6 +123,8 @@ const ContentSwitchInner: ComponentConfig<ContentSwitchProps> = {
           ? (customer.preferences?.smsOptIn ?? false)
           : isAddressDefault
             ? customer.addressDraft.isDefault
+            : isReturnItemSelected && orderItemId
+              ? Boolean(returnDraft.items[orderItemId])
             : checkedValueContext?.path
               ? contextChecked
               : defaultChecked;
@@ -134,6 +157,11 @@ const ContentSwitchInner: ComponentConfig<ContentSwitchProps> = {
 
       if (isAddressDefault) {
         actions.customer.setAddressDraftField("isDefault", checked);
+        return;
+      }
+
+      if (isReturnItemSelected && orderItemId) {
+        actions.orders.toggleReturnItem(orderItemId, itemMaxQuantity);
       }
     };
 

@@ -15,6 +15,7 @@ import { StoreLoading } from "@/modules/storefront/components/store-loading"
 import { StoreNotFound } from "@/modules/storefront/components/store-not-found"
 import { StoreProvider } from "@/modules/storefront/components/StoreProvider"
 import { UrlBoundProductProvider } from "@/modules/storefront/components/UrlBoundProductProvider"
+import { UrlBoundOrderProvider } from "@/modules/storefront/components/UrlBoundOrderProvider"
 import { STORE_FIXED_THEME_ID } from "@/modules/storefront/lib/store-config"
 import { useStoreTenant } from "@/modules/storefront/lib/store-tenant-context"
 import { useStorePathname } from "@/modules/storefront/lib/use-store-pathname"
@@ -57,11 +58,13 @@ export function StorefrontRenderer() {
 			tenantId,
 		})
 
-	const productSlug = useMemo(() => {
-		if (!matchedPage?.dynamic) return null
-		const segments = extractDynamicSegments(matchedPage.path, path)
-		return segments["product-slug"] ?? null
+	const dynamicSegments = useMemo(() => {
+		if (!matchedPage?.dynamic) return {}
+		return extractDynamicSegments(matchedPage.path, path)
 	}, [matchedPage, path])
+
+	const productSlug = dynamicSegments["product-slug"] ?? null
+	const orderId = dynamicSegments["order-id"] ?? null
 
 	const rootProps = useMemo(() => {
 		const root = resolvedData?.root
@@ -92,6 +95,10 @@ export function StorefrontRenderer() {
 					<UrlBoundProductProvider slug={productSlug}>
 						{rendered}
 					</UrlBoundProductProvider>
+				) : orderId ? (
+					<UrlBoundOrderProvider orderId={orderId}>
+						{rendered}
+					</UrlBoundOrderProvider>
 				) : (
 					rendered
 				)}

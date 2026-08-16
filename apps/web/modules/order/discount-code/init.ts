@@ -47,7 +47,7 @@ export const initDiscountCodeFormValues = (
 		maxDiscountCap: model.maxDiscountCap ?? null,
 		usageLimit: model.usageLimit ?? null,
 		perCustomerMax: model.perCustomerMax ?? null,
-		applicableScope: model.applicableScope ?? "ALL",
+		applicableScope: "ALL",
 		startsAt: toLocalDateTimeInput(model.startsAt),
 		expiresAt: toLocalDateTimeInput(model.expiresAt),
 	}
@@ -58,5 +58,8 @@ export const initDiscountCodeUpdate = (
 	data: UpdateDiscountCodePayload
 ): UpdateDiscountCodeInput => ({
 	id,
-	data,
+	data: {
+		...data,
+		applicableScope: "ALL",
+	},
 })

@@ -261,7 +261,10 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
         (action === "saveProfile" && loading.profile) ||
         (action === "createAddress" && loading.address) ||
         (action === "setDefaultAddress" && loading.address) ||
-        (action === "deleteAddress" && loading.address));
+        (action === "deleteAddress" && loading.address) ||
+        (action === "downloadInvoice" && loading.invoice) ||
+        (action === "cancelOrder" && loading.cancelOrder) ||
+        (action === "submitReturn" && loading.submitReturn));
 
     const onZoneClick = (e: MouseEvent) => {
       e.preventDefault();
@@ -475,6 +478,56 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
         } catch (err) {
           window.alert(
             err instanceof Error ? err.message : "تعذّر حذف العنوان، حاول مجدداً."
+          );
+        }
+        return;
+      }
+
+      if (action === "ordersNextPage") {
+        actions.orders.nextPage();
+        return;
+      }
+
+      if (action === "ordersPrevPage") {
+        actions.orders.prevPage();
+        return;
+      }
+
+      if (action === "downloadInvoice") {
+        const orderRecord =
+          boundData?.order && typeof boundData.order === "object"
+            ? (boundData.order as { orderId?: string; orderNumber?: string })
+            : null;
+        try {
+          await actions.orders.downloadInvoice(
+            orderRecord?.orderId,
+            orderRecord?.orderNumber ?? null
+          );
+        } catch (err) {
+          window.alert(
+            err instanceof Error ? err.message : "تعذّر تحميل الفاتورة."
+          );
+        }
+        return;
+      }
+
+      if (action === "cancelOrder") {
+        try {
+          await actions.orders.cancelOrder();
+        } catch (err) {
+          window.alert(
+            err instanceof Error ? err.message : "تعذّر إلغاء الطلب."
+          );
+        }
+        return;
+      }
+
+      if (action === "submitReturn") {
+        try {
+          await actions.orders.submitReturn();
+        } catch (err) {
+          window.alert(
+            err instanceof Error ? err.message : "تعذّر إرسال طلب الإرجاع."
           );
         }
         return;

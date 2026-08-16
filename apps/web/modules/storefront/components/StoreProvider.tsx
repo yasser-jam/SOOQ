@@ -54,6 +54,9 @@ import {
 	updateMarketingPreferences,
 } from "@/modules/storefront/lib/customer-account-api"
 import { useProductsPageState } from "@/modules/storefront/lib/use-products-page-state"
+import { useOrdersState } from "@/modules/storefront/lib/use-orders-state"
+import { getOrdersErrorMessage } from "@/modules/storefront/components/orders/orders-error"
+import { closeZone } from "@/core/config/lib/zone-events"
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -133,6 +136,13 @@ export function StoreProvider({
 		customerPhone: null,
 	})
 
+	const {
+		orders,
+		orderDetail,
+		returnDraft,
+		actions: ordersStateActions,
+	} = useOrdersState(auth.isLoggedIn)
+
 	const [loading, setLoading] = useState<StoreLoadingState>({
 		login: false,
 		verifyOtp: false,
@@ -140,6 +150,9 @@ export function StoreProvider({
 		profile: false,
 		preferences: false,
 		address: false,
+		invoice: false,
+		cancelOrder: false,
+		submitReturn: false,
 	})
 
 	const [errors, setErrors] = useState<StoreErrorState>({
@@ -149,6 +162,9 @@ export function StoreProvider({
 		profile: null,
 		preferences: null,
 		address: null,
+		invoice: null,
+		cancelOrder: null,
+		submitReturn: null,
 	})
 
 	const [customer, setCustomer] = useState<CustomerState>(defaultCustomerState)
@@ -608,6 +624,72 @@ export function StoreProvider({
 		[productsPageActions],
 	)
 
+	const ordersActions = useMemo(
+		() => ({
+			nextPage: ordersStateActions.nextPage,
+			prevPage: ordersStateActions.prevPage,
+			setCancelReason: ordersStateActions.setCancelReason,
+			toggleReturnItem: ordersStateActions.toggleReturnItem,
+			setReturnItemQuantity: ordersStateActions.setReturnItemQuantity,
+			setReturnItemCondition: ordersStateActions.setReturnItemCondition,
+			setOrderDetail: ordersStateActions.setOrderDetail,
+			refreshOrders: ordersStateActions.refreshOrders,
+			downloadInvoice: async (
+				orderId?: string,
+				orderNumber?: string | null,
+			) => {
+				setLoading((prev) => ({ ...prev, invoice: true }))
+				setErrors((prev) => ({ ...prev, invoice: null }))
+				try {
+					await ordersStateActions.downloadInvoice(orderId, orderNumber)
+				} catch (err) {
+					setErrors((prev) => ({
+						...prev,
+						invoice: getOrdersErrorMessage(err, "تعذّر تحميل الفاتورة."),
+					}))
+					throw err
+				} finally {
+					setLoading((prev) => ({ ...prev, invoice: false }))
+				}
+			},
+			cancelOrder: async () => {
+				setLoading((prev) => ({ ...prev, cancelOrder: true }))
+				setErrors((prev) => ({ ...prev, cancelOrder: null }))
+				try {
+					await ordersStateActions.cancelOrder()
+					closeZone("cancel-order")
+				} catch (err) {
+					setErrors((prev) => ({
+						...prev,
+						cancelOrder: getOrdersErrorMessage(err, "تعذّر إلغاء الطلب."),
+					}))
+					throw err
+				} finally {
+					setLoading((prev) => ({ ...prev, cancelOrder: false }))
+				}
+			},
+			submitReturn: async () => {
+				setLoading((prev) => ({ ...prev, submitReturn: true }))
+				setErrors((prev) => ({ ...prev, submitReturn: null }))
+				try {
+					await ordersStateActions.submitReturn()
+				} catch (err) {
+					setErrors((prev) => ({
+						...prev,
+						submitReturn: getOrdersErrorMessage(
+							err,
+							"تعذّر إرسال طلب الإرجاع.",
+						),
+					}))
+					throw err
+				} finally {
+					setLoading((prev) => ({ ...prev, submitReturn: false }))
+				}
+			},
+		}),
+		[ordersStateActions],
+	)
+
 	// ─── Context value ─────────────────────────────────────────────────────────
 
 	const customerActions = useMemo(
@@ -642,6 +724,9 @@ export function StoreProvider({
 			errors,
 			productsPage,
 			customer,
+			orders,
+			orderDetail,
+			returnDraft,
 			actions: {
 				login,
 				verifyOtp,
@@ -652,6 +737,7 @@ export function StoreProvider({
 				searchProducts,
 				productsPage: productsPageActions,
 				customer: customerActions,
+				orders: ordersActions,
 			},
 		}),
 		[
@@ -660,6 +746,9 @@ export function StoreProvider({
 			errors,
 			productsPage,
 			customer,
+			orders,
+			orderDetail,
+			returnDraft,
 			login,
 			verifyOtp,
 			makeOrder,
@@ -669,6 +758,7 @@ export function StoreProvider({
 			searchProducts,
 			productsPageActions,
 			customerActions,
+			ordersActions,
 		],
 	)
 

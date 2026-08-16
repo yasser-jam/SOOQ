@@ -15,6 +15,7 @@ import {
 } from "./seed-finance"
 import {
   MOCK_DB_VERSION,
+  type MockCustomerOrderRecord,
   type MockDatabase,
   type MockDiscountCodeRecord,
   type MockInvoiceRecord,
@@ -204,6 +205,115 @@ export const seedMockSettings = (): StoreSettingsResponseDto => ({
   deletionRequested: false,
 })
 
+export const seedMockCustomerOrders = (): MockCustomerOrderRecord[] => [
+  {
+    orderId: "mock-order-1001",
+    tenantId: MOCK_STORE_TENANT_ID,
+    orderNumber: "ORD-1001",
+    orderStatus: "DELIVERED",
+    paymentStatus: "PAID",
+    paymentMethod: "COD",
+    subtotal: 120_000,
+    discountAmount: 0,
+    taxAmount: 0,
+    shippingCost: 5_000,
+    total: 125_000,
+    itemCount: 2,
+    placedAt: "2026-01-15T10:00:00.000Z",
+    shippingAddress: {
+      latitude: 33.5138,
+      longitude: 36.2765,
+      recipientName: "أحمد محمد",
+      phone: "+963991234567",
+      addressLabel: "دمشق — المزة",
+    },
+    notesCustomer: null,
+    items: [
+      {
+        orderItemId: "mock-order-item-1001-a",
+        productTitle: "قميص قطني",
+        sku: "SHIRT-001",
+        quantity: 1,
+        unitPrice: 45_000,
+        totalPrice: 45_000,
+      },
+      {
+        orderItemId: "mock-order-item-1001-b",
+        productTitle: "بنطال جينز",
+        sku: "JEANS-002",
+        quantity: 1,
+        unitPrice: 75_000,
+        totalPrice: 75_000,
+      },
+    ],
+    timeline: [
+      {
+        timelineId: "mock-timeline-1001-1",
+        action: "ORDER_CREATED",
+        actor: "CUSTOMER",
+        details: null,
+        createdAt: "2026-01-15T10:00:00.000Z",
+      },
+      {
+        timelineId: "mock-timeline-1001-2",
+        action: "DELIVERED",
+        actor: "MERCHANT",
+        details: null,
+        createdAt: "2026-01-17T14:00:00.000Z",
+      },
+    ],
+  },
+  {
+    orderId: "mock-order-1002",
+    tenantId: MOCK_STORE_TENANT_ID,
+    orderNumber: "ORD-1002",
+    orderStatus: "PROCESSING",
+    paymentStatus: "PAID",
+    paymentMethod: "COD",
+    subtotal: 48_000,
+    discountAmount: 0,
+    taxAmount: 0,
+    shippingCost: 5_000,
+    total: 53_000,
+    itemCount: 1,
+    placedAt: "2026-02-01T14:30:00.000Z",
+    shippingAddress: {
+      latitude: 33.485,
+      longitude: 36.345,
+      recipientName: "أحمد محمد",
+      phone: "+963991234567",
+      addressLabel: "ريف دمشق — جرمانا",
+    },
+    notesCustomer: "يرجى الاتصال قبل التوصيل",
+    items: [
+      {
+        orderItemId: "mock-order-item-1002-a",
+        productTitle: "حذاء رياضي",
+        sku: "SHOE-003",
+        quantity: 1,
+        unitPrice: 48_000,
+        totalPrice: 48_000,
+      },
+    ],
+    timeline: [
+      {
+        timelineId: "mock-timeline-1002-1",
+        action: "ORDER_CREATED",
+        actor: "CUSTOMER",
+        details: null,
+        createdAt: "2026-02-01T14:30:00.000Z",
+      },
+      {
+        timelineId: "mock-timeline-1002-2",
+        action: "PROCESSING",
+        actor: "MERCHANT",
+        details: null,
+        createdAt: "2026-02-02T09:00:00.000Z",
+      },
+    ],
+  },
+]
+
 export const createSeedDatabase = (): MockDatabase => ({
   version: MOCK_DB_VERSION,
   user: seedMockUser(),
@@ -217,6 +327,7 @@ export const createSeedDatabase = (): MockDatabase => ({
   tags: seedMockTags(),
   discountCodes: seedMockDiscountCodes(),
   orders: [],
+  customerOrders: seedMockCustomerOrders(),
   invoices: seedMockInvoices(),
   shippingProviders: seedMockShippingProviders(),
   shipments: seedMockShipments(),

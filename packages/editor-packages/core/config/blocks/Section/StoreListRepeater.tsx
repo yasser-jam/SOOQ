@@ -14,10 +14,15 @@ import { conf } from "../../index";
 import { useActiveLanguage } from "../../locale/LanguageContext";
 import { useSampleDataInEditor } from "../../data-adapter";
 import { BoundDataProvider } from "../../binding/BoundDataContext";
-import type { CustomerAddress } from "../../store-context";
 import { useStore } from "../../store-context";
+import {
+  isStoreListDataSourceKey,
+  STORE_LIST_DATA_SOURCES,
+  type StoreListDataSourceKey,
+} from "./store-list-data-sources";
 
-type CustomerAddressesTemplateRepeaterProps = {
+type StoreListRepeaterProps = {
+  dataSource: StoreListDataSourceKey;
   editableSlot: SlotComponent;
   cardTemplate: ComponentDataOptionalId | undefined;
   sectionId: string | undefined;
@@ -37,39 +42,6 @@ const EMPTY_STATE_STYLE: CSSProperties = {
   borderRadius: 8,
   background: "#f9fafb",
 };
-
-export const SAMPLE_CUSTOMER_ADDRESSES: CustomerAddress[] = [
-  {
-    addressId: "sample-address-1",
-    label: "HOME",
-    recipientName: "أحمد محمد",
-    recipientPhone: "+963991234567",
-    governorate: "دمشق",
-    city: "المزة",
-    streetAddress: "شارع الجلاء",
-    notes: null,
-    latitude: 33.5138,
-    longitude: 36.2765,
-    isDefault: true,
-    createdAt: "2025-06-01T08:00:00Z",
-    updatedAt: "2025-06-01T08:00:00Z",
-  },
-  {
-    addressId: "sample-address-2",
-    label: "WORK",
-    recipientName: "أحمد محمد",
-    recipientPhone: "+963991234567",
-    governorate: "ريف دمشق",
-    city: "جرمانا",
-    streetAddress: "شارع الثورة",
-    notes: "بجانب المدرسة",
-    latitude: 33.485,
-    longitude: 36.345,
-    isDefault: false,
-    createdAt: "2025-08-10T12:00:00Z",
-    updatedAt: "2025-08-10T12:00:00Z",
-  },
-];
 
 function useLiveTemplate(
   sectionId: string | undefined,
@@ -102,35 +74,65 @@ function findSectionById(
   return undefined;
 }
 
-function useCustomerAddresses(isEditing: boolean): {
-  addresses: CustomerAddress[];
+function useStoreListSource(
+  dataSource: StoreListDataSourceKey,
+  isEditing: boolean
+): {
+  list: unknown[];
   isLoading: boolean;
   isError: boolean;
   sampleMode: boolean;
 } {
-  const { customer } = useStore();
-  // Always call the hook — never short-circuit (Rules of Hooks).
+  const store = useStore();
   const sampleInEditor = useSampleDataInEditor();
   const sampleMode = isEditing && sampleInEditor;
+  const sourceConfig = STORE_LIST_DATA_SOURCES[dataSource];
 
   if (sampleMode) {
     return {
-      addresses: SAMPLE_CUSTOMER_ADDRESSES,
+      list: sourceConfig.sample,
       isLoading: false,
       isError: false,
       sampleMode: true,
     };
   }
 
-  return {
-    addresses: customer.addresses,
-    isLoading: customer.isLoading,
-    isError: customer.isError,
-    sampleMode: false,
-  };
+  switch (dataSource) {
+    case "addresses":
+      return {
+        list: store.customer.addresses,
+        isLoading: store.customer.isLoading,
+        isError: store.customer.isError,
+        sampleMode: false,
+      };
+    case "orders":
+      return {
+        list: store.orders.items,
+        isLoading: store.orders.isLoading,
+        isError: store.orders.isError,
+        sampleMode: false,
+      };
+    case "order.items":
+      return {
+        list: store.orderDetail.order?.items ?? [],
+        isLoading: false,
+        isError: false,
+        sampleMode: false,
+      };
+    case "order.timeline":
+      return {
+        list: store.orderDetail.order?.timeline ?? [],
+        isLoading: false,
+        isError: false,
+        sampleMode: false,
+      };
+    default:
+      return { list: [], isLoading: false, isError: false, sampleMode: false };
+  }
 }
 
-export function CustomerAddressesTemplateRepeater({
+export function StoreListRepeater({
+  dataSource,
   editableSlot: EditableSlot,
   cardTemplate,
   sectionId,
@@ -138,7 +140,12 @@ export function CustomerAddressesTemplateRepeater({
   activeCols,
   gap,
   gridClassName,
-}: CustomerAddressesTemplateRepeaterProps) {
+}: StoreListRepeaterProps) {
+  if (!isStoreListDataSourceKey(dataSource)) {
+    return null;
+  }
+
+  const sourceConfig = STORE_LIST_DATA_SOURCES[dataSource];
   const liveTemplate = useLiveTemplate(sectionId, cardTemplate);
   const dispatch = useAppStore((s) => s.dispatch);
   const templateZone = sectionId ? `${sectionId}:content` : null;
@@ -156,8 +163,10 @@ export function CustomerAddressesTemplateRepeater({
     [dispatch, isEditing, templateZone]
   );
 
-  const { addresses, isLoading, isError, sampleMode } =
-    useCustomerAddresses(isEditing);
+  const { list, isLoading, isError, sampleMode } = useStoreListSource(
+    dataSource,
+    isEditing
+  );
 
   const gridStyle: CSSProperties = {
     display: "grid",
@@ -191,72 +200,79 @@ export function CustomerAddressesTemplateRepeater({
 
   if (isError && !sampleMode) {
     return gridWrap(
-      <div style={EMPTY_STATE_STYLE}>تعذّر تحميل العناوين.</div>
+      <div style={EMPTY_STATE_STYLE}>{sourceConfig.errorMessage}</div>
     );
   }
 
-  if (addresses.length === 0) {
+  if (list.length === 0) {
     return gridWrap(
-      <div style={EMPTY_STATE_STYLE}>لا توجد عناوين محفوظة بعد.</div>
+      <div style={EMPTY_STATE_STYLE}>{sourceConfig.emptyMessage}</div>
     );
   }
 
-  // Storefront clones need cardTemplate (slot `content` is a component at
-  // render). Without it we'd paint empty cells and look like a binding miss.
   if (!liveTemplate && !isEditing) {
     return gridWrap(
-      <div style={EMPTY_STATE_STYLE}>
-        تعذّر عرض بطاقة العنوان — أعد حفظ قسم العناوين من محرّك التصميم.
-      </div>
+      <div style={EMPTY_STATE_STYLE}>{sourceConfig.staleTemplateMessage}</div>
     );
   }
 
   return gridWrap(
-    <CustomerAddressesTemplateCells
-      addresses={addresses}
+    <StoreListTemplateCells
+      list={list}
       template={liveTemplate}
       editableSlot={EditableSlot}
       isEditing={isEditing}
       onSelectTemplate={selectTemplate}
+      dataSource={dataSource}
     />
   );
 }
 
 type CellsProps = {
-  addresses: CustomerAddress[];
+  list: unknown[];
   template: ComponentDataOptionalId | undefined;
   editableSlot: SlotComponent;
   isEditing: boolean;
   onSelectTemplate: (e: React.MouseEvent | React.KeyboardEvent) => void;
+  dataSource: StoreListDataSourceKey;
 };
 
-function CustomerAddressesTemplateCells({
-  addresses,
+function StoreListTemplateCells({
+  list,
   template,
   editableSlot: EditableSlot,
   isEditing,
   onSelectTemplate,
+  dataSource,
 }: CellsProps) {
   const { language } = useActiveLanguage();
+  const sourceConfig = STORE_LIST_DATA_SOURCES[dataSource];
+  const store = useStore();
+
   const boundList = useMemo(
     () =>
-      addresses.map((address) => ({
-        address,
-        boundData: { address },
+      list.map((entry) => ({
+        entry,
+        entryKey: sourceConfig.keyOf(entry),
+        boundData:
+          dataSource === "order.items" || dataSource === "order.timeline"
+            ? {
+                [sourceConfig.boundKey]: entry,
+                order: store.orderDetail.order,
+                isReturnable: store.orderDetail.isReturnable,
+              }
+            : { [sourceConfig.boundKey]: entry },
       })),
-    [addresses]
+    [dataSource, list, sourceConfig, store.orderDetail.isReturnable, store.orderDetail.order]
   );
 
   return (
     <>
-      {boundList.map(({ address, boundData }, index) => {
-        // Cell 0 always uses the live `content` slot so the storefront still
-        // renders the first address when `cardTemplate` failed to sync (stale
-        // Site JSON). Remaining cells clone from the cardTemplate snapshot.
+      {boundList.map(({ entryKey, boundData }, index) => {
         const useLiveSlot = index === 0;
         return (
           <BoundDataProvider
-            key={address.addressId}
+            key={entryKey}
             value={{
               data: boundData,
               isLoading: false,
@@ -272,7 +288,8 @@ function CustomerAddressesTemplateCells({
             ) : (
               <CloneTemplateCell
                 template={template}
-                addressId={address.addressId}
+                entryKey={entryKey}
+                dataSource={dataSource}
                 isEditing={isEditing}
                 onSelectTemplate={onSelectTemplate}
               />
@@ -286,26 +303,30 @@ function CustomerAddressesTemplateCells({
 
 type CloneTemplateCellProps = {
   template: ComponentDataOptionalId | undefined;
-  addressId: string;
+  entryKey: string;
+  dataSource: StoreListDataSourceKey;
   isEditing: boolean;
   onSelectTemplate: (e: React.MouseEvent | React.KeyboardEvent) => void;
 };
 
 function CloneTemplateCell({
   template,
-  addressId,
+  entryKey,
+  dataSource,
   isEditing,
   onSelectTemplate,
 }: CloneTemplateCellProps) {
+  const zonePrefix = dataSource.replace(/\./g, "-");
+
   const content = useMemo<Content>(() => {
     if (!template) return [];
-    return [assignComponentIds(template, `customer-address-${addressId}`)];
-  }, [template, addressId]);
+    return [assignComponentIds(template, `${zonePrefix}-${entryKey}`)];
+  }, [template, entryKey, zonePrefix]);
 
   const staticCell = (
     <SlotRenderPure
       content={content}
-      zone={`customer-address-${addressId}`}
+      zone={`${zonePrefix}-${entryKey}`}
       config={conf}
       metadata={{
         puck: {

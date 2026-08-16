@@ -4,6 +4,11 @@ import { createProductDetailSection } from "./presets/products-grid";
 import { createCartPageContent } from "./presets/cart";
 import { createSettingsPageContent } from "./presets/account";
 import {
+  createCancelOrderZonePopup,
+  createOrderDetailPageContent,
+  createOrdersPageContent,
+} from "./presets/orders";
+import {
   buildThemesGalleryData,
   buildAllThemeDemoInitialEntries,
 } from "./theme-presets";
@@ -299,6 +304,34 @@ export const initialData: Record<string, UserData> = {
     },
     zones: {},
     content: createSettingsPageContent(),
+  },
+
+  "/orders": {
+    root: {
+      props: {
+        title: "Orders",
+        bodyFont: "system",
+        fontOption1: "system",
+        fontOption2: "system",
+      },
+    },
+    zones: {},
+    content: createOrdersPageContent(),
+  },
+
+  "/orders/example-order": {
+    root: {
+      props: {
+        title: "Order Details",
+        bodyFont: "system",
+        fontOption1: "system",
+        fontOption2: "system",
+      },
+    },
+    zones: {
+      "root:zone-popup": [createCancelOrderZonePopup() as UserData["content"][number]],
+    },
+    content: createOrderDetailPageContent(),
   },
 
   // ── Product details page (dynamic /products/:product-slug) ──────────────

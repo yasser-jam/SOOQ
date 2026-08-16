@@ -39,6 +39,7 @@ import { ContentInput } from "./blocks/ContentInput";
 import { ContentMap } from "./blocks/ContentMap";
 import { ContentSwitch } from "./blocks/ContentSwitch";
 import { ContentDropdown } from "./blocks/ContentDropdown";
+import { ContentSelect } from "./blocks/ContentSelect";
 import { ContentDivider } from "./blocks/ContentDivider";
 import { ImageGallery } from "./blocks/ImageGallery";
 import { VideoEmbed } from "./blocks/VideoEmbed";
@@ -98,6 +99,7 @@ export const conf: UserConfig = {
         "ContentInput",
         "ContentSwitch",
         "ContentDropdown",
+        "ContentSelect",
         "ContentMap",
         "ContentDivider",
         "Space",
@@ -231,6 +233,7 @@ export const conf: UserConfig = {
     ContentMap: withShowCondition(ContentMap),
     ContentSwitch: withShowCondition(ContentSwitch),
     ContentDropdown: withShowCondition(ContentDropdown),
+    ContentSelect: withShowCondition(ContentSelect),
     ContentDivider: withShowCondition(ContentDivider),
     Space: withShowCondition(Space),
     ImageGallery: withShowCondition(ImageGallery),

@@ -1,17 +1,11 @@
 import type { BadgeVariant } from "@/lib/domain-enums"
 
-import type { DiscountScope, DiscountType } from "./types"
+import type { DiscountType } from "./types"
 
 export const DISCOUNT_TYPE_LABELS: Record<DiscountType, string> = {
 	PERCENTAGE: "نسبة مئوية",
 	FIXED_AMOUNT: "مبلغ ثابت",
 	FREE_SHIPPING: "شحن مجاني",
-}
-
-export const DISCOUNT_SCOPE_LABELS: Record<DiscountScope, string> = {
-	ALL: "كل المنتجات",
-	PRODUCT: "منتجات محددة",
-	CATEGORY: "فئات محددة",
 }
 
 export type DiscountCodeStatus = "ACTIVE" | "INACTIVE" | "EXPIRED" | "SCHEDULED"

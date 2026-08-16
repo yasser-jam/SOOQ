@@ -5,6 +5,7 @@ export const SWITCH_ACTIONS = [
   "marketing_email_opt_in",
   "marketing_sms_opt_in",
   "address_is_default",
+  "return_item_selected",
 ] as const;
 
 export type SwitchAction = (typeof SWITCH_ACTIONS)[number];
@@ -14,6 +15,7 @@ const SWITCH_ACTION_LABELS: Record<SwitchAction, string> = {
   marketing_email_opt_in: "التسويق: البريد الإلكتروني",
   marketing_sms_opt_in: "التسويق: الرسائل النصية",
   address_is_default: "العنوان: تعيين كافتراضي",
+  return_item_selected: "اختيار منتج للإرجاع",
 };
 
 export const SWITCH_ACTION_OPTIONS: { label: string; value: SwitchAction }[] =
