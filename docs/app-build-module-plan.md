@@ -31,6 +31,27 @@ Decisions already taken by the user:
 - **Config handling**: reuse the latest published config; create + publish a new version only
   when none exists or when the derived values changed.
 - **Scope**: builds + config only.
+- **Builds do reach SUCCESS** in practice once the callback fix lands — don't design the UI
+  around "this will hang forever," just don't hammer the API indefinitely (§4).
+- **Download link**: render it unconditionally when the backend supplies `downloadUrl`. Whether
+  it resolves to an actual file is the backend/mobile team's problem, not this module's.
+- **Correction (verified against the live backend 2026-08-18):** APP endpoints DO use the
+  standard `ApiResponse<T>` envelope (`{success, message, data, timestamp}`) — the initial
+  assumption of "no envelope" was wrong and caused `configVersionId` to resolve to `undefined`
+  (silently dropped by `JSON.stringify`, producing the "empty" `POST /app-builds` /
+  `.../undefined/publish` bugs). `actions.ts` now unwraps `.data` via a shared `unwrap()` helper
+  for every call. Confirmed real shape for `POST /app-configurations`:
+  `{success, message, data: {appConfigurationId, versionNumber, schemaVersion, configJson,
+  isPublished, publishedAt, createdAt, updatedAt, createdByUserId}, timestamp}`.
+- **Publish-step failure handling (2026-08-18):** `ensurePublishedConfig` used to create a brand
+  new config version every time it didn't find a *published* match, even if an unpublished draft
+  from a prior failed `/publish` call already existed with the right values — silently piling up
+  versions on every retry. Fixed to reuse that draft (`getRelevantConfig` now returns
+  `{desired, published, draft}` split by publish state) and retry publishing it instead of
+  minting a new one. There is no `unpublish`/`revoke` endpoint in the API — the UI addition is a
+  manual **"نشر الإعدادات" (Publish config)** button that appears whenever an unpublished draft
+  matching the tenant's current values exists, independent of build status, so a failed publish
+  can be retried without triggering a whole new build attempt.
 
 ---
 

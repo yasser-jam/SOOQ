@@ -2,6 +2,7 @@
 
 import { HomeMockDashboard } from "@/components/home-mock-dashboard"
 import { FullPageLoader } from "@/components/full-page-loader"
+import { AppBuildCard } from "@/modules/app/build/components/app-build-card"
 import { SeedFurnitureButton } from "@/modules/product/seed/seed-furniture-button"
 import { SeedFurnitureProductsButton } from "@/modules/product/seed/seed-furniture-products-button"
 import { SeedProductsButton } from "@/modules/product/seed/seed-products-button"
@@ -36,6 +37,7 @@ export default function HomePage() {
           <SeedFurnitureButton />
           <SeedFurnitureProductsButton />
         </div>
+        <AppBuildCard />
         <HomeMockDashboard />
       </div>
     </>
