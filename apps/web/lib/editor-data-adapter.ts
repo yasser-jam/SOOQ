@@ -27,10 +27,8 @@ import {
   getCategoriesApiUrl,
 } from "@/modules/product/category/public-data-store"
 import {
-  buildProductResourceMetadata,
   buildPublicProductResourceMetadata,
   fetchProductDetailPayloadFromUrl,
-  getProductCardApiUrl,
 } from "@/modules/product/product/data-store"
 import {
   fetchProductsPageFromUrl,
@@ -41,9 +39,7 @@ const apiEditorDataAdapter: EditorDataAdapter = {
   getCollectionProductsApiUrl,
   fetchCollectionProducts: fetchCollectionProductsFromUrl,
   buildProductsGridResourceMetadata,
-  getProductCardApiUrl,
   fetchProductDetailPayload: fetchProductDetailPayloadFromUrl,
-  buildProductResourceMetadata,
   buildPublicProductResourceMetadata,
   getSampleCollectionProducts: () => SAMPLE_COLLECTION_PRODUCTS,
   getSampleProductPayload: buildSampleProductPayload,

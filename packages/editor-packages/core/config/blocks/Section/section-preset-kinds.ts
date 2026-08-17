@@ -9,6 +9,7 @@ export const SECTION_KIND_CUSTOMER_ORDERS_PAGER = "customer-orders-pager" as con
 export const SECTION_KIND_CUSTOMER_ORDER_DETAIL = "customer-order-detail" as const;
 export const SECTION_KIND_CUSTOMER_ORDER_ITEMS = "customer-order-items" as const;
 export const SECTION_KIND_CUSTOMER_ORDER_TIMELINE = "customer-order-timeline" as const;
+export const SECTION_KIND_CHECKOUT = "checkout" as const;
 
 /** Persisted on Section.props.metadata — identifies a preset-driven section. */
 export type SectionPresetMetadata = {
@@ -23,7 +24,8 @@ export type SectionPresetMetadata = {
     | typeof SECTION_KIND_CUSTOMER_ORDERS_PAGER
     | typeof SECTION_KIND_CUSTOMER_ORDER_DETAIL
     | typeof SECTION_KIND_CUSTOMER_ORDER_ITEMS
-    | typeof SECTION_KIND_CUSTOMER_ORDER_TIMELINE;
+    | typeof SECTION_KIND_CUSTOMER_ORDER_TIMELINE
+    | typeof SECTION_KIND_CHECKOUT;
 };
 
 export const PRODUCTS_GRID_SECTION_METADATA: SectionPresetMetadata = {
@@ -64,6 +66,10 @@ export const CUSTOMER_ORDER_ITEMS_SECTION_METADATA: SectionPresetMetadata = {
 
 export const CUSTOMER_ORDER_TIMELINE_SECTION_METADATA: SectionPresetMetadata = {
   preset: SECTION_KIND_CUSTOMER_ORDER_TIMELINE,
+};
+
+export const CHECKOUT_SECTION_METADATA: SectionPresetMetadata = {
+  preset: SECTION_KIND_CHECKOUT,
 };
 
 /** Base props for a Section that loads product cards after collection selection. */
@@ -178,6 +184,21 @@ export function buildCustomerOrderTimelineSectionProps(
   return {
     sectionKind: SECTION_KIND_CUSTOMER_ORDER_TIMELINE,
     metadata: CUSTOMER_ORDER_TIMELINE_SECTION_METADATA,
+    content: [],
+    ...overrides,
+  };
+}
+
+/**
+ * Base props for a Section that exposes the `checkout.*` binding scope to its
+ * children (address summary, totals, discount state).
+ */
+export function buildCheckoutSectionProps(
+  overrides: Record<string, unknown> = {}
+): Record<string, unknown> {
+  return {
+    sectionKind: SECTION_KIND_CHECKOUT,
+    metadata: CHECKOUT_SECTION_METADATA,
     content: [],
     ...overrides,
   };

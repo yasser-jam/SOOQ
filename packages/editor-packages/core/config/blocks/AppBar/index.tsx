@@ -9,6 +9,7 @@ import {
   type AppBarEditorProps,
 } from "../../lib/app-bar";
 import { isMobileEditorMetadata } from "../../lib/editor-mode";
+import { emitMobileSidebar } from "../../lib/mobile-sidebar-preview";
 import styles from "./styles.module.css";
 
 export type AppBarProps = AppBarEditorProps;
@@ -155,9 +156,16 @@ export const AppBar: ComponentConfig<AppBarProps> = {
       >
         <div className={styles.leading}>
           {showMenu ? (
-            <span className={styles.iconBtn} aria-label="القائمة">
+            // `menuAction: openDrawer` — mirror it in the canvas so the mobile
+            // Sidebar drawer can be opened/closed from here too.
+            <button
+              type="button"
+              className={styles.iconBtn}
+              aria-label="القائمة"
+              onClick={() => emitMobileSidebar("toggle")}
+            >
               <Menu size={20} strokeWidth={2} />
-            </span>
+            </button>
           ) : (
             <span className={styles.iconSpacer} />
           )}

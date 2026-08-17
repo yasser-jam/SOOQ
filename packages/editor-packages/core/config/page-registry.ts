@@ -135,6 +135,12 @@ export const PAGES: PageDefinition[] = [
     iconName: "ShoppingCart",
   },
   {
+    path: "/checkout",
+    label: "Checkout",
+    description: "Address, payment method, discount and order confirmation",
+    iconName: "ShoppingCart",
+  },
+  {
     path: "/login",
     label: "Login",
     description: "Customer login",

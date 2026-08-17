@@ -15,6 +15,7 @@ import {
   type ZoneDefinition,
 } from "../../../lib/zone-registry";
 import { resolveZoneDefinitionFromState } from "../../../lib/zone-selection";
+import { isMobileEditorMode } from "../../../lib/editor-mode";
 import { DEFAULT_ZONE_POPUP_PRESETS } from "../../../presets/popup";
 import { DEFAULT_ZONE_FOOTER_PRESET } from "../../../presets/footer";
 import { DEFAULT_ZONE_HEADER_PRESET } from "../../../presets/header";
@@ -111,8 +112,18 @@ export function ZonesPanel() {
 
   const selectedZoneId = selectedZoneDefinition?.id ?? null;
 
+  // The mobile shell has no header/footer band — the per-page AppBar and the
+  // Sidebar drawer replace them — so those zones are not offered there.
+  const availableZones = useMemo(
+    () =>
+      isMobileEditorMode()
+        ? ZONE_DEFINITIONS.filter((definition) => !definition.isPresetZone)
+        : ZONE_DEFINITIONS,
+    []
+  );
+
   const zoneCards = useMemo(() => {
-    return ZONE_DEFINITIONS.map((definition) => {
+    return availableZones.map((definition) => {
       const items = zones?.[definition.rootZone] ?? EMPTY_ZONE_ITEMS;
       const block = getZoneBlock(definition, items);
       const props = (block?.props ?? {}) as Record<string, unknown>;
@@ -130,7 +141,7 @@ export function ZonesPanel() {
             : undefined,
       };
     });
-  }, [zones]);
+  }, [availableZones, zones]);
 
   const zonePresets = useMemo(() => {
     if (!selectedZoneDefinition?.presetCategory) return [];

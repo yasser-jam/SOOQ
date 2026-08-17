@@ -19,32 +19,13 @@ export type ProductResourceMetadata = {
 	id: string
 }
 
-export const PRODUCT_CARD_API_INCLUDES = [
-	"PRICING",
-	"IMAGES",
-	"INVENTORY",
-] as const
-
-export function getProductCardApiPath(id: string): string {
-	const includes = PRODUCT_CARD_API_INCLUDES.map(
-		(include) => `include=${include}`,
-	).join("&")
-	return `/admin/products/${id}?${includes}`
-}
-
-export function getProductCardApiUrl(id: string): string {
-	return toFullApiUrl(getProductCardApiPath(id))
-}
-
-export function buildProductResourceMetadata(id: string): ProductResourceMetadata {
-	return {
-		type: "product",
-		method: "get",
-		apiUrl: getProductCardApiUrl(id),
-		id,
-	}
-}
-
+/**
+ * Rendered blocks read products from the public API only:
+ * `/public/products` for listings and `/public/products/{slug}` for detail.
+ * The admin card endpoint (`/admin/products/{id}?include=…`) used to back
+ * product blocks — it needs merchant credentials the storefront doesn't have,
+ * and it made a listing cost one request per card.
+ */
 export function getPublicProductApiPath(slug: string): string {
 	return `/public/products/${encodeURIComponent(slug)}`
 }
@@ -332,6 +313,8 @@ type ProductListRow = {
 	id: string
 	titleAr: string
 	titleEn: string
+	/** Kept on the picked ref so the storefront can use `/public/products/{slug}`. */
+	slug: string
 	description: string
 }
 
@@ -353,6 +336,7 @@ async function fetchProductListRows(): Promise<ProductListRow[]> {
 		id: item.productId,
 		titleAr: item.titleAr ?? "",
 		titleEn: item.titleEn ?? "",
+		slug: item.slug ?? "",
 		description:
 			item.displayPrice ??
 			(item.basePrice != null && item.currencyCode
@@ -561,10 +545,6 @@ export async function fetchProductForCardFromUrl(
 	return mapAdminDetailToProductCardData(payload)
 }
 
-export async function getProductForCard(id: string): Promise<ProductCardData | null> {
-	return fetchProductForCardFromUrl(getProductCardApiUrl(id))
-}
-
 export const productExternalField: ExternalField<ProductPickerRef | null> = {
 	type: "external",
 	placeholder: "ابحث عن منتج…",
@@ -581,6 +561,7 @@ export const productExternalField: ExternalField<ProductPickerRef | null> = {
 		id: item.id,
 		titleAr: item.titleAr,
 		titleEn: item.titleEn,
+		slug: item.slug || undefined,
 	}),
 	getItemSummary: (item) => item?.titleAr || item?.titleEn || item?.id || "منتج",
 }

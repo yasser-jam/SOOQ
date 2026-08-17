@@ -35,12 +35,14 @@ import { ProductsPageTemplateRepeater } from "./ProductsPageTemplateRepeater";
 import { StoreListRepeater } from "./StoreListRepeater";
 import { sectionKindToDataSource } from "./store-list-data-sources";
 import {
+  isCheckoutSection,
   isCustomerAccountSection,
   isCustomerAddressesSection,
   isCustomerOrdersSection,
   isCustomerOrdersPagerSection,
   isCustomerOrderDetailSection,
   isStoreListSection,
+  SECTION_KIND_CHECKOUT,
   SECTION_KIND_CUSTOMER_ACCOUNT,
   SECTION_KIND_CUSTOMER_ADDRESSES,
   SECTION_KIND_CUSTOMER_ORDERS,
@@ -515,6 +517,115 @@ function OrdersPagerBoundShell({
 }
 
 /**
+ * Publishes the `checkout.*` binding scope: the selected address, the money
+ * lines and the flags the preset gates its blocks on (`hasAddress`,
+ * `hasDiscount`, `canPlaceOrder`). Blocks bind these by path via valueContext
+ * / dataCondition rather than reading StoreContext themselves.
+ */
+function CheckoutBoundShell({
+  isEditing,
+  children,
+}: {
+  isEditing: boolean;
+  children: React.ReactNode;
+}) {
+  const { checkout, customer, errors, auth } = useStore();
+  const { language } = useActiveLanguage();
+  const sampleInEditor = useSampleDataInEditor();
+  const sampleMode = isEditing && sampleInEditor;
+
+  const selectedAddress = useMemo(
+    () =>
+      customer.addresses.find(
+        (address) => address.addressId === checkout.addressId
+      ) ?? null,
+    [customer.addresses, checkout.addressId]
+  );
+
+  const boundData = useMemo(() => {
+    if (sampleMode) {
+      return {
+        checkout: {
+          hasAddress: true,
+          addressSummary: "المنزل — دمشق، شارع الحمرا",
+          recipientName: "أحمد محمد",
+          recipientPhone: "+963991234567",
+          paymentMethodName: "الدفع عند الاستلام",
+          hasPaymentMethod: true,
+          hasDiscount: true,
+          discountCode: "10OFF",
+          subtotal: 100000,
+          shippingCost: 5000,
+          discountAmount: 10000,
+          payableTotal: 95000,
+          currencyCode: "SYP",
+          canPlaceOrder: true,
+          isPlaced: false,
+        },
+        errors: { discount: null, placeOrder: null },
+        session: { isLoggedIn: true },
+      };
+    }
+
+    const summary = selectedAddress
+      ? [
+          selectedAddress.label,
+          selectedAddress.governorate,
+          selectedAddress.city,
+          selectedAddress.streetAddress,
+        ]
+          .map((part) => part?.trim())
+          .filter(Boolean)
+          .join("، ")
+      : "";
+
+    return {
+      checkout: {
+        hasAddress: Boolean(checkout.addressId),
+        addressSummary: summary,
+        recipientName: selectedAddress?.recipientName ?? "",
+        recipientPhone: selectedAddress?.recipientPhone ?? "",
+        paymentMethodName:
+          checkout.paymentMethods.find(
+            (method) => method.providerCode === checkout.paymentMethodCode
+          )?.displayName ?? "",
+        hasPaymentMethod: Boolean(checkout.paymentMethodCode),
+        hasDiscount: Boolean(checkout.discount),
+        discountCode: checkout.discount?.code ?? "",
+        subtotal: checkout.subtotal,
+        shippingCost: checkout.shippingCost,
+        discountAmount: checkout.discountAmount,
+        payableTotal: checkout.payableTotal,
+        currencyCode: checkout.currencyCode,
+        canPlaceOrder: Boolean(
+          checkout.addressId && checkout.paymentMethodCode
+        ),
+        isPlaced: Boolean(checkout.placedOrderId),
+      },
+      errors: { discount: errors.discount, placeOrder: errors.placeOrder },
+      session: { isLoggedIn: auth.isLoggedIn },
+    };
+  }, [sampleMode, checkout, selectedAddress, errors.discount, errors.placeOrder, auth.isLoggedIn]);
+
+  const providerValue = useMemo(
+    () => ({
+      data: boundData,
+      isLoading: checkout.isLoading,
+      isError: checkout.isError,
+      metadata: null,
+      language,
+      selectedVariantId: null,
+      setSelectedVariantId: () => {},
+    }),
+    [boundData, checkout.isLoading, checkout.isError, language]
+  );
+
+  return (
+    <BoundDataProvider value={providerValue}>{children}</BoundDataProvider>
+  );
+}
+
+/**
  * Owns the StoreContext subscription for customer-account sections so the
  * surrounding Section (and its slot tree) does not re-render when the user
  * types into address-draft fields.
@@ -642,6 +753,11 @@ function SectionView({
     metadata: sectionMetadata,
   });
 
+  const isCheckout = isCheckoutSection({
+    sectionKind,
+    metadata: sectionMetadata,
+  });
+
   const storeListDataSource = sectionKindToDataSource(sectionKind ?? undefined);
   const isStoreList = isStoreListSection({
     sectionKind,
@@ -733,6 +849,10 @@ function SectionView({
     <OrdersPagerBoundShell isEditing={isEditing}>
       {defaultSectionContent}
     </OrdersPagerBoundShell>
+  ) : isCheckout ? (
+    <CheckoutBoundShell isEditing={isEditing}>
+      {defaultSectionContent}
+    </CheckoutBoundShell>
   ) : (
     defaultSectionContent
   );
@@ -756,6 +876,8 @@ function SectionView({
           ? SECTION_KIND_PRODUCTS_GRID
           : isProductsPageSection({ sectionKind, metadata: sectionMetadata })
             ? SECTION_KIND_PRODUCTS_PAGE
+            : isCheckout
+              ? SECTION_KIND_CHECKOUT
             : isCartSection({ sectionKind, metadata: sectionMetadata })
               ? SECTION_KIND_CART
               : isCustomerAccountSection({ sectionKind, metadata: sectionMetadata })

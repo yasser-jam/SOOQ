@@ -141,42 +141,43 @@ Status tags mirror the [block status matrix](#block-status--what-to-use-what-to-
 23. [ContentLink](#contentlink) ✅
 24. [ContentMap](#contentmap) ✅
 25. [ContentParagraph](#contentparagraph) ✅
-26. [ContentSwitch](#contentswitch) ✅
-27. [Flex](#flex) 🗄️
-28. [Grid](#grid) 🗄️
-29. [Group](#group) ✅
-30. [Heading](#heading) 🗄️
-31. [Hero](#hero) 🧩
-32. [ImageGallery](#imagegallery) ✅
-33. [Logos](#logos) ⛔
-34. [NavMenu](#navmenu) 🧩
-35. [OrderHistory](#orderhistory) ⛔
-36. [OrdersIconButton](#ordersiconbutton) 🗄️
-37. [ProductCard](#productcard) 🗄️
-38. [ProductImage](#productimage) 🗄️
-39. [ProductImageCarousel](#productimagecarousel) 🧩
-40. [ProductInfo](#productinfo) 🗄️
-41. [ProductSearchMenu](#productsearchmenu) ⛔
-42. [ProductVariants](#productvariants) 🧩
-43. [ProductsGrid](#productsgrid) ❌
-44. [RichText](#richtext) 🗄️
-45. [RowGroup](#rowgroup) ✅
-46. [Section](#section) ✅
-47. [Sidebar](#sidebar) ⛔
-48. [SideDrawer](#sidedrawer) ⛔
-49. [SiteDrawerShell](#sitedrawershell) 🗄️
-50. [SiteFooter](#sitefooter) ✅ *(zone)*
-51. [SiteHeader](#siteheader) ✅ *(zone)*
-52. [Space](#space) ✅
-53. [Stats](#stats) 🧩
-54. [Template](#template) ⛔
-55. [Testimonials](#testimonials) 🧩
-56. [Text](#text) 🗄️
-57. [VideoEmbed](#videoembed) ✅
-58. [Wishlist](#wishlist) ⛔
-59. [ZoneBottomSheet](#zonebottomsheet) ✅ *(zone)*
-60. [ZoneDrawer](#zonedrawer) ✅ *(zone)*
-61. [ZonePopup](#zonepopup) ✅ *(zone)*
+26. [ContentSelect](#contentselect) ✅
+27. [ContentSwitch](#contentswitch) ✅
+28. [Flex](#flex) 🗄️
+29. [Grid](#grid) 🗄️
+30. [Group](#group) ✅
+31. [Heading](#heading) 🗄️
+32. [Hero](#hero) 🧩
+33. [ImageGallery](#imagegallery) ✅
+34. [Logos](#logos) ⛔
+35. [NavMenu](#navmenu) 🧩
+36. [OrderHistory](#orderhistory) ⛔
+37. [OrdersIconButton](#ordersiconbutton) 🗄️
+38. [ProductCard](#productcard) 🗄️
+39. [ProductImage](#productimage) 🗄️
+40. [ProductImageCarousel](#productimagecarousel) 🧩
+41. [ProductInfo](#productinfo) 🗄️
+42. [ProductSearchMenu](#productsearchmenu) ⛔
+43. [ProductVariants](#productvariants) 🧩
+44. [ProductsGrid](#productsgrid) ❌
+45. [RichText](#richtext) 🗄️
+46. [RowGroup](#rowgroup) ✅
+47. [Section](#section) ✅
+48. [Sidebar](#sidebar) ⛔
+49. [SideDrawer](#sidedrawer) ⛔
+50. [SiteDrawerShell](#sitedrawershell) 🗄️
+51. [SiteFooter](#sitefooter) ✅ *(zone)*
+52. [SiteHeader](#siteheader) ✅ *(zone)*
+53. [Space](#space) ✅
+54. [Stats](#stats) 🧩
+55. [Template](#template) ⛔
+56. [Testimonials](#testimonials) 🧩
+57. [Text](#text) 🗄️
+58. [VideoEmbed](#videoembed) ✅
+59. [Wishlist](#wishlist) ⛔
+60. [ZoneBottomSheet](#zonebottomsheet) ✅ *(zone)*
+61. [ZoneDrawer](#zonedrawer) ✅ *(zone)*
+62. [ZonePopup](#zonepopup) ✅ *(zone)*
 
 **Site-wide reference sections**
 
@@ -451,7 +452,12 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 
 ## CheckoutForm
 
-> ⛔ **IGNORED — do not use.** Registered only so old `store_config.json` renders. Build checkout from `Section` + `ContentInput` blocks with `inputAction` bindings instead (see the `forms` presets).
+> ⛔ **IGNORED — do not use.** Registered only so old `store_config.json` renders.
+> The real checkout is the `/checkout` **page preset** — a `Section` with
+> `metadata.preset: "checkout"` containing `ContentSelect` (address / payment),
+> `ContentInput` (`discount_code`) and `ContentButton` (`validateDiscount`,
+> `placeOrder`). See [Section — Checkout preset](#section-checkout-preset-checkout)
+> and [Page presets](#page-presets).
 
 **Label:** Checkout Form  
 **Description:** Full checkout form bound to the store's checkout flow.
@@ -561,13 +567,29 @@ Defined in `config/content/button-actions.ts`.
 | `login` / `logout` / `verifyOtp` | تسجيل الدخول / الخروج / تحقق من الرمز | Auth flow; `submitRedirectUrl` applies |
 | `addToCart` | إضافة إلى السلة | Requires a product-bound `Group` ancestor |
 | `addToWishlist` | إضافة إلى المفضلة | Requires a product-bound `Group` ancestor |
-| `makeOrder` | إتمام الطلب | Checkout from the current `store-cart` |
+| `makeOrder` | متابعة إلى الدفع | **Does not place an order.** Validates `store-cart` and navigates to `/checkout`. Belongs on the cart page |
 | `cartQtyIncrease` / `cartQtyDecrease` | زيادة / تقليل الكمية | Inside a `cartLineId` `Group` |
 | `saveProfile` | حفظ الملف الشخصي | Customer-account section — writes the profile draft |
 | `createAddress` | حفظ العنوان | Customer-addresses section — submits `customer.addressDraft` |
 | `setDefaultAddress` | تعيين كعنوان افتراضي | Inside an address-repeater cell |
 | `deleteAddress` | حذف العنوان | Inside an address-repeater cell |
 | `toggleLanguage` | تبديل اللغة | **Flips the storefront language** (ar ⇄ en) via `LanguageProvider` — this is what makes bilingual props switch at runtime |
+
+**Checkout** — only on the `/checkout` page, inside a `"checkout"` preset section.
+
+| Action | Arabic label | Notes |
+|---|---|---|
+| `validateDiscount` | تطبيق كود الخصم | Validates the `discount_code` input against `GET /public/checkout/validate-discount`. Failures land in `errors.discount`, not an `alert()` |
+| `placeOrder` | تأكيد الطلب | **The action that actually places the order.** Needs a selected address + payment method; gate it on `checkout.canPlaceOrder`. Failures land in `errors.placeOrder` |
+
+**Orders** — inside the `customer-orders*` / `customer-order-*` preset sections.
+
+| Action | Arabic label | Notes |
+|---|---|---|
+| `ordersNextPage` / `ordersPrevPage` | الصفحة التالية / السابقة | Inside a `customer-orders-pager` section |
+| `downloadInvoice` | تحميل الفاتورة | Order-detail section; errors in `errors.invoice` |
+| `cancelOrder` | إلغاء الطلب | Submits `orderDetail.cancelReason`; usually inside the `cancel-order` zone popup |
+| `submitReturn` | إرسال طلب الإرجاع | Submits the `returnDraft` built by the order-items repeater |
 
 ### JSON Example
 
@@ -892,6 +914,17 @@ with `buttonAction: "saveProfile"` or `"createAddress"`. Used by the `account` s
 | `address_street` | `customer.addressDraft.streetAddress` |
 | `address_notes` | `customer.addressDraft.notes` |
 
+**Orders / checkout** — write into the slice their page owns.
+
+| `inputAction` | Writes to | Used on |
+|---|---|---|
+| `cancel_reason` | `orderDetail.cancelReason` | `cancel-order` zone popup |
+| `return_item_quantity` | `returnDraft.items[orderItemId].quantity` | inside an order-items repeater cell (clamped to the line quantity) |
+| `discount_code` | `checkout.discountCodeDraft` | `/checkout`; submitted by a `validateDiscount` button |
+
+> Editing `discount_code` clears any already-applied discount, so the totals can
+> never show a discount that no longer matches the field.
+
 ### Behavior
 
 - Bound inputs are **controlled** by store state, so URL hydration and `resetProductsPage()` stay in sync; keystrokes are debounced by `debounceMs` before they hit the store.
@@ -949,6 +982,87 @@ with `buttonAction: "saveProfile"` or `"createAddress"`. Used by the `account` s
     "required": true,
     "prependIcon": "none",
     "inputAction": ""
+  }
+}
+```
+
+---
+
+## ContentSelect
+
+**Label:** قائمة اختيار  
+**Description:** A native `<select>`. Options come either from a static enum map
+(`enumMapKey`) or, for the checkout actions, from live store data. Shares
+`ContentInput`'s styles.
+
+> Not to be confused with [`ContentDropdown`](#contentdropdown), which is a
+> custom-rendered dropdown with product/collection option sources and its own
+> `dropdownAction` set. `ContentSelect` is the plain native control.
+
+### Properties
+
+| Property | Type | Values / Notes | Default |
+|---|---|---|---|
+| `label` | **`BilingualString`** | Field label (empty string renders no label) | `{ ar: "اختر", en: "Select" }` |
+| `name` | `string` | Input `name` attribute; also the `id` (`cs-<name>`) | `"select"` |
+| `selectAction` | `SelectAction \| ""` | Wired store action (`""` = none) — see below | `""` |
+| `enumMapKey` | keyof `ENUM_MAPS` \| `""` | Static option source (e.g. `"returnItemCondition"`). Ignored when `selectAction` supplies its own options | `""` |
+
+> **Bilingual:** `label`.
+
+### `selectAction` values (`config/content/select-actions.ts`)
+
+| `selectAction` | Options from | Writes |
+|---|---|---|
+| `return_item_condition` | `ENUM_MAPS[enumMapKey]` | `returnDraft.items[orderItemId].condition` |
+| `checkout_address` | `customer.addresses` (**bound**) | `checkout.addressId` |
+| `checkout_payment_method` | `checkout.paymentMethods` (**bound**) | `checkout.paymentMethodCode` |
+
+The two `checkout_*` actions are **bound sources** (`isBoundSelectAction`):
+
+- Option labels are built from live data — an address renders as
+  `"العمل — دمشق، شارع الحمرا"` via `formatAddressOption`; a payment method
+  renders its `displayName`.
+- On the **editor canvas** they render sample rows, so the merchant sees a
+  populated control instead of an empty box.
+- At runtime, **a bound select with zero options renders nothing at all.** An
+  empty list means "this customer has no saved address" / "no payment provider
+  is configured", and a `<select>` with no options is a dead control. Pair it
+  with a sibling block gated on `checkout.hasAddress` `falsy` to explain the
+  empty state (this is what the `/checkout` preset does).
+
+### Behavior
+
+- The value is **controlled by the store** (`checkout.addressId`,
+  `checkout.paymentMethodCode`, or the return draft), falling back to the first
+  option, and re-syncs when the store changes underneath it.
+- **Editor**: the control is `disabled` and never writes to the store.
+
+### JSON Example (checkout address picker)
+
+```json
+{
+  "type": "ContentSelect",
+  "props": {
+    "label": { "ar": "اختر عنوان التوصيل", "en": "Choose a delivery address" },
+    "name": "checkout-address",
+    "selectAction": "checkout_address",
+    "enumMapKey": ""
+  }
+}
+```
+
+### JSON Example (static enum — return item condition)
+
+```json
+{
+  "type": "ContentSelect",
+  "props": {
+    "label": { "ar": "حالة المنتج", "en": "Item condition" },
+    "name": "return-condition",
+    "selectAction": "return_item_condition",
+    "enumMapKey": "returnItemCondition",
+    "dataCondition": { "path": "isReturnable", "op": "truthy" }
   }
 }
 ```
@@ -2446,10 +2560,50 @@ section changes behaviour:
 | `"shopping-cart"` | Design Studio → سلة التسوق | Reads `store-cart` from localStorage; merges shell blocks + one `Group` per line into `content`; stores snapshot in `cartSlotItems` | `CartSectionStorefront` re-merges live cart lines with the `cartSlotItems` shell |
 | `"customer-account"` | Design Studio → الحساب (الملف الشخصي / تفضيلات التسويق) | — | Wraps `content` in a `BoundDataProvider` carrying `{ profile, preferences }`; child blocks bind via `valueContext` / `inputAction` / `switchAction`. Sample data in the editor canvas |
 | `"customer-addresses"` | Design Studio → عناويني | Snapshots `content[0]` into `cardTemplate` (never wiped while the slot is temporarily empty) | `CustomerAddressesTemplateRepeater` clones the template per saved address |
+| `"customer-orders"` | `/orders` preset | Snapshots `content[0]` into `cardTemplate` | `StoreListRepeater` clones the template per order; publishes `order.*` per cell |
+| `"customer-orders-pager"` | `/orders` preset | — | `OrdersPagerBoundShell` publishes `orders.pageLabel / hasNext / hasPrev` |
+| `"customer-order-detail"` | `/orders/:order-id` preset | — | Publishes `order.*` plus `isCancellable` / `isReturnable` / `errors.*` |
+| `"customer-order-items"` | `/orders/:order-id` preset | Snapshots `content[0]` into `cardTemplate` | `StoreListRepeater` clones per order item; publishes `item.*` |
+| `"customer-order-timeline"` | `/orders/:order-id` preset | Snapshots `content[0]` into `cardTemplate` | `StoreListRepeater` clones per timeline entry; publishes `timelineEntry.*` |
+| `"checkout"` | `/checkout` preset | — | `CheckoutBoundShell` publishes the `checkout.*` scope — see below |
 | `"zone-header"` | Zone (header) presets | — | Marks a `Section` that lives inside the header zone; carries `ZONE_SHELL_SECTION_PERMISSIONS` |
 
 The HTML `<section>` element receives `data-section-preset="<preset>"` for mobile converters, plus
 `data-section-id`.
+
+### Section: Checkout preset (`"checkout"`)
+
+Used by the `/checkout` page (`config/presets/checkout.ts`). The section publishes
+a `checkout.*` binding scope to its children; blocks read it through
+`valueContext` and gate themselves with `dataCondition`, so the page is fully
+restyleable without touching code.
+
+| Path | Type | Notes |
+|---|---|---|
+| `checkout.hasAddress` | `boolean` | An address is selected |
+| `checkout.addressSummary` | `string` | `"المنزل، دمشق، شارع الحمرا"` |
+| `checkout.recipientName` / `.recipientPhone` | `string` | From the selected address |
+| `checkout.hasPaymentMethod` | `boolean` | A provider is selected |
+| `checkout.paymentMethodName` | `string` | e.g. `"الدفع عند الاستلام"` |
+| `checkout.hasDiscount` | `boolean` | A code validated successfully |
+| `checkout.discountCode` | `string` | The applied code |
+| `checkout.subtotal` / `.shippingCost` / `.discountAmount` / `.payableTotal` | `number` | Render with `format: "money"` + `currencyPath: "checkout.currencyCode"` |
+| `checkout.currencyCode` | `string` | Store currency (default `SYP`) |
+| `checkout.canPlaceOrder` | `boolean` | Address **and** payment method chosen — gate the `placeOrder` button on this |
+| `checkout.isPlaced` | `boolean` | Order submitted; swap to the success panel |
+| `errors.discount` / `errors.placeOrder` | `string \| null` | Inline error text |
+| `session.isLoggedIn` | `boolean` | — |
+
+> ⚠️ **Put `checkout.*` conditions on blocks inside the section, never on the
+> `Section` itself.** The scope is published *inside* the section, so a
+> section-level `dataCondition` on `checkout.*` is evaluated before the scope
+> exists and silently never matches. The preset therefore uses **one** checkout
+> section containing a `Group` per step, each carrying its own gate. There is a
+> regression test for this in
+> `config/__tests__/theme-rawaq-checkout.spec.tsx`.
+
+Shipping cost is currently always `0` — no public endpoint quotes a shipping
+price to the storefront yet.
 
 ### Section: Products Grid preset
 
@@ -2580,10 +2734,22 @@ Insert via Design Studio section catalog (`id: "shopping-cart"`). Default shell:
 
 ## Sidebar
 
-> ⛔ **IGNORED — do not use.** Registered in `components` but listed in **no** palette category, so it falls into the hidden `other` bucket. Use a `Section` column with a [`Group`](#group).
+> ⛔ **Desktop: IGNORED — do not use.** On desktop it is listed in **no** palette category, so it falls into the hidden `other` bucket. Use a `Section` column with a [`Group`](#group).
+>
+> ✅ **Mobile: this is the app drawer.** In the mobile editor it appears in the `mobileShell` category (with [`AppBar`](#appbar)) and is persisted **once per site** as `SiteData.sidebar` — not inside a zone. `composePuckData` injects it at the top of the page content in mobile mode; `applyPuckSave` extracts it back out.
 
 **Label:** الشريط الجانبي  
 **Description:** A vertical sidebar container. Can be inline (flows in document), or docked to the left/right of the viewport.
+
+### Mobile rendering
+
+In mobile mode the sidebar is **not** a docked rail — it renders as an off-canvas
+drawer (portalled to the document body, overlay + close button) that starts
+**closed**, matching the app, where the AppBar's `menuAction: { type: "openDrawer" }`
+opens it. In the editor canvas it opens when the AppBar menu button is clicked or
+when the Sidebar block (or a block nested in it) is selected. `dock` picks the side
+it slides in from; `dockOffsetTop` / `stickyTop` / `borderStyle` / `showOnMobile`
+are desktop-only.
 
 ### Properties
 
@@ -3633,6 +3799,37 @@ The commerce and account presets (`products-grid`, `products-page`, `shopping-ca
 resolution — see [Section — Products Grid preset](#section-products-grid-preset) and [Section — Shopping Cart preset](#section-shopping-cart-preset).
 
 For zone presets (header / footer / drawer / popup / bottom sheet), see [ZONES.md — Zone presets](./ZONES.md#zone-presets).
+
+### Page presets
+
+Distinct from the catalog above: these build a **whole page's** `content`, are not
+inserted from "Add Section", and are wired into `config/page-registry.ts` (so the
+page exists in the pages panel) plus `config/initial-data.ts` (so it has starter
+content).
+
+| Page | Factory | Section kinds used |
+|---|---|---|
+| `/cart` | `createCartPageContent()` | `shopping-cart` |
+| `/settings` | `createSettingsPageContent()` | `customer-account`, `customer-addresses` |
+| `/orders` | `createOrdersPageContent()` | `customer-orders`, `customer-orders-pager` |
+| `/orders/:order-id` | `createOrderDetailPageContent()` + `createCancelOrderZonePopup()` | `customer-order-detail`, `customer-order-items`, `customer-order-timeline` |
+| `/checkout` | `createCheckoutPageContent()` | `checkout` |
+
+**Per-theme skins.** A theme can restyle a page preset without forking its
+behaviour. `config/presets/rawaq-theme-walk.ts` exports
+`createRawaqThemeWalk(bilingualMap)`, a walker that rewrites only theme-owned
+visual props and swaps strings for `{ ar, en }` pairs; structure, bindings and
+actions pass through untouched. Used by `orders-rawaq.ts` and
+`checkout-rawaq.ts` (and mirrored for Meridian in `orders-meridian.ts`).
+
+Themes ship the result **baked into their JSON**, injected by a one-shot script:
+
+```bash
+pnpm exec jest themes/inject-rawaq-checkout.spec.ts --testNamePattern=injects
+```
+
+Guard specs (`config/__tests__/theme-rawaq-*.spec.tsx`) then assert the baked
+pages still render through `<Render>` and kept their bindings.
 
 ---
 

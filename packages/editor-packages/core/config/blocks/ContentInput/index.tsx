@@ -128,7 +128,7 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
     const { language } = useActiveLanguage();
     const resolvedLabel = pickLang(label, language);
     const resolvedPlaceholder = pickLang(placeholder, language);
-    const { productsPage, customer, orderDetail, returnDraft, actions } =
+    const { productsPage, customer, orderDetail, returnDraft, checkout, actions } =
       useStore();
     const { data } = useBoundData();
     const contextBoundValue = useBoundValue(resolvedPlaceholder || "", valueContext);
@@ -154,8 +154,9 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
     const isAddressDraft = isAddressDraftInputAction(inputAction);
     const isCancelReason = inputAction === "cancel_reason";
     const isReturnItemQuantity = inputAction === "return_item_quantity";
+    const isDiscountCode = inputAction === "discount_code";
     const isCustomerDraft =
-      isProfileFullName || isAddressDraft || isCancelReason;
+      isProfileFullName || isAddressDraft || isCancelReason || isDiscountCode;
     const isContextDisplay =
       inputAction === "" && Boolean(valueContext?.path);
     const isDebouncedBound = isSearchProducts || isPriceFilter;
@@ -177,6 +178,8 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
             ? customer.profileDraft.fullName
             : isCancelReason
               ? orderDetail.cancelReason
+              : isDiscountCode
+                ? checkout.discountCodeDraft
               : isReturnItemQuantity && orderItemId
                 ? String(returnDraft.items[orderItemId]?.quantity ?? 1)
             : addressDraftField
@@ -196,6 +199,10 @@ const ContentInputInner: ComponentConfig<ContentInputProps> = {
       }
       if (isCancelReason) {
         actions.orders.setCancelReason(value);
+        return;
+      }
+      if (isDiscountCode) {
+        actions.checkout.setDiscountCodeDraft(value);
         return;
       }
       if (isReturnItemQuantity && orderItemId) {
@@ -388,6 +395,7 @@ function shouldHideDebounceMs(inputAction: InputAction | ""): boolean {
     inputAction === "profile_full_name" ||
     inputAction === "cancel_reason" ||
     inputAction === "return_item_quantity" ||
+    inputAction === "discount_code" ||
     isAddressDraftInputAction(inputAction)
   );
 }

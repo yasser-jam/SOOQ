@@ -223,12 +223,14 @@ const GroupInternal: ComponentConfig<GroupProps> = {
     const product = props.product;
     const productId = product?.id;
 
+    // Public detail endpoint only. Refs without a slug (saved before the
+    // picker stored one) are resolved through the public listing at render
+    // time — the storefront never calls /admin/products.
     const adapter = getEditorDataAdapter();
-    const metadata = productId
-      ? product.slug
+    const metadata =
+      productId && product.slug
         ? adapter.buildPublicProductResourceMetadata(product.slug, productId)
-        : adapter.buildProductResourceMetadata(productId)
-      : null;
+        : null;
 
     return resolveMetadataProp(props.metadata, metadata);
   },

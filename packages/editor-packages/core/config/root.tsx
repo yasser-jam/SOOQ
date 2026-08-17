@@ -52,6 +52,7 @@ import {
   ZONE_POPUP,
   ZONE_BOTTOM_SHEET,
 } from "./shell-zones";
+import { isMobileEditorMetadata } from "./lib/editor-mode";
 import { useActiveLanguage } from "./locale/LanguageContext";
 import { LanguageProvider } from "./locale/LanguageProvider";
 import {
@@ -241,8 +242,13 @@ function RootShell(props: DefaultRootRenderProps<RootProps>) {
       badgeShape = DEFAULT_BADGE.badgeShape,
       badgeStyle = DEFAULT_BADGE.badgeStyle,
       pageFullScreen = false,
-      puck: { isEditing, renderDropZone: DropZone },
+      puck: { isEditing, renderDropZone: DropZone, metadata },
     } = p;
+
+    // The mobile shell is the per-page AppBar plus the site Sidebar drawer —
+    // the desktop header/footer zones are not part of it, so they never render
+    // in the mobile editor / preview (they stay in the JSON for desktop).
+    const hideShellZones = pageFullScreen || isMobileEditorMetadata(metadata);
 
     const { language, direction } = useActiveLanguage();
 
@@ -313,7 +319,7 @@ function RootShell(props: DefaultRootRenderProps<RootProps>) {
           lang={language}
           {...fonts.dataAttrs}
         >
-          {pageFullScreen ? null : (
+          {hideShellZones ? null : (
             <DropZone
               zone={ZONE_HEADER}
               allow={["Section"]}
@@ -337,7 +343,7 @@ function RootShell(props: DefaultRootRenderProps<RootProps>) {
             />
           </div>
 
-          {pageFullScreen ? null : (
+          {hideShellZones ? null : (
             <DropZone
               zone={ZONE_FOOTER}
               allow={["Section"]}

@@ -138,6 +138,7 @@ export {
   createCartPageContent,
 } from "./cart";
 export { createSettingsPageContent } from "./account";
+export { createCheckoutPageContent } from "./checkout";
 export {
   createSplashPageContent,
   getSplashVariant,

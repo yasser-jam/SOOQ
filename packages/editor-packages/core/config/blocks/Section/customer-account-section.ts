@@ -1,4 +1,5 @@
 import {
+  SECTION_KIND_CHECKOUT,
   SECTION_KIND_CUSTOMER_ADDRESSES,
   SECTION_KIND_CUSTOMER_ACCOUNT,
   SECTION_KIND_CUSTOMER_ORDERS,
@@ -10,6 +11,9 @@ import {
 } from "./section-preset-kinds";
 
 export {
+  CHECKOUT_SECTION_METADATA,
+  SECTION_KIND_CHECKOUT,
+  buildCheckoutSectionProps,
   CUSTOMER_ACCOUNT_SECTION_METADATA,
   CUSTOMER_ADDRESSES_SECTION_METADATA,
   CUSTOMER_ORDERS_SECTION_METADATA,
@@ -102,6 +106,10 @@ export function isCustomerOrderTimelineSection(
     SECTION_KIND_CUSTOMER_ORDER_TIMELINE,
     SECTION_KIND_CUSTOMER_ORDER_TIMELINE
   );
+}
+
+export function isCheckoutSection(props: CustomerSectionProps): boolean {
+  return matchesPreset(props, SECTION_KIND_CHECKOUT, SECTION_KIND_CHECKOUT);
 }
 
 export function isStoreListSection(props: CustomerSectionProps): boolean {

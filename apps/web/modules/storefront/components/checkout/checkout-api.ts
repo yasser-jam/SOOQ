@@ -3,8 +3,14 @@ import {
 	type StoreCart,
 	type StoreCartLine,
 } from "@/core/config/cart/store-cart"
+import type {
+	CheckoutDiscount,
+	CustomerAddress,
+	PaymentMethodOption,
+} from "@/core/config/store-context"
 import { api } from "@/lib/api"
 import { publicApi } from "@/lib/public-api"
+import type { ApiResponse } from "@/lib/types"
 import { isMockApiEnabled } from "@/lib/mock/enabled"
 import { MOCK_STORE_TENANT_ID } from "@/lib/mock/seed"
 import { getEditorTenantId } from "@/lib/tenant-context"
@@ -296,6 +302,182 @@ export async function submitCheckoutOrder(
 		throw new Error(
 			getApiErrorMessage(err, "حدث خطأ أثناء تقديم الطلب."),
 		)
+	}
+}
+
+// ─── Checkout page: payment methods, discount, place order ────────────────────
+
+type ApiPaymentMethod = {
+	providerCode?: string
+	displayName?: string
+	requiresRedirect?: boolean
+	supportsSavedCards?: boolean
+}
+
+/**
+ * Storefront-visible payment providers — `GET /public/payments/methods`.
+ *
+ * Returns `[]` instead of throwing: an empty list makes the checkout page hide
+ * its payment picker, which beats failing the whole page on a flaky lookup.
+ */
+export async function listPaymentMethods(
+	tenantId: string | null,
+): Promise<PaymentMethodOption[]> {
+	try {
+		const response = await publicApi<ApiResponse<ApiPaymentMethod[]>>(
+			"/public/payments/methods",
+			{ tenantId: resolveCheckoutTenantId(tenantId) },
+		)
+
+		return (response.data ?? [])
+			.map((method) => ({
+				providerCode: String(method.providerCode ?? "").trim(),
+				displayName: String(
+					method.displayName ?? method.providerCode ?? "",
+				).trim(),
+				requiresRedirect: Boolean(method.requiresRedirect),
+				supportsSavedCards: Boolean(method.supportsSavedCards),
+			}))
+			.filter((method) => method.providerCode)
+	} catch {
+		return []
+	}
+}
+
+type ApiDiscountValidation = {
+	discountAmount?: number | string
+}
+
+/**
+ * `GET /public/checkout/validate-discount`. The backend computes the amount, so
+ * the current money context travels with the code. Throws with the backend's
+ * own Arabic message when the code is rejected.
+ */
+export async function validateDiscountCode(
+	input: { code: string; subtotal: number; shippingCost: number },
+	tenantId: string | null,
+): Promise<CheckoutDiscount> {
+	const code = input.code.trim()
+
+	if (!code) {
+		throw new Error("أدخل كود الخصم أولاً.")
+	}
+
+	try {
+		const response = await publicApi<ApiResponse<ApiDiscountValidation>>(
+			"/public/checkout/validate-discount",
+			{
+				tenantId: resolveCheckoutTenantId(tenantId),
+				params: {
+					code,
+					subtotal: input.subtotal,
+					shippingCost: input.shippingCost,
+				},
+			},
+		)
+
+		const amount = Number(response.data?.discountAmount ?? 0)
+
+		if (!Number.isFinite(amount) || amount <= 0) {
+			throw new Error("كود الخصم غير صالح.")
+		}
+
+		return { code, discountAmount: amount }
+	} catch (err) {
+		throw new Error(getApiErrorMessage(err, "كود الخصم غير صالح."))
+	}
+}
+
+/** Turn a saved address into the `shippingAddress` block the API expects. */
+function toShippingAddress(address: CustomerAddress) {
+	const { recipientName, phone } = getCheckoutCustomerFromCookies()
+
+	if (address.latitude == null || address.longitude == null) {
+		throw new Error("العنوان المحدد لا يحتوي على إحداثيات. اختر عنواناً آخر.")
+	}
+
+	const label =
+		[address.governorate, address.city, address.streetAddress]
+			.map((part) => part?.trim())
+			.filter(Boolean)
+			.join("، ") ||
+		address.label?.trim() ||
+		""
+
+	if (!label) {
+		throw new Error("العنوان المحدد غير مكتمل. اختر عنواناً آخر.")
+	}
+
+	const resolvedName = address.recipientName?.trim() || recipientName
+	const resolvedPhone = address.recipientPhone?.trim() || phone
+
+	if (!resolvedName || !resolvedPhone) {
+		throw new Error("بيانات المستلم غير متوفرة. سجّل الدخول أولاً.")
+	}
+
+	return {
+		latitude: address.latitude,
+		longitude: address.longitude,
+		recipientName: resolvedName,
+		phone: resolvedPhone,
+		addressLabel: label,
+	}
+}
+
+/**
+ * `POST /public/checkout` driven by the /checkout page's selections.
+ * Returns the new order id so the page can switch to its success state.
+ *
+ * The body is the fixed five-key shape the backend expects; only
+ * `shippingAddress` varies, and it comes from the address the customer picked.
+ * Note there is no `discountCode` field — a validated code currently affects
+ * the displayed total only, not what the backend charges.
+ */
+export async function placeCheckoutOrder(
+	input: {
+		cart: StoreCart
+		address: CustomerAddress
+		paymentMethodCode: string
+	},
+	tenantId: string | null,
+): Promise<string> {
+	const { items, warnings } = mapCartToOrderItems(input.cart)
+
+	if (items.length === 0) {
+		const detail =
+			warnings.length > 0
+				? `\n${warnings.map((w) => `• ${w.productTitle}`).join("\n")}`
+				: ""
+		throw new Error(
+			`لا توجد منتجات قابلة للطلب — تحقق من اختيار المتغيرات.${detail}`,
+		)
+	}
+
+	const shippingAddress = toShippingAddress(input.address)
+	const accessToken = readCookie(ACCESS_TOKEN_COOKIE)
+
+	try {
+		const response = await publicApi<ApiResponse<{ orderId?: string }>>(
+			"/public/checkout",
+			{
+				method: "POST",
+				tenantId: resolveCheckoutTenantId(tenantId),
+				headers: accessToken
+					? { Authorization: `Bearer ${accessToken}` }
+					: undefined,
+				body: {
+					items,
+					shippingAddress,
+					paymentMethod: input.paymentMethodCode,
+					checkoutToken: crypto.randomUUID(),
+					guestEmail: DEFAULT_GUEST_EMAIL,
+				},
+			},
+		)
+
+		return response.data?.orderId ?? ""
+	} catch (err) {
+		throw new Error(getApiErrorMessage(err, "حدث خطأ أثناء تقديم الطلب."))
 	}
 }
 

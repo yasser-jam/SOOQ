@@ -52,8 +52,21 @@ describe("splash page renders chrome-less", () => {
     expect(container.querySelectorAll(SHELL_SELECTOR)).toHaveLength(0);
   });
 
-  it("still renders the shell zones on a normal page", () => {
+  // The mobile shell is AppBar + Sidebar drawer; the header/footer bands are
+  // desktop-only, so they stay out of every mobile page — full-screen or not.
+  it("drops the shell zones on a normal page too in mobile mode", () => {
     const site = buildSite();
+
+    const { container } = render(
+      <Render config={conf as any} data={composePuckData(site, "/") as any} />
+    );
+
+    expect(container.querySelectorAll(SHELL_SELECTOR)).toHaveLength(0);
+  });
+
+  it("still renders the shell zones on a normal desktop page", () => {
+    const site = buildSite();
+    setActiveEditorMode("desktop");
 
     const { container } = render(
       <Render config={conf as any} data={composePuckData(site, "/") as any} />

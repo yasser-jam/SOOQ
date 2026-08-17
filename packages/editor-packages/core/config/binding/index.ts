@@ -29,3 +29,11 @@ export {
   useCollectionProductBoundData,
   useCollectionProductsBoundLoading,
 } from "./CollectionProductsBoundProvider";
+export {
+  PUBLIC_PRODUCTS_PAGE_SIZE,
+  usePublicProductsList,
+  useResolvedPublicProduct,
+  type PublicProductsListOptions,
+  type PublicProductsListState,
+  type ResolvedPublicProduct,
+} from "./use-public-products";

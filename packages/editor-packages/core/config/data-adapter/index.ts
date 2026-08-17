@@ -43,12 +43,14 @@ export type EditorDataAdapter = {
     collection: CollectionPickerRef
   ): ProductsGridResourceMetadata;
 
-  /** Product-detail endpoint for a product id (admin card API). */
-  getProductCardApiUrl(productId: string): string;
+  /**
+   * Product-detail endpoint. Public only (`/public/products/{slug}`) — the
+   * renderer has no admin credentials, and listing products goes through
+   * `getProductsPageApiUrl` rather than N per-product calls.
+   */
   fetchProductDetailPayload(
     apiUrl: string
   ): Promise<ProductDetailPayload | null>;
-  buildProductResourceMetadata(productId: string): ProductResourceMetadata;
   buildPublicProductResourceMetadata(
     slug: string,
     id?: string
@@ -89,15 +91,7 @@ export const sampleEditorDataAdapter: EditorDataAdapter = {
     productCount: collection.productCount ?? 0,
     apiUrl: `${SAMPLE_URL_PREFIX}collections/${collection.slug}/products`,
   }),
-  getProductCardApiUrl: (productId) =>
-    `${SAMPLE_URL_PREFIX}products/${productId}`,
   fetchProductDetailPayload: async () => buildSampleProductPayload(),
-  buildProductResourceMetadata: (productId) => ({
-    type: "product",
-    method: "get",
-    apiUrl: `${SAMPLE_URL_PREFIX}products/${productId}`,
-    id: productId,
-  }),
   buildPublicProductResourceMetadata: (slug, id) => ({
     type: "product",
     method: "get",

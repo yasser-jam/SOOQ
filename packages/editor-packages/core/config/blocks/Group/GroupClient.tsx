@@ -12,6 +12,7 @@ import {
   type ProductResourceMetadata,
 } from "../../data-adapter";
 import { BoundDataProvider, useBoundData } from "../../binding";
+import { useResolvedPublicProduct } from "../../binding/use-public-products";
 import { applyVariantPricing } from "../../binding/apply-variant-pricing";
 import { getBoundProductId } from "../../binding/map-collection-product-to-bound-data";
 import {
@@ -75,9 +76,20 @@ export function GroupClient({
   const adapter = getEditorDataAdapter();
   const sampleMode = isEditing && useSampleDataInEditor();
   const productId = product?.id;
-  const productApiUrl =
-    metadata?.apiUrl ??
-    (productId ? adapter.getProductCardApiUrl(productId) : null);
+
+  // Cards inside a listing repeater are fed by their provider, cart lines read
+  // the cart, and the edit canvas uses sample payloads — none of them resolve
+  // a product URL.
+  const wantsOwnProduct =
+    Boolean(productId) && !cartLineId && !skipProductDetailFetch && !sampleMode;
+
+  // Public detail endpoint only. Refs saved without a slug are resolved
+  // through the public listing rather than the admin card endpoint.
+  const { apiUrl: resolvedApiUrl, isResolving } = useResolvedPublicProduct(
+    product,
+    { isEditing, enabled: wantsOwnProduct && !metadata?.apiUrl }
+  );
+  const productApiUrl = metadata?.apiUrl ?? resolvedApiUrl;
 
   const parentBoundProductId = getBoundProductId(
     parentBound.data as Record<string, unknown> | null
@@ -96,11 +108,7 @@ export function GroupClient({
 
   // Edit canvas never hits the product API — sample data renders instantly
   // (C2-5); preview and the published storefront fetch live.
-  const shouldFetchProductDetail =
-    Boolean(productApiUrl) &&
-    !cartLineId &&
-    !skipProductDetailFetch &&
-    !sampleMode;
+  const shouldFetchProductDetail = wantsOwnProduct && Boolean(productApiUrl);
 
   // Own a local variant selection only when this Group binds its own product
   // (or cart line). Layout Groups with `product: null` must inherit from the
@@ -199,7 +207,7 @@ export function GroupClient({
       ? false
       : skipProductDetailFetch
         ? collectionLoading && !prefetchedBoundData
-        : isLoading,
+        : isLoading || (wantsOwnProduct && isResolving),
     isError: cartLineId ? false : skipProductDetailFetch ? false : isError,
     metadata: cartLine?.metadata ?? metadata ?? parentBound.metadata ?? null,
     // Follow the live language toggle — Group/cart `language` props are frozen
@@ -212,7 +220,8 @@ export function GroupClient({
   const showLoading =
     skipProductDetailFetch
       ? collectionLoading && !prefetchedBoundData
-      : shouldFetchProductDetail && isLoading;
+      : (wantsOwnProduct && isResolving) ||
+        (shouldFetchProductDetail && isLoading);
   const showError = shouldFetchProductDetail && isError;
 
   return (

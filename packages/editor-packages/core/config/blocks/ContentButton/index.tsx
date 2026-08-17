@@ -258,6 +258,8 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       ((action === "login" && loading.login) ||
         (action === "verifyOtp" && loading.verifyOtp) ||
         (action === "makeOrder" && loading.makeOrder) ||
+        (action === "validateDiscount" && loading.discount) ||
+        (action === "placeOrder" && loading.placeOrder) ||
         (action === "saveProfile" && loading.profile) ||
         (action === "createAddress" && loading.address) ||
         (action === "setDefaultAddress" && loading.address) ||
@@ -386,6 +388,19 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
         } catch (err) {
           window.alert(err instanceof Error ? err.message : "حدث خطأ أثناء تقديم الطلب.");
         }
+        return;
+      }
+
+      // Errors land in `errors.discount` / `errors.placeOrder`, which the
+      // checkout preset renders inline — no alert() for these two.
+      if (action === "validateDiscount") {
+        await actions.checkout.validateDiscount();
+        return;
+      }
+
+      if (action === "placeOrder") {
+        await actions.checkout.placeOrder();
+        maybeRedirect();
         return;
       }
 

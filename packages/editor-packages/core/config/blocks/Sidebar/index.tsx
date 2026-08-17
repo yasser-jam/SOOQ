@@ -10,6 +10,9 @@ import {
 } from "../../fields/BilingualText";
 import { createSidebarStarterContent } from "../Section/starter-data";
 import { applyMobileEditorFieldGroups } from "../../lib/mobile-field-groups";
+import { isMobileEditorMetadata } from "../../lib/editor-mode";
+import { useMobileSidebarPreview } from "../../lib/mobile-sidebar-preview";
+import { MobileSidebarDrawer } from "../../components/MobileSidebarDrawer";
 import { useDisplayLanguage } from "../../locale/use-display-language";
 import styles from "./styles.module.css";
 
@@ -79,6 +82,45 @@ const BG_VAR: Record<SidebarProps["backgroundColor"], string | undefined> = {
   transparent: undefined,
   surface: "var(--theme-color-surface, #ffffff)",
   muted: "var(--theme-color-muted, #f9fafb)",
+};
+
+/**
+ * Mobile shell rendering: the sidebar is the app drawer, so it renders closed
+ * and off-canvas instead of pinned over the page. See `mobile-sidebar-preview`.
+ */
+const MobileSidebarBlock = ({
+  componentId,
+  title,
+  showTitle,
+  side,
+  backgroundColor,
+  editMode,
+  children,
+}: {
+  componentId?: string;
+  title?: string;
+  showTitle: boolean;
+  side: "left" | "right";
+  backgroundColor?: string;
+  editMode: boolean;
+  children: React.ReactNode;
+}) => {
+  const { isOpen, selected, close } = useMobileSidebarPreview(componentId);
+
+  return (
+    <MobileSidebarDrawer
+      isOpen={isOpen}
+      selected={selected}
+      editMode={editMode}
+      side={side}
+      title={title}
+      showTitle={showTitle}
+      backgroundColor={backgroundColor}
+      onClose={close}
+    >
+      {children}
+    </MobileSidebarDrawer>
+  );
 };
 
 const SidebarInternal: ComponentConfig<SidebarProps> = {
@@ -180,11 +222,34 @@ const SidebarInternal: ComponentConfig<SidebarProps> = {
     backgroundColor,
     showOnMobile,
     items: Items,
+    id,
     puck,
   }) => {
     const language = useDisplayLanguage();
     const resolvedTitle = pickLang(title, language);
     const resolvedDock = dock ?? "inline";
+    const metadata = (puck as { metadata?: { editorMode?: string } } | undefined)
+      ?.metadata;
+
+    if (isMobileEditorMetadata(metadata)) {
+      return (
+        <MobileSidebarBlock
+          componentId={typeof id === "string" ? id : undefined}
+          title={resolvedTitle}
+          showTitle={showTitle}
+          side={resolvedDock === "left" ? "left" : "right"}
+          // A drawer always sits over page content, so it needs a solid fill
+          // even when the (desktop) background choice is "transparent".
+          backgroundColor={
+            BG_VAR[backgroundColor] ?? "var(--theme-color-surface, #ffffff)"
+          }
+          editMode={!!(puck as { isEditing?: boolean } | undefined)?.isEditing}
+        >
+          <Items />
+        </MobileSidebarBlock>
+      );
+    }
+
     const isDocked = resolvedDock !== "inline";
     // When docked, the whole sidebar IS the sticky/fixed anchor — its inner
     // `stickyTop` no longer makes sense, so we ignore it.

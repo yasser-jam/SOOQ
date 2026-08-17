@@ -14,6 +14,7 @@ export const INPUT_ACTIONS = [
   "address_notes",
   "cancel_reason",
   "return_item_quantity",
+  "discount_code",
 ] as const;
 
 export type InputAction = (typeof INPUT_ACTIONS)[number];
@@ -58,6 +59,7 @@ const INPUT_ACTION_LABELS: Record<InputAction, string> = {
   address_notes: "العنوان: ملاحظات",
   cancel_reason: "سبب إلغاء الطلب",
   return_item_quantity: "كمية الإرجاع",
+  discount_code: "كود الخصم",
 };
 
 export const INPUT_ACTION_OPTIONS: { label: string; value: InputAction }[] =

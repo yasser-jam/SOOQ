@@ -9,7 +9,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
 	StoreAuthContext,
 	StoreContext,
+	defaultCheckoutState,
 	defaultCustomerState,
+	type CheckoutState,
 	type CustomerAddressDraft,
 	type CustomerState,
 	type StoreAuthState,
@@ -21,6 +23,8 @@ import { LanguageProvider } from "@/core/config/locale/LanguageProvider"
 import type { ProductCardActionEventDetail } from "@/core/config/binding/product-actions"
 import {
 	addOrUpdateLine,
+	clearCart,
+	getCartSubtotal,
 	readStoreCart,
 	type StoreCart,
 } from "@/core/config/cart/store-cart"
@@ -37,12 +41,15 @@ import cookiesConfig from "@/config/cookies-config"
 import { isMockApiEnabled } from "@/lib/mock/enabled"
 import { MOCK_STORE_SLUG } from "@/lib/mock/seed"
 import { getTenantIdFromToken } from "@/lib/jwt"
-import { CheckoutDrawer } from "@/modules/storefront/components/checkout/CheckoutDrawer"
 import {
 	getStoreTenantId,
+	listPaymentMethods,
+	placeCheckoutOrder,
 	reverseGeocode,
 	validateCartForCheckout,
+	validateDiscountCode,
 } from "@/modules/storefront/components/checkout/checkout-api"
+import { withStoreBasePath } from "@/core/config/lib/store-base-path"
 import {
 	createCustomerAddress,
 	deleteCustomerAddress,
@@ -61,6 +68,9 @@ import { closeZone } from "@/core/config/lib/zone-events"
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 days
+
+/** Route of the editor-authored checkout page (see presets/checkout.ts). */
+const CHECKOUT_PATH = "/checkout"
 
 // ─── Cookie helpers ───────────────────────────────────────────────────────────
 
@@ -153,6 +163,9 @@ export function StoreProvider({
 		invoice: false,
 		cancelOrder: false,
 		submitReturn: false,
+		paymentMethods: false,
+		discount: false,
+		placeOrder: false,
 	})
 
 	const [errors, setErrors] = useState<StoreErrorState>({
@@ -165,6 +178,9 @@ export function StoreProvider({
 		invoice: null,
 		cancelOrder: null,
 		submitReturn: null,
+		paymentMethods: null,
+		discount: null,
+		placeOrder: null,
 	})
 
 	const [customer, setCustomer] = useState<CustomerState>(defaultCustomerState)
@@ -174,8 +190,7 @@ export function StoreProvider({
 		streetAddress: false,
 	})
 
-	const [checkoutOpen, setCheckoutOpen] = useState(false)
-	const [checkoutCart, setCheckoutCart] = useState<StoreCart | null>(null)
+	const [checkout, setCheckout] = useState<CheckoutState>(defaultCheckoutState)
 
 	// Hydrate auth state from cookies on the client
 	useEffect(() => {
@@ -345,17 +360,17 @@ export function StoreProvider({
 		}
 	}, [])
 
-	// ─── checkout dialog ───────────────────────────────────────────────────────
+	// ─── makeOrder — leave the cart for /checkout ──────────────────────────────
 
-	const openCheckout = useCallback((cart: StoreCart) => {
+	/**
+	 * The cart button no longer places the order; it validates and hands off to
+	 * the editor-authored /checkout page, which owns address, payment, discount
+	 * and the actual `placeOrder` call.
+	 */
+	const goToCheckout = useCallback((cart: StoreCart) => {
 		validateCartForCheckout(cart)
-		setCheckoutCart(cart)
-		setCheckoutOpen(true)
-	}, [])
-
-	const closeCheckout = useCallback(() => {
-		setCheckoutOpen(false)
-		setCheckoutCart(null)
+		if (typeof window === "undefined") return
+		window.location.href = withStoreBasePath(CHECKOUT_PATH) ?? CHECKOUT_PATH
 	}, [])
 
 	useEffect(() => {
@@ -364,7 +379,7 @@ export function StoreProvider({
 			if (!detail?.cart) return
 
 			try {
-				openCheckout(detail.cart)
+				goToCheckout(detail.cart)
 			} catch (err) {
 				console.error("[create-order]", err)
 			}
@@ -372,22 +387,197 @@ export function StoreProvider({
 
 		window.addEventListener(CREATE_ORDER_EVENT, handler)
 		return () => window.removeEventListener(CREATE_ORDER_EVENT, handler)
-	}, [openCheckout])
-
-	// ─── makeOrder ─────────────────────────────────────────────────────────────
+	}, [goToCheckout])
 
 	const makeOrder = useCallback(async () => {
 		const cart = readStoreCart()
 		setErrors((prev) => ({ ...prev, makeOrder: null }))
 
 		try {
-			openCheckout(cart)
+			goToCheckout(cart)
 		} catch (err) {
 			const msg = getErrorMessage(err, "حدث خطأ أثناء تقديم الطلب.")
 			setErrors((prev) => ({ ...prev, makeOrder: msg }))
 			throw err
 		}
-	}, [openCheckout])
+	}, [goToCheckout])
+
+	// ─── checkout page ─────────────────────────────────────────────────────────
+
+	/**
+	 * Recompute the money lines from the cart + current discount. Shipping is
+	 * not quoted by any public endpoint yet, so it stays 0 and the checkout
+	 * page shows a zero shipping row rather than inventing a number.
+	 */
+	const recomputeTotals = useCallback(
+		(discount: CheckoutState["discount"]): Partial<CheckoutState> => {
+			const subtotal = getCartSubtotal(readStoreCart())
+			const shippingCost = 0
+			const discountAmount = discount?.discountAmount ?? 0
+
+			return {
+				subtotal,
+				shippingCost,
+				discountAmount,
+				payableTotal: Math.max(0, subtotal + shippingCost - discountAmount),
+			}
+		},
+		[],
+	)
+
+	const refreshCheckout = useCallback(async () => {
+		setCheckout((prev) => ({ ...prev, isLoading: true, isError: false }))
+		setLoading((prev) => ({ ...prev, paymentMethods: true }))
+
+		try {
+			const methods = await listPaymentMethods(getStoreTenantId())
+
+			setCheckout((prev) => ({
+				...prev,
+				paymentMethods: methods,
+				// Preselect when there is exactly one option (today: COD) so the
+				// customer is not forced to touch a single-choice select.
+				paymentMethodCode:
+					prev.paymentMethodCode ??
+					(methods.length === 1 ? (methods[0]?.providerCode ?? null) : null),
+				...recomputeTotals(prev.discount),
+				isLoading: false,
+			}))
+		} catch (err) {
+			setErrors((prev) => ({
+				...prev,
+				paymentMethods: getErrorMessage(err, "تعذّر تحميل طرق الدفع."),
+			}))
+			setCheckout((prev) => ({ ...prev, isLoading: false, isError: true }))
+		} finally {
+			setLoading((prev) => ({ ...prev, paymentMethods: false }))
+		}
+	}, [recomputeTotals])
+
+	// One lookup per mount — the payment-method list is small and static, and
+	// the checkout page needs it populated before the customer gets there.
+	useEffect(() => {
+		void refreshCheckout()
+	}, [refreshCheckout])
+
+	// Default to the customer's default saved address once addresses arrive.
+	useEffect(() => {
+		if (customer.addresses.length === 0) return
+
+		setCheckout((prev) => {
+			if (prev.addressId) return prev
+			const preferred =
+				customer.addresses.find((address) => address.isDefault) ??
+				customer.addresses[0]
+			if (!preferred) return prev
+			return { ...prev, addressId: preferred.addressId }
+		})
+	}, [customer.addresses])
+
+	const selectAddress = useCallback((addressId: string) => {
+		setCheckout((prev) => ({ ...prev, addressId }))
+	}, [])
+
+	const selectPaymentMethod = useCallback((providerCode: string) => {
+		setCheckout((prev) => ({ ...prev, paymentMethodCode: providerCode }))
+	}, [])
+
+	const setDiscountCodeDraft = useCallback((code: string) => {
+		// Editing the code invalidates whatever was applied before, so the
+		// totals never show a discount that no longer matches the input.
+		setCheckout((prev) => ({
+			...prev,
+			discountCodeDraft: code,
+			discount: null,
+			discountAmount: 0,
+			payableTotal: Math.max(0, prev.subtotal + prev.shippingCost),
+		}))
+		setErrors((prev) => ({ ...prev, discount: null }))
+	}, [])
+
+	const validateDiscount = useCallback(async () => {
+		setLoading((prev) => ({ ...prev, discount: true }))
+		setErrors((prev) => ({ ...prev, discount: null }))
+
+		try {
+			const totals = recomputeTotals(null)
+			const discount = await validateDiscountCode(
+				{
+					code: checkout.discountCodeDraft,
+					subtotal: totals.subtotal ?? 0,
+					shippingCost: totals.shippingCost ?? 0,
+				},
+				getStoreTenantId(),
+			)
+
+			setCheckout((prev) => ({
+				...prev,
+				discount,
+				...recomputeTotals(discount),
+			}))
+		} catch (err) {
+			setErrors((prev) => ({
+				...prev,
+				discount: getErrorMessage(err, "كود الخصم غير صالح."),
+			}))
+			setCheckout((prev) => ({
+				...prev,
+				discount: null,
+				...recomputeTotals(null),
+			}))
+		} finally {
+			setLoading((prev) => ({ ...prev, discount: false }))
+		}
+	}, [checkout.discountCodeDraft, recomputeTotals])
+
+	const placeOrder = useCallback(async () => {
+		setLoading((prev) => ({ ...prev, placeOrder: true }))
+		setErrors((prev) => ({ ...prev, placeOrder: null }))
+
+		try {
+			const address = customer.addresses.find(
+				(entry) => entry.addressId === checkout.addressId,
+			)
+
+			if (!address) {
+				throw new Error("اختر عنوان التوصيل أولاً.")
+			}
+
+			if (!checkout.paymentMethodCode) {
+				throw new Error("اختر طريقة الدفع أولاً.")
+			}
+
+			const orderId = await placeCheckoutOrder(
+				{
+					cart: readStoreCart(),
+					address,
+					paymentMethodCode: checkout.paymentMethodCode,
+				},
+				getStoreTenantId(),
+			)
+
+			clearCart()
+			setCheckout((prev) => ({
+				...prev,
+				placedOrderId: orderId || "placed",
+				...recomputeTotals(prev.discount),
+			}))
+			await ordersStateActions.refreshOrders()
+		} catch (err) {
+			setErrors((prev) => ({
+				...prev,
+				placeOrder: getErrorMessage(err, "حدث خطأ أثناء تقديم الطلب."),
+			}))
+		} finally {
+			setLoading((prev) => ({ ...prev, placeOrder: false }))
+		}
+	}, [
+		checkout.addressId,
+		checkout.paymentMethodCode,
+		customer.addresses,
+		recomputeTotals,
+		ordersStateActions,
+	])
 
 	// ─── addToCart ─────────────────────────────────────────────────────────────
 
@@ -717,6 +907,25 @@ export function StoreProvider({
 		],
 	)
 
+	const checkoutActions = useMemo(
+		() => ({
+			selectAddress,
+			selectPaymentMethod,
+			setDiscountCodeDraft,
+			validateDiscount,
+			placeOrder,
+			refreshCheckout,
+		}),
+		[
+			selectAddress,
+			selectPaymentMethod,
+			setDiscountCodeDraft,
+			validateDiscount,
+			placeOrder,
+			refreshCheckout,
+		],
+	)
+
 	const value = useMemo<StoreContextValue>(
 		() => ({
 			auth,
@@ -727,6 +936,7 @@ export function StoreProvider({
 			orders,
 			orderDetail,
 			returnDraft,
+			checkout,
 			actions: {
 				login,
 				verifyOtp,
@@ -738,6 +948,7 @@ export function StoreProvider({
 				productsPage: productsPageActions,
 				customer: customerActions,
 				orders: ordersActions,
+				checkout: checkoutActions,
 			},
 		}),
 		[
@@ -749,6 +960,7 @@ export function StoreProvider({
 			orders,
 			orderDetail,
 			returnDraft,
+			checkout,
 			login,
 			verifyOtp,
 			makeOrder,
@@ -759,6 +971,7 @@ export function StoreProvider({
 			productsPageActions,
 			customerActions,
 			ordersActions,
+			checkoutActions,
 		],
 	)
 
@@ -767,12 +980,6 @@ export function StoreProvider({
 			<StoreAuthContext.Provider value={auth}>
 				<StoreContext.Provider value={value}>
 					{children}
-					<CheckoutDrawer
-						open={checkoutOpen}
-						onClose={closeCheckout}
-						cart={checkoutCart}
-						tenantId={getStoreTenantId()}
-					/>
 				</StoreContext.Provider>
 			</StoreAuthContext.Provider>
 		</LanguageProvider>

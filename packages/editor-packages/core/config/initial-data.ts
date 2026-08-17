@@ -2,6 +2,7 @@ import { UserData } from "./types";
 import { products } from "./data/products";
 import { createProductDetailSection } from "./presets/products-grid";
 import { createCartPageContent } from "./presets/cart";
+import { createCheckoutPageContent } from "./presets/checkout";
 import { createSettingsPageContent } from "./presets/account";
 import {
   createCancelOrderZonePopup,
@@ -291,6 +292,19 @@ export const initialData: Record<string, UserData> = {
     },
     zones: {},
     content: createCartPageContent(),
+  },
+
+  "/checkout": {
+    root: {
+      props: {
+        title: "Checkout",
+        bodyFont: "system",
+        fontOption1: "system",
+        fontOption2: "system",
+      },
+    },
+    zones: {},
+    content: createCheckoutPageContent(),
   },
 
   "/settings": {

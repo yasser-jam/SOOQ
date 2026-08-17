@@ -4,10 +4,11 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { resolveMediaUrl } from "@/lib/media";
 import {
-  getProductForCard,
+  fetchProductForCardFromUrl,
   productPickerKeys,
   type ProductPickerRef,
 } from "@/modules/product/product/data-store";
+import { useResolvedPublicProduct } from "../../binding/use-public-products";
 import { getClassNameFactory } from "@/core/lib";
 import styles from "./styles.module.css";
 
@@ -28,10 +29,13 @@ export function ProductImageClient({
   borderRadius,
   showBadges,
 }: ProductImageClientProps) {
+  // `/public/products/{slug}` — never the admin card endpoint.
+  const { apiUrl, isResolving } = useResolvedPublicProduct(product);
+
   const { data, isLoading } = useQuery({
-    queryKey: productPickerKeys.detail(product?.id ?? ""),
-    queryFn: () => getProductForCard(product!.id),
-    enabled: Boolean(product?.id),
+    queryKey: productPickerKeys.detail(product?.id ?? "", apiUrl ?? ""),
+    queryFn: () => fetchProductForCardFromUrl(apiUrl!),
+    enabled: Boolean(apiUrl),
     staleTime: 60_000,
   });
 
@@ -39,7 +43,7 @@ export function ProductImageClient({
     return <div className={getClassName("empty")}>لم يتم اختيار منتج</div>;
   }
 
-  if (isLoading) {
+  if (isResolving || isLoading) {
     return <div className={getClassName("empty")}>جاري التحميل…</div>;
   }
 

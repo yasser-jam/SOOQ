@@ -1,16 +1,12 @@
 "use client";
 
 import React, { createContext, useContext, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
-  BOUND_QUERY_POLICY,
-  boundQueryKeys,
-  getEditorDataAdapter,
   pickSampleCollectionProduct,
-  useSampleDataInEditor,
   type CollectionProductRef,
 } from "../data-adapter";
 import { mapCollectionProductToBoundData } from "./map-collection-product-to-bound-data";
+import { useListingProducts } from "./use-public-products";
 
 type CollectionProductsBoundContextValue = {
   getBoundData: (productId: string) => Record<string, unknown> | null;
@@ -25,23 +21,18 @@ export function CollectionProductsBoundProvider({
   isEditing = false,
   children,
 }: {
-  collectionSlug: string;
+  /** Empty/null lists the whole public catalogue instead of a collection. */
+  collectionSlug?: string | null;
   /** Edit canvas renders instant sample data — no network (C2-5). */
   isEditing?: boolean;
   children: React.ReactNode;
 }) {
-  const adapter = getEditorDataAdapter();
-  const sampleMode = isEditing && useSampleDataInEditor();
-  const apiUrl = adapter.getCollectionProductsApiUrl(collectionSlug);
-
-  const { data: fetched = [], isLoading } = useQuery({
-    queryKey: boundQueryKeys.collectionProducts(apiUrl),
-    queryFn: () => adapter.fetchCollectionProducts(apiUrl),
-    enabled: !sampleMode,
-    ...BOUND_QUERY_POLICY,
+  // Same query as the listing block above it, so this shares its cache entry
+  // rather than issuing a second request.
+  const { products, isLoading, sampleMode } = useListingProducts({
+    collectionSlug,
+    isEditing,
   });
-
-  const products = sampleMode ? adapter.getSampleCollectionProducts() : fetched;
 
   const value = useMemo(() => {
     const boundById = new Map<string, Record<string, unknown>>();

@@ -42,6 +42,9 @@ export type StoreLoadingState = {
   invoice: boolean;
   cancelOrder: boolean;
   submitReturn: boolean;
+  paymentMethods: boolean;
+  discount: boolean;
+  placeOrder: boolean;
 };
 
 export type StoreErrorState = {
@@ -54,6 +57,9 @@ export type StoreErrorState = {
   invoice: string | null;
   cancelOrder: string | null;
   submitReturn: string | null;
+  paymentMethods: string | null;
+  discount: string | null;
+  placeOrder: string | null;
 };
 
 // ─── Products page (searchable listing) ───────────────────────────────────────
@@ -270,6 +276,59 @@ export type OrdersActions = {
   refreshOrders: () => Promise<void>;
 };
 
+// ─── Checkout (the /checkout page) ────────────────────────────────────────────
+
+/** One entry of `GET /public/payments/methods`. */
+export type PaymentMethodOption = {
+  providerCode: string;
+  displayName: string;
+  requiresRedirect: boolean;
+  supportsSavedCards: boolean;
+};
+
+/** Result of `GET /public/checkout/validate-discount`. */
+export type CheckoutDiscount = {
+  code: string;
+  discountAmount: number;
+};
+
+/**
+ * Checkout is a small state machine: the customer picks a saved address and a
+ * payment method, optionally applies a discount code, and only then can place
+ * the order. `canPlaceOrder` is the single gate the place-order button reads —
+ * blocks should never re-derive it.
+ */
+export type CheckoutState = {
+  /** `addressId` of the selected saved address; null until one is chosen. */
+  addressId: string | null;
+  paymentMethods: PaymentMethodOption[];
+  /** `providerCode` of the selected payment method. */
+  paymentMethodCode: string | null;
+  /** What the customer has typed into the discount-code input. */
+  discountCodeDraft: string;
+  /** Set once a code validates; cleared when the draft changes. */
+  discount: CheckoutDiscount | null;
+  subtotal: number;
+  shippingCost: number;
+  discountAmount: number;
+  payableTotal: number;
+  currencyCode: string;
+  /** Set after a successful placeOrder — drives the success state. */
+  placedOrderId: string | null;
+  isLoading: boolean;
+  isError: boolean;
+};
+
+export type CheckoutActions = {
+  selectAddress: (addressId: string) => void;
+  selectPaymentMethod: (providerCode: string) => void;
+  setDiscountCodeDraft: (code: string) => void;
+  validateDiscount: () => Promise<void>;
+  placeOrder: () => Promise<void>;
+  /** Loads payment methods + saved addresses and recomputes the totals. */
+  refreshCheckout: () => Promise<void>;
+};
+
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
 export type StoreContextActions = {
@@ -277,7 +336,11 @@ export type StoreContextActions = {
   login: (phone: string, fullName: string) => Promise<void>;
   /** Verify the OTP received after login. Sets auth cookies on success. */
   verifyOtp: (otp: string) => Promise<void>;
-  /** Submit the current cart as an order. Clears the cart on success. */
+  /**
+   * Leave the cart for the checkout page. Validates the cart first and throws
+   * when it cannot be ordered, so the cart button surfaces the reason.
+   * The order itself is placed by `actions.checkout.placeOrder`.
+   */
   makeOrder: () => Promise<void>;
   /** Add a product (with variant / attributes) to the local cart. */
   addToCart: (detail: ProductCardActionEventDetail) => void;
@@ -300,10 +363,12 @@ export type StoreContextValue = {
   orders: OrdersState;
   orderDetail: OrderDetailState;
   returnDraft: ReturnDraftState;
+  checkout: CheckoutState;
   actions: StoreContextActions & {
     productsPage: ProductsPageActions;
     customer: CustomerActions;
     orders: OrdersActions;
+    checkout: CheckoutActions;
   };
 };
 
@@ -410,6 +475,31 @@ const defaultOrdersActions: OrdersActions = {
   refreshOrders: noopAsync,
 };
 
+export const defaultCheckoutState: CheckoutState = {
+  addressId: null,
+  paymentMethods: [],
+  paymentMethodCode: null,
+  discountCodeDraft: "",
+  discount: null,
+  subtotal: 0,
+  shippingCost: 0,
+  discountAmount: 0,
+  payableTotal: 0,
+  currencyCode: "SYP",
+  placedOrderId: null,
+  isLoading: false,
+  isError: false,
+};
+
+const defaultCheckoutActions: CheckoutActions = {
+  selectAddress: noop,
+  selectPaymentMethod: noop,
+  setDiscountCodeDraft: noop,
+  validateDiscount: noopAsync,
+  placeOrder: noopAsync,
+  refreshCheckout: noopAsync,
+};
+
 const defaultValue: StoreContextValue = {
   auth: defaultAuth,
   loading: {
@@ -422,6 +512,9 @@ const defaultValue: StoreContextValue = {
     invoice: false,
     cancelOrder: false,
     submitReturn: false,
+    paymentMethods: false,
+    discount: false,
+    placeOrder: false,
   },
   errors: {
     login: null,
@@ -433,12 +526,16 @@ const defaultValue: StoreContextValue = {
     invoice: null,
     cancelOrder: null,
     submitReturn: null,
+    paymentMethods: null,
+    discount: null,
+    placeOrder: null,
   },
   productsPage: defaultProductsPageState,
   customer: defaultCustomerState,
   orders: defaultOrdersState,
   orderDetail: defaultOrderDetailState,
   returnDraft: defaultReturnDraftState,
+  checkout: defaultCheckoutState,
   actions: {
     login: noopAsync,
     verifyOtp: noopAsync,
@@ -450,6 +547,7 @@ const defaultValue: StoreContextValue = {
     productsPage: defaultProductsPageActions,
     customer: defaultCustomerActions,
     orders: defaultOrdersActions,
+    checkout: defaultCheckoutActions,
   },
 };
 

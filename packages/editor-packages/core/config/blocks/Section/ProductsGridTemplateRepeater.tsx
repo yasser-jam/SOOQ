@@ -1,7 +1,6 @@
 "use client";
 
 import React, { CSSProperties, useCallback, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useShallow } from "zustand/react/shallow";
 import type {
   ComponentDataOptionalId,
@@ -14,16 +13,13 @@ import { useAppStore } from "@/core/store";
 import { conf } from "../../index";
 import { useActiveLanguage } from "../../locale/LanguageContext";
 import {
-  BOUND_QUERY_POLICY,
-  boundQueryKeys,
-  getEditorDataAdapter,
-  useSampleDataInEditor,
   type CollectionPickerRef,
   type CollectionProductRef,
 } from "../../data-adapter";
 import { BoundDataProvider } from "../../binding/BoundDataContext";
 import { CollectionProductsBoundProvider } from "../../binding/CollectionProductsBoundProvider";
 import { mapCollectionProductToBoundData } from "../../binding/map-collection-product-to-bound-data";
+import { useListingProducts } from "../../binding/use-public-products";
 
 type ProductsGridTemplateRepeaterProps = {
   /**
@@ -115,36 +111,6 @@ function findSectionById(
   return undefined;
 }
 
-function useCollectionProducts(
-  collectionSlug: string | undefined,
-  isEditing: boolean
-): {
-  products: CollectionProductRef[];
-  isLoading: boolean;
-  isError: boolean;
-  sampleMode: boolean;
-} {
-  const adapter = getEditorDataAdapter();
-  const sampleMode = isEditing && useSampleDataInEditor();
-  const apiUrl = collectionSlug
-    ? adapter.getCollectionProductsApiUrl(collectionSlug)
-    : null;
-  const {
-    data: fetched = [],
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: boundQueryKeys.collectionProducts(apiUrl ?? ""),
-    queryFn: () => adapter.fetchCollectionProducts(apiUrl!),
-    enabled: Boolean(apiUrl) && !sampleMode,
-    ...BOUND_QUERY_POLICY,
-  });
-  const products = sampleMode
-    ? adapter.getSampleCollectionProducts()
-    : fetched;
-  return { products, isLoading, isError, sampleMode };
-}
-
 export function ProductsGridTemplateRepeater({
   editableSlot: EditableSlot,
   cardTemplate,
@@ -172,10 +138,12 @@ export function ProductsGridTemplateRepeater({
     [dispatch, isEditing, templateZone]
   );
 
-  const { products, isLoading, isError, sampleMode } = useCollectionProducts(
-    collection?.slug,
-    isEditing
-  );
+  // No collection picked = browse the whole catalogue via
+  // `/public/products?page=0&size=20`.
+  const { products, isLoading, isError, sampleMode } = useListingProducts({
+    collectionSlug: collection?.slug,
+    isEditing,
+  });
 
   const gridStyle: CSSProperties = {
     display: "grid",
@@ -200,16 +168,6 @@ export function ProductsGridTemplateRepeater({
     </CollectionProductsBoundProvider>
   );
 
-  if (!collection?.slug) {
-    return gridWrap(
-      isEditing ? (
-        <div style={EMPTY_STATE_STYLE}>
-          اختر مجموعة من لوحة الحقول لعرض منتجاتها.
-        </div>
-      ) : null
-    );
-  }
-
   if (isLoading && !sampleMode) {
     return withCollectionProvider(
       gridWrap(
@@ -222,9 +180,7 @@ export function ProductsGridTemplateRepeater({
 
   if (isError && !sampleMode) {
     return withCollectionProvider(
-      gridWrap(
-        <div style={EMPTY_STATE_STYLE}>تعذّر تحميل منتجات المجموعة.</div>
-      )
+      gridWrap(<div style={EMPTY_STATE_STYLE}>تعذّر تحميل المنتجات.</div>)
     );
   }
 
@@ -232,7 +188,9 @@ export function ProductsGridTemplateRepeater({
     return withCollectionProvider(
       gridWrap(
         <div style={EMPTY_STATE_STYLE}>
-          لا توجد منتجات في &quot;{collection.name}&quot;.
+          {collection?.name
+            ? `لا توجد منتجات في "${collection.name}".`
+            : "لا توجد منتجات لعرضها."}
         </div>
       )
     );

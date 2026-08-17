@@ -41,8 +41,12 @@
   justify-content: center;
   width: 36px;
   height: 36px;
+  padding: 0;
+  border: none;
   border-radius: 8px;
+  background: transparent;
   color: inherit;
+  cursor: pointer;
 }
 
 .iconSpacer {
