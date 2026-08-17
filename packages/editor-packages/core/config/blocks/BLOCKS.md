@@ -2217,12 +2217,17 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 {
   "type": "ProductCard",
   "props": {
-    "product": { "id": "prod_01", "titleAr": "قميص كلاسيكي", "titleEn": "Classic Shirt" },
+    "product": {
+      "id": "prod_01",
+      "slug": "classic-shirt",
+      "titleAr": "قميص كلاسيكي",
+      "titleEn": "Classic Shirt"
+    },
     "metadata": {
       "type": "product",
       "method": "get",
       "id": "prod_01",
-      "apiUrl": "https://api.example.com/admin/products/prod_01?include=PRICING&include=IMAGES&include=INVENTORY"
+      "apiUrl": "https://api.example.com/api/v1/public/products/classic-shirt"
     },
     "variant": "vertical",
     "radius": "theme-md",
@@ -2539,7 +2544,7 @@ If any value has a `colorHex`, a matching swatch dot is rendered inside its chip
 | `gridGap` | `string` | Gap between columns | `"24px"` |
 | `metadata` | `SectionPresetMetadata \| null` | Identifies preset-driven sections — see below | `null` |
 | `sectionKind` | preset id \| `null` | **Deprecated.** Same values as `metadata.preset`; prefer `metadata.preset` | `null` |
-| `collection` | `CollectionPickerRef \| null` | Selected collection (products-grid preset only) | `null` |
+| `collection` | `CollectionPickerRef \| null` | Selected collection (products-grid preset only). `null` = list the whole public catalogue | `null` |
 | `cartSlotItems` | `ComponentData[] \| null` | Editable cart shell snapshot persisted for storefront re-render (shopping-cart preset) | `null` |
 | `cardTemplate` | `ComponentData[] \| null` | **Read-only, one-item array.** Snapshot of `content[0]` used by the storefront repeaters (products-grid, products-page, customer-addresses) to clone the card template into non-editable cells 1..N. Kept in sync by `resolveData`; shaped as an array so Puck's field walker leaves it alone | `null` |
 | `content` | `Slot` | Child blocks (no nested Section) | starter content |
@@ -2555,7 +2560,7 @@ section changes behaviour:
 
 | `preset` | Insert source | `resolveData` behaviour | Storefront render |
 |---|---|---|---|
-| `"products-grid"` | Design Studio → شبكة المنتجات | Fetches collection products by `collection.slug`; replaces `content` with one bound `Group` per product; sets `columns` (1–3); snapshots the card into `cardTemplate` | `ProductsGridTemplateRepeater` clones `cardTemplate` per product |
+| `"products-grid"` | Design Studio → شبكة المنتجات | Fetches `GET /public/collections/{collection.slug}/products`, or `GET /public/products?page=0&size=20` when no collection is picked; replaces `content` with one bound `Group` per product; sets `columns` (1–3); snapshots the card into `cardTemplate` | `ProductsGridTemplateRepeater` clones `cardTemplate` per product |
 | `"products-page"` | Design Studio → صفحة المنتجات | Reads the shared `productsPage` store slice (search / category / price / stock / page) instead of a fixed collection; snapshots `cardTemplate` | `ProductsPageTemplateRepeater` clones per result |
 | `"shopping-cart"` | Design Studio → سلة التسوق | Reads `store-cart` from localStorage; merges shell blocks + one `Group` per line into `content`; stores snapshot in `cartSlotItems` | `CartSectionStorefront` re-merges live cart lines with the `cartSlotItems` shell |
 | `"customer-account"` | Design Studio → الحساب (الملف الشخصي / تفضيلات التسويق) | — | Wraps `content` in a `BoundDataProvider` carrying `{ profile, preferences }`; child blocks bind via `valueContext` / `inputAction` / `switchAction`. Sample data in the editor canvas |
@@ -2607,7 +2612,10 @@ price to the storefront yet.
 
 ### Section: Products Grid preset
 
-Insert via Design Studio section catalog (`id: "products-grid"`). Merchant picks a collection; the editor auto-fills `content` with bound product card groups.
+Insert via Design Studio section catalog (`id: "products-grid"`). The merchant may pick a
+collection to narrow the grid; without one it lists the whole public catalogue
+(`/public/products?page=0&size=20`). Either way `content` holds a single card template that the
+repeater clones per product.
 
 ```json
 {
@@ -4043,6 +4051,10 @@ Used by bound `Group` blocks (and legacy `ProductCard`, `ProductImage`, `Product
 ```json
 { "id": "prod_01", "titleAr": "قميص", "titleEn": "Shirt", "slug": "classic-shirt" }
 ```
+
+`slug` drives the detail request (`GET /public/products/{slug}`). Refs saved before the picker
+stored slugs carry only `{ id }`; those are resolved against `GET /public/products` at render
+time — the renderer never calls the admin card endpoint.
 
 ### CollectionPickerRef
 
