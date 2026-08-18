@@ -1,5 +1,5 @@
 "use client";
-import React, { CSSProperties, MouseEvent } from "react";
+import React, { CSSProperties, MouseEvent, useEffect, useState } from "react";
 import { ComponentConfig, Fields } from "@/core/types";
 import { WithLayout, withLayout, hideLayoutBorder } from "../../components/Layout";
 import { buttonSizeVars, ButtonSizeStep } from "../../theme";
@@ -29,6 +29,7 @@ import {
 import { dispatchZoneEvent } from "../../lib/zone-events";
 import { collectSooqInputValues } from "../../lib/login-events";
 import { bumpCartLineQuantity } from "../../cart/cart-qty-actions";
+import { readStoreCart, STORE_CART_UPDATED_EVENT } from "../../cart/store-cart";
 import { useStore } from "../../store-context";
 import { AlignRight } from "lucide-react";
 import { createAlignField } from "../../fields/AlignField";
@@ -56,6 +57,8 @@ export type ContentButtonProps = WithLayout<{
   bgColor: string;
   textColor: string;
   buttonSize: string;
+  /** Shows a live cart-item-count badge on the button (e.g. header cart link). */
+  showCartBadge?: boolean;
 }>;
 
 const buttonSizeThemeOptions = [
@@ -93,6 +96,46 @@ function resolveButtonSize(value: string): CSSProperties {
   }
   return buttonSizeVars("md");
 }
+
+/** Live cart item count, only subscribed to storage/cart events when `enabled`. */
+function useCartBadgeCount(enabled: boolean): number {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const read = () =>
+      setCount(readStoreCart().items.reduce((s, l) => s + l.quantity, 0));
+    read();
+    window.addEventListener(STORE_CART_UPDATED_EVENT, read);
+    window.addEventListener("storage", read);
+    return () => {
+      window.removeEventListener(STORE_CART_UPDATED_EVENT, read);
+      window.removeEventListener("storage", read);
+    };
+  }, [enabled]);
+
+  return enabled ? count : 0;
+}
+
+const cartBadgeStyle: CSSProperties = {
+  position: "absolute",
+  top: "-6px",
+  insetInlineEnd: "-6px",
+  minWidth: "18px",
+  height: "18px",
+  padding: "0 4px",
+  borderRadius: "999px",
+  background: "#ef4444",
+  color: "#ffffff",
+  fontSize: "10px",
+  fontWeight: 700,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  lineHeight: 1,
+  boxSizing: "border-box",
+  pointerEvents: "none",
+};
 
 function getVariantColors(variant: string): { bg: string; fg: string } {
   const map: Record<string, { bg: string; fg: string }> = {
@@ -191,6 +234,18 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       type: "number",
       placeholder: "القيمة بالبكسل",
     }),
+    showCartBadge: {
+      type: "radio",
+      label: "شارة عدد السلة",
+      metadata: {
+        helpText:
+          "يظهر عدد المنتجات في السلة كشارة على الزر، ويتحدث تلقائياً عند الإضافة إلى السلة.",
+      },
+      options: [
+        { label: "إظهار", value: true },
+        { label: "إخفاء", value: false },
+      ],
+    },
   },
   defaultProps: {
     label: { ar: "زر", en: "Button" },
@@ -208,6 +263,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
     bgColor: "theme-primary",
     textColor: "theme-surface",
     buttonSize: "theme-md",
+    showCartBadge: false,
     layout: {
       positionMode: "static",
       floatCssPosition: "fixed",
@@ -235,8 +291,17 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
       bgColor,
       textColor,
       buttonSize: buttonSizeVal,
+      showCartBadge,
       puck,
     } = props;
+
+    const cartBadgeCount = useCartBadgeCount(showCartBadge === true);
+    const cartBadge =
+      showCartBadge && cartBadgeCount > 0 ? (
+        <span style={cartBadgeStyle}>
+          {cartBadgeCount > 99 ? "99+" : cartBadgeCount}
+        </span>
+      ) : null;
 
     const { data: boundData, language: boundLanguage, metadata, selectedVariantId } =
       useBoundData();
@@ -566,9 +631,14 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
             type="button"
             onClick={onFunctionalClick}
             disabled={isLoading}
-            style={{ ...sharedStyle, opacity: isLoading ? 0.65 : 1 }}
+            style={{
+              ...sharedStyle,
+              opacity: isLoading ? 0.65 : 1,
+              position: showCartBadge ? "relative" : sharedStyle.position,
+            }}
           >
             {isLoading ? "..." : resolvedLabel}
+            {cartBadge}
           </button>
         </div>
       );
@@ -586,9 +656,13 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
           target={puck.isEditing ? undefined : target}
           rel={puck.isEditing ? undefined : rel}
           onClick={puck.isEditing ? (e) => e.preventDefault() : undefined}
-          style={sharedStyle}
+          style={{
+            ...sharedStyle,
+            position: showCartBadge ? "relative" : sharedStyle.position,
+          }}
         >
           {resolvedLabel}
+          {cartBadge}
         </a>
       </div>
     );
@@ -619,6 +693,7 @@ const FIELD_ORDER = [
   "bgColor",
   "textColor",
   "buttonSize",
+  "showCartBadge",
   "layout",
 ] as const;
 

@@ -97,7 +97,8 @@ export function createHeaderNavMenu(
 
 /**
  * Header cart entry — `ContentButton` linking to the Site JSON `/cart` page.
- * Prefer this over the legacy `CartIconButton` block (no live count badge).
+ * Prefer this over the legacy `CartIconButton` block; `showCartBadge` gives it
+ * the same live item-count badge, updated on `store-cart` changes.
  */
 export const CART_ICON_BUTTON = {
   type: "ContentButton" as const,
@@ -116,6 +117,7 @@ export const CART_ICON_BUTTON = {
     buttonSize: "theme-sm",
     submitRedirectUrl: "",
     showCondition: "loggedIn",
+    showCartBadge: true,
   },
 };
 

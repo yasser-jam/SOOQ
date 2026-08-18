@@ -553,6 +553,7 @@ Items are added when product blocks dispatch the `add-product` browser event (e.
 | `bgColor` | `string` | Background color (e.g. `"theme-primary"` or `"#2563eb"`) | `"theme-primary"` |
 | `textColor` | `string` | Text color | `"theme-surface"` |
 | `buttonSize` | `string` | Size in fixed mode (e.g. `"theme-md"`) | `"theme-md"` |
+| `showCartBadge` | `boolean` | Renders a live `store-cart` item-count badge on the button (hidden when the cart is empty), updated on `store-cart-updated` / `storage` events. Used by the header cart entry | `false` |
 
 > **Bilingual:** `label`. Resolution: `pickLang(label, activeLanguage)` → then `labelValueContext`
 > wins if set.
