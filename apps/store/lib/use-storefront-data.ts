@@ -64,8 +64,10 @@ export function useStorefrontData({
 		}
 	}, [])
 
-	const platform: DesignPlatform =
-		storefrontMode === "mobile" ? "mobile" : "web"
+	// `storefrontMode` still switches the rendered shell (mobile vs desktop),
+	// but the site data always comes from the web config — there is no
+	// separate mobile config to render here.
+	const platform: DesignPlatform = "web"
 
 	const publishedQuery = usePublishedSiteData(tenantId, platform)
 	const site = publishedQuery.site
