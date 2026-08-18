@@ -8,6 +8,7 @@ import {
   STORE_CART_UPDATED_EVENT,
 } from "../../cart/store-cart";
 import { withStoreBasePath } from "../../lib/store-base-path";
+import { SmartLink } from "../../../components/SmartLink";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -127,13 +128,13 @@ export const CartIconButton: ComponentConfig<CartIconButtonProps> = {
     }
 
     return (
-      <a
+      <SmartLink
         href={withStoreBasePath(href || "/cart") ?? "/cart"}
         style={btnStyle}
         aria-label="عرض السلة"
       >
         {inner}
-      </a>
+      </SmartLink>
     );
   },
 };

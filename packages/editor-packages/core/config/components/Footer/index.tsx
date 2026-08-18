@@ -14,6 +14,7 @@ import {
   type ShowCondition,
 } from "../../lib/show-condition";
 import { useStore } from "../../store-context";
+import { SmartLink } from "../../../components/SmartLink";
 
 import selectionStyles from "../../lib/zone-selection.module.css";
 import responsiveStyles from "../../lib/zone-responsive.module.css";
@@ -55,14 +56,14 @@ const FooterLink = ({
 
   return (
     <li className={styles.listItem}>
-      <a
+      <SmartLink
         href={resolvedHref}
         target={targetAttr}
         rel={relAttr}
         className={className}
       >
         {children}
-      </a>
+      </SmartLink>
     </li>
   );
 };
@@ -362,7 +363,7 @@ const Footer = ({
               }
 
               return (
-                <a
+                <SmartLink
                   key={`footer-bottom-${index}`}
                   href={href}
                   target={targetAttr}
@@ -370,7 +371,7 @@ const Footer = ({
                   className={styles.bottomLinkCommerce}
                 >
                   {label}
-                </a>
+                </SmartLink>
               );
             })}
           </div>

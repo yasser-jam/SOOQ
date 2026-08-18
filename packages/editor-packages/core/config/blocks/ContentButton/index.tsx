@@ -19,6 +19,7 @@ import {
   type LinkValue,
 } from "../../fields/LinkField";
 import { withStoreBasePath } from "../../lib/store-base-path";
+import { SmartLink } from "../../../components/SmartLink";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import type { ValueContext } from "../../binding";
 import {
@@ -651,7 +652,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
 
     return (
       <div style={placementStyle}>
-        <a
+        <SmartLink
           href={puck.isEditing ? "#" : resolvedHref}
           target={puck.isEditing ? undefined : target}
           rel={puck.isEditing ? undefined : rel}
@@ -663,7 +664,7 @@ const ContentButtonInner: ComponentConfig<ContentButtonProps> = {
         >
           {resolvedLabel}
           {cartBadge}
-        </a>
+        </SmartLink>
       </div>
     );
   },

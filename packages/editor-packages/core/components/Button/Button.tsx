@@ -5,6 +5,7 @@ import styles from "./Button.module.css";
 import getClassNameFactory from "../../lib/get-class-name-factory";
 import { Loader } from "../Loader";
 import { filterDataAttrs } from "../../lib/filter-data-attrs";
+import { SmartLink } from "../SmartLink";
 
 const getClassName = getClassNameFactory("Button", styles);
 
@@ -40,34 +41,24 @@ export const Button = ({
 
   useEffect(() => setLoading(loadingProp), [loadingProp]);
 
-  const ElementType = href ? "a" : type ? "button" : "span";
   const dataAttrs = filterDataAttrs(props);
+  const className = getClassName({
+    primary: variant === "primary",
+    secondary: variant === "secondary",
+    disabled,
+    fullWidth,
+    [size]: true,
+  });
+  const handleClick = (e: any) => {
+    if (!onClick) return;
 
-  const el = (
-    <ElementType
-      className={getClassName({
-        primary: variant === "primary",
-        secondary: variant === "secondary",
-        disabled,
-        fullWidth,
-        [size]: true,
-      })}
-      onClick={(e) => {
-        if (!onClick) return;
-
-        setLoading(true);
-        Promise.resolve(onClick(e)).then(() => {
-          setLoading(false);
-        });
-      }}
-      type={type}
-      disabled={disabled || loading}
-      tabIndex={tabIndex}
-      target={newTab ? "_blank" : undefined}
-      rel={newTab ? "noreferrer" : undefined}
-      href={href}
-      {...dataAttrs}
-    >
+    setLoading(true);
+    Promise.resolve(onClick(e)).then(() => {
+      setLoading(false);
+    });
+  };
+  const content = (
+    <>
       {icon && <div className={getClassName("icon")}>{icon}</div>}
       {children}
       {loading && (
@@ -75,8 +66,37 @@ export const Button = ({
           <Loader size={14} />
         </div>
       )}
-    </ElementType>
+    </>
   );
 
-  return el;
+  if (href) {
+    return (
+      <SmartLink
+        className={className}
+        onClick={handleClick}
+        tabIndex={tabIndex}
+        target={newTab ? "_blank" : undefined}
+        rel={newTab ? "noreferrer" : undefined}
+        href={href}
+        {...dataAttrs}
+      >
+        {content}
+      </SmartLink>
+    );
+  }
+
+  const ElementType = type ? "button" : "span";
+
+  return (
+    <ElementType
+      className={className}
+      onClick={handleClick}
+      type={type}
+      disabled={disabled || loading}
+      tabIndex={tabIndex}
+      {...dataAttrs}
+    >
+      {content}
+    </ElementType>
+  );
 };

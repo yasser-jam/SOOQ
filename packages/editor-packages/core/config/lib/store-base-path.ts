@@ -14,7 +14,7 @@ export function getStoreBasePath(): string | null {
 	return storeBasePath
 }
 
-function isExternalOrSpecialHref(href: string): boolean {
+export function isExternalOrSpecialHref(href: string): boolean {
 	const trimmed = href.trim()
 	if (!trimmed || trimmed.startsWith("#")) return true
 	if (/^https?:\/\//i.test(trimmed)) return true

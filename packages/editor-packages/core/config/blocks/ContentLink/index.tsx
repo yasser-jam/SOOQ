@@ -25,6 +25,7 @@ import {
   type BilingualString,
 } from "../../fields/BilingualText";
 import { useActiveLanguage } from "../../locale/LanguageContext";
+import { SmartLink } from "../../../components/SmartLink";
 
 const getClassName = getClassNameFactory("ContentLink", styles);
 
@@ -203,7 +204,7 @@ const ContentLinkInner: ComponentConfig<ContentLinkProps> = {
             .filter(Boolean)
             .join(" ")}
         >
-          <a
+          <SmartLink
             href={isEditing ? "#" : resolvedHref}
             target={isEditing ? undefined : target}
             rel={isEditing ? undefined : rel}
@@ -221,7 +222,7 @@ const ContentLinkInner: ComponentConfig<ContentLinkProps> = {
             {iconPosition === "start" ? iconNode : null}
             <span className={getClassName("label")}>{displayTitle}</span>
             {iconPosition === "end" ? iconNode : null}
-          </a>
+          </SmartLink>
         </div>
       </div>
     );

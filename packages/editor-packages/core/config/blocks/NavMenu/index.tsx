@@ -18,6 +18,7 @@ import {
   type LinkValue,
 } from "../../fields/LinkField";
 import { useStore } from "../../store-context";
+import { SmartLink } from "../../../components/SmartLink";
 import {
   showConditionField,
   shouldShowForCondition,
@@ -181,7 +182,7 @@ const NavMenuInternal: ComponentConfig<NavMenuProps> = {
           }
 
           return (
-            <a
+            <SmartLink
               key={idx}
               href={href}
               target={target}
@@ -190,7 +191,7 @@ const NavMenuInternal: ComponentConfig<NavMenuProps> = {
               aria-current={isActive ? "page" : undefined}
             >
               {label}
-            </a>
+            </SmartLink>
           );
         })}
       </nav>

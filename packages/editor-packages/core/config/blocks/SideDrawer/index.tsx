@@ -13,6 +13,7 @@ import {
 import { ComponentConfig, Slot } from "@/core/types";
 import { getClassNameFactory } from "@/core/lib";
 import { WithLayout, withLayout } from "../../components/Layout";
+import { SmartLink } from "../../../components/SmartLink";
 import {
   bilingualTextField,
   pickLang,
@@ -607,7 +608,7 @@ const SideDrawerInternal: ComponentConfig<SideDrawerProps> = {
                 }
 
                 return (
-                  <a
+                  <SmartLink
                     key={idx}
                     href={href}
                     target={target}
@@ -618,7 +619,7 @@ const SideDrawerInternal: ComponentConfig<SideDrawerProps> = {
                     }}
                   >
                     {label}
-                  </a>
+                  </SmartLink>
                 );
               })}
             </nav>

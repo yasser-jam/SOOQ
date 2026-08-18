@@ -12,6 +12,7 @@ import {
   getProductTitle,
   type StoreCartLine,
 } from "../../cart/store-cart";
+import { SmartLink } from "../../../components/SmartLink";
 import styles from "./styles.module.css";
 
 const getClassName = getClassNameFactory("CartSection", styles);
@@ -66,9 +67,9 @@ export function CartRowGroupUI({
               {isEditing ? (
                 <span>{title}</span>
               ) : (
-                <a href={href} className={getClassName("titleLink")}>
+                <SmartLink href={href} className={getClassName("titleLink")}>
                   {title}
-                </a>
+                </SmartLink>
               )}
             </h3>
             {description ? (

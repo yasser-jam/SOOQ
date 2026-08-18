@@ -11,6 +11,7 @@ import {
   type LinkValue,
 } from "../../fields/LinkField";
 import { stripStoreBasePath, withStoreBasePath } from "../../lib/store-base-path";
+import { SmartLink } from "../../../components/SmartLink";
 import responsiveStyles from "../../lib/zone-responsive.module.css";
 import {
   ZONE_ACTION_ATTR,
@@ -96,14 +97,14 @@ const NavItem = ({
   }
 
   return (
-    <a
+    <SmartLink
       href={resolvedHref}
       target={targetAttr}
       rel={relAttr}
       className={linkClass}
     >
       {label}
-    </a>
+    </SmartLink>
   );
 };
 
@@ -250,9 +251,9 @@ const Header = ({
   const brandNode = editMode ? (
     <span className={styles.logo}>{resolvedTitle}</span>
   ) : (
-    <a href={withStoreBasePath(brandHref || "/") ?? "/"} className={styles.logo}>
+    <SmartLink href={withStoreBasePath(brandHref || "/") ?? "/"} className={styles.logo}>
       {resolvedTitle}
-    </a>
+    </SmartLink>
   );
 
   const navNode = (
@@ -343,9 +344,9 @@ const Header = ({
         {editMode ? (
           <span className={styles.brand}>{resolvedTitle}</span>
         ) : (
-          <a href={withStoreBasePath(brandHref || "/") ?? "/"} className={styles.brand}>
+          <SmartLink href={withStoreBasePath(brandHref || "/") ?? "/"} className={styles.brand}>
             {resolvedTitle}
-          </a>
+          </SmartLink>
         )}
         <nav className={styles.navCommerce}>
           {visibleLinks.map((l, i) => (

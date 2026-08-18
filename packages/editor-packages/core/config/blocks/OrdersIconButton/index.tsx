@@ -4,6 +4,7 @@ import React, { CSSProperties, useSyncExternalStore } from "react";
 import { ReceiptText } from "lucide-react";
 import type { ComponentConfig } from "@/core/types";
 import { withStoreBasePath } from "../../lib/store-base-path";
+import { SmartLink } from "../../../components/SmartLink";
 
 // Entry point for the customer order history. `/orders` is a real route in
 // apps/store (app/store/[tenantId]/orders), not a Site JSON page — a static
@@ -134,13 +135,13 @@ export const OrdersIconButton: ComponentConfig<OrdersIconButtonProps> = {
     }
 
     return (
-      <a
+      <SmartLink
         href={withStoreBasePath(href || "/orders") ?? "/orders"}
         style={btnStyle}
         aria-label={label || "طلباتي"}
       >
         {inner}
-      </a>
+      </SmartLink>
     );
   },
 };

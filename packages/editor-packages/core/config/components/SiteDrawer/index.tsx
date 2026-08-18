@@ -21,6 +21,7 @@ import {
   type BilingualString,
 } from "../../fields/BilingualText";
 import { useDisplayLanguage } from "../../locale/use-display-language";
+import { SmartLink } from "../../../components/SmartLink";
 
 import styles from "./styles.module.css";
 
@@ -534,9 +535,9 @@ export const SiteDrawer = ({
                 );
               }
               return (
-                <a
+                <SmartLink
                   key={idx}
-                  href={editMode ? undefined : href}
+                  href={editMode ? "#" : href}
                   target={targetAttr}
                   rel={relAttr}
                   className={styles.navItem}
@@ -549,7 +550,7 @@ export const SiteDrawer = ({
                   }}
                 >
                   {label}
-                </a>
+                </SmartLink>
               );
             })}
           </nav>
