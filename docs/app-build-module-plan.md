@@ -52,6 +52,12 @@ Decisions already taken by the user:
   manual **"نشر الإعدادات" (Publish config)** button that appears whenever an unpublished draft
   matching the tenant's current values exists, independent of build status, so a failed publish
   can be retried without triggering a whole new build attempt.
+- **"Start over" escape hatch (2026-08-18):** since the API has no delete/unpublish endpoint,
+  added `createAndPublishNewConfig(appName)` which force-creates + publishes a fresh config
+  version regardless of any existing published/draft match, then immediately kicks off a build
+  with it. Exposed as a ghost "بدء من جديد" button next to both the unpublished-draft alert and
+  the FAILED/CANCELLED/TIMEOUT retry action — the practical substitute for "delete and try
+  again" the user asked for.
 
 ---
 

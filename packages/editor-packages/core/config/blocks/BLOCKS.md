@@ -579,7 +579,7 @@ Defined in `config/content/button-actions.ts`.
 
 | Action | Arabic label | Notes |
 |---|---|---|
-| `validateDiscount` | تطبيق كود الخصم | Validates the `discount_code` input against `GET /public/checkout/validate-discount`. Failures land in `errors.discount`, not an `alert()` |
+| `validateDiscount` | تطبيق كود الخصم | Validates the `discount_code` input against `GET /public/checkout/validate-discount`. Failures land in `errors.discount`, not an `alert()`. **Not in the shipped `/checkout` preset** — see the note below |
 | `placeOrder` | تأكيد الطلب | **The action that actually places the order.** Needs a selected address + payment method; gate it on `checkout.canPlaceOrder`. Failures land in `errors.placeOrder` |
 
 **Orders** — inside the `customer-orders*` / `customer-order-*` preset sections.
@@ -2607,8 +2607,15 @@ restyleable without touching code.
 > regression test for this in
 > `config/__tests__/theme-rawaq-checkout.spec.tsx`.
 
-Shipping cost is currently always `0` — no public endpoint quotes a shipping
-price to the storefront yet.
+**Not in the shipped preset (deliberately):**
+
+- **Discount code.** `POST /public/checkout` accepts no `discountCode` field, so
+  an working input would lower the *displayed* total while the backend charged
+  full price. The `discount_code` input action, the `validateDiscount` button
+  action and the `checkout.hasDiscount` / `.discountCode` / `.discountAmount`
+  bindings all still exist — re-add the blocks once the backend takes a code.
+- **Shipping cost** renders, but is always `0`: no public endpoint quotes a
+  shipping price to the storefront yet.
 
 ### Section: Products Grid preset
 

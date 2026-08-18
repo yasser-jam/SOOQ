@@ -10713,144 +10713,6 @@
            "type": "ContentHeading",
            "props": {
             "text": {
-             "ar": "كود الخصم",
-             "en": "Discount code"
-            },
-            "textAlign": "right",
-            "fontFamily": "option1",
-            "fontSize": "theme-lg",
-            "fontWeight": "theme-bold",
-            "lineHeight": "theme-tight",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-text",
-            "id": "ContentHeading-checkout-1-content-3-content-0",
-            "level": "3"
-           }
-          },
-          {
-           "type": "ContentInput",
-           "props": {
-            "label": {
-             "ar": "أدخل كود الخصم",
-             "en": "Enter a discount code"
-            },
-            "name": "discountCode",
-            "inputType": "text",
-            "placeholder": {
-             "ar": "مثال: 10OFF",
-             "en": "e.g. 10OFF"
-            },
-            "required": false,
-            "inputAction": "discount_code",
-            "id": "ContentInput-checkout-1-content-3-content-1"
-           }
-          },
-          {
-           "type": "ContentButton",
-           "props": {
-            "label": {
-             "ar": "تطبيق",
-             "en": "Apply"
-            },
-            "align": "center",
-            "destinationType": "action",
-            "buttonAction": "validateDiscount",
-            "link": {
-             "kind": "none"
-            },
-            "buttonVariantMode": "variant",
-            "buttonVariant": "secondary",
-            "buttonVariantSize": "sm",
-            "radius": "theme-sm",
-            "bgColor": "theme-primary",
-            "textColor": "theme-surface",
-            "buttonSize": "theme-sm",
-            "submitRedirectUrl": "",
-            "id": "ContentButton-checkout-1-content-3-content-2"
-           }
-          },
-          {
-           "type": "ContentParagraph",
-           "props": {
-            "text": {
-             "ar": "",
-             "en": ""
-            },
-            "textAlign": "right",
-            "fontFamily": "body",
-            "fontSize": "theme-md",
-            "fontWeight": "theme-light",
-            "lineHeight": "theme-normal",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-neutral",
-            "valueContext": {
-             "path": "checkout.discountCode"
-            },
-            "dataCondition": {
-             "path": "checkout.hasDiscount",
-             "op": "truthy"
-            },
-            "id": "ContentParagraph-checkout-1-content-3-content-3"
-           }
-          },
-          {
-           "type": "ContentParagraph",
-           "props": {
-            "text": {
-             "ar": "",
-             "en": ""
-            },
-            "textAlign": "right",
-            "fontFamily": "body",
-            "fontSize": "theme-md",
-            "fontWeight": "theme-light",
-            "lineHeight": "theme-normal",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-neutral",
-            "valueContext": {
-             "path": "errors.discount"
-            },
-            "dataCondition": {
-             "path": "errors.discount",
-             "op": "truthy"
-            },
-            "id": "ContentParagraph-checkout-1-content-3-content-4"
-           }
-          }
-         ],
-         "id": "Group-checkout-discount",
-         "dataCondition": {
-          "path": "checkout.isPlaced",
-          "op": "falsy"
-         }
-        }
-       },
-       {
-        "type": "Group",
-        "props": {
-         "direction": "column",
-         "gap": 16,
-         "alignItems": "stretch",
-         "justifyContent": "flex-start",
-         "wrap": "nowrap",
-         "language": "ar",
-         "backgroundColor": "#fffdf9",
-         "backgroundImage": "",
-         "backgroundOverlayColor": "",
-         "padding": "28px",
-         "borderRadius": "theme-md",
-         "boxShadow": "none",
-         "product": null,
-         "metadata": null,
-         "cartLineId": null,
-         "content": [
-          {
-           "type": "ContentHeading",
-           "props": {
-            "text": {
              "ar": "ملخّص الطلب",
              "en": "Order summary"
             },
@@ -10862,7 +10724,7 @@
             "fontStyle": "normal",
             "textTransform": "none",
             "color": "theme-text",
-            "id": "ContentHeading-checkout-1-content-4-content-0",
+            "id": "ContentHeading-checkout-1-content-3-content-0",
             "level": "3"
            }
           },
@@ -10890,7 +10752,7 @@
                "fontStyle": "normal",
                "textTransform": "none",
                "color": "theme-neutral",
-               "id": "ContentParagraph-checkout-1-content-4-content-1-content-0"
+               "id": "ContentParagraph-checkout-1-content-3-content-1-content-0"
               }
              },
              {
@@ -10913,11 +10775,11 @@
                 "format": "money",
                 "currencyPath": "checkout.currencyCode"
                },
-               "id": "ContentParagraph-checkout-1-content-4-content-1-content-1"
+               "id": "ContentParagraph-checkout-1-content-3-content-1-content-1"
               }
              }
             ],
-            "id": "RowGroup-checkout-1-content-4-content-1",
+            "id": "RowGroup-checkout-1-content-3-content-1",
             "backgroundColor": "",
             "padding": "0px",
             "borderRadius": "theme-none"
@@ -10947,7 +10809,7 @@
                "fontStyle": "normal",
                "textTransform": "none",
                "color": "theme-neutral",
-               "id": "ContentParagraph-checkout-1-content-4-content-2-content-0"
+               "id": "ContentParagraph-checkout-1-content-3-content-2-content-0"
               }
              },
              {
@@ -10970,72 +10832,11 @@
                 "format": "money",
                 "currencyPath": "checkout.currencyCode"
                },
-               "id": "ContentParagraph-checkout-1-content-4-content-2-content-1"
+               "id": "ContentParagraph-checkout-1-content-3-content-2-content-1"
               }
              }
             ],
-            "id": "RowGroup-checkout-1-content-4-content-2",
-            "backgroundColor": "",
-            "padding": "0px",
-            "borderRadius": "theme-none"
-           }
-          },
-          {
-           "type": "RowGroup",
-           "props": {
-            "direction": "row",
-            "gap": 16,
-            "alignItems": "center",
-            "justifyContent": "space-between",
-            "wrap": "wrap",
-            "dataCondition": {
-             "path": "checkout.hasDiscount",
-             "op": "truthy"
-            },
-            "content": [
-             {
-              "type": "ContentParagraph",
-              "props": {
-               "text": {
-                "ar": "الخصم",
-                "en": "Discount"
-               },
-               "textAlign": "right",
-               "fontFamily": "body",
-               "fontSize": "theme-md",
-               "fontWeight": "theme-light",
-               "lineHeight": "theme-normal",
-               "fontStyle": "normal",
-               "textTransform": "none",
-               "color": "theme-neutral",
-               "id": "ContentParagraph-checkout-1-content-4-content-3-content-0"
-              }
-             },
-             {
-              "type": "ContentParagraph",
-              "props": {
-               "text": {
-                "ar": "",
-                "en": ""
-               },
-               "textAlign": "right",
-               "fontFamily": "body",
-               "fontSize": "theme-md",
-               "fontWeight": "theme-bold",
-               "lineHeight": "theme-normal",
-               "fontStyle": "normal",
-               "textTransform": "none",
-               "color": "theme-primary",
-               "valueContext": {
-                "path": "checkout.discountAmount",
-                "format": "money",
-                "currencyPath": "checkout.currencyCode"
-               },
-               "id": "ContentParagraph-checkout-1-content-4-content-3-content-1"
-              }
-             }
-            ],
-            "id": "RowGroup-checkout-1-content-4-content-3",
+            "id": "RowGroup-checkout-1-content-3-content-2",
             "backgroundColor": "",
             "padding": "0px",
             "borderRadius": "theme-none"
@@ -11065,7 +10866,7 @@
                "fontStyle": "normal",
                "textTransform": "none",
                "color": "theme-neutral",
-               "id": "ContentParagraph-checkout-1-content-4-content-4-content-0"
+               "id": "ContentParagraph-checkout-1-content-3-content-3-content-0"
               }
              },
              {
@@ -11088,11 +10889,11 @@
                 "format": "money",
                 "currencyPath": "checkout.currencyCode"
                },
-               "id": "ContentParagraph-checkout-1-content-4-content-4-content-1"
+               "id": "ContentParagraph-checkout-1-content-3-content-3-content-1"
               }
              }
             ],
-            "id": "RowGroup-checkout-1-content-4-content-4",
+            "id": "RowGroup-checkout-1-content-3-content-3",
             "backgroundColor": "",
             "padding": "0px",
             "borderRadius": "theme-none"
@@ -11123,7 +10924,7 @@
              "path": "checkout.canPlaceOrder",
              "op": "truthy"
             },
-            "id": "ContentButton-checkout-1-content-4-content-5"
+            "id": "ContentButton-checkout-1-content-3-content-4"
            }
           },
           {
@@ -11145,7 +10946,7 @@
              "path": "checkout.canPlaceOrder",
              "op": "falsy"
             },
-            "id": "ContentParagraph-checkout-1-content-4-content-6"
+            "id": "ContentParagraph-checkout-1-content-3-content-5"
            }
           },
           {
@@ -11170,7 +10971,7 @@
              "path": "errors.placeOrder",
              "op": "truthy"
             },
-            "id": "ContentParagraph-checkout-1-content-4-content-7"
+            "id": "ContentParagraph-checkout-1-content-3-content-6"
            }
           },
           {
@@ -11191,7 +10992,7 @@
             "fontSize": "theme-md",
             "icon": "chevron-left",
             "iconPosition": "end",
-            "id": "ContentLink-checkout-1-content-4-content-8"
+            "id": "ContentLink-checkout-1-content-3-content-7"
            }
           }
          ],

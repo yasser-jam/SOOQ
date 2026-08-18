@@ -3,7 +3,6 @@ import { buildCheckoutSectionProps } from "../blocks/Section/section-preset-kind
 import {
   createContentLink,
   createHeading,
-  createInput,
   createParagraph,
   createPrimaryButton,
   createSection,
@@ -33,25 +32,6 @@ function createRowGroup(content: ComponentDataOptionalId[]) {
       alignItems: "center",
       justifyContent: "space-between",
       wrap: "wrap",
-      content,
-    },
-  };
-}
-
-/** Row that only appears when `path` is truthy (discount line, error text…). */
-function createConditionalRow(
-  path: string,
-  content: ComponentDataOptionalId[]
-) {
-  return {
-    type: "RowGroup" as const,
-    props: {
-      direction: "row",
-      gap: 16,
-      alignItems: "center",
-      justifyContent: "space-between",
-      wrap: "wrap",
-      dataCondition: { path, op: "truthy" },
       content,
     },
   };
@@ -212,50 +192,20 @@ export function createCheckoutPageContent(): ComponentDataOptionalId[] {
           }
         ),
 
-        // ── Discount code ─────────────────────────────────────────────────
-        createCheckoutGroup(
-          [
-            createHeading("كود الخصم"),
-            createInput("أدخل كود الخصم", "discountCode", {
-              inputAction: "discount_code",
-              placeholder: "مثال: 10OFF",
-            }),
-            createPrimaryButton("تطبيق", {
-              destinationType: "action",
-              buttonAction: "validateDiscount",
-              buttonVariant: "secondary",
-            }),
-            createParagraph("", {
-              valueContext: { path: "checkout.discountCode" },
-              dataCondition: { path: "checkout.hasDiscount", op: "truthy" },
-            }),
-            createParagraph("", {
-              valueContext: { path: "errors.discount" },
-              dataCondition: { path: "errors.discount", op: "truthy" },
-            }),
-          ],
-          {
-            id: "Group-checkout-discount",
-            dataCondition: { path: "checkout.isPlaced", op: "falsy" },
-          }
-        ),
-
         // ── Totals + place order ──────────────────────────────────────────
+        //
+        // No discount-code group: `POST /public/checkout` does not accept a
+        // code, so applying one would lower the displayed total while the
+        // backend still charged full price. The `discount_code` input action,
+        // the `validateDiscount` button action and the `checkout.discount*`
+        // bindings all still exist — re-add the blocks once the backend takes
+        // a `discountCode`.
         createCheckoutGroup(
           [
             createHeading("ملخّص الطلب"),
             createMoneyRow("المجموع الفرعي", "subtotal"),
+            // Always 0 until a public endpoint quotes a shipping price.
             createMoneyRow("تكلفة الشحن", "shippingCost"),
-            createConditionalRow("checkout.hasDiscount", [
-              createParagraph("الخصم"),
-              createParagraph("", {
-                valueContext: {
-                  path: "checkout.discountAmount",
-                  format: "money",
-                  currencyPath: "checkout.currencyCode",
-                },
-              }),
-            ]),
             createMoneyRow("الإجمالي", "payableTotal"),
             createPrimaryButton("تأكيد الطلب", {
               destinationType: "action",

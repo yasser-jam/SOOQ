@@ -192,12 +192,15 @@ describe("theme-rawaq-furniture /checkout page", () => {
     ]);
   });
 
-  it("wires the discount input and the two checkout buttons", () => {
-    expect(propValues("inputAction")).toContain("discount_code");
+  it("wires the place-order button", () => {
+    expect(propValues("buttonAction")).toContain("placeOrder");
+  });
 
-    const actions = propValues("buttonAction");
-    expect(actions).toContain("validateDiscount");
-    expect(actions).toContain("placeOrder");
+  it("ships no discount UI while the backend cannot take a code", () => {
+    // POST /public/checkout has no discountCode field, so a working discount
+    // input would lower the shown total while the customer paid full price.
+    expect(propValues("inputAction")).not.toContain("discount_code");
+    expect(propValues("buttonAction")).not.toContain("validateDiscount");
   });
 
   it("binds the money rows to the checkout scope in store currency", () => {
@@ -218,9 +221,9 @@ describe("theme-rawaq-furniture /checkout page", () => {
       (condition) => condition.path === "checkout.isPlaced"
     );
 
-    // One success section (truthy) + the four editable sections (falsy).
+    // One success group (truthy) + the three editable groups (falsy).
     expect(placed.filter((c) => c.op === "truthy")).toHaveLength(1);
-    expect(placed.filter((c) => c.op === "falsy")).toHaveLength(4);
+    expect(placed.filter((c) => c.op === "falsy")).toHaveLength(3);
   });
 
   it("translates every user-facing string to a bilingual pair", () => {
@@ -254,15 +257,13 @@ describe("theme-rawaq-furniture /checkout page", () => {
     expect(selects[0]?.textContent).toContain("المنزل");
     expect(selects[1]?.textContent).toContain("الدفع عند الاستلام");
 
-    // Discount input and both action buttons.
-    expect(container.querySelector('input[name="discountCode"]')).toBeTruthy();
-    expect(text).toContain("تطبيق");
+    // Place-order button, and no discount UI.
     expect(text).toContain("تأكيد الطلب");
+    expect(container.querySelector('input[name="discountCode"]')).toBeNull();
 
     // Money rows, formatted in the store currency.
     expect(text).toContain("المجموع الفرعي");
     expect(text).toContain("تكلفة الشحن");
-    expect(text).toContain("الخصم");
     expect(text).toContain("الإجمالي");
 
     // The sign-in gate and the success panel are both hidden.

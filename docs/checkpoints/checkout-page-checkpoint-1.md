@@ -37,8 +37,6 @@ no-ops, so blocks still render safely on the canvas.
 |---|---|---|
 | `selectAction` | `checkout_address` | picks a saved address |
 | `selectAction` | `checkout_payment_method` | picks a payment provider |
-| `inputAction` | `discount_code` | writes the discount draft |
-| `buttonAction` | `validateDiscount` | applies the code |
 | `buttonAction` | `placeOrder` | confirms the order |
 | `buttonAction` | `makeOrder` | **changed** — now "متابعة إلى الدفع", goes to `/checkout` |
 
@@ -119,12 +117,12 @@ cd packages/editor-packages/core
 pnpm exec jest config/__tests__/theme-rawaq-checkout.spec.tsx
 ```
 
-13 tests, all passing. The meaningful ones drive the real page through Puck's
+14 tests, all passing. The meaningful ones drive the real page through Puck's
 `<Render>` off the shipped theme JSON:
 
 - signed-out → only the sign-in gate, no selects
-- signed-in with one address + COD → **two populated selects**, the discount input,
-  both buttons, and all four money rows in SYP
+- signed-in with one address + COD → **two populated selects**, the place-order
+  button, and the three money rows in SYP
 - after `placeOrder` → success panel, everything else gone
 
 In the browser: `/checkout` on the Rawaq theme, signed in as a customer with at
@@ -139,11 +137,12 @@ price to the storefront. `validate-discount` *takes* `shippingCost` as an input,
 the client has to know it, and today it can't. The row renders as 0 rather than
 inventing a number. This needs a backend endpoint.
 
-**2. The discount is display-only.** ⚠️ The checkout payload you specified has no
-`discountCode` field, so a validated code lowers the **displayed** total but is
-never sent to `/public/checkout` — the backend will charge full price. Either
-`POST /public/checkout` needs to accept the code, or the discount UI is
-misleading. Worth confirming before this goes near a real customer.
+**2. No discount UI in the shipped preset.** `POST /public/checkout` accepts no
+`discountCode` field, so an input would lower the displayed total while the
+backend charged full price. The blocks are removed; the plumbing
+(`discount_code` input action, `validateDiscount` button action,
+`validateDiscountCode()` API call, `checkout.discount*` bindings) is all still
+there. Re-adding is a preset edit once the backend takes a code.
 
 **3. No shipping-provider select** — dropped per your instruction.
 
@@ -180,7 +179,7 @@ as a pure refactor: re-running the orders injector regenerates
 
 | | Baseline | After |
 |---|---|---|
-| core jest | 6 suites / 8 tests failing, 422 passing | same 6 / 8 failing, **434 passing** |
+| core jest | 6 suites / 8 tests failing, 422 passing | same 6 / 8 failing, **443 passing** |
 | `apps/web` tsc | 318 errors | 319 |
 
 No new failures. The single new tsc error is the `/checkout` entry in
