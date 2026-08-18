@@ -2,10 +2,6 @@
 
 import { HomeMockDashboard } from "@/components/home-mock-dashboard"
 import { FullPageLoader } from "@/components/full-page-loader"
-import { AppBuildCard } from "@/modules/app/build/components/app-build-card"
-import { SeedFurnitureButton } from "@/modules/product/seed/seed-furniture-button"
-import { SeedFurnitureProductsButton } from "@/modules/product/seed/seed-furniture-products-button"
-import { SeedProductsButton } from "@/modules/product/seed/seed-products-button"
 import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 import { useQuery } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
@@ -32,13 +28,7 @@ export default function HomePage() {
       <FullPageLoader active={isPending || loading} loopMessages={false} />
 
       <div className="container space-y-6 py-6">
-        <div className="grid gap-4 lg:grid-cols-2">
-          <SeedProductsButton />
-          <SeedFurnitureButton />
-          <SeedFurnitureProductsButton />
-        </div>
-        <AppBuildCard />
-        <HomeMockDashboard />
+        <HomeMockDashboard storeName={settings?.storeName} />
       </div>
     </>
   )

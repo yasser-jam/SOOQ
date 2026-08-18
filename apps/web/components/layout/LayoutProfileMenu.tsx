@@ -1,10 +1,6 @@
 "use client"
 import { useLogout } from "@/modules/auth/auth/hooks/useLogout"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@workspace/ui/components/avatar"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
@@ -23,11 +19,6 @@ export default function LayoutProfileMenu() {
       <DropdownMenuTrigger asChild className="flex">
         <Button variant="ghost" size="icon">
           <Avatar>
-            <AvatarImage
-              src="https://randomuser.me/api/portraits/men/1.jpg"
-              className="border border-2 border-gray-500"
-              alt="shadcn"
-            />
             <AvatarFallback>YJ</AvatarFallback>
           </Avatar>
         </Button>

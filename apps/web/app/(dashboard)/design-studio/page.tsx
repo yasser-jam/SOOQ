@@ -37,6 +37,7 @@ import {
 } from "@workspace/ui/components/card"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { cn } from "@workspace/ui/lib/utils"
+import { AppBuildCard } from "@/modules/app/build/components/app-build-card"
 import { useStorePath } from "@/lib/store-path"
 import RequireRole from "@/modules/auth/auth/components/RequireRole"
 import { useCurrentUser } from "@/modules/auth/auth/hooks/useCurrentUser"
@@ -533,8 +534,16 @@ export default function DesignStudioPage() {
         )}
       </section>
 
-      {/* Mobile app section (placeholder) */}
-      <MobileAppCta />
+      {/* Mobile app section */}
+      <section className="space-y-5">
+        <div className="space-y-1">
+          <h2 className="text-text text-xl font-semibold">تطبيق الجوال</h2>
+          <p className="text-sm text-muted-foreground">
+            أنشئ تطبيق جوال لمتجرك بنقرة واحدة وتابع عدد التثبيتات.
+          </p>
+        </div>
+        <AppBuildCard />
+      </section>
 
       {/* Onboarding dialog */}
       <ThemeOnboardingDialog
@@ -952,71 +961,3 @@ function ActiveThemeCard({
   )
 }
 
-// ─── Mobile App CTA (unchanged placeholder) ─────────────────────────────────
-
-function MobileAppCta() {
-  return (
-    <section className="space-y-5">
-      <div className="space-y-1">
-        <h2 className="text-text text-xl font-semibold">تطبيق الجوال</h2>
-        <p className="text-sm text-muted-foreground">
-          أنشئ تطبيق جوال لمتجرك بنقرة واحدة وتابع عدد التثبيتات.
-        </p>
-      </div>
-
-      <Card className="border border-border/60">
-        <CardContent className="py-8">
-          <div className="flex flex-wrap items-center gap-10">
-            {/* Phone mockup */}
-            <div className="flex-shrink-0">
-              <div className="flex h-[280px] w-[140px] flex-col rounded-[28px] border-[8px] border-foreground/80 bg-foreground/80 p-1.5">
-                <div className="relative flex-1 overflow-hidden rounded-[18px] bg-muted">
-                  <div className="flex h-full flex-col gap-1.5 p-2">
-                    <div className="h-4 rounded bg-primary/20" />
-                    <div className="h-1.5 w-3/4 rounded-full bg-muted-foreground/20" />
-                    <div className="h-1.5 w-1/2 rounded-full bg-muted-foreground/20" />
-                    <div className="mt-1 grid flex-1 grid-cols-2 gap-1">
-                      <div className="rounded bg-muted-foreground/10" />
-                      <div className="rounded bg-muted-foreground/10" />
-                      <div className="rounded bg-muted-foreground/10" />
-                      <div className="rounded bg-muted-foreground/10" />
-                    </div>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center rounded-[18px] bg-background/50">
-                    <Plus className="size-8 text-muted-foreground/40" />
-                  </div>
-                </div>
-              </div>
-              <p className="mt-2 text-center text-[11px] text-muted-foreground">
-                لم يتم الإنشاء
-              </p>
-            </div>
-
-            {/* Info */}
-            <div className="flex min-w-[280px] flex-1 flex-col gap-3.5">
-              <Badge variant="destructive" className="self-start">
-                غير مفعّل
-              </Badge>
-              <h3 className="text-lg font-extrabold">
-                أنشئ تطبيق جوال لمتجرك
-              </h3>
-              <p className="max-w-lg text-sm leading-relaxed text-muted-foreground">
-                حوّل متجرك إلى تطبيق جوال يمكن للعملاء تحميله وتثبيته.
-                التطبيق يعكس تصميم ثيمك الحالي تلقائياً.
-              </p>
-              <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-                <Button variant="ghost" size="sm">
-                  معرفة المزيد
-                </Button>
-                <Button variant="secondary">
-                  <Sparkles data-icon="inline-start" className="size-4" />
-                  إنشاء التطبيق الآن
-                </Button>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </section>
-  )
-}

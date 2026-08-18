@@ -1,6 +1,5 @@
-import { Badge } from "@workspace/ui/components/badge"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
-import { Bell, Home, WifiLow, WifiOff } from "lucide-react"
+import { Bell } from "lucide-react"
 import LayoutProfileMenu from "./LayoutProfileMenu"
 import { Button } from "@workspace/ui/components/button"
 
@@ -12,13 +11,6 @@ export default function LayoutHeader() {
       <div className="grow-1"></div>
 
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary-tonal" className="flex items-center gap-2">
-            <WifiOff />
-            الشبكة بطيئة
-          </Badge>
-        </div>
-
         <div className="relative text-primary">
           <Button variant="ghost" size={"icon"} className="relative">
             <Bell />
