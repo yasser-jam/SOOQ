@@ -69,6 +69,7 @@ export function usePublishedSiteData(
 		queryFn: () => fetchPublishedSiteData(tenantId, platform),
 		enabled: enabled && Boolean(tenantId),
 		staleTime: 30_000,
+		refetchOnMount: "always",
 		retry: false,
 	})
 

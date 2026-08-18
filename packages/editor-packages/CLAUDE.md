@@ -46,7 +46,8 @@ apps/web design-studio [...puckPath]/client.tsx
   └─ <Puck config plugins=[pages, zones, themes, settings, shopify-editor, …]>
        └─ onPublish/save → applyPuckSave → site-data (localStorage)
 apps/store [[...slug]]/page.tsx
-  └─ useStorefrontData → readSiteData + findSitePage + composePuckData
+  └─ useStorefrontData → usePublishedSiteData (GET /public/design/config, backend-only,
+       no localStorage) → findSitePage + composePuckData
        └─ resolveAllData → <Render config data>   (same block registry, render-only)
 ```
 

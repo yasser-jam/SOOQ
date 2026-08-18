@@ -4,15 +4,10 @@ import { useEffect, useMemo, useState } from "react"
 
 import { resolveAllData, type Metadata } from "@/core"
 import config from "@/core/config"
-import { PAGES_UPDATED_EVENT } from "@/core/config/page-registry"
 import {
 	composePuckData,
 	findSitePage,
-	getSiteStorageKey,
-	readSiteData,
-	readStorefrontSiteData,
 	resolveSitePageText,
-	resolveStorefrontMode,
 	type SitePage,
 } from "@/core/config/lib/site-data"
 import type { UserData } from "@/core/config/types"
@@ -25,9 +20,20 @@ import { STORE_HOME_PATH } from "@/modules/storefront/lib/store-config"
 
 export type StorefrontStatus = "loading" | "not-found-tenant" | "ready"
 
-function hasPersistedSiteOverride(mode: "desktop" | "mobile"): boolean {
-	if (typeof window === "undefined") return false
-	return window.localStorage.getItem(getSiteStorageKey(mode)) !== null
+const MOBILE_BREAKPOINT_PX = 767
+
+/** Viewport-only mode resolution — the published site's own data decides
+ *  content, never localStorage. `?mode=mobile|desktop` overrides the viewport. */
+function resolveStorefrontMode(): "desktop" | "mobile" {
+	if (typeof window === "undefined") return "desktop"
+
+	const params = new URLSearchParams(window.location.search)
+	const override = params.get("mode")
+	if (override === "mobile" || override === "desktop") return override
+
+	return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches
+		? "mobile"
+		: "desktop"
 }
 
 export function useStorefrontData({
@@ -40,31 +46,15 @@ export function useStorefrontData({
 	tenantId: string
 }) {
 	const [storefrontMode, setStorefrontMode] = useState<"desktop" | "mobile">(
-		() =>
-			typeof window === "undefined"
-				? "desktop"
-				: resolveStorefrontMode(),
+		() => resolveStorefrontMode(),
 	)
-	const siteKey = getSiteStorageKey(storefrontMode)
-	const [siteRevision, setSiteRevision] = useState(0)
-
-	useEffect(() => {
-		const refresh = () => setSiteRevision((revision) => revision + 1)
-
-		window.addEventListener(PAGES_UPDATED_EVENT, refresh)
-		return () => window.removeEventListener(PAGES_UPDATED_EVENT, refresh)
-	}, [])
 
 	useEffect(() => {
 		const syncMode = () => setStorefrontMode(resolveStorefrontMode())
 
 		syncMode()
 
-		const desktop = readSiteData("desktop")
-		const bp =
-			(desktop.root?.props as { breakpointMobileMax?: number } | undefined)
-				?.breakpointMobileMax ?? 767
-		const mq = window.matchMedia(`(max-width: ${bp}px)`)
+		const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`)
 		mq.addEventListener("change", syncMode)
 		window.addEventListener("popstate", syncMode)
 
@@ -72,37 +62,19 @@ export function useStorefrontData({
 			mq.removeEventListener("change", syncMode)
 			window.removeEventListener("popstate", syncMode)
 		}
-	}, [siteRevision])
-
-	const hasLocalOverride = hasPersistedSiteOverride(storefrontMode)
-	// siteRevision bumps when ThemeJsonTester writes to localStorage.
-	void siteRevision
+	}, [])
 
 	const platform: DesignPlatform =
 		storefrontMode === "mobile" ? "mobile" : "web"
 
-	const publishedQuery = usePublishedSiteData(tenantId, platform, {
-		enabled: !hasLocalOverride,
-	})
-
-	const site = hasLocalOverride
-		? readStorefrontSiteData()
-		: publishedQuery.site
+	const publishedQuery = usePublishedSiteData(tenantId, platform)
+	const site = publishedQuery.site
 
 	const status = useMemo<StorefrontStatus>(() => {
-		if (hasLocalOverride) {
-			return site ? "ready" : "not-found-tenant"
-		}
-
 		if (publishedQuery.isLoading) return "loading"
 		if (publishedQuery.isError || !site) return "not-found-tenant"
 		return "ready"
-	}, [
-		hasLocalOverride,
-		site,
-		publishedQuery.isLoading,
-		publishedQuery.isError,
-	])
+	}, [site, publishedQuery.isLoading, publishedQuery.isError])
 
 	const matchedPage = useMemo<SitePage | undefined>(
 		() => (site ? findSitePage(site, path) : undefined),
@@ -167,8 +139,6 @@ export function useStorefrontData({
 		status,
 		pageFound: Boolean(matchedPage),
 		matchedPage,
-		siteKey,
 		storefrontMode,
-		readStorefrontSiteData,
 	}
 }

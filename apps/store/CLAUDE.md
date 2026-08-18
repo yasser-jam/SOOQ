@@ -9,17 +9,17 @@ counterpart to the Design Studio in `apps/web`.
 ```
 app/[[...slug]]/page.tsx            # catch-all route
   └─ components/storefront-renderer.tsx
-       ├─ lib/use-store-pathname.ts     # current path within the store
-       ├─ lib/use-storefront-data.ts    # readSiteData (localStorage) → findSitePage
-       │                                # → composePuckData → resolveAllData
-       ├─ components/StoreProvider.tsx  # cart/store context + react-query
+       ├─ lib/use-store-pathname.ts       # current path within the store
+       ├─ lib/use-storefront-data.ts      # usePublishedSiteData (backend) → findSitePage
+       │                                  # → composePuckData → resolveAllData
+       ├─ lib/use-published-site-data.ts  # GET /public/design/config → SiteData
+       ├─ components/StoreProvider.tsx    # cart/store context + react-query
        ├─ components/preview-theme-provider.tsx  # applies root theme props (FullThemeProps)
        └─ <Render config={@/core/config} data={resolvedData} metadata={{ themeId }} />
 ```
 
 - `lib/store-config.ts` — `STORE_FIXED_THEME_ID`, `STORE_HOME_PATH`, env-based store identity.
 - `components/checkout/` — checkout drawer + `checkout-api.ts` (public API calls).
-- `components/theme-json-tester.tsx` — dev utility to paste/test Site JSON.
 
 ## Pages outside the renderer
 
@@ -37,13 +37,15 @@ validation + `StoreTenantProvider`, but **not** `StoreProvider` or the theme pro
 the cookie-based session check and the `.Orders*` styles in `app/globals.css`.
 See `docs/customer-orders-flow.md`.
 
-## Critical current limitation
+## Data source
 
-Site JSON is read from **localStorage** (`readSiteData` from
-`@/core/config/lib/site-data.ts`) — i.e. the store only shows content on the same browser
-that edited it. Real multi-tenant publishing (fetch Site JSON from the backend by store
-slug/domain, SSR/ISR) is a known gap and a roadmap item. When adding backend fetching, keep
-`useStorefrontData` as the single seam.
+The renderer is backend-only: `useStorefrontData` always fetches Site JSON from the backend
+via `usePublishedSiteData` → `GET /public/design/config?platform=` (`web`/`mobile`, with a
+mobile→web fallback if no mobile config exists yet). It never reads `localStorage` — that
+storage is exclusively the Design Studio editor's working-session buffer
+(`@/core/config/lib/site-data.ts`, `page-draft.ts`), and the renderer must not treat it as a
+data source. `?mode=mobile|desktop` overrides the viewport-based platform pick; otherwise a
+767px breakpoint decides. Known gap: no SSR/ISR yet (client-fetched on mount).
 
 ## Aliases / coupling
 
