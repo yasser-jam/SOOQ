@@ -26,6 +26,17 @@ const SEED_IMAGE_FILENAMES = [
   "shopping (8).avif",
 ] as const
 
+export type SeedImageConfig = {
+  /** folder name under `public/`, e.g. `"seed-images"` */
+  folder: string
+  filenames: readonly string[]
+}
+
+export const DEFAULT_SEED_IMAGES: SeedImageConfig = {
+  folder: "seed-images",
+  filenames: SEED_IMAGE_FILENAMES,
+}
+
 /** Longest edge of the re-encoded JPEG, in px. */
 const MAX_EDGE = 1200
 const JPEG_QUALITY = 0.85
@@ -43,10 +54,10 @@ const canvasToBlob = (
 ): Promise<Blob | null> =>
   new Promise((resolve) => canvas.toBlob(resolve, type, quality))
 
-async function loadSeedImage(filename: string): Promise<SeedImage | null> {
+async function loadSeedImage(folder: string, filename: string): Promise<SeedImage | null> {
   let source: Blob
   try {
-    const response = await fetch(`/seed-images/${encodeURIComponent(filename)}`)
+    const response = await fetch(`/${folder}/${encodeURIComponent(filename)}`)
     if (!response.ok) return null
     source = await response.blob()
   } catch {
@@ -84,18 +95,26 @@ async function loadSeedImage(filename: string): Promise<SeedImage | null> {
   return { blob: source, extension: "avif" }
 }
 
-let cachedImages: Promise<SeedImage[]> | null = null
+const cachedImagesByFolder = new Map<string, Promise<SeedImage[]>>()
 
-/** Fetches + converts every seed image once, then serves the cached list. */
-export async function loadSeedImages(): Promise<SeedImage[]> {
-  cachedImages ??= Promise.all(SEED_IMAGE_FILENAMES.map(loadSeedImage)).then(
-    (loaded) => loaded.filter((image): image is SeedImage => image !== null)
-  )
+/** Fetches + converts every seed image once per folder, then serves the cached list. */
+export async function loadSeedImages(
+  config: SeedImageConfig = DEFAULT_SEED_IMAGES
+): Promise<SeedImage[]> {
+  const { folder, filenames } = config
 
-  const images = await cachedImages
+  let pending = cachedImagesByFolder.get(folder)
+  if (!pending) {
+    pending = Promise.all(
+      filenames.map((filename) => loadSeedImage(folder, filename))
+    ).then((loaded) => loaded.filter((image): image is SeedImage => image !== null))
+    cachedImagesByFolder.set(folder, pending)
+  }
+
+  const images = await pending
   // Nothing loaded (dev server restarted mid-fetch, files missing) — drop the
   // cache so the next seed run gets a fresh attempt instead of empty forever.
-  if (images.length === 0) cachedImages = null
+  if (images.length === 0) cachedImagesByFolder.delete(folder)
   return images
 }
 

@@ -3,6 +3,8 @@
 import { SeedFurnitureButton } from "@/modules/product/seed/seed-furniture-button"
 import { SeedFurnitureProductsButton } from "@/modules/product/seed/seed-furniture-products-button"
 import { SeedProductsButton } from "@/modules/product/seed/seed-products-button"
+import { SeedTechButton } from "@/modules/product/seed/seed-tech-button"
+import { SeedTechProductsButton } from "@/modules/product/seed/seed-tech-products-button"
 
 export default function DevPage() {
   return (
@@ -18,6 +20,8 @@ export default function DevPage() {
         <SeedProductsButton />
         <SeedFurnitureButton />
         <SeedFurnitureProductsButton />
+        <SeedTechButton />
+        <SeedTechProductsButton />
       </div>
     </div>
   )

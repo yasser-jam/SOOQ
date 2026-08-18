@@ -5,6 +5,8 @@
  * resolves keys to real backend ids after each phase creates its rows.
  */
 
+import type { SeedImageConfig } from "./seed-images"
+
 export type SeedCategoryDef = {
   slug: string
   nameAr: string
@@ -118,6 +120,8 @@ export type SeedDataset = {
   attributes: SeedAttributeDef[]
   products: SeedProductDef[]
   collections: SeedCollectionDef[]
+  /** picture pool for the products phase; defaults to `DEFAULT_SEED_IMAGES` */
+  imageConfig?: SeedImageConfig
 }
 
 /* ============================================================================

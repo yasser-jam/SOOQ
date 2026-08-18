@@ -45,7 +45,13 @@ import {
   type SeedProductDef,
   type SeedTagDef,
 } from "./dataset"
-import { loadSeedImages, pickSeedImageFiles, type SeedImage } from "./seed-images"
+import {
+  DEFAULT_SEED_IMAGES,
+  loadSeedImages,
+  pickSeedImageFiles,
+  type SeedImage,
+  type SeedImageConfig,
+} from "./seed-images"
 import type { SeedProgress } from "./types"
 
 export type SeedProgressCallback = (progress: SeedProgress) => void
@@ -513,7 +519,8 @@ async function ensureProducts(
   progress: SeedProgressCallback,
   errors: string[],
   /** `""` seeds the dataset's own slugs/SKUs and skips products that exist. */
-  suffix = ""
+  suffix = "",
+  imageConfig: SeedImageConfig = DEFAULT_SEED_IMAGES
 ): Promise<Map<string, string>> {
   const existing = await listProducts()
   const slugToId = new Map<string, string>()
@@ -533,9 +540,9 @@ async function ensureProducts(
   // its one or two pictures out of this shared pool.
   let images: SeedImage[] = []
   try {
-    images = await loadSeedImages()
+    images = await loadSeedImages(imageConfig)
     if (images.length === 0) {
-      errors.push("صور: تعذّر تحميل أي صورة من public/seed-images")
+      errors.push(`صور: تعذّر تحميل أي صورة من public/${imageConfig.folder}`)
     }
   } catch (error) {
     errors.push(`صور: ${errorMessage(error, "unknown")}`)
@@ -749,7 +756,9 @@ export async function runProductSeed(
       tagIds,
       attributeMap,
       onProgress,
-      errors
+      errors,
+      "",
+      dataset.imageConfig
     )
 
     await ensureCollections(
@@ -837,7 +846,8 @@ export async function runProductsOnlySeed(
       attributeMap,
       onProgress,
       errors,
-      suffix
+      suffix,
+      dataset.imageConfig
     )
 
     onProgress({

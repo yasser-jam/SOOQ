@@ -26,6 +26,7 @@ const builtinThemeLoaders: Record<string, () => Promise<unknown>> = {
   "builtin-sooq-modern": () => import("./theme-sooq-modern.json"),
   "builtin-meridian-almarai": () => import("./theme-meridian-almarai.json"),
   "builtin-rawaq-furniture": () => import("./theme-rawaq-furniture.json"),
+  "builtin-nova-electronics": () => import("./theme-nova-electronics.json"),
 };
 
 export const builtinThemeCatalog: BuiltinThemeSummary[] = [
@@ -52,6 +53,14 @@ export const builtinThemeCatalog: BuiltinThemeSummary[] = [
       "قالب أثاث دافئ بخط المسيري وألوان الزيتوني والكتان والبنّي الداكن — واجهة بصورة، فئات بالشبكة، معرض غرف بالسلايدر، خامات، آراء، وبطاقة منتج مسطّحة بالسعر وزر مضغوط.",
     previewImageUrl:
       "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=400&h=250&q=70",
+  },
+  {
+    templateKey: "builtin-nova-electronics",
+    templateName: "نوفا للإلكترونيات",
+    description:
+      "قالب إلكترونيات داكن وعصري بخط IBM Plex Sans Arabic وألوان نيلية على خلفية داكنة — هيرو بصورة، شريط ثقة، فئات، عروض لفترة محدودة، منتجات مختارة، مزايا، معرض صور، وآراء عملاء.",
+    previewImageUrl:
+      "https://placehold.co/400x250/0b0f1a/4f6df5?text=%D9%86%D9%88%D9%81%D8%A7",
   },
 ];
 
