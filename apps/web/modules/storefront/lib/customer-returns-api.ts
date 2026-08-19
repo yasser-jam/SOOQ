@@ -1,6 +1,6 @@
 /**
  * Customer returns — API layer for the published storefront's returns flow
- * (`app/published-store/[tenantId]/returns`, plus the "طلب إرجاع" action on the
+ * (`app/published-store/[storeSlug]/returns`, plus the "طلب إرجاع" action on the
  * order detail page).
  *
  * Same footing as `customer-orders-api.ts`: the *customer-facing*

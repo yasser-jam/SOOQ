@@ -1,5 +1,5 @@
 /**
- * Customer order history — API layer for the `/store/[tenantId]/orders` pages.
+ * Customer order history — API layer for the `/store/[storeSlug]/orders` pages.
  *
  * These are the *customer-facing* order endpoints (`/customer/orders/**`),
  * authenticated with the storefront customer's `sooq-store-access-token` cookie —

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
  * Customer return requests for the published storefront.
  *
  * Static segment like `orders`, so it shadows the storefront catch-all
- * (`[[...slug]]`). Public URL is `/store/<tenantId>/returns`.
+ * (`[[...slug]]`). Public URL is `/store/<storeSlug>/returns`.
  */
 export default function PublishedStoreReturnsPage() {
 	return (

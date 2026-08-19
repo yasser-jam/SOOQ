@@ -130,7 +130,8 @@ function emptyAddressDraft(): CustomerAddressDraft {
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-// Twin copy: apps/store/components/StoreProvider.tsx — keep in sync until dedup.
+// apps/store/components/StoreProvider.tsx re-exports this file via the
+// `@/modules/*` alias — there is only one implementation.
 export function StoreProvider({
 	children,
 	initialLanguage = "ar",

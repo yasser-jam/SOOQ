@@ -6,6 +6,8 @@ const cookiesConfig = {
   refreshToken: "sooq-refresh-token",
   tenantSlug: "sooq-tenant-slug",
   tenantId: "sooq-tenant-id",
+  /** Store's primary currency (e.g. SYP), resolved alongside tenantId/slug. */
+  primaryCurrency: "sooq-primary-currency",
   userName: "sooq-user-name",
 } as const
 

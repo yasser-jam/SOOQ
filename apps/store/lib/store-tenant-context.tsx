@@ -15,6 +15,7 @@ import { buildStoreBasePath } from "./store-config"
 
 type StoreTenantContextValue = {
 	tenantId: string
+	storeSlug: string
 	basePath: string
 }
 
@@ -22,19 +23,22 @@ const StoreTenantContext = createContext<StoreTenantContextValue | null>(null)
 
 type StoreTenantProviderProps = {
 	tenantId: string
+	storeSlug: string
 	children: ReactNode
 }
 
 export function StoreTenantProvider({
 	tenantId,
+	storeSlug,
 	children,
 }: StoreTenantProviderProps) {
 	const value = useMemo(
 		() => ({
 			tenantId,
-			basePath: buildStoreBasePath(tenantId),
+			storeSlug,
+			basePath: buildStoreBasePath(storeSlug),
 		}),
-		[tenantId],
+		[tenantId, storeSlug],
 	)
 
 	setTenantIdOverride(tenantId)

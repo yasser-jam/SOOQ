@@ -326,13 +326,13 @@ export default function DesignStudioPage() {
     })
   }
 
-  const tenantId = settings?.tenantId ?? ""
+  const storeSlug = settings?.slug ?? ""
   const shopUrl = useMemo(() => {
-    if (!tenantId) return ""
-    const path = buildStoreBasePath(tenantId)
+    if (!storeSlug) return ""
+    const path = buildStoreBasePath(storeSlug)
     if (typeof window === "undefined") return path
     return `${window.location.origin}${path}`
-  }, [tenantId])
+  }, [storeSlug])
 
   const hasCompletedConfig = Boolean(settings)
   const hasDraft = Boolean(draft)

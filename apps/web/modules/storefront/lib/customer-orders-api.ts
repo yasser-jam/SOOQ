@@ -1,7 +1,7 @@
 /**
  * Customer order history — API layer for the published storefront's orders
- * pages (`app/published-store/[tenantId]/orders`, reached at the public
- * `/store/<tenantId>/orders` URL through the middleware rewrite).
+ * pages (`app/published-store/[storeSlug]/orders`, reached at the public
+ * `/store/<storeSlug>/orders` URL through the middleware rewrite).
  *
  * These are the *customer-facing* order endpoints (`/customer/orders/**`),
  * authenticated with the storefront customer's `sooq-store-access-token` cookie —
