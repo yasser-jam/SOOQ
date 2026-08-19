@@ -6,6 +6,7 @@ import {
   MessageSquareText,
   Images,
   Grid3x3,
+  ListTree,
   Type as TypeIcon,
   Columns2,
   Rows2,
@@ -21,6 +22,8 @@ import {
 } from "../../blocks/Section/starter-data";
 import { createCartSectionPreset } from "../../presets/cart";
 import { SECTION_KIND_PRODUCTS_GRID, PRODUCTS_GRID_SECTION_METADATA } from "../../blocks/Section/products-grid-section";
+import { buildProductsPageSectionProps } from "../../blocks/Section/section-preset-kinds";
+import { createProductsPageInnerSection } from "../../presets/products-page";
 import type { CollectionPickerRef } from "@/modules/product/collection/data-store";
 
 /**
@@ -325,6 +328,52 @@ export const sectionCatalog: SectionPreset[] = [
         },
       };
     },
+  },
+  {
+    id: "category-tree-products",
+    label: "شجرة الفئات مع المنتجات",
+    description:
+      "قائمة فئات متداخلة — الضغط على أي فئة يعرض منتجاتها في الشبكة أسفلها.",
+    category: "commerce",
+    icon: <ListTree size={20} />,
+    gradient: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+    build: () => ({
+      type: "Section",
+      props: {
+        ...SECTION_BASE_PROPS,
+        name: "Category tree with products",
+        paddingTop: "48px",
+        paddingBottom: "48px",
+        columns: 1,
+        columnsMobile: 1,
+        gridGap: "24px",
+        content: [
+          { type: "CategoryTree", props: {} },
+          createProductsPageInnerSection(),
+          {
+            type: "ButtonGroup",
+            props: {
+              bindingMode: "pagination",
+              gap: "theme-8",
+              align: "center",
+              inactiveStyle: {
+                bgColor: "theme-surface",
+                textColor: "theme-text",
+                radius: "theme-md",
+                buttonSize: "theme-sm",
+              },
+              activeStyle: {
+                bgColor: "theme-primary",
+                textColor: "theme-surface",
+                radius: "theme-md",
+                buttonSize: "theme-sm",
+              },
+              items: [],
+            },
+          },
+        ],
+      },
+    }),
   },
   {
     id: "shopping-cart",

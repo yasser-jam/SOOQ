@@ -94,6 +94,8 @@ export type CategoryRef = {
   nameAr: string;
   nameEn?: string;
   productCount?: number;
+  /** Nested subcategories (unlimited depth) — empty/absent for leaf categories. */
+  children?: CategoryRef[];
 };
 
 export type ProductsPageQuery = {

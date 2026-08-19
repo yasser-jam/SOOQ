@@ -22,6 +22,7 @@ import { OrdersIconButton } from "./blocks/OrdersIconButton";
 import { CheckoutForm } from "./blocks/CheckoutForm";
 import { ProductSearchMenu } from "./blocks/ProductSearchMenu";
 import { CategoryListMenu } from "./blocks/CategoryListMenu";
+import { CategoryTree } from "./blocks/CategoryTree";
 import { ProductImage } from "./blocks/ProductImage";
 import { ProductInfo } from "./blocks/ProductInfo";
 import { Section } from "./blocks/Section";
@@ -95,6 +96,7 @@ export const conf: UserConfig = {
         "ContentButton",
         "Chip",
         "ButtonGroup",
+        "CategoryTree",
         "ContentLink",
         "ContentInput",
         "ContentSwitch",
@@ -228,6 +230,7 @@ export const conf: UserConfig = {
     ContentButton: withShowCondition(ContentButton),
     Chip: withShowCondition(Chip),
     ButtonGroup: withShowCondition(ButtonGroup),
+    CategoryTree: withShowCondition(CategoryTree),
     ContentLink: withShowCondition(ContentLink),
     ContentInput: withShowCondition(ContentInput),
     ContentMap: withShowCondition(ContentMap),

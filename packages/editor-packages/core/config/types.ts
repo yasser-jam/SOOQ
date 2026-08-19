@@ -32,6 +32,7 @@ import { AccordionProps } from "./blocks/Accordion";
 import { ContentImageProps } from "./blocks/ContentImage";
 import { ContentButtonProps } from "./blocks/ContentButton";
 import { ButtonGroupProps } from "./blocks/ButtonGroup";
+import { CategoryTreeProps } from "./blocks/CategoryTree";
 import { ContentLinkProps } from "./blocks/ContentLink";
 import { ContentInputProps } from "./blocks/ContentInput";
 import { ContentSwitchProps } from "./blocks/ContentSwitch";
@@ -103,6 +104,7 @@ export type Components = {
   ContentImage: ContentImageProps;
   ContentButton: ContentButtonProps;
   ButtonGroup: ButtonGroupProps;
+  CategoryTree: CategoryTreeProps;
   ContentLink: ContentLinkProps;
   ContentInput: ContentInputProps;
   ContentSwitch: ContentSwitchProps;

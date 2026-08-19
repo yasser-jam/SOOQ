@@ -10,6 +10,7 @@ type PublicCategoryListItem = {
 	nameAr: string
 	nameEn?: string
 	productCount?: number
+	children?: PublicCategoryListItem[]
 }
 
 function requireEditorTenantId(): string {
@@ -31,6 +32,9 @@ function mapCategoryItems(items: PublicCategoryListItem[]): CategoryRef[] {
 		nameAr: item.nameAr,
 		nameEn: item.nameEn,
 		productCount: item.productCount ?? 0,
+		children: item.children?.length
+			? mapCategoryItems(item.children)
+			: undefined,
 	}))
 }
 

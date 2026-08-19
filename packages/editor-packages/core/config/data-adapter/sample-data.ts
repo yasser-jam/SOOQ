@@ -102,6 +102,22 @@ export const SAMPLE_CATEGORIES: CategoryRef[] = [
     nameAr: "عطور",
     nameEn: "Perfumes",
     productCount: 2,
+    children: [
+      {
+        id: "sample-cat-1-1",
+        slug: "perfumes-men",
+        nameAr: "عطور رجالية",
+        nameEn: "Men's Perfumes",
+        productCount: 1,
+      },
+      {
+        id: "sample-cat-1-2",
+        slug: "perfumes-women",
+        nameAr: "عطور نسائية",
+        nameEn: "Women's Perfumes",
+        productCount: 1,
+      },
+    ],
   },
   {
     id: "sample-cat-2",
