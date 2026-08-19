@@ -70,13 +70,14 @@ export function usePublishedSiteData(
 		enabled: enabled && Boolean(tenantId),
 		staleTime: 30_000,
 		refetchOnMount: "always",
+		refetchOnWindowFocus: false,
 		retry: false,
 	})
 
 	return {
 		site: query.data ?? null,
-		isLoading: query.isLoading || query.isFetching,
-		isError: query.isError,
+		isLoading: query.isLoading,
+		isError: query.isError && query.data === undefined,
 		error: query.error,
 	}
 }

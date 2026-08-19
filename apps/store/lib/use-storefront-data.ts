@@ -73,10 +73,10 @@ export function useStorefrontData({
 	const site = publishedQuery.site
 
 	const status = useMemo<StorefrontStatus>(() => {
+		if (site) return "ready"
 		if (publishedQuery.isLoading) return "loading"
-		if (publishedQuery.isError || !site) return "not-found-tenant"
-		return "ready"
-	}, [site, publishedQuery.isLoading, publishedQuery.isError])
+		return "not-found-tenant"
+	}, [site, publishedQuery.isLoading])
 
 	const matchedPage = useMemo<SitePage | undefined>(
 		() => (site ? findSitePage(site, path) : undefined),
