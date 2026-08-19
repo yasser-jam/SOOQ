@@ -87,7 +87,7 @@ function parsePositiveNumber(raw: string | null): number | null {
 
 function parseUrlFilters(params: URLSearchParams): Partial<FilterState> {
 	const category = params.get("category")
-	const search = params.get("search") ?? ""
+	const search = params.get("q") ?? ""
 	const pageRaw = Number(params.get("page") ?? 1)
 	const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1
 
@@ -110,7 +110,7 @@ function buildUrlSearchParams(
 		params.set("category", state.selectedCategorySlug)
 	}
 	if (debounced.search.trim()) {
-		params.set("search", debounced.search.trim())
+		params.set("q", debounced.search.trim())
 	}
 	if (debounced.minPrice != null) {
 		params.set("minPrice", String(debounced.minPrice))

@@ -220,8 +220,7 @@ const parseProductsPageParams = (url: string) => {
     page: Number(params.get("page") ?? 0),
     size: Number(params.get("size") ?? 12),
     categorySlug: params.get("categorySlug") ?? undefined,
-    // Browse uses `search`; the search endpoint uses `q`.
-    search: params.get("q") ?? params.get("search") ?? undefined,
+    search: params.get("q") ?? undefined,
     minPrice: parseNumberParam(params.get("minPrice")),
     maxPrice: parseNumberParam(params.get("maxPrice")),
     inStockOnly: params.get("inStockOnly") === "true",
@@ -289,6 +288,30 @@ export const handleProductsMock = async (
   ) {
     const { page, size, ...filters } = parseProductsPageParams(request.url)
     const filtered = filterPublicProducts(filters)
+    const items = filtered.map(toListItem)
+    return { handled: true, data: pagedEnvelope(items, page, size) }
+  }
+
+  const publicCategoryProductsMatch = path.match(
+    /^\/public\/categories\/([^/]+)\/products$/
+  )
+  if (publicCategoryProductsMatch && method === "GET") {
+    const categorySlug = decodeURIComponent(publicCategoryProductsMatch[1] ?? "")
+    const category = getMockDb().categories.find(
+      (c) => c.slug === categorySlug
+    )
+    if (!category) {
+      return {
+        handled: true,
+        error: {
+          status: 404,
+          message: "الفئة غير موجودة",
+          errorCode: "ERR_NOT_FOUND",
+        },
+      }
+    }
+    const { page, size } = parseProductsPageParams(request.url)
+    const filtered = filterPublicProducts({ categorySlug: category.slug })
     const items = filtered.map(toListItem)
     return { handled: true, data: pagedEnvelope(items, page, size) }
   }

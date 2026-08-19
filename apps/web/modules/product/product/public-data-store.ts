@@ -41,11 +41,17 @@ function requireEditorTenantId(): string {
 }
 
 /**
- * Two public listing endpoints back the products page:
+ * Three public listing endpoints back the products page:
  *
- * - `GET /public/products` — plain browse (category + pagination only).
+ * - `GET /public/categories/{categorySlug}/products` — plain category browse
+ *   (pagination only), used whenever a category is picked and no other
+ *   filter is set.
+ * - `GET /public/products` — plain browse across the whole catalogue
+ *   (pagination only).
  * - `GET /public/products/search` — full-text + facet filtering
- *   (`q`, `minPrice`, `maxPrice`, `inStockOnly`).
+ *   (`q`, `minPrice`, `maxPrice`, `inStockOnly`, plus `categorySlug` when a
+ *   category is combined with another filter — the category endpoint above
+ *   doesn't take filters).
  *
  * We only switch to `/search` once a filter is actually set, so the default
  * (unfiltered) listing keeps the cheaper browse path.
@@ -55,6 +61,11 @@ export function getProductsPageApiPath(query: ProductsPageQuery): string {
 		page: String(query.page),
 		size: String(query.size),
 	})
+
+	if (query.categorySlug && !hasProductsPageFilters(query)) {
+		return `/public/categories/${encodeURIComponent(query.categorySlug)}/products?${params.toString()}`
+	}
+
 	if (query.categorySlug) {
 		params.set("categorySlug", query.categorySlug)
 	}

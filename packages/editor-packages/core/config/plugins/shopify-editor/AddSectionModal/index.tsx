@@ -475,7 +475,8 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
     >
       <DialogContent
         size="lg"
-        className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[900px]"
+        overlayClassName="z-[10000]"
+        className="z-[10001] flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[900px]"
       >
         {configuringPreset ? (
           <CollectionPickerStep

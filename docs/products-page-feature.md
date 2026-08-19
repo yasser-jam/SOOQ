@@ -40,16 +40,17 @@ Editor blocks stay stateless; the edit canvas uses sample data via `EditorDataAd
 Public endpoints (mock + real via `publicApi`):
 
 - `GET /public/categories` → `CategoryRef[]`
-- `GET /public/products?categorySlug=&page=&size=` → plain browse, used when no search/price/stock filter is active
-- `GET /public/products/search?q=&minPrice=&maxPrice=&inStockOnly=&page=&size=` → used as soon as any of those filters is set (`q` is sent even when empty, for filter-only requests)
+- `GET /public/categories/{categorySlug}/products?page=&size=` → plain category browse, used when a category is picked and no search/price/stock filter is active
+- `GET /public/products?categorySlug=&page=&size=` → plain browse across the whole catalogue, used when no category and no search/price/stock filter is active
+- `GET /public/products/search?q=&categorySlug=&minPrice=&maxPrice=&inStockOnly=&page=&size=` → used as soon as a search/price/stock filter is set, whether or not a category is also picked (the category endpoint above takes no filters); `q` is sent even when empty, for filter-only requests
 
-`getProductsPageApiPath()` picks between the two; `hasProductsPageFilters()` in `@/core/config/data-adapter/types` is the predicate.
+`getProductsPageApiPath()` picks between the three; `hasProductsPageFilters()` in `@/core/config/data-adapter/types` is the predicate.
 
 Data stores: [`apps/web/modules/product/category/public-data-store.ts`](../apps/web/modules/product/category/public-data-store.ts), [`apps/web/modules/product/product/public-data-store.ts`](../apps/web/modules/product/product/public-data-store.ts).
 
 ## URL sync
 
-Storefront URL reflects filters: `?category=<slug>&search=<q>&minPrice=<n>&maxPrice=<n>&inStock=true&page=<n>`. Hydrated on mount; updated via `router.replace(..., { scroll: false })` with debounced search writes.
+Storefront URL reflects filters: `?category=<slug>&q=<query>&minPrice=<n>&maxPrice=<n>&inStock=true&page=<n>`. Hydrated on mount; updated via `router.replace(..., { scroll: false })` with debounced search writes.
 
 ## Preset
 
