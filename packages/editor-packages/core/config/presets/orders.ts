@@ -126,6 +126,25 @@ function createOrderCardTemplate(): ComponentDataOptionalId {
   );
 }
 
+/** The order list section on its own — reused standalone as the "orders" Add Section preset. */
+export function createOrdersListSection(
+  overrides: Record<string, unknown> = {}
+): ComponentDataOptionalId {
+  return createSection({
+    id: "Section-orders-list",
+    name: "قائمة الطلبات",
+    showCondition: "loggedIn",
+    maxWidth: "960px",
+    paddingTop: "24px",
+    paddingBottom: "24px",
+    columns: 1,
+    ...buildCustomerOrdersSectionProps(),
+    content: [createOrderCardTemplate()],
+    cardTemplate: [createOrderCardTemplate()],
+    ...overrides,
+  });
+}
+
 export function createOrdersPageContent(): ComponentDataOptionalId[] {
   return [
     createSection({
@@ -149,18 +168,7 @@ export function createOrdersPageContent(): ComponentDataOptionalId[] {
         ]),
       ],
     }),
-    createSection({
-      id: "Section-orders-list",
-      name: "قائمة الطلبات",
-      showCondition: "loggedIn",
-      maxWidth: "960px",
-      paddingTop: "24px",
-      paddingBottom: "24px",
-      columns: 1,
-      ...buildCustomerOrdersSectionProps(),
-      content: [createOrderCardTemplate()],
-      cardTemplate: [createOrderCardTemplate()],
-    }),
+    createOrdersListSection(),
     createSection({
       id: "Section-orders-pager",
       name: "تصفّح الطلبات",

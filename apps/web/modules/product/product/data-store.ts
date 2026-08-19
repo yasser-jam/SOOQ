@@ -144,17 +144,34 @@ function normalizePublicProductPayload(
 		? (flat.images as Array<Record<string, unknown> | string>)
 		: []
 	const images = rawImages
-		.map((item) => {
-			if (typeof item === "string") return { url: item }
-			const url = String(item.url ?? item.imageUrl ?? "").trim()
+		.map((item, index) => {
+			if (typeof item === "string") return { url: item, isPrimary: false, sortOrder: index }
+			const url = String(item.url ?? item.imageUrl ?? item.publicUrl ?? "").trim()
 			if (!url) return null
+			const thumbnailUrls =
+				item.thumbnailUrls != null && typeof item.thumbnailUrls === "object"
+					? (item.thumbnailUrls as Record<string, unknown>)
+					: null
+			const thumbnailUrl =
+				item.thumbnailUrl != null
+					? String(item.thumbnailUrl)
+					: (thumbnailUrls?.["600"] ?? thumbnailUrls?.["300"] ?? thumbnailUrls?.["150"])
 			return {
 				url,
-				thumbnailUrl:
-					item.thumbnailUrl != null ? String(item.thumbnailUrl) : undefined,
+				thumbnailUrl: thumbnailUrl != null ? String(thumbnailUrl) : undefined,
+				isPrimary: Boolean(item.isPrimary),
+				sortOrder: Number(item.sortOrder ?? index),
 			}
 		})
-		.filter((item): item is { url: string; thumbnailUrl?: string } => item != null)
+		.filter(
+			(item): item is { url: string; thumbnailUrl?: string; isPrimary: boolean; sortOrder: number } =>
+				item != null,
+		)
+		// Primary image first (main product image), then by declared sortOrder.
+		.sort((a, b) => {
+			if (a.isPrimary !== b.isPrimary) return a.isPrimary ? -1 : 1
+			return a.sortOrder - b.sortOrder
+		})
 
 	const primaryImageUrl =
 		flat.primaryImageUrl != null

@@ -1,5 +1,22 @@
 import { resolveMediaUrl } from "../../lib/media";
 
+/** Largest available size from a `thumbnailUrls` map, e.g. `{ "150": …, "300": …, "600": … }`. */
+function pickLargestThumbnail(thumbnailUrls: unknown): string | undefined {
+  if (!thumbnailUrls || typeof thumbnailUrls !== "object") return undefined;
+
+  const sizes = Object.keys(thumbnailUrls as Record<string, unknown>)
+    .map(Number)
+    .filter(Number.isFinite)
+    .sort((a, b) => b - a);
+
+  for (const size of sizes) {
+    const value = (thumbnailUrls as Record<string, unknown>)[String(size)];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+
+  return undefined;
+}
+
 function extractRawUrl(item: unknown): string | undefined {
   if (typeof item === "string") {
     const trimmed = item.trim();
@@ -8,9 +25,14 @@ function extractRawUrl(item: unknown): string | undefined {
 
   if (item && typeof item === "object") {
     const record = item as Record<string, unknown>;
-    const url = String(
-      record.url ?? record.imageUrl ?? record.thumbnailUrl ?? ""
-    ).trim();
+    const url =
+      String(
+        record.url ??
+          record.imageUrl ??
+          record.publicUrl ??
+          record.thumbnailUrl ??
+          ""
+      ).trim() || pickLargestThumbnail(record.thumbnailUrls);
     return url || undefined;
   }
 

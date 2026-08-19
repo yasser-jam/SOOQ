@@ -6,12 +6,17 @@ import {
   MessageSquareText,
   Images,
   Grid3x3,
+  Columns3,
+  IdCard,
   ListTree,
+  Tags,
+  ClipboardList,
+  PanelTop,
+  PanelBottom,
   Type as TypeIcon,
   Columns2,
   Rows2,
   PanelLeft,
-  Menu as MenuIcon,
 } from "lucide-react";
 import type { Data } from "@/core";
 import {
@@ -21,34 +26,47 @@ import {
   createSectionStarterContent,
 } from "../../blocks/Section/starter-data";
 import { createCartSectionPreset } from "../../presets/cart";
+import {
+  createContentLink,
+  createHeading,
+  createParagraph,
+  createPrimaryButton,
+} from "../../presets/shared";
 import { SECTION_KIND_PRODUCTS_GRID, PRODUCTS_GRID_SECTION_METADATA } from "../../blocks/Section/products-grid-section";
-import { buildProductsPageSectionProps } from "../../blocks/Section/section-preset-kinds";
 import { createProductsPageInnerSection } from "../../presets/products-page";
+import { createProductDetailSection } from "../../presets/products-grid";
+import { createOrdersListSection } from "../../presets/orders";
+import {
+  HEADER_LAYOUT_OPTIONS,
+  headerLayoutOptionToPreset,
+} from "../../presets/header-layouts";
+import { ZONE_FOOTER_PRESETS } from "../../presets/footer";
+import type { ZonePreset } from "../../presets/types";
 import type { CollectionPickerRef } from "@/modules/product/collection/data-store";
 
 /**
  * Shopify-style Section Catalog.
  *
  * Each entry is a "preset" that can be inserted from the Add Section modal.
- * A preset produces a fully-formed, JSON-serializable payload (type + props,
- * including any nested slot content) that the editor dispatches via the
- * reducer. **All state persists to `store_config.json`** — there is no hidden
- * editor-only state attached to a section.
+ * `kind: "section"` entries produce a fully-formed, JSON-serializable payload
+ * (type + props, including any nested slot content) that the editor dispatches
+ * into the page's root content. `kind: "zone"` entries replace a shell zone
+ * (site-wide header/footer) via `applyZonePreset` instead — they affect every
+ * page, not just the current one. **All state persists to `store_config.json`**
+ * — there is no hidden editor-only state attached to a section.
  *
- * Categories mirror SRS § 4.2 taxonomy:
- *   - hero:     large marketing bands, page openers
- *   - commerce: DSN-005 a-f bound-to-tenant-data blocks
- *   - customer: DSN-005 g-j customer-account-surface blocks (IGNORED presets removed)
- *   - content:  DSN-004 a-j generic text/media blocks
- *   - layout:   columns / grids / groups
+ * Only actively-supported blocks may be used here — never a block from
+ * `conf.categories.legacy` in `config/index.tsx` (kept registered only so old
+ * store_config.json documents still render). `registry-consistency.spec.ts`
+ * and `section-catalog.spec.tsx` enforce this.
+ *
+ * Tabs (SRS-aligned, mirrors the Add Section dialog):
+ *   - layout:   column/grid arrangements
+ *   - elements: basic building blocks — header, footer, hero, rich text, FAQ, gallery
+ *   - commerce: DSN-005 bound-to-tenant-data sections (products, cart, orders…)
  */
 
-export type SectionCategory =
-  | "hero"
-  | "commerce"
-  | "customer"
-  | "content"
-  | "layout";
+export type SectionCategory = "layout" | "elements" | "commerce";
 
 /**
  * A config field that the AddSectionModal shows before inserting the preset.
@@ -64,6 +82,7 @@ export type SectionPresetConfigField = {
 };
 
 export type SectionPreset = {
+  kind: "section";
   /** Stable key — never rename (persisted in analytics, not in JSON). */
   id: string;
   label: string;
@@ -93,6 +112,24 @@ export type SectionPreset = {
     props: Record<string, unknown>;
   };
 };
+
+/**
+ * A preset that replaces a whole shell zone (site header or footer) instead
+ * of inserting into the current page. Applying one affects every page.
+ */
+export type ZoneSectionPreset = {
+  kind: "zone";
+  id: string;
+  label: string;
+  description: string;
+  category: SectionCategory;
+  icon: React.ReactNode;
+  gradient: string;
+  zoneTarget: "header" | "footer";
+  preset: ZonePreset;
+};
+
+export type CatalogEntry = SectionPreset | ZoneSectionPreset;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -135,43 +172,45 @@ const section = (
   },
 });
 
+const CATEGORY_CHIP_STYLE = {
+  inactiveStyle: {
+    bgColor: "theme-surface",
+    textColor: "theme-text",
+    radius: "theme-md",
+    buttonSize: "theme-sm",
+  },
+  activeStyle: {
+    bgColor: "theme-primary",
+    textColor: "theme-surface",
+    radius: "theme-md",
+    buttonSize: "theme-sm",
+  },
+};
+
 // IGNORED helpers (CategoryListMenu / OrderHistory / Wishlist / ContactForm)
-// intentionally removed — do not reintroduce presets that insert those types.
+// intentionally removed — do not reintroduce presets that insert those types,
+// they are legacy (see conf.categories.legacy in config/index.tsx).
 
 // ─── Catalog entries ────────────────────────────────────────────────────────
 
 export const sectionCatalog: SectionPreset[] = [
-  // ── Hero / Opener ────────────────────────────────────────────────────────
+  // ── Layout — column/grid arrangements ───────────────────────────────────
   {
+    kind: "section",
     id: "empty-section",
     label: "قسم أساسي",
-    description: "قسم جاهز بعنوان وفقرة وزر.",
+    description: "قسم بعمود واحد بعرض كامل — عنوان وفقرة وزر.",
     category: "layout",
     icon: <LayoutTemplate size={20} />,
     gradient: "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)",
     build: () => section(),
   },
   {
-    id: "hero-band",
-    label: "قسم هيرو",
-    description: "قسم افتتاحي بعرض كامل وخلفية داكنة.",
-    category: "hero",
-    icon: <Sparkles size={20} />,
-    gradient: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #334155 100%)",
-    build: () =>
-      section({
-        paddingTop: "96px",
-        paddingBottom: "96px",
-        backgroundColor: "#0f172a",
-        theme: "dark",
-        maxWidth: "100%",
-      }),
-  },
-  {
+    kind: "section",
     id: "narrow-content",
     label: "محتوى ضيق",
     description: "عمود مركزي للنصوص — مناسب لصفحات من نحن والسياسات.",
-    category: "content",
+    category: "layout",
     icon: <Rows2 size={20} />,
     gradient: "linear-gradient(135deg, #fafafa 0%, #f3f4f6 100%)",
     build: () =>
@@ -182,6 +221,7 @@ export const sectionCatalog: SectionPreset[] = [
       }),
   },
   {
+    kind: "section",
     id: "two-column",
     label: "تخطيط عمودين",
     description: "تقسيم المحتوى إلى عمودين متساويين.",
@@ -192,6 +232,18 @@ export const sectionCatalog: SectionPreset[] = [
     build: () => section({ columns: 2, gridGap: "32px" }),
   },
   {
+    kind: "section",
+    id: "three-column",
+    label: "تخطيط ثلاث أعمدة",
+    description: "تقسيم المحتوى إلى ثلاثة أعمدة متساوية.",
+    category: "layout",
+    icon: <Columns3 size={20} />,
+    gradient:
+      "linear-gradient(90deg, #eff6ff 0%, #eff6ff 33%, #f0fdf4 33%, #f0fdf4 66%, #fdf4ff 66%, #fdf4ff 100%)",
+    build: () => section({ columns: 3, gridGap: "24px" }),
+  },
+  {
+    kind: "section",
     id: "content-with-sidebar",
     label: "محتوى مع قائمة جانبية",
     description:
@@ -222,20 +274,16 @@ export const sectionCatalog: SectionPreset[] = [
               showOnMobile: "collapse",
               items: [
                 {
-                  type: "NavMenu",
+                  type: "Group",
                   props: {
-                    orientation: "vertical",
-                    variant: "plain",
-                    activePath: "",
-                    items: [
-                      {
-                        label: { ar: "الرئيسية", en: "Home" },
-                        link: { kind: "page", pageId: "/" },
-                      },
-                      {
-                        label: { ar: "السلة", en: "Cart" },
-                        link: { kind: "page", pageId: "/cart" },
-                      },
+                    direction: "column",
+                    gap: 12,
+                    alignItems: "flex-start",
+                    justifyContent: "flex-start",
+                    wrap: "nowrap",
+                    content: [
+                      createContentLink("الرئيسية", { kind: "page", pageId: "/" }),
+                      createContentLink("السلة", { kind: "page", pageId: "/cart" }),
                     ],
                   },
                 },
@@ -247,41 +295,151 @@ export const sectionCatalog: SectionPreset[] = [
       },
     }),
   },
+
+  // ── Elements — basic building blocks ────────────────────────────────────
   {
-    id: "site-nav-header",
-    label: "قائمة تنقل",
+    kind: "section",
+    id: "hero-band",
+    label: "قسم هيرو",
     description:
-      "قائمة تنقل أفقية — مثالية لشريط الرأس، تربط بصفحات الموقع.",
-    category: "layout",
-    icon: <MenuIcon size={20} />,
-    gradient: "linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)",
+      "قسم افتتاحي بعرض كامل — عنوان وفقرة وزر دعوة لاتخاذ إجراء فوق خلفية داكنة.",
+    category: "elements",
+    icon: <Sparkles size={20} />,
+    gradient: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #334155 100%)",
+    build: () =>
+      section({
+        paddingTop: "96px",
+        paddingBottom: "96px",
+        backgroundColor: "#0f172a",
+        theme: "dark",
+        maxWidth: "100%",
+        content: [
+          {
+            type: "Group",
+            props: {
+              direction: "column",
+              gap: 20,
+              alignItems: "center",
+              justifyContent: "center",
+              wrap: "nowrap",
+              content: [
+                createHeading("عنوان جذاب لعرضك", {
+                  textAlign: "center",
+                  color: "theme-surface",
+                  fontSize: "theme-2xl",
+                  fontWeight: "theme-bold",
+                }),
+                createParagraph(
+                  "نص مساند يوضّح قيمة عرضك ويدعو الزوار لاستكشاف المزيد.",
+                  {
+                    textAlign: "center",
+                    fontSize: "theme-lg",
+                    color: "theme-surface",
+                  }
+                ),
+                createPrimaryButton("تسوق الآن", { align: "center" }),
+              ],
+            },
+          },
+        ],
+      }),
+  },
+  {
+    kind: "section",
+    id: "rich-text",
+    label: "نص منسق",
+    description: "عنوان وفقرة في المنتصف.",
+    category: "elements",
+    icon: <TypeIcon size={20} />,
+    gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
     build: () => ({
       type: "Section",
       props: {
         ...SECTION_BASE_PROPS,
-        paddingTop: "16px",
-        paddingBottom: "16px",
+        maxWidth: "768px",
+        paddingTop: "48px",
+        paddingBottom: "48px",
+        content: [
+          createStarterHeadingBlock("احكِ قصة علامتك التجارية"),
+          createStarterTextBlock(
+            "استخدم هذا القسم لملاحظات الشحن أو قيم العلامة التجارية أو رسالة حملة قصيرة."
+          ),
+        ],
+      },
+    }),
+  },
+  {
+    kind: "section",
+    id: "faq-accordion",
+    label: "أسئلة شائعة",
+    description:
+      "أسئلة وأجوبة قابلة للطي حول الشحن والإرجاع والدفع.",
+    category: "elements",
+    icon: <MessageSquareText size={20} />,
+    gradient: "linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%)",
+    build: () => ({
+      type: "Section",
+      props: {
+        ...SECTION_BASE_PROPS,
+        maxWidth: "860px",
         content: [
           {
-            type: "NavMenu",
+            type: "Accordion",
             props: {
-              orientation: "horizontal",
-              variant: "plain",
-              activePath: "",
+              heading: "أسئلة شائعة",
+              description: "أجب عن الأسئلة التي يطرحها المتسوقون قبل الشراء.",
+              variant: "soft",
               items: [
                 {
-                  label: { ar: "الرئيسية", en: "Home" },
-                  link: { kind: "page", pageId: "/" },
+                  title: "كم تستغرق مدة التوصيل؟",
+                  body: "عادةً ما تُجهّز الطلبات بسرعة وتُسلَّم وفق طريقة الشحن المختارة عند إتمام الطلب.",
+                  open: true,
                 },
                 {
-                  label: { ar: "المنتجات", en: "Products" },
-                  link: { kind: "page", pageId: "/products/example-product" },
-                },
-                {
-                  label: { ar: "السلة", en: "Cart" },
-                  link: { kind: "page", pageId: "/cart" },
+                  title: "هل يمكنني إرجاع منتج؟",
+                  body: "نعم. اشرح هنا مدة الإرجاع المسموحة وشروط حالة المنتج.",
+                  open: false,
                 },
               ],
+            },
+          },
+        ],
+      },
+    }),
+  },
+  {
+    kind: "section",
+    id: "image-gallery",
+    label: "معرض صور",
+    description: "شبكة صور — مثالية لعرض الإطلالات والمنتجات.",
+    category: "elements",
+    icon: <Images size={20} />,
+    gradient: "linear-gradient(135deg, #fce7f3 0%, #fbcfe8 50%, #ddd6fe 100%)",
+    build: () => ({
+      type: "Section",
+      props: {
+        ...SECTION_BASE_PROPS,
+        content: [
+          {
+            type: "ImageGallery",
+            props: {
+              images: [
+                {
+                  src: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80",
+                  alt: "واجهة المتجر",
+                },
+                {
+                  src: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
+                  alt: "إطلالة منتج منسّقة",
+                },
+                {
+                  src: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+                  alt: "تفصيل نمط الحياة",
+                },
+              ],
+              columns: 3,
+              gap: "16px",
+              radius: "16px",
             },
           },
         ],
@@ -291,6 +449,7 @@ export const sectionCatalog: SectionPreset[] = [
 
   // ── Commerce (DSN-005 a-f) ──────────────────────────────────────────────
   {
+    kind: "section",
     id: "products-grid",
     label: "شبكة المنتجات",
     description:
@@ -330,6 +489,7 @@ export const sectionCatalog: SectionPreset[] = [
     },
   },
   {
+    kind: "section",
     id: "category-tree-products",
     label: "شجرة الفئات مع المنتجات",
     description:
@@ -356,18 +516,7 @@ export const sectionCatalog: SectionPreset[] = [
               bindingMode: "pagination",
               gap: "theme-8",
               align: "center",
-              inactiveStyle: {
-                bgColor: "theme-surface",
-                textColor: "theme-text",
-                radius: "theme-md",
-                buttonSize: "theme-sm",
-              },
-              activeStyle: {
-                bgColor: "theme-primary",
-                textColor: "theme-surface",
-                radius: "theme-md",
-                buttonSize: "theme-sm",
-              },
+              ...CATEGORY_CHIP_STYLE,
               items: [],
             },
           },
@@ -376,6 +525,54 @@ export const sectionCatalog: SectionPreset[] = [
     }),
   },
   {
+    kind: "section",
+    id: "categories-list-products",
+    label: "قائمة الفئات مع المنتجات",
+    description:
+      "أزرار فئات أفقية — الضغط على فئة يفلتر شبكة المنتجات أسفلها.",
+    category: "commerce",
+    icon: <Tags size={20} />,
+    gradient: "linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)",
+    build: () => ({
+      type: "Section",
+      props: {
+        ...SECTION_BASE_PROPS,
+        name: "Categories with products",
+        paddingTop: "48px",
+        paddingBottom: "48px",
+        columns: 1,
+        columnsMobile: 1,
+        gridGap: "24px",
+        content: [
+          {
+            type: "ButtonGroup",
+            props: {
+              bindingMode: "categories",
+              prependAllButton: true,
+              allButtonTitle: "الكل",
+              gap: "theme-8",
+              align: "center",
+              ...CATEGORY_CHIP_STYLE,
+              items: [],
+            },
+          },
+          createProductsPageInnerSection(),
+          {
+            type: "ButtonGroup",
+            props: {
+              bindingMode: "pagination",
+              gap: "theme-8",
+              align: "center",
+              ...CATEGORY_CHIP_STYLE,
+              items: [],
+            },
+          },
+        ],
+      },
+    }),
+  },
+  {
+    kind: "section",
     id: "shopping-cart",
     label: "سلة التسوق",
     description:
@@ -385,129 +582,88 @@ export const sectionCatalog: SectionPreset[] = [
     gradient: "linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)",
     build: () => createCartSectionPreset(),
   },
+  {
+    kind: "section",
+    id: "product-details",
+    label: "تفاصيل المنتج",
+    description:
+      "صورة ومعلومات المنتج مرتبطة تلقائياً بالمنتج الحالي — السعر والوصف والسمات وزر الإضافة للسلة.",
+    category: "commerce",
+    icon: <IdCard size={20} />,
+    gradient: "linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)",
+    build: () => createProductDetailSection(),
+  },
+  {
+    kind: "section",
+    id: "orders-list",
+    label: "قائمة الطلبات",
+    description:
+      "طلبات العميل الحالية مع الحالة وزر عرض التفاصيل — تُملأ تلقائياً من حساب الزائر.",
+    category: "commerce",
+    icon: <ClipboardList size={20} />,
+    gradient: "linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)",
+    build: () => createOrdersListSection(),
+  },
 
   // IGNORED store blocks — do not re-add catalog presets for:
   // CategoryListMenu, OrderHistory, Wishlist, Testimonials, ContactForm.
   // (ProductImageCarousel / ProductVariants / ProductSearchMenu / CheckoutForm
-  // likewise stay out of themes and presets.)
+  // likewise stay out of themes and presets — all legacy, see config/index.tsx.)
+];
 
-  // ── Content (DSN-004) ────────────────────────────────────────────────────
-  {
-    id: "rich-text",
-    label: "نص منسق",
-    description: "عنوان وفقرة في المنتصف.",
-    category: "content",
-    icon: <TypeIcon size={20} />,
-    gradient: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
-    build: () => ({
-      type: "Section",
-      props: {
-        ...SECTION_BASE_PROPS,
-        maxWidth: "768px",
-        paddingTop: "48px",
-        paddingBottom: "48px",
-        content: [
-          createStarterHeadingBlock("Tell your brand story"),
-          createStarterTextBlock(
-            "Use this section for shipping notes, brand values, product care, or a short campaign message."
-          ),
-        ],
-      },
-    }),
-  },
-  {
-    id: "faq-accordion",
-    label: "أسئلة شائعة",
-    description:
-      "أسئلة وأجوبة قابلة للطي حول الشحن والإرجاع والدفع.",
-    category: "content",
-    icon: <MessageSquareText size={20} />,
-    gradient: "linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%)",
-    build: () => ({
-      type: "Section",
-      props: {
-        ...SECTION_BASE_PROPS,
-        maxWidth: "860px",
-        content: [
-          {
-            type: "Accordion",
-            props: {
-              heading: "Frequently asked questions",
-              description:
-                "Answer the questions shoppers ask before they buy.",
-              variant: "soft",
-              items: [
-                {
-                  title: "How long does delivery take?",
-                  body: "Most orders are prepared quickly and delivered according to the shipping method selected at checkout.",
-                  open: true,
-                },
-                {
-                  title: "Can I return an item?",
-                  body: "Yes. Explain your return window and any product conditions here.",
-                  open: false,
-                },
-              ],
-            },
-          },
-        ],
-      },
-    }),
-  },
-  {
-    id: "image-gallery",
-    label: "معرض صور",
-    description: "شبكة صور — مثالية لعرض الإطلالات والمنتجات.",
-    category: "content",
-    icon: <Images size={20} />,
-    gradient: "linear-gradient(135deg, #fce7f3 0%, #fbcfe8 50%, #ddd6fe 100%)",
-    build: () => ({
-      type: "Section",
-      props: {
-        ...SECTION_BASE_PROPS,
-        content: [
-          {
-            type: "ImageGallery",
-            props: {
-              images: [
-                {
-                  src: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80",
-                  alt: "Store display",
-                },
-                {
-                  src: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
-                  alt: "Styled product look",
-                },
-                {
-                  src: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
-                  alt: "Lifestyle detail",
-                },
-              ],
-              columns: 3,
-              gap: "16px",
-              radius: "16px",
-            },
-          },
-        ],
-      },
-    }),
-  },
+// ─── Zone presets (site-wide header/footer) ────────────────────────────────
+// These replace `root:zone-header` / `root:zone-footer` instead of inserting
+// into the current page's content — applying one affects every page.
+
+const headerZonePresets: ZoneSectionPreset[] = HEADER_LAYOUT_OPTIONS.map(
+  (option) => ({
+    kind: "zone",
+    id: option.id,
+    label: option.title,
+    description: `${option.description} — يُطبَّق على رأس الموقع بالكامل.`,
+    category: "elements",
+    icon: <PanelTop size={20} />,
+    gradient: "linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)",
+    zoneTarget: "header",
+    preset: headerLayoutOptionToPreset(option),
+  })
+);
+
+const FOOTER_PRESET_DESCRIPTIONS: Record<string, string> = {
+  "footer-commerce-full": "تذييل بثلاثة أعمدة روابط مع نص تعريفي — الأنسب للمتاجر الكبيرة.",
+  "footer-default-classic": "تذييل كلاسيكي بعمودي روابط ووصف موجز عن المتجر.",
+  "footer-commerce-minimal": "تذييل مبسّط بعمودي روابط فقط — للمتاجر الصغيرة.",
+};
+
+const footerZonePresets: ZoneSectionPreset[] = ZONE_FOOTER_PRESETS.map(
+  (preset) => ({
+    kind: "zone",
+    id: preset.id,
+    label: preset.title,
+    description: `${FOOTER_PRESET_DESCRIPTIONS[preset.id] ?? preset.title} يُطبَّق على تذييل الموقع بالكامل.`,
+    category: "elements",
+    icon: <PanelBottom size={20} />,
+    gradient: "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)",
+    zoneTarget: "footer",
+    preset,
+  })
+);
+
+export const zoneSectionCatalog: ZoneSectionPreset[] = [
+  ...headerZonePresets,
+  ...footerZonePresets,
 ];
 
 export const CATEGORY_LABELS: Record<SectionCategory, string> = {
-  hero: "افتتاحية",
-  commerce: "المتجر",
-  customer: "العميل",
-  content: "المحتوى",
   layout: "تخطيط",
+  elements: "العناصر الأساسية",
+  commerce: "المتجر",
 };
 
 export const CATEGORY_ORDER: SectionCategory[] = [
-  "hero",
-  "commerce",
-  "customer",
-  "content",
   "layout",
+  "elements",
+  "commerce",
 ];
 
 /**

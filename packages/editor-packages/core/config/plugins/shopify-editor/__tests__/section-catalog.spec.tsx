@@ -6,6 +6,7 @@
  */
 import {
   sectionCatalog,
+  zoneSectionCatalog,
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   assertSerializable,
@@ -18,6 +19,10 @@ import {
 } from "../../../lib/site-data";
 
 const registeredTypes = new Set(Object.keys(conf.components));
+// conf.categories.legacy lists blocks kept registered only so old
+// store_config.json documents still render — new presets must never use
+// them (see the module docblock in section-catalog.tsx).
+const legacyTypes = new Set(conf.categories?.legacy?.components ?? []);
 
 const collectTypes = (value: unknown, sink: Set<string>): void => {
   if (Array.isArray(value)) {
@@ -100,6 +105,14 @@ describe("section catalog (D-1/D-8)", () => {
         expect(unknown).toEqual([]);
       });
 
+      it("does not reference legacy blocks", () => {
+        const used = new Set<string>();
+        collectTypes(buildPreset(preset), used);
+
+        const legacy = [...used].filter((type) => legacyTypes.has(type));
+        expect(legacy).toEqual([]);
+      });
+
       it("survives the Site JSON normalize pipeline idempotently", () => {
         const site: SiteData = normalizeSiteData({
           pages: [
@@ -123,4 +136,67 @@ describe("section catalog (D-1/D-8)", () => {
       });
     }
   );
+});
+
+/**
+ * Zone presets (site-wide header/footer) replace a shell zone via
+ * applyZonePreset instead of inserting into page content — see
+ * apply-zone-preset.spec.ts for that dispatch behaviour. Here we only guard
+ * the catalog metadata: stable ids, Arabic copy, and active-blocks-only.
+ */
+describe("zone section catalog (header/footer presets)", () => {
+  it("has presets with unique, stable ids", () => {
+    const ids = zoneSectionCatalog.map((preset) => preset.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("every entry is labeled under the elements tab", () => {
+    for (const preset of zoneSectionCatalog) {
+      expect(preset.category).toBe("elements");
+      expect(CATEGORY_LABELS[preset.category]).toBeTruthy();
+    }
+  });
+
+  it("labels and descriptions are Arabic (merchant-facing)", () => {
+    const arabic = /[؀-ۿ]/;
+    for (const preset of zoneSectionCatalog) {
+      expect({ id: preset.id, label: preset.label }).toEqual(
+        expect.objectContaining({ label: expect.stringMatching(arabic) })
+      );
+      expect({ id: preset.id, description: preset.description }).toEqual(
+        expect.objectContaining({
+          description: expect.stringMatching(arabic),
+        })
+      );
+    }
+  });
+
+  describe.each(
+    zoneSectionCatalog.map((preset) => [preset.id, preset] as const)
+  )("zone preset %s", (_id, preset) => {
+    it("targets the matching root zone", () => {
+      expect(["header", "footer"]).toContain(preset.zoneTarget);
+      expect(preset.preset.category).toBe(
+        preset.zoneTarget === "header" ? "zone-header" : "zone-footer"
+      );
+    });
+
+    it("is a JSON-serializable, registered-and-active block tree", () => {
+      expect(() =>
+        JSON.parse(JSON.stringify(preset.preset.componentData))
+      ).not.toThrow();
+
+      const used = new Set<string>();
+      collectTypes(preset.preset.componentData, used);
+
+      const unregistered = [...used].filter(
+        (type) => !registeredTypes.has(type)
+      );
+      expect(unregistered).toEqual([]);
+
+      const legacy = [...used].filter((type) => legacyTypes.has(type));
+      expect(legacy).toEqual([]);
+    });
+  });
 });

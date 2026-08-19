@@ -28,3 +28,8 @@
     animation: none;
   }
 }
+
+.BlocksPlugin-addSection {
+  width: calc(100% - 24px);
+  margin: 12px 12px 8px;
+}

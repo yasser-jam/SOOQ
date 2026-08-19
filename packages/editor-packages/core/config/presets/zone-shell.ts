@@ -8,18 +8,6 @@ import {
 } from "./shared";
 import { buildZoneHeaderSectionProps } from "../blocks/Section/zone-section";
 
-export const toNavMenuItems = (
-  links: ReadonlyArray<{
-    label: string;
-    labelAr?: string;
-    link?: { kind: string; pageId?: string; hash?: string };
-  }>
-) =>
-  links.map((link) => ({
-    label: { ar: link.labelAr ?? link.label, en: link.label },
-    link: link.link ?? { kind: "none" as const },
-  }));
-
 export const HEADER_GROUP_DEFAULTS = {
   product: null,
   metadata: null,
@@ -291,15 +279,14 @@ export function createFooterColumnNav(
           fontWeight: "theme-semibold",
           color: "theme-surface",
         }),
-        {
-          type: "NavMenu",
-          props: {
-            orientation: "vertical",
-            variant: "plain",
-            activePath: "",
-            items: toNavMenuItems(links),
-          },
-        },
+        createHeaderNavLinksGroup("plain", {
+          links,
+          direction: "column",
+          alignItems: "flex-start",
+          justifyContent: "flex-start",
+          gap: 8,
+          linkProps: { align: "right", color: "theme-muted" },
+        }),
       ],
     },
   };
@@ -337,12 +324,13 @@ export const DEFAULT_FOOTER_BOTTOM = createParagraph("© ٢٠٢٦ متجري", {
   textAlign: "center",
 });
 
-export const DEFAULT_FOOTER_BOTTOM_LINKS_NAV = {
-  type: "NavMenu" as const,
-  props: {
-    orientation: "horizontal",
-    variant: "plain",
-    activePath: "",
-    items: toNavMenuItems(PRESET_FOOTER_BOTTOM_LINKS),
-  },
-};
+export const DEFAULT_FOOTER_BOTTOM_LINKS_NAV = createHeaderNavLinksGroup(
+  "plain",
+  {
+    links: PRESET_FOOTER_BOTTOM_LINKS,
+    direction: "row",
+    justifyContent: "center",
+    gap: 16,
+    linkProps: { align: "center", color: "theme-muted", fontSize: "theme-xs" },
+  }
+);

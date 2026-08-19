@@ -1,6 +1,6 @@
 import { applyValueFormat } from "../lib/format";
 import type { ValueContextFormat } from "./types";
-import { resolveBoundImageUrl } from "./resolve-bound-images";
+import { resolveBoundImageUrls } from "./resolve-bound-images";
 
 export type ResolveOptions = {
   locale?: "ar" | "en";
@@ -63,16 +63,11 @@ function resolveShorthandPath(path: string, locale: "ar" | "en"): string {
   const shorthand = LOCALE_SHORTHANDS[path];
   if (shorthand) return shorthand[locale];
 
-  if (path === "images[0].url") {
-    return path;
-  }
-
   return path;
 }
 
-function resolveImageUrl(data: Record<string, unknown>): string | undefined {
-  return resolveBoundImageUrl(data);
-}
+/** Matches `images[N].url` for any N — the per-image valueContext convention. */
+const IMAGE_INDEX_PATH_RE = /^images\[(\d+)\]\.url$/;
 
 /**
  * Resolve a valueContext path against bound API payload data.
@@ -87,8 +82,10 @@ export function resolveValueContext(
   const locale = options.locale ?? "ar";
   const resolvedPath = resolveShorthandPath(path, locale);
 
-  if (resolvedPath === "images[0].url" && typeof data === "object") {
-    return resolveImageUrl(data as Record<string, unknown>);
+  const imageMatch = resolvedPath.match(IMAGE_INDEX_PATH_RE);
+  if (imageMatch && typeof data === "object") {
+    const index = Number(imageMatch[1]);
+    return resolveBoundImageUrls(data as Record<string, unknown>)[index];
   }
 
   return resolvePath(data, resolvedPath);

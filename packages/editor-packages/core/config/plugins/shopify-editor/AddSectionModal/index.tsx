@@ -6,19 +6,32 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
-import { X, Search, ArrowLeft, Loader2 } from "lucide-react";
-import { getClassNameFactory } from "@/core/lib";
+import { Search, ArrowLeft, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@workspace/ui/components/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@workspace/ui/components/tabs";
+import { Input } from "@workspace/ui/components/input";
+import { Badge } from "@workspace/ui/components/badge";
+import { cn } from "@workspace/ui/lib/utils";
 import { rootDroppableId } from "@/core/lib/root-droppable-id";
 import { getItem } from "@/core/lib/data/get-item";
 import { resolveAndReplaceData } from "@/core/lib/data/resolve-and-replace-data";
 import { useAppStore, useAppStoreApi } from "@/core/store";
+import { applyZonePreset } from "../../../lib/apply-zone-preset";
+import { ROOT_ZONE_HEADER, ROOT_ZONE_FOOTER } from "../../../shell-zones";
 import {
   assertSerializable,
   sectionCatalog,
+  zoneSectionCatalog,
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   type SectionPreset,
+  type CatalogEntry,
   type SectionCategory,
 } from "../section-catalog";
 import {
@@ -29,9 +42,6 @@ import {
   collectionExternalField,
   type CollectionPickerRef,
 } from "@/modules/product/collection/data-store";
-import styles from "./styles.module.css";
-
-const getClassName = getClassNameFactory("AddSectionModal", styles);
 
 type Props = {
   open: boolean;
@@ -39,7 +49,7 @@ type Props = {
   insertIndex?: number;
 };
 
-type TabFilter = "all" | SectionCategory;
+const ALL_ENTRIES: CatalogEntry[] = [...sectionCatalog, ...zoneSectionCatalog];
 
 // ─── Collection picker state ──────────────────────────────────────────────────
 
@@ -73,6 +83,74 @@ function ensureSectionStarterPayload(
   };
 }
 
+// ─── Preset card ────────────────────────────────────────────────────────────
+
+function PresetCard({
+  entry,
+  onPick,
+}: {
+  entry: CatalogEntry;
+  onPick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onPick}
+      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card text-start transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <div
+        className="flex h-20 items-center justify-center border-b border-border/70"
+        style={{ background: entry.gradient }}
+      >
+        <div className="flex size-10 items-center justify-center rounded-full bg-background/85 text-foreground/80 shadow-sm">
+          {entry.icon}
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col gap-1 p-3">
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-semibold text-foreground">
+            {entry.label}
+          </span>
+          {entry.kind === "zone" && (
+            <Badge variant="outline" className="h-4 shrink-0 px-1.5 text-[10px]">
+              الموقع بالكامل
+            </Badge>
+          )}
+        </div>
+        <span className="line-clamp-2 text-xs text-muted-foreground">
+          {entry.description}
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function PresetGrid({
+  entries,
+  emptyHint,
+  onPick,
+}: {
+  entries: CatalogEntry[];
+  emptyHint: string;
+  onPick: (entry: CatalogEntry) => void;
+}) {
+  if (entries.length === 0) {
+    return (
+      <div className="py-16 text-center text-sm text-muted-foreground">
+        {emptyHint}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {entries.map((entry) => (
+        <PresetCard key={entry.id} entry={entry} onPick={() => onPick(entry)} />
+      ))}
+    </div>
+  );
+}
+
 // ─── Collection Picker Step ───────────────────────────────────────────────────
 
 type CollectionPickerStepProps = {
@@ -94,7 +172,6 @@ function CollectionPickerStep({
   const [selected, setSelected] = useState<CollectionPickerRef | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Fetch collection list once on mount
   useEffect(() => {
     setIsLoading(true);
     collectionExternalField
@@ -125,49 +202,53 @@ function CollectionPickerStep({
 
   return (
     <>
-      {/* Step header */}
-      <div className={getClassName("configHeader")}>
+      <DialogHeader className="flex-row items-center gap-3 space-y-0 border-b border-border px-5 py-4">
         <button
           type="button"
-          className={getClassName("backBtn")}
           onClick={onBack}
           disabled={isInserting}
-          aria-label="Back to sections"
+          aria-label="رجوع لقائمة الأقسام"
+          className="flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
         >
-          <ArrowLeft size={16} />
-          <span>رجوع</span>
+          <ArrowLeft size={14} />
+          رجوع
         </button>
-        <div className={getClassName("configPresetLabel")}>
-          <span className={getClassName("configPresetIcon")}>{preset.icon}</span>
+        <DialogTitle className="flex items-center gap-2 text-base">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            {preset.icon}
+          </span>
           {preset.label}
-        </div>
-      </div>
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          اختر مجموعة لربطها بهذا القسم
+        </DialogDescription>
+      </DialogHeader>
 
-      {/* Collection search */}
-      <div className={getClassName("configSearchWrap")}>
-        <Search size={14} className={getClassName("searchIcon")} />
-        <input
+      <div className="relative border-b border-border px-5 py-3">
+        <Search
+          size={14}
+          className="pointer-events-none absolute start-8 top-1/2 -translate-y-1/2 text-muted-foreground"
+        />
+        <Input
           ref={searchRef}
-          type="text"
-          className={getClassName("search")}
-          placeholder={placeholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          placeholder={placeholder}
           disabled={isInserting}
           dir="auto"
+          className="h-9 ps-8 text-sm"
         />
       </div>
 
-      {/* Collection list */}
-      <div className={getClassName("configList")}>
+      <div className="flex min-h-[200px] flex-1 flex-col gap-1.5 overflow-y-auto px-5 py-3">
         {isLoading ? (
-          <div className={getClassName("configLoading")}>
-            <Loader2 size={18} className={getClassName("spin")} />
-            <span>جاري تحميل المجموعات…</span>
+          <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
+            <Loader2 size={18} className="animate-spin" />
+            جاري تحميل المجموعات…
           </div>
         ) : filtered.length === 0 ? (
-          <div className={getClassName("configEmpty")}>
-            لا توجد مجموعات تطابق "{query}".
+          <div className="py-12 text-center text-sm text-muted-foreground">
+            لا توجد مجموعات تطابق &quot;{query}&quot;.
           </div>
         ) : (
           filtered.map((collection) => {
@@ -176,20 +257,21 @@ function CollectionPickerStep({
               <button
                 key={collection.id}
                 type="button"
-                className={`${getClassName("collectionRow")} ${
-                  isSelected ? getClassName("collectionRow--selected") : ""
-                }`}
+                disabled={isInserting}
                 onClick={() =>
                   setSelected(
                     collectionExternalField.mapProp!(collection) as CollectionPickerRef
                   )
                 }
-                disabled={isInserting}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-md border border-border bg-background px-3.5 py-2.5 text-start text-sm transition hover:border-primary/40 hover:bg-muted disabled:pointer-events-none disabled:opacity-60",
+                  isSelected && "border-primary bg-primary/5 ring-2 ring-primary/20"
+                )}
               >
-                <span className={getClassName("collectionName")}>
+                <span className="font-medium text-foreground">
                   {collection.name}
                 </span>
-                <span className={getClassName("collectionCount")}>
+                <span className="shrink-0 text-xs text-muted-foreground">
                   {collection.productCount} منتج
                 </span>
               </button>
@@ -198,24 +280,23 @@ function CollectionPickerStep({
         )}
       </div>
 
-      {/* Footer */}
-      <div className={getClassName("configFooter")}>
+      <div className="flex items-center justify-end gap-3 border-t border-border bg-muted/40 px-5 py-3.5">
         {selected && (
-          <span className={getClassName("configSelectedLabel")}>
+          <span className="flex-1 truncate text-xs font-medium text-foreground">
             {selected.name}
             {selected.productCount != null && ` · ${selected.productCount} منتج`}
           </span>
         )}
         <button
           type="button"
-          className={getClassName("insertBtn")}
           disabled={!selected || isInserting}
           onClick={() => selected && onInsert(selected)}
+          className="flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
         >
           {isInserting ? (
             <>
-              <Loader2 size={14} className={getClassName("spin")} />
-              <span>جاري التحميل…</span>
+              <Loader2 size={14} className="animate-spin" />
+              جاري التحميل…
             </>
           ) : (
             "إضافة القسم"
@@ -230,20 +311,17 @@ function CollectionPickerStep({
 
 export function AddSectionModal({ open, onClose, insertIndex }: Props) {
   const dispatch = useAppStore((s) => s.dispatch);
+  const storeApi = useAppStoreApi();
 
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState<TabFilter>("all");
+  const [tab, setTab] = useState<SectionCategory>(CATEGORY_ORDER[0]!);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const isInsertingRef = useRef(false);
 
-  // Config step state
   const [configuringPreset, setConfiguringPreset] =
     useState<SectionPreset | null>(null);
   const [isInserting, setIsInserting] = useState(false);
 
-  const storeApi = useAppStoreApi();
-
-  // Reset on close
   useEffect(() => {
     if (open) {
       isInsertingRef.current = false;
@@ -253,54 +331,36 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
       return () => clearTimeout(id);
     }
     setSearch("");
-    setTab("all");
+    setTab(CATEGORY_ORDER[0]!);
     setConfiguringPreset(null);
     setIsInserting(false);
   }, [open]);
 
-  // Close on Escape (only when not in insert config step)
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (configuringPreset) {
-          setConfiguringPreset(null);
-        } else {
-          onClose();
-        }
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose, configuringPreset]);
-
-  const filtered: SectionPreset[] = useMemo(() => {
+  const searchResults: CatalogEntry[] | null = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return sectionCatalog.filter((p) => {
-      if (tab !== "all" && p.category !== tab) return false;
-      if (!q) return true;
-      return (
-        p.label.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.id.toLowerCase().includes(q)
-      );
-    });
-  }, [search, tab]);
-
-  const visibleTabs: TabFilter[] = useMemo(() => {
-    const present = new Set<SectionCategory>(
-      sectionCatalog.map((p) => p.category)
+    if (!q) return null;
+    return ALL_ENTRIES.filter(
+      (entry) =>
+        entry.label.toLowerCase().includes(q) ||
+        entry.description.toLowerCase().includes(q) ||
+        entry.id.toLowerCase().includes(q)
     );
-    return ["all", ...CATEGORY_ORDER.filter((c) => present.has(c))];
+  }, [search]);
+
+  const grouped = useMemo(() => {
+    const map = new Map<SectionCategory, CatalogEntry[]>();
+    for (const category of CATEGORY_ORDER) map.set(category, []);
+    for (const entry of ALL_ENTRIES) map.get(entry.category)?.push(entry);
+    return map;
   }, []);
 
   const quickPicks = useMemo(() => {
     return ["hero-band", "two-column", "faq-accordion"]
       .map((id) => sectionCatalog.find((preset) => preset.id === id))
-      .filter((preset) => !!preset) as SectionPreset[];
+      .filter((preset): preset is SectionPreset => !!preset);
   }, []);
 
-  const showQuickPicks = tab === "all" && search.trim() === "";
+  const showQuickPicks = !configuringPreset && !searchResults;
 
   /** Dispatch a fully-built payload immediately. */
   const dispatchPayload = useCallback(
@@ -340,26 +400,38 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
     [dispatch, storeApi, insertIndex, onClose]
   );
 
-  /** Handle a regular (non-configurable) preset click. */
+  /** Handle a preset/zone card click from the catalog grid. */
   const handlePick = useCallback(
-    (preset: SectionPreset) => {
+    (entry: CatalogEntry) => {
       if (isInsertingRef.current) return;
 
+      if (entry.kind === "zone") {
+        isInsertingRef.current = true;
+        onClose();
+        applyZonePreset(
+          entry.zoneTarget === "header" ? ROOT_ZONE_HEADER : ROOT_ZONE_FOOTER,
+          entry.preset,
+          storeApi
+        );
+        isInsertingRef.current = false;
+        return;
+      }
+
       // Configurable preset → go to config step instead of inserting immediately
-      if (preset.configFields && preset.configFields.length > 0) {
-        setConfiguringPreset(preset);
+      if (entry.configFields && entry.configFields.length > 0) {
+        setConfiguringPreset(entry);
         return;
       }
 
       isInsertingRef.current = true;
 
       if (process.env.NODE_ENV !== "production") {
-        assertSerializable(preset);
+        assertSerializable(entry);
       }
 
-      void dispatchPayload(preset.build());
+      void dispatchPayload(entry.build());
     },
-    [dispatchPayload]
+    [dispatchPayload, onClose, storeApi]
   );
 
   /**
@@ -388,21 +460,23 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
     [dispatchPayload]
   );
 
-  if (!open) return null;
-  if (typeof document === "undefined") return null;
-
-  return createPortal(
-    <div
-      className={getClassName("overlay")}
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !isInserting) onClose();
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (next) return;
+        if (isInserting) return;
+        if (configuringPreset) {
+          setConfiguringPreset(null);
+          return;
+        }
+        onClose();
       }}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Add section"
     >
-      <div className={getClassName("dialog")}>
-        {/* ── Config step ───────────────────────────────────────────────── */}
+      <DialogContent
+        size="lg"
+        className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-[900px]"
+      >
         {configuringPreset ? (
           <CollectionPickerStep
             preset={configuringPreset}
@@ -414,133 +488,92 @@ export function AddSectionModal({ open, onClose, insertIndex }: Props) {
           />
         ) : (
           <>
-            {/* ── Catalog step ────────────────────────────────────────── */}
-            {/* Header */}
-            <div className={getClassName("header")}>
-              <div className={getClassName("titleGroup")}>
-                <h2 className={getClassName("title")}>إضافة قسم</h2>
-                <p className={getClassName("subtitle")}>
-                  اختر قسماً جاهزاً — يمكنك تخصيص كل عنصر فيه لاحقاً.
-                </p>
-              </div>
-              <button
-                type="button"
-                className={getClassName("close")}
-                onClick={onClose}
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
-            </div>
+            <DialogHeader className="border-b border-border px-5 py-4">
+              <DialogTitle>إضافة قسم</DialogTitle>
+              <DialogDescription>
+                اختر قسماً جاهزاً — يمكنك تخصيص كل عنصر فيه لاحقاً.
+              </DialogDescription>
+            </DialogHeader>
 
-            {/* Toolbar */}
-            <div className={getClassName("toolbar")}>
-              <div className={getClassName("searchWrap")}>
-                <Search size={14} className={getClassName("searchIcon")} />
-                <input
+            <div className="flex flex-col gap-3 px-5 pt-4">
+              <div className="relative">
+                <Search
+                  size={14}
+                  className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                />
+                <Input
                   ref={searchInputRef}
-                  type="text"
-                  className={getClassName("search")}
-                  placeholder="ابحث في الأقسام…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && filtered.length > 0) {
+                    if (e.key === "Enter" && searchResults && searchResults.length > 0) {
                       e.preventDefault();
-                      handlePick(filtered[0]!);
+                      handlePick(searchResults[0]!);
                     }
                   }}
-                  dir="ltr"
+                  placeholder="ابحث في الأقسام…"
+                  dir="auto"
+                  className="h-9 ps-8 text-sm"
                 />
               </div>
 
-              <div className={getClassName("categoryTabs")}>
-                {visibleTabs.map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    className={`${getClassName("tab")} ${
-                      tab === t ? getClassName("tab--active") : ""
-                    }`.trim()}
-                    onClick={() => setTab(t)}
-                  >
-                    {t === "all" ? "الكل" : CATEGORY_LABELS[t]}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {showQuickPicks && quickPicks.length > 0 && (
-              <div className={getClassName("quickPicks")}>
-                <span className={getClassName("quickPicksLabel")}>
-                  Quick start
-                </span>
-                <div className={getClassName("quickPicksList")}>
+              {showQuickPicks && quickPicks.length > 0 && (
+                <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
+                  <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    البداية السريعة
+                  </span>
                   {quickPicks.map((preset) => (
                     <button
                       key={preset.id}
                       type="button"
-                      className={getClassName("quickPick")}
                       onClick={() => handlePick(preset)}
+                      className="shrink-0 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition hover:border-primary/40 hover:bg-muted"
                     >
                       {preset.label}
                     </button>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/* Card grid */}
-            <div className={getClassName("grid")}>
-              {filtered.length === 0 ? (
-                <div className={getClassName("empty")}>
-                  لا توجد أقسام تطابق "{search}". جرّب كلمة بحث أخرى.
-                  <div className={getClassName("emptyActions")}>
-                    <button
-                      type="button"
-                      className={getClassName("emptyActionBtn")}
-                      onClick={() => {
-                        setSearch("");
-                        setTab("all");
-                        searchInputRef.current?.focus();
-                      }}
-                    >
-                      مسح عوامل التصفية
-                    </button>
-                  </div>
-                </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              {searchResults ? (
+                <PresetGrid
+                  entries={searchResults}
+                  emptyHint={`لا توجد أقسام تطابق "${search}". جرّب كلمة بحث أخرى.`}
+                  onPick={handlePick}
+                />
               ) : (
-                filtered.map((preset) => (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    className={getClassName("card")}
-                    onClick={() => handlePick(preset)}
-                  >
-                    <div
-                      className={getClassName("thumb")}
-                      style={{ background: preset.gradient }}
-                    >
-                      <div className={getClassName("thumbIcon")}>
-                        {preset.icon}
-                      </div>
-                    </div>
-                    <div className={getClassName("cardBody")}>
-                      <span className={getClassName("cardLabel")}>
-                        {preset.label}
-                      </span>
-                      <span className={getClassName("cardDesc")}>
-                        {preset.description}
-                      </span>
-                    </div>
-                  </button>
-                ))
+                <Tabs
+                  value={tab}
+                  onValueChange={(value) => setTab(value as SectionCategory)}
+                >
+                  <TabsList className="mb-4 w-full">
+                    {CATEGORY_ORDER.map((category) => (
+                      <TabsTrigger
+                        key={category}
+                        value={category}
+                        className="flex-1"
+                      >
+                        {CATEGORY_LABELS[category]}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {CATEGORY_ORDER.map((category) => (
+                    <TabsContent key={category} value={category} className="mt-0">
+                      <PresetGrid
+                        entries={grouped.get(category) ?? []}
+                        emptyHint="لا توجد قوالب في هذه الفئة بعد."
+                        onPick={handlePick}
+                      />
+                    </TabsContent>
+                  ))}
+                </Tabs>
               )}
             </div>
           </>
         )}
-      </div>
-    </div>,
-    document.body
+      </DialogContent>
+    </Dialog>
   );
 }
