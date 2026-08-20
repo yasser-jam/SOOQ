@@ -32,6 +32,8 @@ export type AppConfigJson = {
 	apiBaseUrl: string
 	bundleId: string
 	iconUrl?: string
+	config_url?: string
+	tenant_id?: string | null
 	[key: string]: unknown
 }
 

@@ -74,12 +74,23 @@ export const listConfigurations = async (): Promise<AppConfiguration[]> => {
 	return toArray(unwrap(response))
 }
 
+/** Mobile app's public web-config endpoint — always sent alongside merchant-supplied config values. */
+const MOBILE_CONFIG_URL =
+	"https://shopengine-production-9b4c.up.railway.app/api/v1/public/design/config?platform=web"
+
 export const createConfiguration = async (configJson: AppConfigJson): Promise<AppConfiguration> =>
 	unwrap(
 		await api<ApiResponse<AppConfiguration>>("/app-configurations", {
 			method: "POST",
 			headers: tenantHeaders(),
-			body: { schemaVersion: "1.0.0", configJson },
+			body: {
+				schemaVersion: "1.0.0",
+				configJson: {
+					...configJson,
+					config_url: MOBILE_CONFIG_URL,
+					tenant_id: getEditorTenantId(),
+				},
+			},
 		})
 	)
 
