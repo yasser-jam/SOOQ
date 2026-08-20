@@ -87,7 +87,7 @@
           "id": "SiteHeader-shell",
           "title": {
             "ar": "نوفا",
-            "en": "RAWAQ"
+            "en": "Nova"
           },
           "variant": "commerce",
           "language": "ar",
@@ -151,8 +151,8 @@
               "showCondition": "loggedIn"
             }
           ],
-          "backgroundColor": "#fffdf9",
-          "textColor": "#2f261d",
+          "backgroundColor": "#05070d",
+          "textColor": "#e7ebfb",
           "layoutMode": "centered",
           "menuAlign": "start",
           "navStyle": "underline",
@@ -249,7 +249,7 @@
           "id": "SiteFooter-shell",
           "title": {
             "ar": "نوفا",
-            "en": "RAWAQ"
+            "en": "Nova"
           },
           "variant": "commerce",
           "language": "ar",
@@ -283,12 +283,12 @@
                 },
                 {
                   "label": {
-                    "ar": "غرف الجلوس",
-                    "en": "Living room"
+                    "ar": "أحدث العروض",
+                    "en": "Latest deals"
                   },
                   "link": {
                     "kind": "anchor",
-                    "hash": "categories"
+                    "hash": "featured"
                   }
                 },
                 {
@@ -306,8 +306,8 @@
             },
             {
               "title": {
-                "ar": "نوفا",
-                "en": "Workshop"
+                "ar": "من نحن",
+                "en": "About"
               },
               "links": [
                 {
@@ -322,12 +322,12 @@
                 },
                 {
                   "label": {
-                    "ar": "الخامات",
-                    "en": "Materials"
+                    "ar": "لماذا نوفا",
+                    "en": "Why Nova"
                   },
                   "link": {
                     "kind": "anchor",
-                    "hash": "materials"
+                    "hash": "why-nova"
                   }
                 },
                 {
@@ -417,8 +417,8 @@
               }
             }
           ],
-          "backgroundColor": "#2a231d",
-          "textColor": "#e8dfd1"
+          "backgroundColor": "#05070d",
+          "textColor": "#e7ebfb"
         }
       }
     ],
@@ -2706,7 +2706,7 @@
           "props": {
             "id": "Section-home-specs",
             "name": "لماذا نوفا (Why Nova)",
-            "anchorId": "",
+            "anchorId": "why-nova",
             "visible": true,
             "paddingTop": "96px",
             "paddingBottom": "96px",
@@ -3836,15 +3836,194 @@
             "paddingTop": "96px",
             "paddingBottom": "120px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#05070d",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
-            "maxWidth": "520px",
-            "columns": 1,
+            "maxWidth": "1040px",
+            "columns": 2,
             "columnsMobile": 1,
-            "gridGap": "32px",
+            "gridGap": "40px",
             "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-login-brand-panel",
+                  "direction": "column",
+                  "gap": 20,
+                  "alignItems": "flex-start",
+                  "justifyContent": "center",
+                  "wrap": "nowrap",
+                  "backgroundColor": "#141a2e",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "40px",
+                  "borderRadius": "theme-md",
+                  "boxShadow": "none",
+                  "product": null,
+                  "metadata": null,
+                  "language": "ar",
+                  "layout": {
+                    "grow": true,
+                    "spanCol": 1,
+                    "spanRow": 1,
+                    "padding": "0px"
+                  },
+                  "content": [
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "Heading-login-panel",
+                        "text": {
+                          "ar": "تسوّق إلكترونيات أصلية بضمان حقيقي",
+                          "en": "Genuine electronics, real warranty"
+                        },
+                        "level": "2",
+                        "textAlign": "right",
+                        "fontFamily": "option1",
+                        "fontSize": "theme-xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "id": "RowGroup-login-perk-1",
+                        "gap": 12,
+                        "alignItems": "center",
+                        "justifyContent": "flex-start",
+                        "wrap": "nowrap",
+                        "backgroundColor": "",
+                        "padding": "0px",
+                        "borderRadius": "theme-none",
+                        "content": [
+                          {
+                            "type": "ContentIcon",
+                            "props": {
+                              "id": "Icon-login-perk-1",
+                              "icon": "shield-check",
+                              "size": 22,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-login-perk-1",
+                              "text": {
+                                "ar": "قطع أصلية 100% مع ضمان الوكيل",
+                                "en": "100% genuine, with dealer warranty"
+                              },
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-sm",
+                              "fontWeight": "theme-light",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-neutral"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "id": "RowGroup-login-perk-2",
+                        "gap": 12,
+                        "alignItems": "center",
+                        "justifyContent": "flex-start",
+                        "wrap": "nowrap",
+                        "backgroundColor": "",
+                        "padding": "0px",
+                        "borderRadius": "theme-none",
+                        "content": [
+                          {
+                            "type": "ContentIcon",
+                            "props": {
+                              "id": "Icon-login-perk-2",
+                              "icon": "truck",
+                              "size": 22,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-login-perk-2",
+                              "text": {
+                                "ar": "توصيل سريع خلال 24-48 ساعة",
+                                "en": "Fast delivery within 24–48 hours"
+                              },
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-sm",
+                              "fontWeight": "theme-light",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-neutral"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "id": "RowGroup-login-perk-3",
+                        "gap": 12,
+                        "alignItems": "center",
+                        "justifyContent": "flex-start",
+                        "wrap": "nowrap",
+                        "backgroundColor": "",
+                        "padding": "0px",
+                        "borderRadius": "theme-none",
+                        "content": [
+                          {
+                            "type": "ContentIcon",
+                            "props": {
+                              "id": "Icon-login-perk-3",
+                              "icon": "headset",
+                              "size": 22,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-login-perk-3",
+                              "text": {
+                                "ar": "دعم فني بعد البيع على مدار الأسبوع",
+                                "en": "After-sale support, all week"
+                              },
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-sm",
+                              "fontWeight": "theme-light",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-neutral"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
               {
                 "type": "Group",
                 "props": {
@@ -3854,7 +4033,7 @@
                   "alignItems": "stretch",
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
                   "padding": "40px",
@@ -3870,7 +4049,7 @@
                         "id": "Paragraph-login-eyebrow",
                         "text": {
                           "ar": "نوفا",
-                          "en": "RAWAQ"
+                          "en": "Nova"
                         },
                         "textAlign": "right",
                         "fontFamily": "option2",
@@ -3926,7 +4105,7 @@
                         "thickness": "1px",
                         "colorMode": "theme",
                         "colorTheme": "neutral",
-                        "colorFixed": "#efe6d8"
+                        "colorFixed": "#1e2842"
                       }
                     },
                     {
@@ -3998,7 +4177,7 @@
                         "thickness": "1px",
                         "colorMode": "theme",
                         "colorTheme": "neutral",
-                        "colorFixed": "#efe6d8"
+                        "colorFixed": "#1e2842"
                       }
                     },
                     {
@@ -4022,7 +4201,13 @@
                         "iconPosition": "end"
                       }
                     }
-                  ]
+                  ],
+                  "layout": {
+                    "grow": true,
+                    "spanCol": 1,
+                    "spanRow": 1,
+                    "padding": "0px"
+                  }
                 }
               }
             ]
@@ -4068,15 +4253,91 @@
             "paddingTop": "96px",
             "paddingBottom": "120px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#efe6d8",
+            "backgroundColor": "#05070d",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
-            "maxWidth": "520px",
-            "columns": 1,
+            "maxWidth": "1040px",
+            "columns": 2,
             "columnsMobile": 1,
-            "gridGap": "32px",
+            "gridGap": "40px",
             "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-otp-brand-panel",
+                  "direction": "column",
+                  "gap": 20,
+                  "alignItems": "flex-start",
+                  "justifyContent": "center",
+                  "wrap": "nowrap",
+                  "backgroundColor": "#141a2e",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "40px",
+                  "borderRadius": "theme-md",
+                  "boxShadow": "none",
+                  "product": null,
+                  "metadata": null,
+                  "language": "ar",
+                  "layout": {
+                    "grow": true,
+                    "spanCol": 1,
+                    "spanRow": 1,
+                    "padding": "0px"
+                  },
+                  "content": [
+                    {
+                      "type": "ContentIcon",
+                      "props": {
+                        "id": "Icon-otp-panel",
+                        "icon": "shield-check",
+                        "size": 40,
+                        "colorMode": "theme",
+                        "colorTheme": "primary",
+                        "colorFixed": "#4f6df5"
+                      }
+                    },
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "Heading-otp-panel",
+                        "text": {
+                          "ar": "خطوة أخيرة لحماية حسابك",
+                          "en": "One last step to secure your account"
+                        },
+                        "level": "2",
+                        "textAlign": "right",
+                        "fontFamily": "option1",
+                        "fontSize": "theme-xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-otp-panel",
+                        "text": {
+                          "ar": "الرمز صالح لدقائق قليلة فقط — أدخله لمتابعة طلباتك وحفظ عناوينك بأمان.",
+                          "en": "The code is valid for a few minutes only — enter it to keep your orders and addresses secure."
+                        },
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-sm",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-neutral"
+                      }
+                    }
+                  ]
+                }
+              },
               {
                 "type": "Group",
                 "props": {
@@ -4086,7 +4347,7 @@
                   "alignItems": "stretch",
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
                   "padding": "40px",
@@ -4158,7 +4419,7 @@
                         "thickness": "1px",
                         "colorMode": "theme",
                         "colorTheme": "neutral",
-                        "colorFixed": "#efe6d8"
+                        "colorFixed": "#1e2842"
                       }
                     },
                     {
@@ -4225,7 +4486,13 @@
                         "iconPosition": "end"
                       }
                     }
-                  ]
+                  ],
+                  "layout": {
+                    "grow": true,
+                    "spanCol": 1,
+                    "spanRow": 1,
+                    "padding": "0px"
+                  }
                 }
               }
             ]
@@ -5123,30 +5390,6 @@
                                       "grow": true
                                     }
                                   }
-                                },
-                                {
-                                  "type": "ContentImage",
-                                  "props": {
-                                    "id": "Image-product-thumb-3",
-                                    "src": "https://placehold.co/600x600/141a2e/4f6df5?text=%D9%85%D9%86%D8%AA%D8%AC",
-                                    "alt": {
-                                      "ar": "",
-                                      "en": ""
-                                    },
-                                    "align": "center",
-                                    "objectFit": "cover",
-                                    "radius": "theme-sm",
-                                    "maxWidth": "120px",
-                                    "valueContext": {
-                                      "path": "images[3].url"
-                                    },
-                                    "altValueContext": {
-                                      "path": "product.title"
-                                    },
-                                    "layout": {
-                                      "grow": true
-                                    }
-                                  }
                                 }
                               ]
                             }
@@ -5191,7 +5434,7 @@
                               "maxItems": 4,
                               "radius": "theme-sm",
                               "bgColor": "#0f1424",
-                              "textColor": "#5f4b36",
+                              "textColor": "theme-neutral",
                               "listValueContext": {
                                 "path": "product.categories"
                               }
@@ -5304,7 +5547,7 @@
                               "maxItems": 6,
                               "radius": "theme-sm",
                               "bgColor": "transparent",
-                              "textColor": "#8c7f6f",
+                              "textColor": "theme-neutral",
                               "listValueContext": {
                                 "path": "product.tags"
                               }
@@ -5531,6 +5774,237 @@
         {
           "type": "Section",
           "props": {
+            "id": "Section-product-video",
+            "name": "شاهد نوفا عن قرب (See Nova up close)",
+            "anchorId": "",
+            "visible": true,
+            "paddingTop": "72px",
+            "paddingBottom": "72px",
+            "paddingHorizontal": "32px",
+            "backgroundColor": "#0b0f1a",
+            "backgroundImage": "",
+            "backgroundOverlayColor": "",
+            "theme": "dark",
+            "maxWidth": "1180px",
+            "columns": 2,
+            "columnsMobile": 1,
+            "gridGap": "40px",
+            "content": [
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-product-video-media",
+                  "direction": "column",
+                  "gap": 0,
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "wrap": "nowrap",
+                  "backgroundColor": "#141a2e",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "16px",
+                  "borderRadius": "theme-md",
+                  "boxShadow": "none",
+                  "product": null,
+                  "metadata": null,
+                  "language": "ar",
+                  "layout": {
+                    "grow": true,
+                    "spanCol": 1,
+                    "spanRow": 1,
+                    "padding": "0px"
+                  },
+                  "content": [
+                    {
+                      "type": "VideoEmbed",
+                      "props": {
+                        "id": "VideoEmbed-product-demo",
+                        "src": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                        "align": "center",
+                        "size": "theme-315",
+                        "radius": "theme-md"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Group",
+                "props": {
+                  "id": "Group-product-video-text",
+                  "direction": "column",
+                  "gap": 16,
+                  "alignItems": "stretch",
+                  "justifyContent": "center",
+                  "wrap": "nowrap",
+                  "backgroundColor": "",
+                  "backgroundImage": "",
+                  "backgroundOverlayColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none",
+                  "boxShadow": "none",
+                  "product": null,
+                  "metadata": null,
+                  "language": "ar",
+                  "layout": {
+                    "grow": true,
+                    "spanCol": 1,
+                    "spanRow": 1,
+                    "padding": "0px"
+                  },
+                  "content": [
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-product-video-eyebrow",
+                        "text": {
+                          "ar": "قبل الشحن",
+                          "en": "Before it ships"
+                        },
+                        "textAlign": "right",
+                        "fontFamily": "option2",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-normal",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-primary"
+                      }
+                    },
+                    {
+                      "type": "ContentHeading",
+                      "props": {
+                        "id": "Heading-product-video",
+                        "text": {
+                          "ar": "كل جهاز يمر بفحص شامل قبل أن يصلك",
+                          "en": "Every device is fully inspected before it reaches you"
+                        },
+                        "level": "2",
+                        "textAlign": "right",
+                        "fontFamily": "option1",
+                        "fontSize": "theme-xl",
+                        "fontWeight": "theme-bold",
+                        "lineHeight": "theme-tight",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-text"
+                      }
+                    },
+                    {
+                      "type": "ContentParagraph",
+                      "props": {
+                        "id": "Paragraph-product-video-body",
+                        "text": {
+                          "ar": "شاهد كيف نفحص ونغلّف كل طلب داخل مستودعنا في دمشق، قبل تسليمه لفريق التوصيل خلال 24-48 ساعة.",
+                          "en": "See how we inspect and pack every order in our Damascus warehouse before handing it to delivery within 24–48 hours."
+                        },
+                        "textAlign": "right",
+                        "fontFamily": "body",
+                        "fontSize": "theme-md",
+                        "fontWeight": "theme-light",
+                        "lineHeight": "theme-relaxed",
+                        "fontStyle": "normal",
+                        "textTransform": "none",
+                        "color": "theme-neutral"
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "id": "RowGroup-product-video-perk-1",
+                        "gap": 12,
+                        "alignItems": "center",
+                        "justifyContent": "flex-start",
+                        "wrap": "nowrap",
+                        "backgroundColor": "",
+                        "padding": "0px",
+                        "borderRadius": "theme-none",
+                        "content": [
+                          {
+                            "type": "ContentIcon",
+                            "props": {
+                              "id": "Icon-product-video-perk-1",
+                              "icon": "shield-check",
+                              "size": 22,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-product-video-perk-1",
+                              "text": {
+                                "ar": "سنتان ضمان أصلي من الوكيل",
+                                "en": "Two years genuine dealer warranty"
+                              },
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-sm",
+                              "fontWeight": "theme-light",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-neutral"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "RowGroup",
+                      "props": {
+                        "id": "RowGroup-product-video-perk-2",
+                        "gap": 12,
+                        "alignItems": "center",
+                        "justifyContent": "flex-start",
+                        "wrap": "nowrap",
+                        "backgroundColor": "",
+                        "padding": "0px",
+                        "borderRadius": "theme-none",
+                        "content": [
+                          {
+                            "type": "ContentIcon",
+                            "props": {
+                              "id": "Icon-product-video-perk-2",
+                              "icon": "headset",
+                              "size": 22,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-product-video-perk-2",
+                              "text": {
+                                "ar": "دعم فني بعد البيع على مدار الأسبوع",
+                                "en": "After-sale technical support, all week"
+                              },
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-sm",
+                              "fontWeight": "theme-light",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-neutral"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Section",
+          "props": {
             "id": "Section-product-related",
             "name": "قد يناسبها أيضاً (You may also like)",
             "anchorId": "related",
@@ -5667,7 +6141,7 @@
                                     "maxItems": 2,
                                     "radius": "theme-sm",
                                     "bgColor": "#0f1424",
-                                    "textColor": "#5f4b36",
+                                    "textColor": "theme-neutral",
                                     "listValueContext": {
                                       "path": "product.categories"
                                     }
@@ -5846,7 +6320,7 @@
                                     "maxItems": 2,
                                     "radius": "theme-sm",
                                     "bgColor": "#0f1424",
-                                    "textColor": "#5f4b36",
+                                    "textColor": "theme-neutral",
                                     "listValueContext": {
                                       "path": "product.categories"
                                     }
@@ -5965,10 +6439,10 @@
             "type": "navigate",
             "route": "/cart"
           },
-          "foregroundColor": "#2f261d"
+          "foregroundColor": "#e7ebfb"
         },
         "style": {
-          "background": "#FFFFFF"
+          "background": "#05070d"
         }
       }
     },
@@ -6000,7 +6474,7 @@
             "paddingTop": "72px",
             "paddingBottom": "104px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#05070d",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -6070,13 +6544,136 @@
                 }
               },
               {
+                "type": "RowGroup",
+                "props": {
+                  "id": "RowGroup-cart-perks",
+                  "gap": 16,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "wrap": "wrap",
+                  "backgroundColor": "",
+                  "padding": "0px",
+                  "borderRadius": "theme-none",
+                  "content": [
+                    {
+                      "type": "Group",
+                      "props": {
+                        "id": "Group-cart-perk-delivery",
+                        "direction": "row",
+                        "gap": 12,
+                        "alignItems": "center",
+                        "justifyContent": "flex-start",
+                        "wrap": "nowrap",
+                        "backgroundColor": "#141a2e",
+                        "backgroundImage": "",
+                        "backgroundOverlayColor": "",
+                        "padding": "16px",
+                        "borderRadius": "theme-md",
+                        "boxShadow": "none",
+                        "product": null,
+                        "metadata": null,
+                        "language": "ar",
+                        "layout": {
+                          "grow": true
+                        },
+                        "content": [
+                          {
+                            "type": "ContentIcon",
+                            "props": {
+                              "id": "Icon-cart-perk-delivery",
+                              "icon": "truck",
+                              "size": 24,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-cart-perk-delivery",
+                              "text": {
+                                "ar": "توصيل خلال 24-48 ساعة",
+                                "en": "Delivery within 24–48 hours"
+                              },
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-sm",
+                              "fontWeight": "theme-light",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Group",
+                      "props": {
+                        "id": "Group-cart-perk-cod",
+                        "direction": "row",
+                        "gap": 12,
+                        "alignItems": "center",
+                        "justifyContent": "flex-start",
+                        "wrap": "nowrap",
+                        "backgroundColor": "#141a2e",
+                        "backgroundImage": "",
+                        "backgroundOverlayColor": "",
+                        "padding": "16px",
+                        "borderRadius": "theme-md",
+                        "boxShadow": "none",
+                        "product": null,
+                        "metadata": null,
+                        "language": "ar",
+                        "layout": {
+                          "grow": true
+                        },
+                        "content": [
+                          {
+                            "type": "ContentIcon",
+                            "props": {
+                              "id": "Icon-cart-perk-cod",
+                              "icon": "banknote",
+                              "size": 24,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
+                            }
+                          },
+                          {
+                            "type": "ContentParagraph",
+                            "props": {
+                              "id": "Paragraph-cart-perk-cod",
+                              "text": {
+                                "ar": "ادفع نقداً عند الاستلام",
+                                "en": "Pay cash on delivery"
+                              },
+                              "textAlign": "right",
+                              "fontFamily": "body",
+                              "fontSize": "theme-sm",
+                              "fontWeight": "theme-light",
+                              "lineHeight": "theme-normal",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
                 "type": "ContentDivider",
                 "props": {
                   "id": "Divider-cart",
                   "thickness": "1px",
                   "colorMode": "theme",
                   "colorTheme": "neutral",
-                  "colorFixed": "#efe6d8"
+                  "colorFixed": "#1e2842"
                 }
               },
               {
@@ -6135,10 +6732,10 @@
           "title": "سلة التسوق",
           "elevation": 0,
           "height": 62,
-          "foregroundColor": "#2f261d"
+          "foregroundColor": "#e7ebfb"
         },
         "style": {
-          "background": "#FFFFFF"
+          "background": "#05070d"
         }
       }
     },
