@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   Check,
   ExternalLink,
+  Eye,
   Loader2,
   Monitor,
   MoreVertical,
@@ -54,6 +55,7 @@ import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 import ThemeMarketplaceCard from "./_components/theme-marketplace-card"
 import { ThemeOnboardingDialog } from "./_components/theme-onboarding-dialog"
 import {
+  buildDesignPreviewHref,
   buildStudioMobileEditHref,
   themeNameToStudioSegment,
 } from "@/lib/design-studio-paths"
@@ -439,6 +441,7 @@ export default function DesignStudioPage() {
           lifecycleStatus={draft.lifecycleStatus}
           themeEditHref={themeEditHref}
           themeMobileEditHref={themeMobileEditHref}
+          previewHref={buildDesignPreviewHref()}
           shopUrl={shopUrl}
           canWrite={canWrite}
           isPending={isSettingsPending}
@@ -487,6 +490,11 @@ export default function DesignStudioPage() {
                       ? "قالبي"
                       : "محلي"
                 }
+                href={buildDesignPreviewHref(
+                  template.source === "MINE" && template.templateId
+                    ? { templateId: template.templateId, templateName: template.templateName }
+                    : { templateKey: template.templateKey, templateName: template.templateName }
+                )}
                 actions={renderMineTemplateActions(template)}
                 onSelect={
                   canWrite ? () => {
@@ -803,6 +811,7 @@ function ActiveThemeCard({
   lifecycleStatus,
   themeEditHref,
   themeMobileEditHref,
+  previewHref,
   shopUrl,
   canWrite,
   isPending,
@@ -814,6 +823,7 @@ function ActiveThemeCard({
   lifecycleStatus: string
   themeEditHref: string
   themeMobileEditHref: string
+  previewHref: string
   shopUrl: string
   canWrite: boolean
   isPending: boolean
@@ -877,6 +887,12 @@ function ActiveThemeCard({
 
           {/* Action buttons */}
           <div className="mt-auto flex flex-wrap gap-2.5 pt-2">
+            <Button variant="outline" asChild>
+              <Link href={previewHref}>
+                <Eye data-icon="inline-start" className="size-4" />
+                معاينة
+              </Link>
+            </Button>
             {canWrite && (
               <Button variant="secondary" asChild>
                 <Link href={themeMobileEditHref}>

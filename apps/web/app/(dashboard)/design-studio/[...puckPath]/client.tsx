@@ -710,15 +710,46 @@ export function Client({
       window.removeEventListener(PAGES_UPDATED_EVENT, refreshSiteSnapshot)
   }, [editorMode])
 
-  const handleOpenPreview = useCallback(() => {
+  const handleOpenPreview = useCallback(async () => {
     const puckData = exportDataRef.current ?? latestDataRef.current
     if (puckData) {
       savePageData(puckData as UserData)
       siteDataRef.current = readSiteData(editorMode)
       markPageSaved(puckData as UserData)
     }
-    router.push(previewHref)
-  }, [previewHref, router, savePageData, markPageSaved, editorMode])
+
+    // Editing a named template (not the tenant's live draft) still uses the
+    // local-storage preview — /design-preview only ever renders the admin
+    // draft or a gallery template's own saved JSON, neither of which is
+    // "this template plus my unsaved local edits".
+    if (themeSlug) {
+      router.push(previewHref)
+      return
+    }
+
+    // Editing the tenant's live draft — push local edits to the backend
+    // first so /design-preview (GET /admin/design/draft) reflects what's on
+    // screen instead of a stale server copy.
+    if (canWrite) {
+      try {
+        await saveWebDesignDraft(readSiteData("desktop"))
+        await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
+      } catch {
+        toast.error("تعذر حفظ التصميم على الخادم. ستظهر المعاينة بآخر نسخة محفوظة.")
+      }
+    }
+
+    router.push("/design-preview")
+  }, [
+    previewHref,
+    router,
+    savePageData,
+    markPageSaved,
+    editorMode,
+    themeSlug,
+    canWrite,
+    queryClient,
+  ])
 
   // The header "حفظ" button: local write (unchanged) + the draft PUT that
   // makes the design survive this browser. Only `configJson.web` carries data

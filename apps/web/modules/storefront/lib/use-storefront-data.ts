@@ -16,7 +16,14 @@ import type { Components } from "@/core/config/types"
 import type { DesignPlatform } from "@/modules/design-studio/types"
 
 import { usePublishedSiteData } from "@/modules/storefront/lib/use-published-site-data"
+import { useDraftSiteData } from "@/modules/storefront/lib/use-draft-site-data"
+import {
+	useTemplateSiteData,
+	type TemplateRef,
+} from "@/modules/storefront/lib/use-template-site-data"
 import { STORE_HOME_PATH } from "@/modules/storefront/lib/store-config"
+
+export type StorefrontDataSource = "published" | "draft" | "template"
 
 export type StorefrontStatus = "loading" | "not-found-tenant" | "ready"
 
@@ -40,10 +47,19 @@ export function useStorefrontData({
 	path = STORE_HOME_PATH,
 	metadata = {},
 	tenantId,
+	source = "published",
+	templateRef = null,
 }: {
 	path?: string
 	metadata?: Metadata
-	tenantId: string
+	/** Required when `source` is "published"; unused for "draft"/"template"
+	 *  (tenant comes from the admin session's JWT instead of a public tenant
+	 *  cookie). */
+	tenantId?: string
+	source?: StorefrontDataSource
+	/** Required when `source` is "template" — identifies which gallery
+	 *  template's own JSON to preview (as opposed to the tenant's draft). */
+	templateRef?: TemplateRef | null
 }) {
 	const [storefrontMode, setStorefrontMode] = useState<"desktop" | "mobile">(
 		() => resolveStorefrontMode(),
@@ -69,14 +85,28 @@ export function useStorefrontData({
 	// separate mobile config to render here.
 	const platform: DesignPlatform = "web"
 
-	const publishedQuery = usePublishedSiteData(tenantId, platform)
-	const site = publishedQuery.site
+	const publishedQuery = usePublishedSiteData(tenantId ?? "", platform, {
+		enabled: source === "published",
+	})
+	const draftQuery = useDraftSiteData(platform, {
+		enabled: source === "draft",
+	})
+	const templateQuery = useTemplateSiteData(templateRef, platform, {
+		enabled: source === "template",
+	})
+	const activeQuery =
+		source === "draft"
+			? draftQuery
+			: source === "template"
+				? templateQuery
+				: publishedQuery
+	const site = activeQuery.site
 
 	const status = useMemo<StorefrontStatus>(() => {
 		if (site) return "ready"
-		if (publishedQuery.isLoading) return "loading"
+		if (activeQuery.isLoading) return "loading"
 		return "not-found-tenant"
-	}, [site, publishedQuery.isLoading])
+	}, [site, activeQuery.isLoading])
 
 	const matchedPage = useMemo<SitePage | undefined>(
 		() => (site ? findSitePage(site, path) : undefined),

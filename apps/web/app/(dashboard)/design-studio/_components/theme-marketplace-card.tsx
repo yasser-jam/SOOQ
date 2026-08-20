@@ -103,27 +103,34 @@ export default function ThemeMarketplaceCard({
           {description}
         </p>
 
-        {onSelect && (
-          <Button
-            className="mt-3 w-full"
-            variant={isActive ? "outline" : "default"}
-            size="sm"
-            loading={isApplying}
-            disabled={isActive || applyDisabled}
-            onClick={onSelect}
-          >
-            {isActive
-              ? "هذا هو الثيم المطبَّق حالياً"
-              : isApplying
-                ? "جارٍ التطبيق..."
-                : "تطبيق الثيم"}
-          </Button>
-        )}
-        {!onSelect && href && (
-          <Button className="mt-3 w-full" variant="outline" size="sm" asChild>
-            <Link href={href}>معاينة</Link>
-          </Button>
-        )}
+        <div className="mt-3 flex gap-2">
+          {href && (
+            <Button
+              className="flex-1"
+              variant="outline"
+              size="sm"
+              asChild
+            >
+              <Link href={href}>معاينة</Link>
+            </Button>
+          )}
+          {onSelect && (
+            <Button
+              className="flex-1"
+              variant={isActive ? "outline" : "default"}
+              size="sm"
+              loading={isApplying}
+              disabled={isActive || applyDisabled}
+              onClick={onSelect}
+            >
+              {isActive
+                ? "الثيم الحالي"
+                : isApplying
+                  ? "جارٍ التطبيق..."
+                  : "تطبيق الثيم"}
+            </Button>
+          )}
+        </div>
       </div>
     </Card>
   )

@@ -23,22 +23,26 @@ const StoreTenantContext = createContext<StoreTenantContextValue | null>(null)
 
 type StoreTenantProviderProps = {
 	tenantId: string
-	storeSlug: string
+	storeSlug?: string
+	/** Overrides the `/store/:slug`-derived base path — used by contexts that
+	 *  aren't keyed by a public store slug (e.g. the admin draft preview). */
+	basePath?: string
 	children: ReactNode
 }
 
 export function StoreTenantProvider({
 	tenantId,
-	storeSlug,
+	storeSlug = "",
+	basePath,
 	children,
 }: StoreTenantProviderProps) {
 	const value = useMemo(
 		() => ({
 			tenantId,
 			storeSlug,
-			basePath: buildStoreBasePath(storeSlug),
+			basePath: basePath ?? buildStoreBasePath(storeSlug),
 		}),
-		[tenantId, storeSlug],
+		[tenantId, storeSlug, basePath],
 	)
 
 	setTenantIdOverride(tenantId)
