@@ -1548,6 +1548,9 @@ function applyLayout(
     return {
       id: generateId("stack-wrapper"),
       type: "stack",
+      // Unset `fit` defaults to Flutter's `StackFit.loose` — the same broken layout STACK_FIT
+      // exists to avoid on the other two stacks this converter emits.
+      props: { fit: STACK_FIT },
       children: [stacked],
     };
   }
@@ -2850,7 +2853,7 @@ function shouldStackOnPhone(
   // instead, and errs toward stacking: over-stacking costs a layout the merchant did not draw,
   // under-stacking costs the overflow they keep reporting.
   //
-  // The footer itself no longer converts (SITE_FOOTER_DROPPED_WARNING), so that specific row can
+  // The footer itself no longer converts (SiteFooter is skipped entirely), so that specific row can
   // no longer reach here. It is kept as the worked example because it is *why* this is measured
   // rather than assumed, and the same short-label-pair shape shows up in page bodies.
   if (children.length > 1 && children.every((c) => c.type === "button")) {
@@ -2997,6 +3000,10 @@ function variantBoundSource(
   for (const entry of sources) {
     if (!entry || typeof entry !== "object") continue;
     const source = entry as Record<string, unknown>;
+    // "خيارات المنتج" needs no merchant-typed path — it is always `variantMatrix.variants`,
+    // the same fixed source `ProductVariants` reads. See the short-circuit in
+    // `buildVariantDropdown`.
+    if (source.mode === "productVariants") return { source, itemsField: "variants" };
     if (source.mode !== "bound") continue;
     const itemsField = DROPDOWN_SOURCE_PATH_MAP[(source.sourcePath as string) || ""];
     if (itemsField) return { source, itemsField };
@@ -3103,6 +3110,13 @@ function buildVariantDropdown(
     return noteUnsupportedBlock("ContentDropdown (no product-detail request)");
   }
 
+  // "خيارات المنتج" is the zero-config mode: no name/titlePath/valuePath to get wrong, so skip
+  // straight to the same converter `ProductVariants` uses instead of validating fields that were
+  // never merchant-authored in the first place.
+  if (bound.source.mode === "productVariants") {
+    return transformProductVariants(rootProps);
+  }
+
   if (name !== VARIANT_FIELD_ID) {
     addWarning(
       `ContentDropdown "${name}" emitted with field id "${VARIANT_FIELD_ID}" — cart.addItem only ` +
@@ -3188,7 +3202,7 @@ function buildStaticDropdown(
     if (!entry || typeof entry !== "object") continue;
     const source = entry as Record<string, unknown>;
     const mode = (source.mode as string) || "static";
-    if (mode === "bound") {
+    if (mode === "bound" || mode === "productVariants") {
       boundSources++;
       continue;
     }
@@ -6339,22 +6353,16 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
 
   // Separate zone / shell blocks from body blocks
   const bodyBlocks: Record<string, unknown>[] = [];
-  let headerBlock: Record<string, unknown> | null = null;
   let drawerBlock: Record<string, unknown> | null = null;
 
   for (const block of blocks) {
     const type = block.type as string;
     const bProps = (block.props || {}) as Record<string, unknown>;
 
-    if (type === "SiteHeader" || type === "SiteFooter") {
-      // `visible: false` (ZONES.md activation flag) keeps the zone out of the live site.
-      if (bProps.visible === false) continue;
-      if (type === "SiteHeader") headerBlock = block;
-      else if (rootProps.footerVisible !== false && rootProps.footerVisible !== "false") {
-        addWarning(SITE_FOOTER_DROPPED_WARNING);
-      }
-      continue;
-    }
+    // Mobile has no header/footer zone: skip these entirely, as if they never existed. The appBar
+    // is still built from rootProps fallbacks below (a page always needs one); no SiteFooter
+    // content of any kind reaches the output.
+    if (type === "SiteHeader" || type === "SiteFooter") continue;
 
     if (type === "ZonePopup" || type === "ZoneBottomSheet") {
       if (bProps.is_active === false) {
@@ -6382,7 +6390,9 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
     bodyBlocks.push(block);
   }
 
-  const headerProps = (headerBlock?.props || {}) as Record<string, unknown>;
+  // The header zone is skipped entirely above, so appBar below is always built from rootProps
+  // fallbacks — never from SiteHeader content.
+  const headerProps = {} as Record<string, unknown>;
   const headerDrawerName = (headerProps.drawerName as string) || "";
   if (headerDrawerName) _drawerZoneKeys.add(headerDrawerName);
 
@@ -6494,7 +6504,7 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
   // lifted out of the body (`_pageStickyFooter`). A web `SiteFooter` is site chrome — tagline,
   // link columns, legal row — and mobile has no footer zone to put it in, the same way it has no
   // header zone (SiteHeader survives only as an appBar + drawer, not as a zone). So the block is
-  // dropped at ingest with a warning; see SITE_FOOTER_DROPPED_WARNING.
+  // skipped entirely, silently, at collection — see the SiteHeader/SiteFooter skip above.
   const stickyFooter = _pageStickyFooter;
   const footerNode = rescuedCheckoutFooter || stickyFooter;
 
@@ -6592,24 +6602,14 @@ function buildCenteredViewport(
   };
 }
 
-/**
- * Emitted once per conversion when a visible `SiteFooter` reaches the converter.
- *
- * Mobile has no footer zone. `pages[].footer` is a single pinned action bar the engine draws above
- * the system nav — it holds one checkout CTA, not site chrome — so a web footer's tagline, link
- * columns and legal row have nowhere to land. Rendering them into the body instead was worse: they
- * repeat under every page and push the real content off-screen. The block is dropped, the same way
- * the header zone reaches mobile only as an appBar + drawer rather than as a zone of its own.
- */
-const SITE_FOOTER_DROPPED_WARNING =
-  "SiteFooter is not converted: mobile pages have no footer zone, so the tagline, link columns " +
-  "and legal row are dropped. Move anything that must reach mobile into the drawer (header nav " +
-  "links) or a page body. The pinned bar on cart/checkout pages is the checkout CTA, not this.";
-
 // ─── SiteData ingest (ZONES.md / BLOCKS.md envelope) ────────────────────────
 
-/** Zone bucket order — header first, footer last, overlays in between. */
-const ZONE_ORDER = ["zone-header", "zone-drawer", "zone-popup", "zone-bottom-sheet", "zone-footer"];
+/**
+ * Zone bucket order — overlays only. `zone-header` and `zone-footer` are deliberately absent:
+ * mobile has no header/footer zone, so their blocks are skipped at collection, as if those zones
+ * were never in the input (see `collectZoneBlocks`).
+ */
+const ZONE_ORDER = ["zone-drawer", "zone-popup", "zone-bottom-sheet"];
 
 /**
  * `root:zone-header` | `zone:header` | `root:shell-left-zone` → `zone-header` | `zone-drawer`.
@@ -6630,6 +6630,8 @@ function collectZoneBlocks(zones: unknown): Record<string, unknown>[] {
   for (const [key, value] of Object.entries(zones as Record<string, unknown>)) {
     if (!Array.isArray(value) || value.length === 0) continue;
     const name = canonicalZoneName(key);
+    // Skip the header/footer zones entirely — never bucketed, never merged into a page's blocks.
+    if (name === "zone-header" || name === "zone-footer") continue;
     buckets.set(name, [...(buckets.get(name) || []), ...(value as Record<string, unknown>[])]);
   }
 

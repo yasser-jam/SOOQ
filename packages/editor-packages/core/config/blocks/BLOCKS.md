@@ -1146,7 +1146,7 @@ The two `checkout_*` actions are **bound sources** (`isBoundSelectAction`):
 ## ContentDropdown
 
 **Label:** قائمة منسدلة
-**Description:** A native `<select>` whose option list is assembled from one or more **option sources**. A source is either a hand-typed list, a **repeater** over an array inside the bound payload, or the storefront category list. With `dropdownAction` set it stops being a plain form control and becomes a real selector — the product-variant picker on a product-detail page, or the category filter on a products page.
+**Description:** A native `<select>` whose option list is assembled from one or more **option sources**. A source is either a hand-typed list, a **repeater** over an array inside the bound payload, the storefront category list, or the zero-config product-variant source. With `dropdownAction` set it stops being a plain form control and becomes a real selector — the product-variant picker on a product-detail page, or the category filter on a products page.
 
 ### Properties
 
@@ -1173,12 +1173,16 @@ fields below show on every entry — `mode` decides which ones are actually read
 
 | Field | Type | Read when | Notes |
 |---|---|---|---|
-| `mode` | `"static" \| "bound" \| "categories"` | always | مصدر القيم |
+| `mode` | `"static" \| "bound" \| "categories" \| "productVariants"` | always | مصدر القيم |
 | `groupLabel` | **`BilingualString`** | always | `<optgroup label>` — empty = ungrouped |
 | `values` | `{ title: BilingualString; value: string }[]` | `static` | The hand-typed options |
 | `sourcePath` | `string` | `bound` | Path to an **array** in the bound payload (e.g. `variantMatrix.variants`) |
 | `titlePath` | `string` | `bound` | Path **inside each row** for the visible text |
 | `valuePath` | `string` | `bound` | Path **inside each row** for the submitted value |
+
+`sourcePath` / `titlePath` / `valuePath` are shown on every row regardless of `mode` (Puck array
+items share one field schema), but `productVariants` and `categories` both ignore all three —
+whatever is typed there is never read.
 
 **`mode: "static"`** — a value-less option falls back to its own title, so a merchant can type
 titles only and still get a working select.
@@ -1202,6 +1206,16 @@ Rows with no resolvable value are skipped; a row with a value but no title shows
 **`mode: "categories"`** — the storefront category list (`productsPage.categories`), titled by
 `nameAr`/`nameEn` with the `slug` as value. The edit canvas uses `getSampleCategories()` so the
 dropdown is populated without a network call.
+
+**`mode: "productVariants"`** — the zero-config counterpart to `"bound"` pointed at
+`variantMatrix.variants`: same data, same `optionValues[].value` label composition, same
+`variantId` as the submitted value, but nothing to type. Use this instead of `"bound"` for a
+product-variant picker unless you specifically need a different `sourcePath`/`titlePath`/`valuePath`
+than the fixed ones. Requires `dropdownAction: "select_variant"` on the block just like `"bound"`
+does — the mode only fixes the *option source*, not the wiring that makes the picker write
+`selectedVariantId`. `apps/web/lib/transformer.ts`'s `buildVariantDropdown` recognizes this mode
+and routes it straight through the same converter [`ProductVariants`](#productvariants) uses, so
+the two are equivalent on mobile too.
 
 **Across all sources:** values are de-duplicated (first wins — a `<select>` can't tell two options
 with the same value apart) and sources that resolve to nothing are dropped.
@@ -1269,6 +1283,35 @@ which owns `selectedVariantId` and runs `applyVariantPricing`. So picking an opt
 `pricing.*` for every sibling block — the price and compare-at paragraphs update, and
 `addToCart` submits the chosen variant. Inside a statically-picked product `Group` the same
 wiring works through the Group's own binding root.
+
+### JSON Example (product-variant selector, zero-config)
+
+The same picker as above, with nothing to bind:
+
+```json
+{
+  "type": "ContentDropdown",
+  "props": {
+    "label": { "ar": "الخيار", "en": "Option" },
+    "name": "variant",
+    "placeholder": { "ar": "اختر", "en": "Choose" },
+    "required": true,
+    "options": [
+      {
+        "mode": "productVariants",
+        "groupLabel": { "ar": "", "en": "" },
+        "values": [],
+        "sourcePath": "",
+        "titlePath": "",
+        "valuePath": ""
+      }
+    ],
+    "dropdownAction": "select_variant",
+    "autoSelectFirst": true,
+    "hideWhenSingle": true
+  }
+}
+```
 
 ### JSON Example (option-values repeater)
 

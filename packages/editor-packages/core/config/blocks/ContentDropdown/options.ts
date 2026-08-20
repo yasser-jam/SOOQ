@@ -2,15 +2,20 @@
  * Option-source resolution for the ContentDropdown block.
  *
  * A dropdown owns a list of **option sources** (`options[]`). Each source is
- * one of three modes:
+ * one of four modes:
  *
- *   - `"static"`     — values the merchant typed by hand (`values[]`).
- *   - `"bound"`      — a *repeater* over an array inside the bound payload:
- *                      `sourcePath` points at the array, `titlePath` /
- *                      `valuePath` point INSIDE each row. This is the
- *                      product-variant case on a product-detail page
- *                      (`variantMatrix.variants` → `attributes` / `variantId`).
- *   - `"categories"` — the storefront category list from `StoreContext`.
+ *   - `"static"`         — values the merchant typed by hand (`values[]`).
+ *   - `"bound"`          — a *repeater* over an array inside the bound payload:
+ *                          `sourcePath` points at the array, `titlePath` /
+ *                          `valuePath` point INSIDE each row.
+ *   - `"categories"`     — the storefront category list from `StoreContext`.
+ *   - `"productVariants"` — the product-detail variant picker, fixed to
+ *                          `variantMatrix.variants` with no merchant-typed path. The
+ *                          zero-config counterpart to `"bound"` pointed at that same array
+ *                          (which remains supported for anyone who already wired it that way) —
+ *                          see `apps/web/lib/transformer.ts`'s `buildVariantDropdown`, which
+ *                          routes this mode straight through the same converter the standalone
+ *                          `ProductVariants` block uses.
  *
  * Kept free of React so the mapping rules stay unit-testable.
  */
@@ -18,7 +23,7 @@ import { resolveValueContext } from "../../binding";
 import type { CategoryRef } from "../../data-adapter/types";
 import { pickLang, type BilingualString } from "../../fields/BilingualText";
 
-export type DropdownSourceMode = "static" | "bound" | "categories";
+export type DropdownSourceMode = "static" | "bound" | "categories" | "productVariants";
 
 export type DropdownStaticValue = {
   title: BilingualString | string;
@@ -173,6 +178,28 @@ function resolveBoundSource(
   return options;
 }
 
+/**
+ * `mode: "productVariants"` — same shape `resolveBoundSource` reads for a manually-configured
+ * variant picker, but the three paths are fixed rather than merchant-typed: `variantMatrix.variants`,
+ * `variantId`, and the composed `optionValues[].value` label (e.g. "رمادي"). Nothing here can be
+ * misconfigured, which is the point of this mode over `"bound"` pointed at the same array.
+ */
+function resolveProductVariantsSource(
+  context: DropdownResolveContext
+): ResolvedDropdownOption[] {
+  return resolveBoundSource(
+    {
+      mode: "bound",
+      groupLabel: "",
+      values: [],
+      sourcePath: "variantMatrix.variants",
+      titlePath: "optionValues[].value",
+      valuePath: "variantId",
+    },
+    context
+  );
+}
+
 function resolveCategoriesSource(
   context: DropdownResolveContext
 ): ResolvedDropdownOption[] {
@@ -210,9 +237,11 @@ export function resolveDropdownGroups(
     const resolved =
       mode === "bound"
         ? resolveBoundSource(source, context)
-        : mode === "categories"
-          ? resolveCategoriesSource(context)
-          : resolveStaticSource(source, context.locale);
+        : mode === "productVariants"
+          ? resolveProductVariantsSource(context)
+          : mode === "categories"
+            ? resolveCategoriesSource(context)
+            : resolveStaticSource(source, context.locale);
 
     const options: ResolvedDropdownOption[] = [];
     for (const option of resolved) {

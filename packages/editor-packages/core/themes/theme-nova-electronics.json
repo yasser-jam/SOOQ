@@ -744,8 +744,8 @@
           "is_active": false,
           "is_mobile_only": false,
           "zoneKey": "cancel-order",
-          "backgroundColor": "#fffdf9",
-          "borderRadius": "4px",
+          "backgroundColor": "#141a2e",
+          "borderRadius": "theme-md",
           "maxWidth": "440px",
           "overlay": true,
           "showCloseButton": true,
@@ -759,10 +759,10 @@
                 "justifyContent": "flex-start",
                 "wrap": "nowrap",
                 "language": "ar",
-                "backgroundColor": "#fffdf9",
+                "backgroundColor": "#141a2e",
                 "backgroundImage": "",
                 "backgroundOverlayColor": "",
-                "padding": "28px",
+                "padding": "24px",
                 "borderRadius": "theme-md",
                 "boxShadow": "none",
                 "product": null,
@@ -776,7 +776,7 @@
                         "ar": "إلغاء الطلب",
                         "en": "Cancel order"
                       },
-                      "textAlign": "right",
+                      "textAlign": "left",
                       "fontFamily": "option1",
                       "fontSize": "theme-lg",
                       "fontWeight": "theme-bold",
@@ -795,7 +795,7 @@
                         "ar": "سيتم إلغاء الطلب. لا يمكن التراجع عن هذه الخطوة.",
                         "en": "The order will be cancelled. This cannot be undone."
                       },
-                      "textAlign": "right",
+                      "textAlign": "left",
                       "fontFamily": "body",
                       "fontSize": "theme-md",
                       "fontWeight": "theme-light",
@@ -831,7 +831,7 @@
                         "ar": "",
                         "en": ""
                       },
-                      "textAlign": "right",
+                      "textAlign": "left",
                       "fontFamily": "body",
                       "fontSize": "theme-md",
                       "fontWeight": "theme-light",
@@ -874,9 +874,9 @@
                             "buttonVariantMode": "variant",
                             "buttonVariant": "secondary",
                             "buttonVariantSize": "sm",
-                            "radius": "theme-sm",
-                            "bgColor": "theme-primary",
-                            "textColor": "theme-surface",
+                            "radius": "theme-md",
+                            "bgColor": "theme-surface",
+                            "textColor": "theme-text",
                             "buttonSize": "theme-sm",
                             "submitRedirectUrl": "",
                             "zoneKey": "cancel-order",
@@ -900,9 +900,9 @@
                             "buttonVariantMode": "variant",
                             "buttonVariant": "error",
                             "buttonVariantSize": "md",
-                            "radius": "theme-sm",
+                            "radius": "theme-md",
                             "bgColor": "theme-primary",
-                            "textColor": "theme-surface",
+                            "textColor": "theme-text",
                             "buttonSize": "theme-md",
                             "submitRedirectUrl": "",
                             "id": "ContentButton-cancel-order-slot-0-content-4-content-1"
@@ -1085,8 +1085,8 @@
                       "props": {
                         "id": "x",
                         "text": {
-                          "ar": "",
-                          "en": ""
+                          "ar": "أحدث الأجهزة الإلكترونية بضمان أصلي وتوصيل سريع",
+                          "en": "The latest electronics — genuine warranty, fast delivery"
                         },
                         "level": "1",
                         "textAlign": "right",
@@ -1104,8 +1104,8 @@
                       "props": {
                         "id": "x",
                         "text": {
-                          "ar": "",
-                          "en": ""
+                          "ar": "من الهواتف إلى أجهزة الألعاب: نستورد مباشرة من الوكلاء الرسميين ونوصلك خلال ٢٤-٤٨ ساعة.",
+                          "en": "From phones to gaming gear — imported directly from official agents and delivered within 24–48 hours."
                         },
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -1246,12 +1246,23 @@
                         "language": "ar",
                         "content": [
                           {
+                            "type": "ContentIcon",
+                            "props": {
+                              "id": "Icon-Group-trust-1",
+                              "icon": "shield-check",
+                              "size": 32,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
+                            }
+                          },
+                          {
                             "type": "ContentHeading",
                             "props": {
                               "id": "Heading-trust-1",
                               "text": {
-                                "ar": "ضمان أصلي",
-                                "en": "Genuine warranty"
+                                "ar": "قطع أصلية 100% مع كرت ضمان من الوكيل المعتمد.",
+                                "en": "100% genuine parts with an authorized dealer warranty card."
                               },
                               "level": "3",
                               "textAlign": "center",
@@ -1269,8 +1280,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "قطع أصلية 100% مع كرت ضمان من الوكيل المعتمد.",
+                                "en": "100% genuine parts with an authorized dealer warranty card."
                               },
                               "textAlign": "center",
                               "fontFamily": "option2",
@@ -1305,12 +1316,23 @@
                         "language": "ar",
                         "content": [
                           {
+                            "type": "ContentIcon",
+                            "props": {
+                              "id": "Icon-Group-trust-2",
+                              "icon": "truck",
+                              "size": 32,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
+                            }
+                          },
+                          {
                             "type": "ContentHeading",
                             "props": {
                               "id": "Heading-trust-2",
                               "text": {
-                                "ar": "توصيل سريع",
-                                "en": "Fast shipping"
+                                "ar": "التوصيل خلال 24-48 ساعة لجميع المحافظات.",
+                                "en": "Delivery within 24–48 hours to all governorates."
                               },
                               "level": "3",
                               "textAlign": "center",
@@ -1328,8 +1350,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "التوصيل خلال 24-48 ساعة لجميع المحافظات.",
+                                "en": "Delivery within 24–48 hours to all governorates."
                               },
                               "textAlign": "center",
                               "fontFamily": "option2",
@@ -1364,12 +1386,23 @@
                         "language": "ar",
                         "content": [
                           {
+                            "type": "ContentIcon",
+                            "props": {
+                              "id": "Icon-Group-trust-3",
+                              "icon": "banknote",
+                              "size": 32,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
+                            }
+                          },
+                          {
                             "type": "ContentHeading",
                             "props": {
                               "id": "Heading-trust-3",
                               "text": {
-                                "ar": "دفع عند الاستلام",
-                                "en": "Cash on delivery"
+                                "ar": "ادفع نقداً عند استلام طلبك دون أي التزام مسبق.",
+                                "en": "Pay cash on delivery — no upfront commitment."
                               },
                               "level": "3",
                               "textAlign": "center",
@@ -1387,8 +1420,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "ادفع نقداً عند استلام طلبك دون أي التزام مسبق.",
+                                "en": "Pay cash on delivery — no upfront commitment."
                               },
                               "textAlign": "center",
                               "fontFamily": "option2",
@@ -1423,12 +1456,23 @@
                         "language": "ar",
                         "content": [
                           {
+                            "type": "ContentIcon",
+                            "props": {
+                              "id": "Icon-Group-trust-4",
+                              "icon": "headset",
+                              "size": 32,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
+                            }
+                          },
+                          {
                             "type": "ContentHeading",
                             "props": {
                               "id": "Heading-trust-4",
                               "text": {
-                                "ar": "دعم فني مباشر",
-                                "en": "Live tech support"
+                                "ar": "فريق دعم متخصص لمساعدتك في أي وقت.",
+                                "en": "A specialist support team ready to help anytime."
                               },
                               "level": "3",
                               "textAlign": "center",
@@ -1446,8 +1490,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "فريق دعم متخصص لمساعدتك في أي وقت.",
+                                "en": "A specialist support team ready to help anytime."
                               },
                               "textAlign": "center",
                               "fontFamily": "option2",
@@ -1625,8 +1669,8 @@
                                   "props": {
                                     "id": "x",
                                     "text": {
-                                      "ar": "",
-                                      "en": ""
+                                      "ar": "حواسيب محمولة",
+                                      "en": "Laptops"
                                     },
                                     "level": "3",
                                     "textAlign": "right",
@@ -1644,8 +1688,8 @@
                                   "props": {
                                     "id": "x",
                                     "text": {
-                                      "ar": "",
-                                      "en": ""
+                                      "ar": "أداء قوي للعمل والدراسة والتصميم",
+                                      "en": "Powerful performance for work, study, and design"
                                     },
                                     "textAlign": "right",
                                     "fontFamily": "option2",
@@ -1748,8 +1792,8 @@
                                   "props": {
                                     "id": "x",
                                     "text": {
-                                      "ar": "",
-                                      "en": ""
+                                      "ar": "سماعات وصوتيات",
+                                      "en": "Audio & headphones"
                                     },
                                     "level": "3",
                                     "textAlign": "right",
@@ -1767,8 +1811,8 @@
                                   "props": {
                                     "id": "x",
                                     "text": {
-                                      "ar": "",
-                                      "en": ""
+                                      "ar": "صوت نقي وعزل ضوضاء من أفضل الماركات",
+                                      "en": "Crystal-clear sound and noise cancellation from top brands"
                                     },
                                     "textAlign": "right",
                                     "fontFamily": "option2",
@@ -1871,8 +1915,8 @@
                                   "props": {
                                     "id": "x",
                                     "text": {
-                                      "ar": "",
-                                      "en": ""
+                                      "ar": "هواتف ذكية",
+                                      "en": "Smartphones"
                                     },
                                     "level": "3",
                                     "textAlign": "right",
@@ -1890,8 +1934,8 @@
                                   "props": {
                                     "id": "x",
                                     "text": {
-                                      "ar": "",
-                                      "en": ""
+                                      "ar": "أحدث الإصدارات بضمان الوكيل الرسمي",
+                                      "en": "The latest releases with an official agent warranty"
                                     },
                                     "textAlign": "right",
                                     "fontFamily": "option2",
@@ -1994,8 +2038,8 @@
                                   "props": {
                                     "id": "x",
                                     "text": {
-                                      "ar": "",
-                                      "en": ""
+                                      "ar": "أجهزة ألعاب",
+                                      "en": "Gaming gear"
                                     },
                                     "level": "3",
                                     "textAlign": "right",
@@ -2013,8 +2057,8 @@
                                   "props": {
                                     "id": "x",
                                     "text": {
-                                      "ar": "",
-                                      "en": ""
+                                      "ar": "تجهيزات من أجهزة تحكم إلى شاشات عالية الأداء",
+                                      "en": "Gear from controllers to high-performance monitors"
                                     },
                                     "textAlign": "right",
                                     "fontFamily": "option2",
@@ -2139,8 +2183,8 @@
                       "props": {
                         "id": "x",
                         "text": {
-                          "ar": "",
-                          "en": ""
+                          "ar": "عرض ساري حتى نفاد الكمية على تشكيلة مختارة من السماعات وملحقاتها.",
+                          "en": "Valid while supplies last on a selected range of headphones and accessories."
                         },
                         "textAlign": "right",
                         "fontFamily": "body",
@@ -2758,22 +2802,14 @@
                         },
                         "content": [
                           {
-                            "type": "ContentHeading",
+                            "type": "ContentIcon",
                             "props": {
-                              "id": "x",
-                              "text": {
-                                "ar": "",
-                                "en": ""
-                              },
-                              "level": "3",
-                              "textAlign": "right",
-                              "fontFamily": "option2",
-                              "fontSize": "theme-xl",
-                              "fontWeight": "theme-light",
-                              "lineHeight": "theme-tight",
-                              "fontStyle": "normal",
-                              "textTransform": "none",
-                              "color": "theme-primary"
+                              "id": "Icon-Group-spec-import",
+                              "icon": "package-check",
+                              "size": 40,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
                             }
                           },
                           {
@@ -2781,8 +2817,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "استيراد مباشر من الوكلاء الرسميين",
+                                "en": "Direct import from authorized agents"
                               },
                               "level": "3",
                               "textAlign": "right",
@@ -2800,8 +2836,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "كل منتج يصلك عبر قنوات استيراد موثّقة، بلا وسطاء وبلا مخاطرة.",
+                                "en": "Every product arrives through documented import channels — no middlemen, no risk."
                               },
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -2842,22 +2878,14 @@
                         },
                         "content": [
                           {
-                            "type": "ContentHeading",
+                            "type": "ContentIcon",
                             "props": {
-                              "id": "x",
-                              "text": {
-                                "ar": "",
-                                "en": ""
-                              },
-                              "level": "3",
-                              "textAlign": "right",
-                              "fontFamily": "option2",
-                              "fontSize": "theme-xl",
-                              "fontWeight": "theme-light",
-                              "lineHeight": "theme-tight",
-                              "fontStyle": "normal",
-                              "textTransform": "none",
-                              "color": "theme-primary"
+                              "id": "Icon-Group-spec-check",
+                              "icon": "badge-check",
+                              "size": 40,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
                             }
                           },
                           {
@@ -2865,8 +2893,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "فحص جودة على كل قطعة",
+                                "en": "Quality check on every unit"
                               },
                               "level": "3",
                               "textAlign": "right",
@@ -2884,8 +2912,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "نفحص كل جهاز قبل الشحن للتأكد من مطابقته للمواصفات الأصلية.",
+                                "en": "We inspect every device before shipping to confirm it matches original specs."
                               },
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -2926,22 +2954,14 @@
                         },
                         "content": [
                           {
-                            "type": "ContentHeading",
+                            "type": "ContentIcon",
                             "props": {
-                              "id": "x",
-                              "text": {
-                                "ar": "",
-                                "en": ""
-                              },
-                              "level": "3",
-                              "textAlign": "right",
-                              "fontFamily": "option2",
-                              "fontSize": "theme-xl",
-                              "fontWeight": "theme-light",
-                              "lineHeight": "theme-tight",
-                              "fontStyle": "normal",
-                              "textTransform": "none",
-                              "color": "theme-primary"
+                              "id": "Icon-Group-spec-support",
+                              "icon": "life-buoy",
+                              "size": 40,
+                              "colorMode": "theme",
+                              "colorTheme": "primary",
+                              "colorFixed": "#4f6df5"
                             }
                           },
                           {
@@ -2949,8 +2969,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "دعم فني بعد البيع",
+                                "en": "After-sales technical support"
                               },
                               "level": "3",
                               "textAlign": "right",
@@ -2968,8 +2988,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "فريقنا الفني معك بعد الشراء لأي صيانة أو استفسار تقني.",
+                                "en": "Our technical team stays with you after purchase for maintenance or questions."
                               },
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -3167,8 +3187,8 @@
                 "props": {
                   "id": "x",
                   "text": {
-                    "ar": "",
-                    "en": ""
+                    "ar": "أكثر من ١٢,٠٠٠ طلب توصيل ناجح وتقييمات حقيقية من عملائنا.",
+                    "en": "Over 12,000 successful deliveries and real reviews from our customers."
                   },
                   "textAlign": "center",
                   "fontFamily": "option2",
@@ -3229,8 +3249,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "★★★★★",
+                                "en": "★★★★★"
                               },
                               "level": "3",
                               "textAlign": "right",
@@ -3248,8 +3268,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "طلبت سماعة لاسلكية وكانت أصلية 100% ووصلت خلال يوم واحد فقط.",
+                                "en": "I ordered wireless headphones — 100% genuine, delivered in just one day."
                               },
                               "textAlign": "right",
                               "fontFamily": "option2",
@@ -3295,8 +3315,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "اشترت سماعات Nova Air",
+                                "en": "Bought Nova Air headphones"
                               },
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -3341,8 +3361,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "★★★★★",
+                                "en": "★★★★★"
                               },
                               "level": "3",
                               "textAlign": "right",
@@ -3360,8 +3380,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "الدعم الفني ساعدني أختار اللابتوب المناسب لشغلي، وما ندمت.",
+                                "en": "Their support team helped me pick the right laptop for my work — no regrets."
                               },
                               "textAlign": "right",
                               "fontFamily": "option2",
@@ -3407,8 +3427,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "اشترى لابتوب Nova Book 14",
+                                "en": "Bought a Nova Book 14 laptop"
                               },
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -3453,8 +3473,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "★★★★★",
+                                "en": "★★★★★"
                               },
                               "level": "3",
                               "textAlign": "right",
@@ -3472,8 +3492,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "أسعار منافسة وضمان حقيقي، رجعت أشتري منهم أكتر من مرة.",
+                                "en": "Competitive prices and a real warranty — I've bought from them more than once."
                               },
                               "textAlign": "right",
                               "fontFamily": "option2",
@@ -3519,8 +3539,8 @@
                             "props": {
                               "id": "x",
                               "text": {
-                                "ar": "",
-                                "en": ""
+                                "ar": "اشترت ساعة Nova Watch",
+                                "en": "Bought a Nova Watch smartwatch"
                               },
                               "textAlign": "right",
                               "fontFamily": "body",
@@ -3717,8 +3737,8 @@
                       "props": {
                         "id": "x",
                         "text": {
-                          "ar": "",
-                          "en": ""
+                          "ar": "زُر معرضنا في دمشق وجرّب أحدث الأجهزة قبل اتخاذ قرارك.",
+                          "en": "Visit our Damascus showroom and try the latest devices before you decide."
                         },
                         "textAlign": "center",
                         "fontFamily": "body",
@@ -4251,7 +4271,7 @@
             "paddingTop": "72px",
             "paddingBottom": "104px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -4336,33 +4356,6 @@
                 }
               },
               {
-                "type": "ButtonGroup",
-                "props": {
-                  "id": "ButtonGroup-products-categories",
-                  "bindingMode": "categories",
-                  "gap": "theme-8",
-                  "align": "right",
-                  "inactiveStyle": {
-                    "bgColor": "transparent",
-                    "textColor": "#2f261d",
-                    "radius": "theme-sm",
-                    "buttonSize": "theme-sm"
-                  },
-                  "activeStyle": {
-                    "bgColor": "#2a231d",
-                    "textColor": "#e8dfd1",
-                    "radius": "theme-sm",
-                    "buttonSize": "theme-sm"
-                  },
-                  "items": [],
-                  "prependAllButton": true,
-                  "allButtonTitle": {
-                    "ar": "كل الغرف",
-                    "en": "All rooms"
-                  }
-                }
-              },
-              {
                 "type": "Group",
                 "props": {
                   "id": "Group-products-filters",
@@ -4371,7 +4364,7 @@
                   "alignItems": "flex-end",
                   "justifyContent": "flex-start",
                   "wrap": "wrap",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
                   "padding": "20px",
@@ -4452,405 +4445,502 @@
               {
                 "type": "Section",
                 "props": {
-                  "id": "Section-products-grid",
-                  "name": "Products grid",
-                  "anchorId": "",
+                  "id": "Section-products-layout",
+                  "name": "الفئات والمنتجات (Categories + grid)",
                   "visible": true,
+                  "anchorId": "",
                   "paddingTop": "0px",
                   "paddingBottom": "0px",
                   "paddingHorizontal": "0px",
-                  "backgroundColor": "#f7f2ea",
+                  "backgroundColor": "#0b0f1a",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
                   "theme": "dark",
                   "maxWidth": "1280px",
-                  "columns": 4,
-                  "columnsMobile": 2,
-                  "gridGap": "20px",
-                  "sectionKind": "products-page",
-                  "metadata": {
-                    "preset": "products-page"
-                  },
-                  "cardTemplate": [
-                    {
-                      "type": "Group",
-                      "props": {
-                        "id": "Group-products-card-template",
-                        "direction": "column",
-                        "gap": 0,
-                        "alignItems": "stretch",
-                        "justifyContent": "flex-start",
-                        "wrap": "nowrap",
-                        "backgroundColor": "#fffdf9",
-                        "backgroundImage": "",
-                        "backgroundOverlayColor": "",
-                        "padding": "10px",
-                        "borderRadius": "theme-md",
-                        "boxShadow": "none",
-                        "product": null,
-                        "metadata": null,
-                        "language": "ar",
-                        "skipProductDetailFetch": true,
-                        "layout": {
-                          "grow": true,
-                          "spanCol": 1,
-                          "spanRow": 1,
-                          "padding": "0px"
-                        },
-                        "content": [
-                          {
-                            "type": "ContentImage",
-                            "props": {
-                              "id": "Image-products-card",
-                              "src": "https://placehold.co/600x600/efe6d8/5f6f52?text=%D9%82%D8%B7%D8%B9%D8%A9",
-                              "alt": {
-                                "ar": "",
-                                "en": ""
-                              },
-                              "align": "center",
-                              "objectFit": "cover",
-                              "radius": "theme-sm",
-                              "maxWidth": "100%",
-                              "valueContext": {
-                                "path": "images[0].url"
-                              },
-                              "altValueContext": {
-                                "path": "product.title"
-                              }
-                            }
-                          },
-                          {
-                            "type": "Group",
-                            "props": {
-                              "id": "Group-products-card-body",
-                              "direction": "column",
-                              "gap": 10,
-                              "alignItems": "stretch",
-                              "justifyContent": "flex-start",
-                              "wrap": "nowrap",
-                              "backgroundColor": "",
-                              "backgroundImage": "",
-                              "backgroundOverlayColor": "",
-                              "padding": "18px 10px 8px",
-                              "borderRadius": "theme-none",
-                              "boxShadow": "none",
-                              "product": null,
-                              "metadata": null,
-                              "language": "ar",
-                              "content": [
-                                {
-                                  "type": "Chip",
-                                  "props": {
-                                    "id": "Chip-products-card",
-                                    "chipVariantMode": "custom",
-                                    "chipVariant": "neutral",
-                                    "shape": "square",
-                                    "size": "sm",
-                                    "gap": 6,
-                                    "maxItems": 2,
-                                    "radius": "theme-sm",
-                                    "bgColor": "#efe6d8",
-                                    "textColor": "#5f4b36",
-                                    "listValueContext": {
-                                      "path": "product.tags"
-                                    }
-                                  }
-                                },
-                                {
-                                  "type": "ContentHeading",
-                                  "props": {
-                                    "id": "Heading-products-card",
-                                    "text": {
-                                      "ar": "اسم المنتج",
-                                      "en": "Product title"
-                                    },
-                                    "level": "3",
-                                    "textAlign": "right",
-                                    "fontFamily": "option1",
-                                    "fontSize": "theme-md",
-                                    "fontWeight": "theme-medium",
-                                    "lineHeight": "theme-tight",
-                                    "fontStyle": "normal",
-                                    "textTransform": "none",
-                                    "color": "theme-text",
-                                    "valueContext": {
-                                      "path": "product.title"
-                                    }
-                                  }
-                                },
-                                {
-                                  "type": "RowGroup",
-                                  "props": {
-                                    "id": "RowGroup-products-card-meta",
-                                    "gap": 10,
-                                    "alignItems": "center",
-                                    "justifyContent": "space-between",
-                                    "wrap": "wrap",
-                                    "backgroundColor": "",
-                                    "padding": "0px",
-                                    "borderRadius": "theme-none",
-                                    "content": [
-                                      {
-                                        "type": "ContentParagraph",
-                                        "props": {
-                                          "id": "Paragraph-products-card-price",
-                                          "text": {
-                                            "ar": "٠٫٠٠ ل.س",
-                                            "en": "0.00 SYP"
-                                          },
-                                          "textAlign": "right",
-                                          "fontFamily": "option2",
-                                          "fontSize": "theme-lg",
-                                          "fontWeight": "theme-bold",
-                                          "lineHeight": "theme-normal",
-                                          "fontStyle": "normal",
-                                          "textTransform": "none",
-                                          "color": "theme-primary",
-                                          "valueContext": {
-                                            "path": "pricing.displayPrice"
-                                          }
-                                        }
-                                      },
-                                      {
-                                        "type": "ContentButton",
-                                        "props": {
-                                          "id": "Button-products-card",
-                                          "label": {
-                                            "ar": "عرض المنتج",
-                                            "en": "View product"
-                                          },
-                                          "align": "center",
-                                          "destinationType": "link",
-                                          "buttonAction": "link",
-                                          "link": {
-                                            "kind": "page",
-                                            "pageId": "/products/:product-slug",
-                                            "dynamicSegment": {
-                                              "param": "product-slug",
-                                              "valueContext": "product.slug"
-                                            }
-                                          },
-                                          "buttonVariantMode": "variant",
-                                          "buttonVariant": "secondary",
-                                          "buttonVariantSize": "sm",
-                                          "radius": "theme-sm",
-                                          "bgColor": "theme-primary",
-                                          "textColor": "theme-surface",
-                                          "buttonSize": "theme-sm",
-                                          "submitRedirectUrl": ""
-                                        }
-                                      }
-                                    ]
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ],
+                  "columns": 2,
+                  "columnsMobile": 1,
+                  "gridGap": "24px",
                   "content": [
                     {
                       "type": "Group",
                       "props": {
-                        "id": "Group-products-card-template",
+                        "id": "Group-products-category-sidebar",
                         "direction": "column",
-                        "gap": 0,
+                        "gap": 16,
                         "alignItems": "stretch",
                         "justifyContent": "flex-start",
                         "wrap": "nowrap",
-                        "backgroundColor": "#fffdf9",
+                        "backgroundColor": "#141a2e",
                         "backgroundImage": "",
                         "backgroundOverlayColor": "",
-                        "padding": "10px",
+                        "padding": "24px",
                         "borderRadius": "theme-md",
                         "boxShadow": "none",
                         "product": null,
                         "metadata": null,
                         "language": "ar",
-                        "skipProductDetailFetch": true,
-                        "layout": {
-                          "grow": true,
-                          "spanCol": 1,
-                          "spanRow": 1,
-                          "padding": "0px"
-                        },
                         "content": [
                           {
-                            "type": "ContentImage",
+                            "type": "ContentHeading",
                             "props": {
-                              "id": "Image-products-card",
-                              "src": "https://placehold.co/600x600/efe6d8/5f6f52?text=%D9%82%D8%B7%D8%B9%D8%A9",
-                              "alt": {
-                                "ar": "",
-                                "en": ""
+                              "id": "Heading-products-category-sidebar",
+                              "text": {
+                                "ar": "الفئات",
+                                "en": "Categories"
                               },
-                              "align": "center",
-                              "objectFit": "cover",
-                              "radius": "theme-sm",
-                              "maxWidth": "100%",
-                              "valueContext": {
-                                "path": "images[0].url"
-                              },
-                              "altValueContext": {
-                                "path": "product.title"
-                              }
+                              "level": "3",
+                              "textAlign": "right",
+                              "fontFamily": "option1",
+                              "fontSize": "theme-lg",
+                              "fontWeight": "theme-bold",
+                              "lineHeight": "theme-tight",
+                              "fontStyle": "normal",
+                              "textTransform": "none",
+                              "color": "theme-text"
                             }
                           },
                           {
-                            "type": "Group",
+                            "type": "CategoryTree",
                             "props": {
-                              "id": "Group-products-card-body",
-                              "direction": "column",
-                              "gap": 10,
-                              "alignItems": "stretch",
-                              "justifyContent": "flex-start",
-                              "wrap": "nowrap",
-                              "backgroundColor": "",
+                              "id": "CategoryTree-products",
+                              "textColor": "theme-text",
+                              "activeColor": "theme-primary",
+                              "fontSize": "theme-md",
+                              "gap": 8,
+                              "indentStep": 16,
+                              "showProductCount": true
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "Group",
+                      "props": {
+                        "id": "Group-products-content-column",
+                        "direction": "column",
+                        "gap": 24,
+                        "alignItems": "stretch",
+                        "justifyContent": "flex-start",
+                        "wrap": "nowrap",
+                        "backgroundColor": "",
+                        "backgroundImage": "",
+                        "backgroundOverlayColor": "",
+                        "padding": "0px",
+                        "borderRadius": "theme-none",
+                        "boxShadow": "none",
+                        "product": null,
+                        "metadata": null,
+                        "language": "ar",
+                        "content": [
+                          {
+                            "type": "Section",
+                            "props": {
+                              "id": "Section-products-grid",
+                              "name": "Products grid",
+                              "anchorId": "",
+                              "visible": true,
+                              "paddingTop": "0px",
+                              "paddingBottom": "0px",
+                              "paddingHorizontal": "0px",
+                              "backgroundColor": "#0b0f1a",
                               "backgroundImage": "",
                               "backgroundOverlayColor": "",
-                              "padding": "18px 10px 8px",
-                              "borderRadius": "theme-none",
-                              "boxShadow": "none",
-                              "product": null,
-                              "metadata": null,
-                              "language": "ar",
-                              "content": [
+                              "theme": "dark",
+                              "maxWidth": "1280px",
+                              "columns": 2,
+                              "columnsMobile": 2,
+                              "gridGap": "20px",
+                              "sectionKind": "products-page",
+                              "metadata": {
+                                "preset": "products-page"
+                              },
+                              "cardTemplate": [
                                 {
-                                  "type": "Chip",
+                                  "type": "Group",
                                   "props": {
-                                    "id": "Chip-products-card",
-                                    "chipVariantMode": "custom",
-                                    "chipVariant": "neutral",
-                                    "shape": "square",
-                                    "size": "sm",
-                                    "gap": 6,
-                                    "maxItems": 2,
-                                    "radius": "theme-sm",
-                                    "bgColor": "#efe6d8",
-                                    "textColor": "#5f4b36",
-                                    "listValueContext": {
-                                      "path": "product.tags"
-                                    }
-                                  }
-                                },
-                                {
-                                  "type": "ContentHeading",
-                                  "props": {
-                                    "id": "Heading-products-card",
-                                    "text": {
-                                      "ar": "اسم المنتج",
-                                      "en": "Product title"
+                                    "id": "Group-products-card-template",
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "alignItems": "stretch",
+                                    "justifyContent": "flex-start",
+                                    "wrap": "nowrap",
+                                    "backgroundColor": "#141a2e",
+                                    "backgroundImage": "",
+                                    "backgroundOverlayColor": "",
+                                    "padding": "10px",
+                                    "borderRadius": "theme-md",
+                                    "boxShadow": "none",
+                                    "product": null,
+                                    "metadata": null,
+                                    "language": "ar",
+                                    "skipProductDetailFetch": true,
+                                    "layout": {
+                                      "grow": true,
+                                      "spanCol": 1,
+                                      "spanRow": 1,
+                                      "padding": "0px"
                                     },
-                                    "level": "3",
-                                    "textAlign": "right",
-                                    "fontFamily": "option1",
-                                    "fontSize": "theme-md",
-                                    "fontWeight": "theme-medium",
-                                    "lineHeight": "theme-tight",
-                                    "fontStyle": "normal",
-                                    "textTransform": "none",
-                                    "color": "theme-text",
-                                    "valueContext": {
-                                      "path": "product.title"
-                                    }
-                                  }
-                                },
-                                {
-                                  "type": "RowGroup",
-                                  "props": {
-                                    "id": "RowGroup-products-card-meta",
-                                    "gap": 10,
-                                    "alignItems": "center",
-                                    "justifyContent": "space-between",
-                                    "wrap": "wrap",
-                                    "backgroundColor": "",
-                                    "padding": "0px",
-                                    "borderRadius": "theme-none",
                                     "content": [
                                       {
-                                        "type": "ContentParagraph",
+                                        "type": "ContentImage",
                                         "props": {
-                                          "id": "Paragraph-products-card-price",
-                                          "text": {
-                                            "ar": "٠٫٠٠ ل.س",
-                                            "en": "0.00 SYP"
+                                          "id": "Image-products-card",
+                                          "src": "https://placehold.co/600x600/141a2e/4f6df5?text=%D9%85%D9%86%D8%AA%D8%AC",
+                                          "alt": {
+                                            "ar": "",
+                                            "en": ""
                                           },
-                                          "textAlign": "right",
-                                          "fontFamily": "option2",
-                                          "fontSize": "theme-lg",
-                                          "fontWeight": "theme-bold",
-                                          "lineHeight": "theme-normal",
-                                          "fontStyle": "normal",
-                                          "textTransform": "none",
-                                          "color": "theme-primary",
+                                          "align": "center",
+                                          "objectFit": "cover",
+                                          "radius": "theme-sm",
+                                          "maxWidth": "100%",
                                           "valueContext": {
-                                            "path": "pricing.displayPrice"
+                                            "path": "images[0].url"
+                                          },
+                                          "altValueContext": {
+                                            "path": "product.title"
                                           }
                                         }
                                       },
                                       {
-                                        "type": "ContentButton",
+                                        "type": "Group",
                                         "props": {
-                                          "id": "Button-products-card",
-                                          "label": {
-                                            "ar": "عرض المنتج",
-                                            "en": "View product"
+                                          "id": "Group-products-card-body",
+                                          "direction": "column",
+                                          "gap": 10,
+                                          "alignItems": "stretch",
+                                          "justifyContent": "flex-start",
+                                          "wrap": "nowrap",
+                                          "backgroundColor": "",
+                                          "backgroundImage": "",
+                                          "backgroundOverlayColor": "",
+                                          "padding": "18px 10px 8px",
+                                          "borderRadius": "theme-none",
+                                          "boxShadow": "none",
+                                          "product": null,
+                                          "metadata": null,
+                                          "language": "ar",
+                                          "content": [
+                                            {
+                                              "type": "Chip",
+                                              "props": {
+                                                "id": "Chip-products-card",
+                                                "chipVariantMode": "custom",
+                                                "chipVariant": "neutral",
+                                                "shape": "square",
+                                                "size": "sm",
+                                                "gap": 6,
+                                                "maxItems": 2,
+                                                "radius": "theme-sm",
+                                                "bgColor": "#0f1424",
+                                                "textColor": "#5f4b36",
+                                                "listValueContext": {
+                                                  "path": "product.tags"
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "type": "ContentHeading",
+                                              "props": {
+                                                "id": "Heading-products-card",
+                                                "text": {
+                                                  "ar": "اسم المنتج",
+                                                  "en": "Product title"
+                                                },
+                                                "level": "3",
+                                                "textAlign": "right",
+                                                "fontFamily": "option1",
+                                                "fontSize": "theme-md",
+                                                "fontWeight": "theme-medium",
+                                                "lineHeight": "theme-tight",
+                                                "fontStyle": "normal",
+                                                "textTransform": "none",
+                                                "color": "theme-text",
+                                                "valueContext": {
+                                                  "path": "product.title"
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "type": "RowGroup",
+                                              "props": {
+                                                "id": "RowGroup-products-card-meta",
+                                                "gap": 10,
+                                                "alignItems": "center",
+                                                "justifyContent": "space-between",
+                                                "wrap": "wrap",
+                                                "backgroundColor": "",
+                                                "padding": "0px",
+                                                "borderRadius": "theme-none",
+                                                "content": [
+                                                  {
+                                                    "type": "ContentParagraph",
+                                                    "props": {
+                                                      "id": "Paragraph-products-card-price",
+                                                      "text": {
+                                                        "ar": "٠٫٠٠ ل.س",
+                                                        "en": "0.00 SYP"
+                                                      },
+                                                      "textAlign": "right",
+                                                      "fontFamily": "option2",
+                                                      "fontSize": "theme-lg",
+                                                      "fontWeight": "theme-bold",
+                                                      "lineHeight": "theme-normal",
+                                                      "fontStyle": "normal",
+                                                      "textTransform": "none",
+                                                      "color": "theme-primary",
+                                                      "valueContext": {
+                                                        "path": "pricing.displayPrice"
+                                                      }
+                                                    }
+                                                  },
+                                                  {
+                                                    "type": "ContentButton",
+                                                    "props": {
+                                                      "id": "Button-products-card",
+                                                      "label": {
+                                                        "ar": "عرض المنتج",
+                                                        "en": "View product"
+                                                      },
+                                                      "align": "center",
+                                                      "destinationType": "link",
+                                                      "buttonAction": "link",
+                                                      "link": {
+                                                        "kind": "page",
+                                                        "pageId": "/products/:product-slug",
+                                                        "dynamicSegment": {
+                                                          "param": "product-slug",
+                                                          "valueContext": "product.slug"
+                                                        }
+                                                      },
+                                                      "buttonVariantMode": "variant",
+                                                      "buttonVariant": "secondary",
+                                                      "buttonVariantSize": "sm",
+                                                      "radius": "theme-sm",
+                                                      "bgColor": "theme-primary",
+                                                      "textColor": "theme-surface",
+                                                      "buttonSize": "theme-sm",
+                                                      "submitRedirectUrl": ""
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ],
+                              "content": [
+                                {
+                                  "type": "Group",
+                                  "props": {
+                                    "id": "Group-products-card-template",
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "alignItems": "stretch",
+                                    "justifyContent": "flex-start",
+                                    "wrap": "nowrap",
+                                    "backgroundColor": "#141a2e",
+                                    "backgroundImage": "",
+                                    "backgroundOverlayColor": "",
+                                    "padding": "10px",
+                                    "borderRadius": "theme-md",
+                                    "boxShadow": "none",
+                                    "product": null,
+                                    "metadata": null,
+                                    "language": "ar",
+                                    "skipProductDetailFetch": true,
+                                    "layout": {
+                                      "grow": true,
+                                      "spanCol": 1,
+                                      "spanRow": 1,
+                                      "padding": "0px"
+                                    },
+                                    "content": [
+                                      {
+                                        "type": "ContentImage",
+                                        "props": {
+                                          "id": "Image-products-card",
+                                          "src": "https://placehold.co/600x600/141a2e/4f6df5?text=%D9%85%D9%86%D8%AA%D8%AC",
+                                          "alt": {
+                                            "ar": "",
+                                            "en": ""
                                           },
                                           "align": "center",
-                                          "destinationType": "link",
-                                          "buttonAction": "link",
-                                          "link": {
-                                            "kind": "page",
-                                            "pageId": "/products/:product-slug",
-                                            "dynamicSegment": {
-                                              "param": "product-slug",
-                                              "valueContext": "product.slug"
-                                            }
-                                          },
-                                          "buttonVariantMode": "variant",
-                                          "buttonVariant": "secondary",
-                                          "buttonVariantSize": "sm",
+                                          "objectFit": "cover",
                                           "radius": "theme-sm",
-                                          "bgColor": "theme-primary",
-                                          "textColor": "theme-surface",
-                                          "buttonSize": "theme-sm",
-                                          "submitRedirectUrl": ""
+                                          "maxWidth": "100%",
+                                          "valueContext": {
+                                            "path": "images[0].url"
+                                          },
+                                          "altValueContext": {
+                                            "path": "product.title"
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "type": "Group",
+                                        "props": {
+                                          "id": "Group-products-card-body",
+                                          "direction": "column",
+                                          "gap": 10,
+                                          "alignItems": "stretch",
+                                          "justifyContent": "flex-start",
+                                          "wrap": "nowrap",
+                                          "backgroundColor": "",
+                                          "backgroundImage": "",
+                                          "backgroundOverlayColor": "",
+                                          "padding": "18px 10px 8px",
+                                          "borderRadius": "theme-none",
+                                          "boxShadow": "none",
+                                          "product": null,
+                                          "metadata": null,
+                                          "language": "ar",
+                                          "content": [
+                                            {
+                                              "type": "Chip",
+                                              "props": {
+                                                "id": "Chip-products-card",
+                                                "chipVariantMode": "custom",
+                                                "chipVariant": "neutral",
+                                                "shape": "square",
+                                                "size": "sm",
+                                                "gap": 6,
+                                                "maxItems": 2,
+                                                "radius": "theme-sm",
+                                                "bgColor": "#0f1424",
+                                                "textColor": "#5f4b36",
+                                                "listValueContext": {
+                                                  "path": "product.tags"
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "type": "ContentHeading",
+                                              "props": {
+                                                "id": "Heading-products-card",
+                                                "text": {
+                                                  "ar": "اسم المنتج",
+                                                  "en": "Product title"
+                                                },
+                                                "level": "3",
+                                                "textAlign": "right",
+                                                "fontFamily": "option1",
+                                                "fontSize": "theme-md",
+                                                "fontWeight": "theme-medium",
+                                                "lineHeight": "theme-tight",
+                                                "fontStyle": "normal",
+                                                "textTransform": "none",
+                                                "color": "theme-text",
+                                                "valueContext": {
+                                                  "path": "product.title"
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "type": "RowGroup",
+                                              "props": {
+                                                "id": "RowGroup-products-card-meta",
+                                                "gap": 10,
+                                                "alignItems": "center",
+                                                "justifyContent": "space-between",
+                                                "wrap": "wrap",
+                                                "backgroundColor": "",
+                                                "padding": "0px",
+                                                "borderRadius": "theme-none",
+                                                "content": [
+                                                  {
+                                                    "type": "ContentParagraph",
+                                                    "props": {
+                                                      "id": "Paragraph-products-card-price",
+                                                      "text": {
+                                                        "ar": "٠٫٠٠ ل.س",
+                                                        "en": "0.00 SYP"
+                                                      },
+                                                      "textAlign": "right",
+                                                      "fontFamily": "option2",
+                                                      "fontSize": "theme-lg",
+                                                      "fontWeight": "theme-bold",
+                                                      "lineHeight": "theme-normal",
+                                                      "fontStyle": "normal",
+                                                      "textTransform": "none",
+                                                      "color": "theme-primary",
+                                                      "valueContext": {
+                                                        "path": "pricing.displayPrice"
+                                                      }
+                                                    }
+                                                  },
+                                                  {
+                                                    "type": "ContentButton",
+                                                    "props": {
+                                                      "id": "Button-products-card",
+                                                      "label": {
+                                                        "ar": "عرض المنتج",
+                                                        "en": "View product"
+                                                      },
+                                                      "align": "center",
+                                                      "destinationType": "link",
+                                                      "buttonAction": "link",
+                                                      "link": {
+                                                        "kind": "page",
+                                                        "pageId": "/products/:product-slug",
+                                                        "dynamicSegment": {
+                                                          "param": "product-slug",
+                                                          "valueContext": "product.slug"
+                                                        }
+                                                      },
+                                                      "buttonVariantMode": "variant",
+                                                      "buttonVariant": "secondary",
+                                                      "buttonVariantSize": "sm",
+                                                      "radius": "theme-sm",
+                                                      "bgColor": "theme-primary",
+                                                      "textColor": "theme-surface",
+                                                      "buttonSize": "theme-sm",
+                                                      "submitRedirectUrl": ""
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                          ]
                                         }
                                       }
                                     ]
                                   }
                                 }
                               ]
+                            }
+                          },
+                          {
+                            "type": "ButtonGroup",
+                            "props": {
+                              "id": "ButtonGroup-products-pagination",
+                              "bindingMode": "pagination",
+                              "gap": "theme-8",
+                              "align": "center",
+                              "inactiveStyle": {
+                                "bgColor": "transparent",
+                                "textColor": "#2f261d",
+                                "radius": "theme-sm",
+                                "buttonSize": "theme-sm"
+                              },
+                              "activeStyle": {
+                                "bgColor": "#2a231d",
+                                "textColor": "#e8dfd1",
+                                "radius": "theme-sm",
+                                "buttonSize": "theme-sm"
+                              },
+                              "items": []
                             }
                           }
                         ]
                       }
                     }
                   ]
-                }
-              },
-              {
-                "type": "ButtonGroup",
-                "props": {
-                  "id": "ButtonGroup-products-pagination",
-                  "bindingMode": "pagination",
-                  "gap": "theme-8",
-                  "align": "center",
-                  "inactiveStyle": {
-                    "bgColor": "transparent",
-                    "textColor": "#2f261d",
-                    "radius": "theme-sm",
-                    "buttonSize": "theme-sm"
-                  },
-                  "activeStyle": {
-                    "bgColor": "#2a231d",
-                    "textColor": "#e8dfd1",
-                    "radius": "theme-sm",
-                    "buttonSize": "theme-sm"
-                  },
-                  "items": []
                 }
               }
             ]
@@ -4900,7 +4990,7 @@
             "paddingTop": "72px",
             "paddingBottom": "72px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -4957,7 +5047,7 @@
                             "type": "ContentImage",
                             "props": {
                               "id": "Image-product-main",
-                              "src": "https://placehold.co/600x600/efe6d8/5f6f52?text=%D9%82%D8%B7%D8%B9%D8%A9",
+                              "src": "https://placehold.co/600x600/141a2e/4f6df5?text=%D9%85%D9%86%D8%AA%D8%AC",
                               "alt": {
                                 "ar": "",
                                 "en": ""
@@ -4990,7 +5080,7 @@
                                   "type": "ContentImage",
                                   "props": {
                                     "id": "Image-product-thumb-1",
-                                    "src": "https://placehold.co/600x600/efe6d8/5f6f52?text=%D9%82%D8%B7%D8%B9%D8%A9",
+                                    "src": "https://placehold.co/600x600/141a2e/4f6df5?text=%D9%85%D9%86%D8%AA%D8%AC",
                                     "alt": {
                                       "ar": "",
                                       "en": ""
@@ -5014,7 +5104,7 @@
                                   "type": "ContentImage",
                                   "props": {
                                     "id": "Image-product-thumb-2",
-                                    "src": "https://placehold.co/600x600/efe6d8/5f6f52?text=%D9%82%D8%B7%D8%B9%D8%A9",
+                                    "src": "https://placehold.co/600x600/141a2e/4f6df5?text=%D9%85%D9%86%D8%AA%D8%AC",
                                     "alt": {
                                       "ar": "",
                                       "en": ""
@@ -5038,7 +5128,7 @@
                                   "type": "ContentImage",
                                   "props": {
                                     "id": "Image-product-thumb-3",
-                                    "src": "https://placehold.co/600x600/efe6d8/5f6f52?text=%D9%82%D8%B7%D8%B9%D8%A9",
+                                    "src": "https://placehold.co/600x600/141a2e/4f6df5?text=%D9%85%D9%86%D8%AA%D8%AC",
                                     "alt": {
                                       "ar": "",
                                       "en": ""
@@ -5073,7 +5163,7 @@
                         "alignItems": "stretch",
                         "justifyContent": "flex-start",
                         "wrap": "nowrap",
-                        "backgroundColor": "#fffdf9",
+                        "backgroundColor": "#141a2e",
                         "backgroundImage": "",
                         "backgroundOverlayColor": "",
                         "padding": "32px",
@@ -5100,7 +5190,7 @@
                               "gap": 6,
                               "maxItems": 4,
                               "radius": "theme-sm",
-                              "bgColor": "#efe6d8",
+                              "bgColor": "#0f1424",
                               "textColor": "#5f4b36",
                               "listValueContext": {
                                 "path": "product.categories"
@@ -5178,7 +5268,7 @@
                               "thickness": "1px",
                               "colorMode": "theme",
                               "colorTheme": "neutral",
-                              "colorFixed": "#efe6d8"
+                              "colorFixed": "#0f1424"
                             }
                           },
                           {
@@ -5227,7 +5317,7 @@
                               "thickness": "1px",
                               "colorMode": "theme",
                               "colorTheme": "neutral",
-                              "colorFixed": "#efe6d8"
+                              "colorFixed": "#0f1424"
                             }
                           },
                           {
@@ -5363,7 +5453,7 @@
             "paddingTop": "72px",
             "paddingBottom": "72px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#fffdf9",
+            "backgroundColor": "#141a2e",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -5448,7 +5538,7 @@
             "paddingTop": "72px",
             "paddingBottom": "96px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#efe6d8",
+            "backgroundColor": "#0f1424",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -5486,7 +5576,7 @@
                   "paddingTop": "0px",
                   "paddingBottom": "0px",
                   "paddingHorizontal": "0px",
-                  "backgroundColor": "#efe6d8",
+                  "backgroundColor": "#0f1424",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
                   "theme": "dark",
@@ -5508,7 +5598,7 @@
                         "alignItems": "stretch",
                         "justifyContent": "flex-start",
                         "wrap": "nowrap",
-                        "backgroundColor": "#fffdf9",
+                        "backgroundColor": "#141a2e",
                         "backgroundImage": "",
                         "backgroundOverlayColor": "",
                         "padding": "10px",
@@ -5529,7 +5619,7 @@
                             "type": "ContentImage",
                             "props": {
                               "id": "Image-related-card",
-                              "src": "https://placehold.co/600x600/efe6d8/5f6f52?text=%D9%82%D8%B7%D8%B9%D8%A9",
+                              "src": "https://placehold.co/600x600/141a2e/4f6df5?text=%D9%85%D9%86%D8%AA%D8%AC",
                               "alt": {
                                 "ar": "",
                                 "en": ""
@@ -5576,7 +5666,7 @@
                                     "gap": 6,
                                     "maxItems": 2,
                                     "radius": "theme-sm",
-                                    "bgColor": "#efe6d8",
+                                    "bgColor": "#0f1424",
                                     "textColor": "#5f4b36",
                                     "listValueContext": {
                                       "path": "product.categories"
@@ -5687,7 +5777,7 @@
                         "alignItems": "stretch",
                         "justifyContent": "flex-start",
                         "wrap": "nowrap",
-                        "backgroundColor": "#fffdf9",
+                        "backgroundColor": "#141a2e",
                         "backgroundImage": "",
                         "backgroundOverlayColor": "",
                         "padding": "10px",
@@ -5708,7 +5798,7 @@
                             "type": "ContentImage",
                             "props": {
                               "id": "Image-related-card",
-                              "src": "https://placehold.co/600x600/efe6d8/5f6f52?text=%D9%82%D8%B7%D8%B9%D8%A9",
+                              "src": "https://placehold.co/600x600/141a2e/4f6df5?text=%D9%85%D9%86%D8%AA%D8%AC",
                               "alt": {
                                 "ar": "",
                                 "en": ""
@@ -5755,7 +5845,7 @@
                                     "gap": 6,
                                     "maxItems": 2,
                                     "radius": "theme-sm",
-                                    "bgColor": "#efe6d8",
+                                    "bgColor": "#0f1424",
                                     "textColor": "#5f4b36",
                                     "listValueContext": {
                                       "path": "product.categories"
@@ -6863,7 +6953,7 @@
             "paddingTop": "72px",
             "paddingBottom": "32px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -6882,7 +6972,7 @@
                   "alignItems": "stretch",
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
                   "padding": "40px",
@@ -6966,7 +7056,7 @@
             "paddingTop": "32px",
             "paddingBottom": "24px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -6989,7 +7079,7 @@
                   "alignItems": "stretch",
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
                   "padding": "40px",
@@ -7043,7 +7133,7 @@
                         "thickness": "1px",
                         "colorMode": "theme",
                         "colorTheme": "neutral",
-                        "colorFixed": "#efe6d8"
+                        "colorFixed": "#0f1424"
                       }
                     },
                     {
@@ -7161,7 +7251,7 @@
                         "thickness": "1px",
                         "colorMode": "theme",
                         "colorTheme": "neutral",
-                        "colorFixed": "#efe6d8"
+                        "colorFixed": "#0f1424"
                       }
                     },
                     {
@@ -7245,7 +7335,7 @@
             "paddingTop": "24px",
             "paddingBottom": "24px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -7268,7 +7358,7 @@
                   "alignItems": "stretch",
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
                   "padding": "40px",
@@ -7322,7 +7412,7 @@
                         "thickness": "1px",
                         "colorMode": "theme",
                         "colorTheme": "neutral",
-                        "colorFixed": "#efe6d8"
+                        "colorFixed": "#0f1424"
                       }
                     },
                     {
@@ -7377,7 +7467,7 @@
             "paddingTop": "24px",
             "paddingBottom": "24px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -7400,7 +7490,7 @@
                   "alignItems": "stretch",
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
                   "padding": "28px",
@@ -7439,7 +7529,7 @@
                         "thickness": "1px",
                         "colorMode": "theme",
                         "colorTheme": "neutral",
-                        "colorFixed": "#efe6d8"
+                        "colorFixed": "#0f1424"
                       }
                     },
                     {
@@ -7584,7 +7674,7 @@
             "paddingTop": "24px",
             "paddingBottom": "96px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "backgroundImage": "",
             "backgroundOverlayColor": "",
             "theme": "dark",
@@ -7607,7 +7697,7 @@
                   "alignItems": "stretch",
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
                   "padding": "40px",
@@ -8646,11 +8736,11 @@
           "props": {
             "columns": 1,
             "columnsMobile": 1,
-            "gridGap": "28px",
+            "gridGap": "24px",
             "paddingTop": "48px",
             "paddingBottom": "24px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "theme": "dark",
             "maxWidth": "640px",
             "visible": true,
@@ -8670,10 +8760,10 @@
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
                   "language": "ar",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
-                  "padding": "28px",
+                  "padding": "24px",
                   "borderRadius": "theme-md",
                   "boxShadow": "none",
                   "product": null,
@@ -8750,11 +8840,11 @@
           "props": {
             "columns": 1,
             "columnsMobile": 1,
-            "gridGap": "28px",
+            "gridGap": "24px",
             "paddingTop": "24px",
             "paddingBottom": "24px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "theme": "dark",
             "maxWidth": "960px",
             "visible": true,
@@ -8778,10 +8868,10 @@
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
                   "language": "ar",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
-                  "padding": "28px",
+                  "padding": "24px",
                   "borderRadius": "theme-md",
                   "boxShadow": "none",
                   "product": null,
@@ -8804,7 +8894,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -8823,7 +8913,7 @@
                             "props": {
                               "chipVariantMode": "theme",
                               "chipVariant": "neutral",
-                              "shape": "square",
+                              "shape": "pill",
                               "size": "sm",
                               "gap": 6,
                               "maxItems": 10,
@@ -8839,7 +8929,7 @@
                             "props": {
                               "chipVariantMode": "theme",
                               "chipVariant": "neutral",
-                              "shape": "square",
+                              "shape": "pill",
                               "size": "sm",
                               "gap": 6,
                               "maxItems": 10,
@@ -8873,7 +8963,7 @@
                                 "ar": "تاريخ الطلب",
                                 "en": "Order date"
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -8891,7 +8981,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -8929,7 +9019,7 @@
                                 "ar": "الإجمالي",
                                 "en": "Total"
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -8947,7 +9037,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-bold",
@@ -8991,9 +9081,9 @@
                         "buttonVariantMode": "variant",
                         "buttonVariant": "secondary",
                         "buttonVariantSize": "sm",
-                        "radius": "theme-sm",
-                        "bgColor": "theme-primary",
-                        "textColor": "theme-surface",
+                        "radius": "theme-md",
+                        "bgColor": "theme-surface",
+                        "textColor": "theme-text",
                         "buttonSize": "theme-sm",
                         "submitRedirectUrl": "",
                         "id": "ContentButton-orders-1-content-0-content-3"
@@ -9014,10 +9104,10 @@
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
                   "language": "ar",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
-                  "padding": "28px",
+                  "padding": "24px",
                   "borderRadius": "theme-md",
                   "boxShadow": "none",
                   "product": null,
@@ -9040,7 +9130,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -9059,7 +9149,7 @@
                             "props": {
                               "chipVariantMode": "theme",
                               "chipVariant": "neutral",
-                              "shape": "square",
+                              "shape": "pill",
                               "size": "sm",
                               "gap": 6,
                               "maxItems": 10,
@@ -9075,7 +9165,7 @@
                             "props": {
                               "chipVariantMode": "theme",
                               "chipVariant": "neutral",
-                              "shape": "square",
+                              "shape": "pill",
                               "size": "sm",
                               "gap": 6,
                               "maxItems": 10,
@@ -9109,7 +9199,7 @@
                                 "ar": "تاريخ الطلب",
                                 "en": "Order date"
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -9127,7 +9217,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -9165,7 +9255,7 @@
                                 "ar": "الإجمالي",
                                 "en": "Total"
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -9183,7 +9273,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-bold",
@@ -9227,9 +9317,9 @@
                         "buttonVariantMode": "variant",
                         "buttonVariant": "secondary",
                         "buttonVariantSize": "sm",
-                        "radius": "theme-sm",
-                        "bgColor": "theme-primary",
-                        "textColor": "theme-surface",
+                        "radius": "theme-md",
+                        "bgColor": "theme-surface",
+                        "textColor": "theme-text",
                         "buttonSize": "theme-sm",
                         "submitRedirectUrl": "",
                         "id": "ContentButton-orders-1-cardTemplate-0-content-3"
@@ -9247,11 +9337,11 @@
           "props": {
             "columns": 1,
             "columnsMobile": 1,
-            "gridGap": "28px",
+            "gridGap": "24px",
             "paddingTop": "0px",
             "paddingBottom": "48px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "theme": "dark",
             "maxWidth": "960px",
             "visible": true,
@@ -9291,9 +9381,9 @@
                         "buttonVariantMode": "variant",
                         "buttonVariant": "secondary",
                         "buttonVariantSize": "sm",
-                        "radius": "theme-sm",
-                        "bgColor": "theme-primary",
-                        "textColor": "theme-surface",
+                        "radius": "theme-md",
+                        "bgColor": "theme-surface",
+                        "textColor": "theme-text",
                         "buttonSize": "theme-sm",
                         "submitRedirectUrl": "",
                         "id": "ContentButton-orders-2-content-0-content-0"
@@ -9306,7 +9396,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-light",
@@ -9336,9 +9426,9 @@
                         "buttonVariantMode": "variant",
                         "buttonVariant": "secondary",
                         "buttonVariantSize": "sm",
-                        "radius": "theme-sm",
-                        "bgColor": "theme-primary",
-                        "textColor": "theme-surface",
+                        "radius": "theme-md",
+                        "bgColor": "theme-surface",
+                        "textColor": "theme-text",
                         "buttonSize": "theme-sm",
                         "submitRedirectUrl": "",
                         "id": "ContentButton-orders-2-content-0-content-2"
@@ -9381,11 +9471,11 @@
           "props": {
             "columns": 1,
             "columnsMobile": 1,
-            "gridGap": "28px",
+            "gridGap": "24px",
             "paddingTop": "48px",
             "paddingBottom": "80px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "theme": "dark",
             "maxWidth": "640px",
             "visible": true,
@@ -9405,10 +9495,10 @@
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
                   "language": "ar",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
-                  "padding": "28px",
+                  "padding": "24px",
                   "borderRadius": "theme-md",
                   "boxShadow": "none",
                   "product": null,
@@ -9467,11 +9557,11 @@
           "props": {
             "columns": 1,
             "columnsMobile": 1,
-            "gridGap": "28px",
+            "gridGap": "24px",
             "paddingTop": "24px",
             "paddingBottom": "80px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "theme": "dark",
             "maxWidth": "960px",
             "visible": true,
@@ -9523,7 +9613,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "option1",
                         "fontSize": "theme-lg",
                         "fontWeight": "theme-bold",
@@ -9543,7 +9633,7 @@
                       "props": {
                         "chipVariantMode": "theme",
                         "chipVariant": "neutral",
-                        "shape": "square",
+                        "shape": "pill",
                         "size": "sm",
                         "gap": 6,
                         "maxItems": 10,
@@ -9559,7 +9649,7 @@
                       "props": {
                         "chipVariantMode": "theme",
                         "chipVariant": "neutral",
-                        "shape": "square",
+                        "shape": "pill",
                         "size": "sm",
                         "gap": 6,
                         "maxItems": 10,
@@ -9584,7 +9674,7 @@
                     "ar": "",
                     "en": ""
                   },
-                  "textAlign": "right",
+                  "textAlign": "left",
                   "fontFamily": "body",
                   "fontSize": "theme-md",
                   "fontWeight": "theme-light",
@@ -9624,9 +9714,9 @@
                         "buttonVariantMode": "variant",
                         "buttonVariant": "primary",
                         "buttonVariantSize": "md",
-                        "radius": "theme-sm",
+                        "radius": "theme-md",
                         "bgColor": "theme-primary",
-                        "textColor": "theme-surface",
+                        "textColor": "theme-text",
                         "buttonSize": "theme-md",
                         "submitRedirectUrl": "",
                         "id": "ContentButton-order-detail-1-content-3-content-0"
@@ -9648,9 +9738,9 @@
                         "buttonVariantMode": "variant",
                         "buttonVariant": "error",
                         "buttonVariantSize": "md",
-                        "radius": "theme-sm",
+                        "radius": "theme-md",
                         "bgColor": "theme-primary",
-                        "textColor": "theme-surface",
+                        "textColor": "theme-text",
                         "buttonSize": "theme-md",
                         "submitRedirectUrl": "",
                         "zoneKey": "cancel-order",
@@ -9676,7 +9766,7 @@
                     "ar": "",
                     "en": ""
                   },
-                  "textAlign": "right",
+                  "textAlign": "left",
                   "fontFamily": "body",
                   "fontSize": "theme-md",
                   "fontWeight": "theme-light",
@@ -9702,11 +9792,11 @@
           "props": {
             "columns": 1,
             "columnsMobile": 1,
-            "gridGap": "28px",
+            "gridGap": "24px",
             "paddingTop": "80px",
             "paddingBottom": "80px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "theme": "dark",
             "maxWidth": "960px",
             "visible": true,
@@ -9730,10 +9820,10 @@
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
                   "language": "ar",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
-                  "padding": "28px",
+                  "padding": "24px",
                   "borderRadius": "theme-md",
                   "boxShadow": "none",
                   "product": null,
@@ -9779,7 +9869,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -9807,7 +9897,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-light",
@@ -9837,7 +9927,7 @@
                                 "ar": "الكمية",
                                 "en": "Quantity"
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -9855,7 +9945,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -9892,7 +9982,7 @@
                                 "ar": "سعر الوحدة",
                                 "en": "Unit price"
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -9910,7 +10000,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-bold",
@@ -9949,7 +10039,7 @@
                                 "ar": "الإجمالي",
                                 "en": "Total"
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -9967,7 +10057,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-bold",
@@ -10045,10 +10135,10 @@
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
                   "language": "ar",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
-                  "padding": "28px",
+                  "padding": "24px",
                   "borderRadius": "theme-md",
                   "boxShadow": "none",
                   "product": null,
@@ -10094,7 +10184,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -10122,7 +10212,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-light",
@@ -10152,7 +10242,7 @@
                                 "ar": "الكمية",
                                 "en": "Quantity"
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -10170,7 +10260,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -10207,7 +10297,7 @@
                                 "ar": "سعر الوحدة",
                                 "en": "Unit price"
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -10225,7 +10315,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-bold",
@@ -10264,7 +10354,7 @@
                                 "ar": "الإجمالي",
                                 "en": "Total"
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-light",
@@ -10282,7 +10372,7 @@
                                 "ar": "",
                                 "en": ""
                               },
-                              "textAlign": "right",
+                              "textAlign": "left",
                               "fontFamily": "body",
                               "fontSize": "theme-md",
                               "fontWeight": "theme-bold",
@@ -10357,11 +10447,11 @@
           "props": {
             "columns": 1,
             "columnsMobile": 1,
-            "gridGap": "28px",
+            "gridGap": "24px",
             "paddingTop": "80px",
             "paddingBottom": "80px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "theme": "dark",
             "maxWidth": "960px",
             "visible": true,
@@ -10383,7 +10473,7 @@
                     "ar": "ملخّص الدفع",
                     "en": "Payment summary"
                   },
-                  "textAlign": "right",
+                  "textAlign": "left",
                   "fontFamily": "option1",
                   "fontSize": "theme-lg",
                   "fontWeight": "theme-bold",
@@ -10411,7 +10501,7 @@
                           "ar": "المجموع الفرعي",
                           "en": "Subtotal"
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-light",
@@ -10429,7 +10519,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-bold",
@@ -10472,7 +10562,7 @@
                           "ar": "الخصم",
                           "en": "Discount"
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-light",
@@ -10490,7 +10580,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-bold",
@@ -10533,7 +10623,7 @@
                           "ar": "الضريبة",
                           "en": "Tax"
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-light",
@@ -10551,7 +10641,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-bold",
@@ -10590,7 +10680,7 @@
                           "ar": "تكلفة الشحن",
                           "en": "Shipping"
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-light",
@@ -10608,7 +10698,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-bold",
@@ -10647,7 +10737,7 @@
                           "ar": "الإجمالي",
                           "en": "Total"
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-light",
@@ -10665,7 +10755,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-bold",
@@ -10693,7 +10783,7 @@
                 "props": {
                   "chipVariantMode": "theme",
                   "chipVariant": "neutral",
-                  "shape": "square",
+                  "shape": "pill",
                   "size": "sm",
                   "gap": 6,
                   "maxItems": 10,
@@ -10712,11 +10802,11 @@
           "props": {
             "columns": 1,
             "columnsMobile": 1,
-            "gridGap": "28px",
+            "gridGap": "24px",
             "paddingTop": "80px",
             "paddingBottom": "80px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "theme": "dark",
             "maxWidth": "960px",
             "visible": true,
@@ -10738,7 +10828,7 @@
                     "ar": "عنوان التوصيل",
                     "en": "Delivery address"
                   },
-                  "textAlign": "right",
+                  "textAlign": "left",
                   "fontFamily": "option1",
                   "fontSize": "theme-lg",
                   "fontWeight": "theme-bold",
@@ -10757,7 +10847,7 @@
                     "ar": "",
                     "en": ""
                   },
-                  "textAlign": "right",
+                  "textAlign": "left",
                   "fontFamily": "body",
                   "fontSize": "theme-md",
                   "fontWeight": "theme-light",
@@ -10778,7 +10868,7 @@
                     "ar": "",
                     "en": ""
                   },
-                  "textAlign": "right",
+                  "textAlign": "left",
                   "fontFamily": "body",
                   "fontSize": "theme-md",
                   "fontWeight": "theme-light",
@@ -10799,7 +10889,7 @@
                     "ar": "",
                     "en": ""
                   },
-                  "textAlign": "right",
+                  "textAlign": "left",
                   "fontFamily": "body",
                   "fontSize": "theme-md",
                   "fontWeight": "theme-light",
@@ -10825,11 +10915,11 @@
           "props": {
             "columns": 1,
             "columnsMobile": 1,
-            "gridGap": "28px",
+            "gridGap": "24px",
             "paddingTop": "80px",
             "paddingBottom": "80px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "theme": "dark",
             "maxWidth": "960px",
             "visible": true,
@@ -10851,7 +10941,7 @@
                     "ar": "ملاحظاتك",
                     "en": "Your notes"
                   },
-                  "textAlign": "right",
+                  "textAlign": "left",
                   "fontFamily": "option1",
                   "fontSize": "theme-lg",
                   "fontWeight": "theme-bold",
@@ -10870,7 +10960,7 @@
                     "ar": "",
                     "en": ""
                   },
-                  "textAlign": "right",
+                  "textAlign": "left",
                   "fontFamily": "body",
                   "fontSize": "theme-md",
                   "fontWeight": "theme-light",
@@ -10896,11 +10986,11 @@
           "props": {
             "columns": 1,
             "columnsMobile": 1,
-            "gridGap": "28px",
+            "gridGap": "24px",
             "paddingTop": "80px",
             "paddingBottom": "80px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "theme": "dark",
             "maxWidth": "960px",
             "visible": true,
@@ -10924,10 +11014,10 @@
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
                   "language": "ar",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
-                  "padding": "28px",
+                  "padding": "24px",
                   "borderRadius": "theme-md",
                   "boxShadow": "none",
                   "product": null,
@@ -10939,7 +11029,7 @@
                       "props": {
                         "chipVariantMode": "theme",
                         "chipVariant": "neutral",
-                        "shape": "square",
+                        "shape": "pill",
                         "size": "sm",
                         "gap": 6,
                         "maxItems": 10,
@@ -10957,7 +11047,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-light",
@@ -10977,7 +11067,7 @@
                       "props": {
                         "chipVariantMode": "theme",
                         "chipVariant": "neutral",
-                        "shape": "square",
+                        "shape": "pill",
                         "size": "sm",
                         "gap": 6,
                         "maxItems": 10,
@@ -10995,7 +11085,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-light",
@@ -11024,10 +11114,10 @@
                   "justifyContent": "flex-start",
                   "wrap": "nowrap",
                   "language": "ar",
-                  "backgroundColor": "#fffdf9",
+                  "backgroundColor": "#141a2e",
                   "backgroundImage": "",
                   "backgroundOverlayColor": "",
-                  "padding": "28px",
+                  "padding": "24px",
                   "borderRadius": "theme-md",
                   "boxShadow": "none",
                   "product": null,
@@ -11039,7 +11129,7 @@
                       "props": {
                         "chipVariantMode": "theme",
                         "chipVariant": "neutral",
-                        "shape": "square",
+                        "shape": "pill",
                         "size": "sm",
                         "gap": 6,
                         "maxItems": 10,
@@ -11057,7 +11147,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-light",
@@ -11077,7 +11167,7 @@
                       "props": {
                         "chipVariantMode": "theme",
                         "chipVariant": "neutral",
-                        "shape": "square",
+                        "shape": "pill",
                         "size": "sm",
                         "gap": 6,
                         "maxItems": 10,
@@ -11095,7 +11185,7 @@
                           "ar": "",
                           "en": ""
                         },
-                        "textAlign": "right",
+                        "textAlign": "left",
                         "fontFamily": "body",
                         "fontSize": "theme-md",
                         "fontWeight": "theme-light",
@@ -11121,11 +11211,11 @@
           "props": {
             "columns": 1,
             "columnsMobile": 1,
-            "gridGap": "28px",
+            "gridGap": "24px",
             "paddingTop": "80px",
             "paddingBottom": "80px",
             "paddingHorizontal": "32px",
-            "backgroundColor": "#f7f2ea",
+            "backgroundColor": "#0b0f1a",
             "theme": "dark",
             "maxWidth": "960px",
             "visible": true,
@@ -11156,9 +11246,9 @@
                   "buttonVariantMode": "variant",
                   "buttonVariant": "primary",
                   "buttonVariantSize": "md",
-                  "radius": "theme-sm",
+                  "radius": "theme-md",
                   "bgColor": "theme-primary",
-                  "textColor": "theme-surface",
+                  "textColor": "theme-text",
                   "buttonSize": "theme-md",
                   "submitRedirectUrl": "",
                   "id": "ContentButton-order-detail-7-content-0"
@@ -11193,7 +11283,7 @@
                     "ar": "",
                     "en": ""
                   },
-                  "textAlign": "right",
+                  "textAlign": "left",
                   "fontFamily": "body",
                   "fontSize": "theme-md",
                   "fontWeight": "theme-light",

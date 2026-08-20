@@ -54,12 +54,14 @@ const SOURCE_MODE_OPTIONS = [
   { label: "قيم ثابتة", value: "static" },
   { label: "مكرِّر (من البيانات المرتبطة)", value: "bound" },
   { label: "تصنيفات المتجر", value: "categories" },
+  { label: "خيارات المنتج (المتغيّرات)", value: "productVariants" },
 ];
 
 const MODE_SUMMARY: Record<string, string> = {
   static: "قيم ثابتة",
   bound: "مكرِّر",
   categories: "تصنيفات",
+  productVariants: "خيارات المنتج",
 };
 
 /**

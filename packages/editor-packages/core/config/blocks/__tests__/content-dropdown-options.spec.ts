@@ -188,6 +188,68 @@ describe("bound (repeater) option sources", () => {
   });
 });
 
+describe("productVariants option sources", () => {
+  const storefrontPayload = {
+    variantMatrix: {
+      variants: [
+        {
+          variantId: "v-1",
+          sku: "SKU-1",
+          optionValues: [
+            { optionValueId: "ov-1", valueAr: "رمادي", valueEn: "Grey" },
+          ],
+        },
+        {
+          variantId: "v-2",
+          sku: "SKU-2",
+          optionValues: [
+            { optionValueId: "ov-2", valueAr: "بيج", valueEn: "Beige" },
+          ],
+        },
+      ],
+    },
+  };
+
+  it("reads variantMatrix.variants without any merchant-typed path", () => {
+    const groups = resolveDropdownGroups(
+      [source({ mode: "productVariants", sourcePath: "", titlePath: "", valuePath: "" })],
+      context({ data: storefrontPayload })
+    );
+
+    expect(groups[0]?.options).toEqual([
+      { title: "رمادي", value: "v-1" },
+      { title: "بيج", value: "v-2" },
+    ]);
+  });
+
+  it("ignores a merchant-typed sourcePath/titlePath/valuePath on the same row", () => {
+    // The fixed paths win regardless of whatever a "bound" row on the same block might have had —
+    // there is nothing here for the merchant to misconfigure.
+    const groups = resolveDropdownGroups(
+      [
+        source({
+          mode: "productVariants",
+          sourcePath: "wrong.path",
+          titlePath: "sku",
+          valuePath: "sku",
+        }),
+      ],
+      context({ data: storefrontPayload })
+    );
+
+    expect(groups[0]?.options).toEqual([
+      { title: "رمادي", value: "v-1" },
+      { title: "بيج", value: "v-2" },
+    ]);
+  });
+
+  it("returns nothing when there is no bound payload", () => {
+    expect(
+      resolveDropdownGroups([source({ mode: "productVariants" })], context())
+    ).toEqual([]);
+  });
+});
+
 describe("category option sources", () => {
   it("maps the store category list to slug values", () => {
     const groups = resolveDropdownGroups(
