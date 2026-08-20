@@ -22,6 +22,7 @@ import {
   pickLang,
   type BilingualString,
 } from "../../fields/BilingualText";
+import { bindPathField } from "../../fields/BindPathField";
 import { useActiveLanguage } from "../../locale/LanguageContext";
 import { ALL_CATEGORY_VALUE } from "../ButtonGroup/pagination-utils";
 import {
@@ -177,6 +178,11 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
       options: [{ label: "بدون", value: "" }, ...DROPDOWN_ACTION_OPTIONS],
     },
     defaultValue: { type: "text", label: "القيمة الافتراضية" },
+    valueContext: bindPathField({
+      label: "تعيين القيمة الابتدائية من بيانات الصفحة (اختياري)",
+      placeholder: "product.defaultVariantId",
+      hint: "يحل محل \"القيمة الافتراضية\" أعلاه عند توفره. يُتجاهل بينما يوجد إجراء (الإجراء يقرأ التحديد من مصدر آخر).",
+    }),
     autoSelectFirst: {
       type: "radio",
       label: "اختيار أول قيمة تلقائياً",
@@ -215,6 +221,7 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
     ],
     dropdownAction: "",
     defaultValue: "",
+    valueContext: null,
     autoSelectFirst: true,
     hideWhenSingle: false,
   },
@@ -396,9 +403,10 @@ export const ContentDropdown: typeof WithLayoutContentDropdown = {
 
     const apply = (f: Record<string, unknown>) => {
       const next = { ...f };
-      // A wired action owns the selection — a default value would fight it.
+      // A wired action owns the selection — a default value (typed or bound) would fight it.
       if (dropdownAction) {
         delete next.defaultValue;
+        delete next.valueContext;
       } else {
         delete next.autoSelectFirst;
       }

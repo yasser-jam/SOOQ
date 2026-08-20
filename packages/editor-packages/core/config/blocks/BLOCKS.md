@@ -1159,9 +1159,9 @@ The two `checkout_*` actions are **bound sources** (`isBoundSelectAction`):
 | `options` | `DropdownOptionSource[]` | The option sources — see below. Add as many as you need | one static source with two options |
 | `dropdownAction` | `"" \| "select_variant" \| "filter_category"` | Wired store action (`""` = plain form control) | `""` |
 | `defaultValue` | `string` | Initial selection. **Hidden** while `dropdownAction` is set | `""` |
+| `valueContext` | `ValueContext \| null` | Seeds the initial selection from bound data instead of a typed `defaultValue` (`BindPathField`, editable field). **Hidden** while `dropdownAction` is set — same reason `defaultValue` is | `null` |
 | `autoSelectFirst` | `boolean` | Adopt the first option on mount so bound pricing has a variant. **Hidden** while `dropdownAction` is empty | `true` |
 | `hideWhenSingle` | `boolean` | Render nothing on the storefront unless 2+ options resolve — a one-variant product shouldn't show a picker | `false` |
-| `valueContext` | `ValueContext \| null` | Preset-only — seeds the initial selection from bound data | `null` |
 
 > **Bilingual:** `label`, `placeholder`, `options[].groupLabel`, `options[].values[].title`.
 
@@ -1545,6 +1545,12 @@ Binds one option group (`المقاس`) from the variant matrix rather than whol
 > **Bilingual:** `text`. Resolution order at render: `pickLang(text, activeLanguage)` → then
 > `valueContext` (bound product/cart data) wins if set.
 
+`valueContext` is an editable field in the block panel ("ربط العنوان ببيانات الصفحة") —
+`BindPathField` (`config/fields/BindPathField/`), a plain path input. Type a path like
+`product.title` and the heading follows whatever product the current page is bound to; clear it
+to go back to the typed `text`. Previously this prop only worked when hand-authored in JSON or
+set by a preset — the field just makes the existing mechanism reachable from the UI.
+
 ### JSON Example
 
 ```json
@@ -1644,6 +1650,10 @@ Binds one option group (`المقاس`) from the variant matrix rather than whol
 | `radius` | `string` | Border radius (`"theme-md"` or pixel value) | `"theme-md"` |
 | `maxWidth` | `string` | Max width CSS value | `"100%"` |
 
+`valueContext`/`altValueContext` are editable fields in the block panel ("ربط الصورة ببيانات
+الصفحة" / "ربط النص البديل ببيانات الصفحة") — `BindPathField` (`config/fields/BindPathField/`).
+Same mechanism as `ContentHeading`/`ContentParagraph`.
+
 ### JSON Example
 
 ```json
@@ -1684,6 +1694,9 @@ Binds one option group (`المقاس`) from the variant matrix rather than whol
 | `visibility` | `{ showOnMobile, showOnTablet, showOnDesktop }` | Per-viewport visibility toggles (`VisibilityToggle` field) | all `true` |
 
 > **Bilingual:** `text`.
+
+`valueContext` is an editable field in the block panel ("ربط النص ببيانات الصفحة") — see
+[`ContentHeading`](#contentheading) above for the mechanism; it's identical here.
 
 ### JSON Example
 
