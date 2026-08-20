@@ -23,7 +23,7 @@ import styles from "../ContentInput/styles.module.css";
 
 const getClassName = getClassNameFactory("ContentInput", styles);
 
-type SelectOption = { value: string; label: string };
+export type SelectOption = { value: string; label: string };
 
 /** "العمل — دمشق، شارع الحمرا" — one line the customer can pick from. */
 export function formatAddressOption(address: CustomerAddress): string {
@@ -35,13 +35,16 @@ export function formatAddressOption(address: CustomerAddress): string {
   return label && place ? `${label} — ${place}` : label || place || "عنوان";
 }
 
-/** Editor-only rows so the merchant sees a populated control on the canvas. */
-const SAMPLE_ADDRESS_OPTIONS: SelectOption[] = [
+/**
+ * Editor-only rows so the merchant sees a populated control on the canvas. Also used by
+ * `ContentDropdown`, which merges this block's system actions in (see `dropdown-actions.ts`).
+ */
+export const SAMPLE_ADDRESS_OPTIONS: SelectOption[] = [
   { value: "sample-address-1", label: "المنزل — دمشق، شارع الحمرا" },
   { value: "sample-address-2", label: "العمل — دمشق، أبو رمانة" },
 ];
 
-const SAMPLE_PAYMENT_OPTIONS: SelectOption[] = [
+export const SAMPLE_PAYMENT_OPTIONS: SelectOption[] = [
   { value: "COD", label: "الدفع عند الاستلام" },
 ];
 

@@ -72,6 +72,26 @@ describe("ContentDropdown render", () => {
   it("lists bound variants and reports the picked one to the binding layer", () => {
     const setSelectedVariantId = jest.fn();
 
+    // `select_variant` is self-sufficient: it always reads `variantMatrix.variants` with fixed
+    // paths (`optionValues[].value` for the label, `variantId` for the value) — `options[]` plays
+    // no part, so `VARIANT_SOURCE` here (a stale `attributes`-shaped source) is passed only to
+    // prove it's ignored rather than followed.
+    const payload = {
+      product: { productId: "p-1", titleAr: "قميص" },
+      variantMatrix: {
+        variants: [
+          {
+            variantId: "v-red-m",
+            optionValues: [{ valueAr: "أحمر" }, { valueAr: "M" }],
+          },
+          {
+            variantId: "v-blue-l",
+            optionValues: [{ valueAr: "أزرق" }, { valueAr: "L" }],
+          },
+        ],
+      },
+    };
+
     renderDropdown(
       {
         name: "variant",
@@ -79,7 +99,7 @@ describe("ContentDropdown render", () => {
         dropdownAction: "select_variant",
         autoSelectFirst: false,
       },
-      { data: PRODUCT_PAYLOAD, setSelectedVariantId }
+      { data: payload, setSelectedVariantId }
     );
 
     const select = screen.getByLabelText("اختر") as HTMLSelectElement;
@@ -173,6 +193,16 @@ describe("ContentDropdown render", () => {
     );
 
     expect(screen.getByLabelText("اختر")).toBeTruthy();
+  });
+
+  it("lists ENUM_MAPS options when enumMapKey is set, merged in from ContentSelect", () => {
+    renderDropdown({ name: "condition", enumMapKey: "returnItemCondition" });
+
+    const select = screen.getByLabelText("اختر") as HTMLSelectElement;
+    const values = Array.from(select.options).map((option) => option.value);
+    // Static values[] would still be on the block, but the enum key takes over the whole list.
+    expect(values).not.toContain("one");
+    expect(values.length).toBeGreaterThan(1);
   });
 
   it("shows an editor hint instead of an empty list while editing", () => {
