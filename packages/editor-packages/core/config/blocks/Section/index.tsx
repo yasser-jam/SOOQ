@@ -10,7 +10,6 @@ import { createColumnsField } from "../../fields/ColumnsField";
 import { createOverlayField } from "../../fields/OverlayField";
 import { WithLayout, withLayout } from "../../components/Layout";
 import { ZONE_BLOCK_TYPES } from "../../shell-zones";
-import { isMobileEditorMetadata } from "../../lib/editor-mode";
 import { sectionCollectionPickerField } from "../../fields/CollectionPickerField";
 import type { CollectionPickerRef } from "@/modules/product/collection/data-store";
 import {
@@ -283,8 +282,10 @@ const SectionInner: ComponentConfig<SectionProps> = {
     },
 
     columns: createColumnsField({ label: "أعمدة المحتوى" }),
-    // columnsMobile deliberately has no field — the stored value still
-    // renders, and gets its own control in the mobile builder instance.
+    // Drives the `@media (max-width: mobile breakpoint)` override below —
+    // this is what makes the grid responsive on the storefront, independent
+    // of the separate mobile-app-builder mode. See useEditorActiveColumns.
+    columnsMobile: createColumnsField({ label: "أعمدة المحتوى (الجوال)" }),
     gridGap: createSpacingField({ label: "فجوة الشبكة", axis: "side" }),
 
     // ── Content slot ─────────────────────────────────────────────────────
@@ -329,13 +330,6 @@ const SectionInner: ComponentConfig<SectionProps> = {
         unknown
       >;
       fields = rest as typeof fields;
-    }
-
-    if (isMobileEditorMetadata(params.metadata)) {
-      fields = {
-        ...fields,
-        columnsMobile: createColumnsField({ label: "أعمدة الجوال" }),
-      } as typeof fields;
     }
 
     return fields;

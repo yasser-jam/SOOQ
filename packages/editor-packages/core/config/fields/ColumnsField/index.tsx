@@ -5,8 +5,8 @@ import { cn } from "@workspace/ui/lib/utils";
 /**
  * Column-count field: a slider with a live mini-grid preview, replacing the
  * numeric select — the merchant sees the split instead of reading a number.
- * Web only for now; the mobile column count keeps its stored value and gets
- * its own control when the mobile builder instance lands.
+ * Reused for both the desktop `columns` field and the `columnsMobile` field
+ * (Section block) that drives the storefront's responsive column count.
  */
 
 const AR_COUNT_LABELS = [

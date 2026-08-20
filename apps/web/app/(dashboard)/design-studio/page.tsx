@@ -10,13 +10,14 @@ import {
   ExternalLink,
   Loader2,
   Monitor,
+  MoreVertical,
   Palette,
-  Plus,
+  Pencil,
   Send,
   Smartphone,
   Sparkles,
+  Trash2,
   Upload,
-  Eye,
 } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
@@ -27,6 +28,12 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
@@ -45,7 +52,6 @@ import { buildStoreBasePath } from "@/modules/storefront/lib/store-config"
 import { getStoreSettingsQueryOptions } from "@/modules/store/settings/actions"
 
 import ThemeMarketplaceCard from "./_components/theme-marketplace-card"
-import MineTemplateCard from "./_components/template-card"
 import { ThemeOnboardingDialog } from "./_components/theme-onboarding-dialog"
 import {
   buildStudioMobileEditHref,
@@ -75,7 +81,6 @@ import type {
   UpdateMineTemplateInput,
 } from "@/modules/design-studio/types"
 import { humanizeError } from "@/lib/error-codes"
-import { createBlankDraft } from "@/modules/design-studio/actions"
 
 type MineTemplateFormState = {
   templateName: string
@@ -114,9 +119,7 @@ export default function DesignStudioPage() {
     getDesignDraftQueryOptions()
   )
   const { data: versions = [] } = useQuery(listDesignVersionsQueryOptions())
-  const { data: mineTemplates = [], isPending: isMineTemplatesPending } = useQuery(
-    listMineTemplatesQueryOptions()
-  )
+  const { data: mineTemplates = [] } = useQuery(listMineTemplatesQueryOptions())
   const [onboardingOpen, setOnboardingOpen] = useState(false)
   const [mineTemplateOpen, setMineTemplateOpen] = useState(false)
   const [editingMineTemplate, setEditingMineTemplate] =
@@ -132,17 +135,6 @@ export default function DesignStudioPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
       toast.success("تم تطبيق القالب. افتح المحرر لتخصيصه.")
-    },
-    onError: (error: { errorCode?: string; message?: string }) => {
-      toast.error(humanizeError(error?.errorCode, error?.message))
-    },
-  })
-
-  const blankDraftMutation = useMutation({
-    mutationFn: createBlankDraft,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
-      toast.success("تم إنشاء مسودة فارغة.")
     },
     onError: (error: { errorCode?: string; message?: string }) => {
       toast.error(humanizeError(error?.errorCode, error?.message))
@@ -210,6 +202,16 @@ export default function DesignStudioPage() {
     return templates.find((t) => t.templateKey === activeTemplateKey) ?? null
   }, [activeTemplateKey, templates])
 
+  const applyingTemplateKey = applyTemplateMutation.isPending
+    ? applyTemplateMutation.variables?.templateKey
+    : null
+
+  const mineTemplateByTemplateId = useMemo(() => {
+    const map = new Map<string, TenantTemplateDetail>()
+    mineTemplates.forEach((template) => map.set(template.templateId, template))
+    return map
+  }, [mineTemplates])
+
   const activeThemeName = resolveActiveThemeName(draft, templates)
 
   useEffect(() => {
@@ -231,7 +233,6 @@ export default function DesignStudioPage() {
     editorBase,
     activeThemeName || "Theme 1"
   )
-  const themesGalleryHref = themeEditHref
 
   const openCreateMineTemplateDialog = () => {
     const baseName = activeThemeName || draft?.configJson?.templateKey || "قالب جديد"
@@ -317,13 +318,46 @@ export default function DesignStudioPage() {
     deleteMineTemplateMutation.mutate(template.templateId)
   }
 
-  const applyMineTemplate = (template: TenantTemplateDetail) => {
-    if (!canWrite) return
-    if (hasDraft && !window.confirm("سيتم استبدال المسودة الحالية بهذا القالب الخاص. هل تريد المتابعة؟")) return
-    applyTemplateMutation.mutate({
-      templateKey: template.templateKey,
-      source: "MINE",
-    })
+  const renderMineTemplateActions = (template: StudioTemplateCard) => {
+    if (!canWrite || !template.templateId) return null
+    const detail = mineTemplateByTemplateId.get(template.templateId)
+    if (!detail) return null
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-7 rounded-full border-border/60 bg-background/90 backdrop-blur-sm"
+            onClick={(event) => event.stopPropagation()}
+            aria-label="إجراءات القالب"
+          >
+            <MoreVertical className="size-3.5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => toggleMineTemplateActive(detail)}>
+            {detail.isActive ? "إلغاء التفعيل" : "تفعيل"}
+          </DropdownMenuItem>
+          {detail.editable && (
+            <DropdownMenuItem onClick={() => openEditMineTemplateDialog(detail)}>
+              <Pencil className="size-4" />
+              تعديل
+            </DropdownMenuItem>
+          )}
+          {detail.editable && (
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => handleDeleteMineTemplate(detail)}
+            >
+              <Trash2 className="size-4" />
+              حذف
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
   }
 
   const storeSlug = settings?.slug ?? ""
@@ -371,23 +405,8 @@ export default function DesignStudioPage() {
             )}
             {canWrite && (
               <Button variant="secondary" onClick={() => setOnboardingOpen(true)}>
-                <Plus data-icon="inline-start" className="size-4" />
-                إنشاء ثيم مخصص
-              </Button>
-            )}
-            {canWrite && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (hasDraft && !window.confirm("سيتم استبدال المسودة الحالية بمسودة فارغة. هل تريد المتابعة؟")) {
-                    return
-                  }
-                  blankDraftMutation.mutate()
-                }}
-                disabled={blankDraftMutation.isPending}
-              >
                 <Sparkles data-icon="inline-start" className="size-4" />
-                بدء من الصفر
+                إنشاء ثيم مخصص
               </Button>
             )}
             {canWrite && hasDraft && (
@@ -407,6 +426,9 @@ export default function DesignStudioPage() {
       {hasCompletedConfig && isReady && !hasDraft && canWrite && <NoThemeCta />}
       {hasCompletedConfig && isReady && !hasDraft && !canWrite && <ReadOnlyCta />}
 
+      {/* Draft still loading */}
+      {hasCompletedConfig && !isReady && <ActiveThemeCardSkeleton />}
+
       {/* Stage 3: Active design hero */}
       {hasDraft && draft && (
         <ActiveThemeCard
@@ -425,18 +447,11 @@ export default function DesignStudioPage() {
 
       {/* Template marketplace */}
       <section className="space-y-5">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="space-y-1">
-            <h2 className="text-text text-xl font-semibold">قوالب التصميم</h2>
-            <p className="text-sm text-muted-foreground">
-              استكشف القوالب المعتمدة في القالب الإداري وطبّق ما يناسب متجرك.
-            </p>
-          </div>
-          {canWrite && (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={themesGalleryHref}>افتح المحرر</Link>
-            </Button>
-          )}
+        <div className="space-y-1">
+          <h2 className="text-text text-xl font-semibold">قوالب التصميم</h2>
+          <p className="text-sm text-muted-foreground">
+            استكشف القوالب النظامية وقوالبك الخاصة، وطبّق ما يناسب متجرك.
+          </p>
         </div>
 
         {isTemplatesPending ? (
@@ -460,6 +475,11 @@ export default function DesignStudioPage() {
                 description={template.description}
                 previewImage={template.previewImageUrl ?? undefined}
                 isActive={activeTemplateKey === template.templateKey}
+                isApplying={applyingTemplateKey === template.templateKey}
+                applyDisabled={
+                  applyTemplateMutation.isPending &&
+                  applyingTemplateKey !== template.templateKey
+                }
                 badge={
                   template.source === "SYSTEM"
                     ? "نظامي"
@@ -467,6 +487,7 @@ export default function DesignStudioPage() {
                       ? "قالبي"
                       : "محلي"
                 }
+                actions={renderMineTemplateActions(template)}
                 onSelect={
                   canWrite ? () => {
                     if (hasDraft && !window.confirm("سيتم استبدال المسودة الحالية بهذا القالب. هل تريد المتابعة؟")) {
@@ -475,59 +496,6 @@ export default function DesignStudioPage() {
                     applyTemplateMutation.mutate(template)
                   } : undefined
                 }
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="space-y-5">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="space-y-1">
-            <h2 className="text-text text-xl font-semibold">قوالبي</h2>
-            <p className="text-sm text-muted-foreground">
-              أدر قوالب مكتبتك الخاصة: فعّل، عدّل، احذف، أو أعد تطبيق أي قالب.
-            </p>
-          </div>
-          {canWrite && hasDraft && (
-            <Button variant="secondary" size="sm" onClick={openCreateMineTemplateDialog}>
-              <Plus data-icon="inline-start" className="size-4" />
-              حفظ كقالب
-            </Button>
-          )}
-        </div>
-
-        {isMineTemplatesPending ? (
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="aspect-[4/3] w-full rounded-xl" />
-            ))}
-          </div>
-        ) : mineTemplates.length === 0 ? (
-          <Card className="border border-border/60">
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              لا توجد قوالب خاصة بعد. احفظ المسودة الحالية كقالب للبدء.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {mineTemplates.map((template) => (
-              <MineTemplateCard
-                key={template.templateId}
-                title={template.templateName}
-                description={template.industryType || template.templateKey}
-                updatedAt={
-                  template.updatedAt || template.createdAt
-                    ? new Date(template.updatedAt || template.createdAt || "").toLocaleDateString("ar")
-                    : "—"
-                }
-                badge="قالبي"
-                isActive={template.isActive}
-                editable={template.editable}
-                onApply={() => applyMineTemplate(template)}
-                onToggleActive={() => toggleMineTemplateActive(template)}
-                onEdit={() => openEditMineTemplateDialog(template)}
-                onDelete={() => handleDeleteMineTemplate(template)}
               />
             ))}
           </div>
@@ -909,12 +877,6 @@ function ActiveThemeCard({
 
           {/* Action buttons */}
           <div className="mt-auto flex flex-wrap gap-2.5 pt-2">
-            <Button variant="outline" asChild>
-              <Link href={shopUrl || themeEditHref}>
-                <Eye data-icon="inline-start" className="size-4" />
-                معاينة
-              </Link>
-            </Button>
             {canWrite && (
               <Button variant="secondary" asChild>
                 <Link href={themeMobileEditHref}>
@@ -956,6 +918,31 @@ function ActiveThemeCard({
             أكمل إعداد المتجر لعرض الرابط العام.
           </span>
         )}
+      </div>
+    </Card>
+  )
+}
+
+function ActiveThemeCardSkeleton() {
+  return (
+    <Card className="overflow-hidden border border-border/60 p-0">
+      <div className="flex flex-wrap">
+        <Skeleton className="min-h-[280px] basis-80 flex-shrink-0 rounded-none" />
+        <div className="flex min-w-80 flex-1 flex-col gap-5 p-7">
+          <div className="space-y-3">
+            <Skeleton className="h-5 w-28 rounded-full" />
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <div className="mt-auto flex flex-wrap gap-2.5 pt-2">
+            <Skeleton className="h-9 w-32" />
+            <Skeleton className="h-9 w-32" />
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-3 border-t border-border/60 bg-muted/20 px-8 py-4">
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-4 w-48" />
       </div>
     </Card>
   )

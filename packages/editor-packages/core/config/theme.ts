@@ -439,7 +439,17 @@ export const DEFAULT_BREAKPOINTS: BreakpointThemeProps = {
 export function normalizeBreakpoints(
   input?: Partial<BreakpointThemeProps>
 ): BreakpointThemeProps {
-  const base = { ...DEFAULT_BREAKPOINTS, ...input };
+  // Callers pass `{ breakpointMobileMax: rootProps?.breakpointMobileMax, ... }`,
+  // which is `undefined` whenever the merchant hasn't customized breakpoints —
+  // a plain `{...DEFAULT_BREAKPOINTS, ...input}` spread would let that explicit
+  // `undefined` clobber the default (Math.round(undefined) → NaN → every
+  // viewport bucket resolves to "desktop"), so fall back per-field instead.
+  const base = {
+    breakpointMobileMax:
+      input?.breakpointMobileMax ?? DEFAULT_BREAKPOINTS.breakpointMobileMax,
+    breakpointTabletMax:
+      input?.breakpointTabletMax ?? DEFAULT_BREAKPOINTS.breakpointTabletMax,
+  };
   let mobile = Math.max(320, Math.min(2000, Math.round(base.breakpointMobileMax)));
   let tablet = Math.max(mobile + 1, Math.min(2400, Math.round(base.breakpointTabletMax)));
   return { breakpointMobileMax: mobile, breakpointTabletMax: tablet };

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Loader2 } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import { Card } from "@workspace/ui/components/card"
@@ -12,7 +13,13 @@ type ThemeMarketplaceCardProps = {
   badge?: string
   href?: string
   isActive?: boolean
+  /** This card's apply-template request is in flight. */
+  isApplying?: boolean
+  /** A different card's apply-template request is in flight. */
+  applyDisabled?: boolean
   onSelect?: () => void
+  /** Rendered as an overlay in the top corner opposite the badge — e.g. a three-dot actions menu. */
+  actions?: React.ReactNode
 }
 
 export default function ThemeMarketplaceCard({
@@ -23,7 +30,10 @@ export default function ThemeMarketplaceCard({
   badge,
   href,
   isActive,
+  isApplying,
+  applyDisabled,
   onSelect,
+  actions,
 }: ThemeMarketplaceCardProps) {
   return (
     <Card
@@ -76,6 +86,14 @@ export default function ThemeMarketplaceCard({
             {badge}
           </span>
         )}
+
+        {actions && <div className="absolute end-3 top-3 z-20">{actions}</div>}
+
+        {isApplying && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/70 backdrop-blur-[1px]">
+            <Loader2 className="size-6 animate-spin text-primary" />
+          </div>
+        )}
       </div>
 
       {/* Body */}
@@ -90,10 +108,15 @@ export default function ThemeMarketplaceCard({
             className="mt-3 w-full"
             variant={isActive ? "outline" : "default"}
             size="sm"
-            disabled={isActive}
+            loading={isApplying}
+            disabled={isActive || applyDisabled}
             onClick={onSelect}
           >
-            {isActive ? "مطبق حالياً" : "تطبيق الثيم"}
+            {isActive
+              ? "هذا هو الثيم المطبَّق حالياً"
+              : isApplying
+                ? "جارٍ التطبيق..."
+                : "تطبيق الثيم"}
           </Button>
         )}
         {!onSelect && href && (

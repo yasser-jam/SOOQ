@@ -113,6 +113,34 @@ let _variantFormEmitted = false;
  */
 let _gridCellDepth = 0;
 
+/**
+ * Breadcrumb of "page > block > block …" for whatever is currently being converted. Read only when
+ * something throws — {@link transformBlock} and {@link transformPage} tag the error with a snapshot
+ * of this trail the first time they catch it, so `transformWebToMobile`'s top-level catch can report
+ * exactly where the tree stopped instead of a bare `e.message`. Not popped on the way back up: only
+ * the deepest (innermost) catch needs it, and by design a page overwrites it wholesale for the next
+ * page rather than trying to stay a perfectly balanced stack across `.map()` calls.
+ */
+let _debugTrail: string[] = [];
+
+/** Short label for a block in {@link _debugTrail}: its type plus whatever names it for a human. */
+function describeBlockForTrail(block: Record<string, unknown>): string {
+  const type = (block.type as string) || "?";
+  const props = (block.props || {}) as Record<string, unknown>;
+  const hint =
+    (props.name as string) || (props.label as string) || (props.text as string) ||
+    (props.title as string) || (typeof props.id === "string" ? (props.id as string) : undefined);
+  return hint ? `${type}("${String(hint).slice(0, 40)}")` : type;
+}
+
+/** Tags an error with the {@link _debugTrail} snapshot the first time it's caught, then rethrows. */
+function tagWithTrail(e: unknown): never {
+  if (e instanceof Error && !("sooqTrail" in e)) {
+    (e as Error & { sooqTrail?: string[] }).sooqTrail = [..._debugTrail];
+  }
+  throw e;
+}
+
 function withGridCell<T>(fn: () => T): T {
   _gridCellDepth++;
   try {
@@ -5783,10 +5811,17 @@ function transformCartIconButton(_block: Record<string, unknown>, _rootProps: Re
 function transformBlock(block: Record<string, unknown>, rootProps: Record<string, unknown>): Record<string, unknown> | null {
   if (!block || typeof block !== "object") return null;
 
-  const node = dispatchBlock(block, rootProps);
-  if (!node) return null;
+  _debugTrail.push(describeBlockForTrail(block));
+  try {
+    const node = dispatchBlock(block, rootProps);
+    if (!node) return null;
 
-  return applyShowCondition(node, (block.props || {}) as Record<string, unknown>);
+    return applyShowCondition(node, (block.props || {}) as Record<string, unknown>);
+  } catch (e) {
+    tagWithTrail(e);
+  } finally {
+    _debugTrail.pop();
+  }
 }
 
 function dispatchBlock(block: Record<string, unknown>, rootProps: Record<string, unknown>): Record<string, unknown> | null {
@@ -6522,6 +6557,20 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
 }
 
 /**
+ * Resets {@link _debugTrail} to this page before converting it, so an error thrown by
+ * `transformPage`'s own top-level logic (outside any `transformBlock` call — e.g. checkout/cart
+ * synthesis, header/drawer handling) is still tagged with at least the page it happened on.
+ */
+function transformPageWithTrail(page: Record<string, unknown>): Record<string, unknown> {
+  _debugTrail = [`page ${normalizeRoute((page.path as string) || "/")}`];
+  try {
+    return transformPage(page);
+  } catch (e) {
+    tagWithTrail(e);
+  }
+}
+
+/**
  * The body shell `layout: "centered"` expects: an `expand` container to give the page a bounded
  * height, and a `mainAxisSize: max` column that centers its children inside it. Mirrors the
  * `/auth/login` shape the engine ships in `mobile_production_v2.json`.
@@ -6937,6 +6986,18 @@ function buildEnvelope(pages: Record<string, unknown>[], rootProps: Record<strin
   return envelope;
 }
 
+/** Tags a `buildEnvelope` failure with the `"building envelope"` trail set by its callers. */
+function buildEnvelopeWithTrail(
+  pages: Record<string, unknown>[],
+  rootProps: Record<string, unknown>
+): Record<string, unknown> {
+  try {
+    return buildEnvelope(pages, rootProps);
+  } catch (e) {
+    tagWithTrail(e);
+  }
+}
+
 /** Every `navigate` route reachable from a converted page tree. */
 function collectNavigateRoutes(node: unknown, acc: Set<string>): Set<string> {
   if (Array.isArray(node)) {
@@ -6997,6 +7058,7 @@ export function transformWebToMobile(input: string, appConfig: AppEnvelopeConfig
   _warnedAddToCartRedirect = false;
   _usedAppEnvelopeSource = false;
   _appConfig = appConfig;
+  _debugTrail = [];
 
   let parsed: unknown;
   try {
@@ -7010,9 +7072,10 @@ export function transformWebToMobile(input: string, appConfig: AppEnvelopeConfig
       const isPageArray = parsed.length > 0 && typeof (parsed[0] as Record<string, unknown>).path === "string";
 
       if (isPageArray) {
-        const pages = (parsed as Record<string, unknown>[]).map(transformPage);
+        const pages = (parsed as Record<string, unknown>[]).map(transformPageWithTrail);
         const rootProps = ((parsed[0] as Record<string, unknown>).rootProps as Record<string, unknown>) || {};
-        return successResult(buildEnvelope(pages, rootProps));
+        _debugTrail = ["building envelope (navigation/theme/pruning)"];
+        return successResult(buildEnvelopeWithTrail(pages, rootProps));
       }
 
       const rootProps = {};
@@ -7026,22 +7089,27 @@ export function transformWebToMobile(input: string, appConfig: AppEnvelopeConfig
     if (isSiteDataEnvelope(obj)) {
       const rootProps = ((obj.root as Record<string, unknown> | undefined)?.props as Record<string, unknown>) || {};
       const pageShells = normalizeSiteData(obj);
-      const pages = pageShells.map(transformPage);
-      return successResult(buildEnvelope(pages, rootProps));
+      const pages = pageShells.map(transformPageWithTrail);
+      _debugTrail = ["building envelope (navigation/theme/pruning)"];
+      return successResult(buildEnvelopeWithTrail(pages, rootProps));
     }
 
     if (typeof obj.path === "string" || typeof obj.blocks !== "undefined") {
       const rootProps = (obj.rootProps as Record<string, unknown>) || {};
-      const page = transformPage(obj);
-      return successResult(buildEnvelope([page], rootProps));
+      const page = transformPageWithTrail(obj);
+      _debugTrail = ["building envelope (navigation/theme/pruning)"];
+      return successResult(buildEnvelopeWithTrail([page], rootProps));
     }
 
     const rootProps = {};
+    _debugTrail = [];
     const output = transformBlock(obj, rootProps);
     if (output === null) return { success: false, error: "Unsupported block type or empty result" };
     return successResult(output);
   } catch (e) {
-    return { success: false, error: `Transform error: ${(e as Error).message}` };
+    const trail = e instanceof Error ? (e as Error & { sooqTrail?: string[] }).sooqTrail : undefined;
+    const where = trail && trail.length > 0 ? ` — stopped while converting: ${trail.join(" > ")}` : "";
+    return { success: false, error: `Transform error: ${(e as Error).message}${where}` };
   }
 }
 
