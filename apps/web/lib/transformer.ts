@@ -933,6 +933,11 @@ function flexProps(
 
 // ─── Utility functions ──────────────────────────────────────────────────────
 
+/** Plain object narrowing for untyped Site JSON fields (excludes null/arrays). */
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function parsePx(value: string | number | undefined, fallback = 0): number {
   if (value === undefined || value === null) return fallback;
   if (typeof value === "number") return value;
@@ -6610,6 +6615,41 @@ function transformNavigation(rootProps: Record<string, unknown>, pages: Record<s
 
 // ─── Page Assembly ──────────────────────────────────────────────────────────
 
+const SIDEBAR_WIDTH_PX: Record<string, number> = { narrow: 260, medium: 320, wide: 380 };
+
+/**
+ * The mobile editor's site-level `Sidebar` block **is** the app drawer — it is the
+ * only drawer surface the mobile canvas offers, persisted as `SiteData.sidebar`
+ * rather than as a zone. Restate it in the drawer vocabulary `buildAppDrawer`
+ * already understands: `items` is a slot of blocks (see the Sidebar block's
+ * `items: { type: "slot" }`), so it feeds the slot branch, not the nav-link one.
+ */
+function sidebarToDrawerBlock(
+  sidebar: Record<string, unknown>,
+  rootProps: Record<string, unknown>
+): Record<string, unknown> {
+  const props = isPlainRecord(sidebar.props) ? sidebar.props : {};
+  const token = (props.backgroundColor as string) || "";
+
+  // `backgroundColor` here is a Sidebar preset name (transparent | surface |
+  // muted), not a color — G3 forbids that string reaching the engine. A drawer
+  // always needs something opaque behind it, so transparent resolves to white.
+  const background =
+    token && token !== "transparent"
+      ? resolveThemeColor(`theme-${token}`, rootProps) || "#ffffff"
+      : "#ffffff";
+
+  return {
+    type: "ZoneDrawer",
+    props: {
+      side: props.dock === "right" ? "right" : "left",
+      backgroundColor: background,
+      width: SIDEBAR_WIDTH_PX[(props.width as string) || "medium"] ?? 320,
+      slot: Array.isArray(props.items) ? props.items : [],
+    },
+  };
+}
+
 function buildAppDrawer(drawerBlock: Record<string, unknown>, rootProps: Record<string, unknown>): Record<string, unknown> {
   const props = (drawerBlock.props || {}) as Record<string, unknown>;
   const dir = (rootProps.direction as string) || "rtl";
@@ -6739,6 +6779,13 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
   const rootProps = (page.rootProps as Record<string, unknown>) || {};
   const slugPart = path.replace(/^\//, "").replace(/[/:]/g, "-") || "home";
 
+  // Shell authored on the mobile side. A chrome-less page has neither; otherwise
+  // these outrank whatever the web root props would have implied, because they
+  // are the merchant's explicit mobile choices.
+  const fullScreen = page.fullScreen === true;
+  const authoredAppBar = !fullScreen && isPlainRecord(page.appBar) ? page.appBar : null;
+  const authoredSidebar = !fullScreen && isPlainRecord(page.sidebar) ? page.sidebar : null;
+
   _pageStickyFooter = null;
   _zoneSlots = new Map();
   _zoneSlotsUsed = new Set();
@@ -6849,7 +6896,8 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
   const showDrawer = headerProps.showDrawerButton === true
     || (rootProps.headerShowDrawerButton as string) === "on"
     || rootProps.headerShowDrawerButton === true
-    || drawerBlock !== null;
+    || drawerBlock !== null
+    || authoredSidebar !== null;
 
   const rightSlot = (headerProps.rightSlot as Record<string, unknown>[]) || [];
   const hasCartInSlot = rightSlot.some((b) => (b.type as string) === "CartIconButton");
@@ -6892,11 +6940,39 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
     appBarProps.backgroundGradient = true;
   }
 
-  const appBar: Record<string, unknown> = {
-    id: `${slugPart}-app-bar`,
-    type: "appBar",
-    props: appBarProps,
-  };
+  // An app bar authored in the mobile editor replaces the derived one outright
+  // rather than merging into it: `buildPersistedAppBarProps` omits a key when
+  // the merchant switches it off, so overlaying would leave the derived
+  // `showCartIcon` / `showMenu` on and make those toggles dead.
+  const authoredAppBarProps = authoredAppBar && isPlainRecord(authoredAppBar.props)
+    ? authoredAppBar.props
+    : null;
+
+  const appBar: Record<string, unknown> = authoredAppBarProps
+    ? {
+        id: (authoredAppBar!.id as string) || `${slugPart}-app-bar`,
+        type: "appBar",
+        props: {
+          ...authoredAppBarProps,
+          title: authoredAppBarProps.title || appBarProps.title,
+          // The editor keeps the bar's background under `style.background`,
+          // the engine wants it on props alongside the foreground.
+          backgroundColor:
+            resolveThemeColor(
+              isPlainRecord(authoredAppBar!.style)
+                ? (authoredAppBar!.style.background as string)
+                : undefined,
+              rootProps
+            ) || headerBg,
+          foregroundColor:
+            resolveThemeColor(authoredAppBarProps.foregroundColor as string, rootProps) || headerFg,
+        },
+      }
+    : {
+        id: `${slugPart}-app-bar`,
+        type: "appBar",
+        props: appBarProps,
+      };
 
   // Build footer — page-level slot, not body[].
   //
@@ -6914,6 +6990,8 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
   let appDrawer: Record<string, unknown> | undefined;
   if (drawerBlock) {
     appDrawer = buildAppDrawer(drawerBlock, rootProps);
+  } else if (authoredSidebar) {
+    appDrawer = buildAppDrawer(sidebarToDrawerBlock(authoredSidebar, rootProps), rootProps);
   } else if (showDrawer && Array.isArray(headerProps.links) && (headerProps.links as unknown[]).length > 0) {
     appDrawer = buildAppDrawer(
       { type: "ZoneDrawer", props: { links: headerProps.links, side: "left" } },
@@ -6944,7 +7022,10 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
     // by `theme.spacing.md`, which stacks with each Section's own horizontal padding — two gutters
     // per side, and a two-column grid ends up with cells too narrow to lay out.
     padding: 0,
-    appBar,
+    // A page the merchant marked full-screen (a splash) renders no chrome at
+    // all — `composePuckData` composes neither app bar nor sidebar into its
+    // canvas, so emitting a derived one here would contradict the editor.
+    ...(fullScreen ? {} : { appBar }),
     body,
   };
 
@@ -6962,7 +7043,7 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
   // padding, appBar, body, footer, appBarCartIcon) and silently discards everything else — a
   // page-level `appDrawer` never reached the renderer, so the burger button did nothing. The
   // drawer node itself is right, it just belongs at `body[0]` (mobile_production_v2 pages[4]).
-  if (appDrawer) (pageNode.body as Record<string, unknown>[]).unshift(appDrawer);
+  if (appDrawer && !fullScreen) (pageNode.body as Record<string, unknown>[]).unshift(appDrawer);
 
   return pageNode;
 }
@@ -7062,11 +7143,23 @@ function normalizeSiteData(site: Record<string, unknown>): Record<string, unknow
     ? (site.pages as Record<string, unknown>[])
     : [{ path: "/", name: rootProps.title, content: Array.isArray(site.content) ? site.content : [] }];
 
+  // Mobile shell authored in the mobile editor. `composePuckData` injects these
+  // into the canvas and `applyPuckSave` extracts them back out, so they live on
+  // `page.appBar` / `site.sidebar` and never appear in `page.content` — without
+  // carrying them here every app-bar and drawer edit made on the mobile side is
+  // silently dropped and the appBar is re-derived from web root props instead.
+  const sidebar = isPlainRecord(site.sidebar) && Object.keys(site.sidebar).length > 0
+    ? (site.sidebar as Record<string, unknown>)
+    : null;
+
   return rawPages.map((page) => {
     // Dynamic routes keep the web path verbatim (`/products/:product-slug`) — the
     // engine resolves `:param` from the repeat item / route params.
     const path = (page.path as string) || (page.slug as string) || (page.link as string) || "/";
     const content = Array.isArray(page.content) ? (page.content as Record<string, unknown>[]) : [];
+    const appBar = isPlainRecord(page.appBar) && Object.keys(page.appBar).length > 0
+      ? (page.appBar as Record<string, unknown>)
+      : null;
     return {
       path,
       label: (page.title as string) || (page.name as string) || (page.label as string) || "Page",
@@ -7074,6 +7167,10 @@ function normalizeSiteData(site: Record<string, unknown>): Record<string, unknow
       blocks: [...zoneBlocks, ...content],
       ...(page.background ? { background: page.background } : {}),
       ...(page.scroll ? { scroll: page.scroll } : {}),
+      // A chrome-less page (splash) carries neither app bar nor drawer.
+      ...(page.fullScreen === true ? { fullScreen: true } : {}),
+      ...(appBar ? { appBar } : {}),
+      ...(sidebar ? { sidebar } : {}),
     };
   });
 }

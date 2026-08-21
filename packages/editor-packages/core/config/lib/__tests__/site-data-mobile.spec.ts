@@ -27,6 +27,18 @@ const desktopFixture: SiteData = normalizeSiteData({
   ],
 });
 
+/** What `transformWebToMobile` emits — Flutter screens, not a SiteData. */
+const converterEnvelope = (): SiteData =>
+  ({
+    schemaVersion: "1.0",
+    app: { name: "SOOQ" },
+    navigation: { tabs: [{ route: "/home" }] },
+    pages: [
+      { route: "/home", title: "Home", body: [{ type: "text" }] },
+      { route: "/cart", title: "Cart", body: [{ type: "text" }] },
+    ],
+  }) as unknown as SiteData;
+
 const withHeading = (site: SiteData, text: string): SiteData =>
   normalizeSiteData({
     ...site,
@@ -74,23 +86,29 @@ describe("mobile site storage (M1)", () => {
   // (Flutter screens under `route`/`body`), not a SiteData. Normalizing it as
   // one is what left the mobile editor with no pages and no content.
   it("mangles converter output if it is mistaken for a mobile SiteData", () => {
-    const converterEnvelope = {
-      schemaVersion: "1.0",
-      app: { name: "SOOQ" },
-      navigation: { tabs: [{ route: "/home" }] },
-      pages: [
-        { route: "/home", title: "Home", body: [{ type: "text" }] },
-        { route: "/cart", title: "Cart", body: [{ type: "text" }] },
-      ],
-    } as unknown as SiteData;
-
-    const mangled = normalizeSiteData(converterEnvelope);
+    const mangled = normalizeSiteData(converterEnvelope());
 
     // `route` is not `path`, so every page dedupes onto the same undefined key…
     expect(mangled.pages).toHaveLength(1);
     expect(mangled.pages[0]?.path).toBeUndefined();
     // …and `body` is not `content`, so nothing is left to render.
     expect(mangled.pages[0]?.content).toEqual([]);
+  });
+
+  // Merchants who opened the mobile editor before that write was removed still
+  // have the mangled blob in localStorage, and seeding only fires when the key
+  // is absent — so their editor would stay blank forever. Reading must notice.
+  it("re-seeds over a mobile blob that is not a usable SiteData", () => {
+    writeSiteData(desktopFixture, "desktop");
+    window.localStorage.setItem(
+      getSiteStorageKey("mobile"),
+      JSON.stringify(normalizeSiteData(converterEnvelope()))
+    );
+
+    const mobile = readSiteData("mobile");
+
+    expect(readHeadingText(mobile)).toBe("Desktop title");
+    expect(mobile.pages[0]?.path).toBe("/");
   });
 
   it("keeps desktop and mobile sites independent after seeding", () => {

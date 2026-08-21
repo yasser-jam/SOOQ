@@ -702,6 +702,23 @@ export function seedMobileSiteFromDesktop(): SiteData {
   return withAppBars;
 }
 
+/**
+ * A stored mobile blob is only usable if at least one page kept a route.
+ *
+ * Builds that wrote `configJson.mobile` (the `transformWebToMobile` envelope)
+ * into the mobile key left behind a site whose pages came from Flutter screens:
+ * `route`/`body` instead of `path`/`content`, so every page normalized to
+ * `path: undefined` + `content: []` and deduped down to one. Those blobs are
+ * still in merchants' localStorage and would never be replaced — seeding only
+ * happens when the key is absent — so a mobile editor that opened blank stayed
+ * blank. Detect the shape and re-seed from desktop instead.
+ */
+function isUsableMobileSite(site: SiteData): boolean {
+  return site.pages.some(
+    (page) => typeof page.path === "string" && page.path.length > 0
+  );
+}
+
 export function readSiteData(mode?: EditorMode): SiteData {
   if (!isBrowser) {
     return buildInitialSiteData();
@@ -726,6 +743,9 @@ export function readSiteData(mode?: EditorMode): SiteData {
 
   try {
     const site = normalizeSiteData(JSON.parse(raw) as SiteData);
+    if (!isUsableMobileSite(site)) {
+      return seedMobileSiteFromDesktop();
+    }
     siteReadCache.mobile = { raw, site };
     return site;
   } catch {
