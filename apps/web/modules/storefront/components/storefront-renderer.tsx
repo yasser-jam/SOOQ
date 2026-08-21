@@ -19,7 +19,11 @@ import { UrlBoundOrderProvider } from "@/modules/storefront/components/UrlBoundO
 import { STORE_FIXED_THEME_ID } from "@/modules/storefront/lib/store-config"
 import { useStoreTenant } from "@/modules/storefront/lib/store-tenant-context"
 import { useStorePathname } from "@/modules/storefront/lib/use-store-pathname"
-import { useStorefrontData } from "@/modules/storefront/lib/use-storefront-data"
+import {
+	useStorefrontData,
+	type StorefrontDataSource,
+} from "@/modules/storefront/lib/use-storefront-data"
+import type { TemplateRef } from "@/modules/storefront/lib/use-template-site-data"
 
 function extractDynamicSegments(
 	pattern: string,
@@ -40,7 +44,13 @@ function extractDynamicSegments(
 	return out
 }
 
-export function StorefrontRenderer() {
+export function StorefrontRenderer({
+	source = "published",
+	templateRef = null,
+}: {
+	source?: StorefrontDataSource
+	templateRef?: TemplateRef | null
+}) {
 	const { tenantId } = useStoreTenant()
 	const path = useStorePathname()
 
@@ -56,6 +66,8 @@ export function StorefrontRenderer() {
 			path,
 			metadata,
 			tenantId,
+			source,
+			templateRef,
 		})
 
 	const dynamicSegments = useMemo(() => {

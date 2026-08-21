@@ -8,8 +8,10 @@ import { WithLayout, withLayout } from "../../components/Layout";
 import { SOOQ_INPUT_ATTR } from "../../lib/login-events";
 import {
   DROPDOWN_ACTION_OPTIONS,
+  isBoundDropdownAction,
   type DropdownAction,
 } from "../../content/dropdown-actions";
+import { ENUM_MAPS, ENUM_MAP_OPTIONS, type EnumMapKey } from "../../content/enum-labels";
 import type { ValueContext } from "../../binding";
 import { useBoundData, useBoundValue } from "../../binding";
 import { useStore } from "../../store-context";
@@ -22,12 +24,19 @@ import {
   pickLang,
   type BilingualString,
 } from "../../fields/BilingualText";
+import { bindPathField } from "../../fields/BindPathField";
 import { useActiveLanguage } from "../../locale/LanguageContext";
 import { ALL_CATEGORY_VALUE } from "../ButtonGroup/pagination-utils";
+import {
+  formatAddressOption,
+  SAMPLE_ADDRESS_OPTIONS,
+  SAMPLE_PAYMENT_OPTIONS,
+} from "../ContentSelect";
 import {
   firstDropdownValue,
   resolveDropdownGroups,
   type DropdownOptionSource,
+  type ResolvedDropdownGroup,
 } from "./options";
 import styles from "./styles.module.css";
 
@@ -41,6 +50,8 @@ export type ContentDropdownProps = WithLayout<{
   /** Option sources — static lists, bound repeaters, or the category list. */
   options: DropdownOptionSource[];
   dropdownAction: DropdownAction | "";
+  /** Static option list keyed by `ENUM_MAPS` (e.g. order/return status) — checked before `options[]`. */
+  enumMapKey?: EnumMapKey | "";
   /** Initial selection when no action is wired (ignored while bound). */
   defaultValue: string;
   /** Select the first option on mount so bound pricing has a variant. */
@@ -64,18 +75,48 @@ const MODE_SUMMARY: Record<string, string> = {
   productVariants: "خيارات المنتج",
 };
 
+/** Synthetic single-source shortcuts for the two "action owns the list" cases below. */
+const PRODUCT_VARIANTS_SOURCE: DropdownOptionSource = {
+  mode: "productVariants",
+  groupLabel: { ar: "", en: "" },
+  values: [],
+  sourcePath: "",
+  titlePath: "",
+  valuePath: "",
+};
+const CATEGORIES_SOURCE: DropdownOptionSource = {
+  mode: "categories",
+  groupLabel: { ar: "", en: "" },
+  values: [],
+  sourcePath: "",
+  titlePath: "",
+  valuePath: "",
+};
+
+function groupFromPairs(pairs: { value: string; label: string }[]): ResolvedDropdownGroup[] {
+  const options = pairs.filter((p) => p.value).map((p) => ({ value: p.value, title: p.label || p.value }));
+  return options.length > 0 ? [{ label: "", options }] : [];
+}
+
 /**
  * Resolve every option source against the live bound payload / store.
  * Shared by the render and by the `hideWhenSingle` gate, which has to know
  * the option count *before* the layout wrapper is rendered.
+ *
+ * Merged in from the retired `ContentSelect` block: `checkout_address` / `checkout_payment_method`
+ * read the store runtime and `enumMapKey` reads a static `ENUM_MAPS` entry, all bypassing
+ * `options[]` entirely — same principle as `select_variant`/`filter_category` below, one field
+ * (the action, or the enum key) decides the whole list, nothing left to separately configure.
  */
 function useResolvedDropdownGroups(
   options: DropdownOptionSource[],
+  dropdownAction: DropdownAction | "",
+  enumMapKey: EnumMapKey | "" | undefined,
   isEditing: boolean
 ) {
   const { language } = useActiveLanguage();
   const { data } = useBoundData();
-  const { productsPage } = useStore();
+  const { productsPage, customer, checkout } = useStore();
   const adapter = getEditorDataAdapter();
   const usesSampleData = useSampleDataInEditor();
   const sampleMode = isEditing && usesSampleData;
@@ -85,10 +126,54 @@ function useResolvedDropdownGroups(
     [adapter, productsPage.categories, sampleMode]
   );
 
-  return useMemo(
-    () => resolveDropdownGroups(options, { data, locale: language, categories }),
-    [options, data, language, categories]
-  );
+  return useMemo(() => {
+    if (dropdownAction === "checkout_address") {
+      const rows = sampleMode
+        ? SAMPLE_ADDRESS_OPTIONS
+        : customer.addresses.map((address) => ({
+            value: address.addressId,
+            label: formatAddressOption(address),
+          }));
+      return groupFromPairs(rows);
+    }
+
+    if (dropdownAction === "checkout_payment_method") {
+      const rows = sampleMode
+        ? SAMPLE_PAYMENT_OPTIONS
+        : checkout.paymentMethods.map((method) => ({
+            value: method.providerCode,
+            label: method.displayName || method.providerCode,
+          }));
+      return groupFromPairs(rows);
+    }
+
+    if (enumMapKey && enumMapKey in ENUM_MAPS) {
+      const entries = Object.entries(ENUM_MAPS[enumMapKey as keyof typeof ENUM_MAPS]).map(
+        ([value, entry]) => ({ value, label: entry.label })
+      );
+      return groupFromPairs(entries);
+    }
+
+    if (dropdownAction === "select_variant") {
+      return resolveDropdownGroups([PRODUCT_VARIANTS_SOURCE], { data, locale: language, categories });
+    }
+
+    if (dropdownAction === "filter_category") {
+      return resolveDropdownGroups([CATEGORIES_SOURCE], { data, locale: language, categories });
+    }
+
+    return resolveDropdownGroups(options, { data, locale: language, categories });
+  }, [
+    options,
+    dropdownAction,
+    enumMapKey,
+    sampleMode,
+    customer.addresses,
+    checkout.paymentMethods,
+    data,
+    language,
+    categories,
+  ]);
 }
 
 const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
@@ -176,7 +261,17 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
       label: "الإجراء",
       options: [{ label: "بدون", value: "" }, ...DROPDOWN_ACTION_OPTIONS],
     },
+    enumMapKey: {
+      type: "select",
+      label: "قائمة قيم ثابتة (Enum)",
+      options: [{ label: "بدون", value: "" }, ...ENUM_MAP_OPTIONS],
+    },
     defaultValue: { type: "text", label: "القيمة الافتراضية" },
+    valueContext: bindPathField({
+      label: "تعيين القيمة الابتدائية من بيانات الصفحة (اختياري)",
+      placeholder: "product.defaultVariantId",
+      hint: "يحل محل \"القيمة الافتراضية\" أعلاه عند توفره. يُتجاهل بينما يوجد إجراء (الإجراء يقرأ التحديد من مصدر آخر).",
+    }),
     autoSelectFirst: {
       type: "radio",
       label: "اختيار أول قيمة تلقائياً",
@@ -214,7 +309,9 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
       },
     ],
     dropdownAction: "",
+    enumMapKey: "",
     defaultValue: "",
+    valueContext: null,
     autoSelectFirst: true,
     hideWhenSingle: false,
   },
@@ -226,6 +323,7 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
     required,
     options = [],
     dropdownAction = "",
+    enumMapKey = "",
     defaultValue = "",
     autoSelectFirst = true,
     hideWhenSingle = false,
@@ -236,14 +334,23 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
     const resolvedLabel = pickLang(label, language);
     const resolvedPlaceholder = pickLang(placeholder, language);
 
-    const { selectedVariantId, setSelectedVariantId } = useBoundData();
-    const { productsPage, actions } = useStore();
+    const { data, selectedVariantId, setSelectedVariantId } = useBoundData();
+    const { productsPage, actions, customer, checkout, returnDraft } = useStore();
 
-    const groups = useResolvedDropdownGroups(options, puck.isEditing);
+    const groups = useResolvedDropdownGroups(options, dropdownAction, enumMapKey, puck.isEditing);
 
     const isVariantSelect = dropdownAction === "select_variant";
     const isCategoryFilter = dropdownAction === "filter_category";
-    const isActionBound = isVariantSelect || isCategoryFilter;
+    const isAddressSelect = dropdownAction === "checkout_address";
+    const isPaymentMethodSelect = dropdownAction === "checkout_payment_method";
+    const isReturnCondition = dropdownAction === "return_item_condition";
+
+    // Merged in from ContentSelect: `return_item_condition` reads/writes the condition of the
+    // order item this block is bound to (a repeat item on the returns page, not the page route).
+    const orderItemId =
+      typeof data?.item === "object" && data.item != null && "orderItemId" in data.item
+        ? String((data.item as { orderItemId?: string }).orderItemId ?? "")
+        : "";
 
     const initialValue = useBoundValue(defaultValue, valueContext);
     const [localValue, setLocalValue] = useState(initialValue);
@@ -254,22 +361,28 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
       setLocalValue(initialValue);
     }, [initialValue, valueContext?.path]);
 
+    const firstGroupValue = firstDropdownValue(groups);
     const selectedValue = isVariantSelect
       ? (selectedVariantId ?? "")
       : isCategoryFilter
         ? (productsPage.selectedCategorySlug ?? "")
-        : localValue;
+        : isAddressSelect
+          ? (checkout.addressId ?? firstGroupValue)
+          : isPaymentMethodSelect
+            ? (checkout.paymentMethodCode ?? firstGroupValue)
+            : isReturnCondition && orderItemId
+              ? (returnDraft.items[orderItemId]?.condition ?? "OPENED")
+              : localValue;
 
     // Bound pricing needs a variant before the shopper touches anything, so
     // adopt the first option once the repeater has resolved.
-    const firstValue = firstDropdownValue(groups);
     useEffect(() => {
       if (!isVariantSelect || !autoSelectFirst || puck.isEditing) return;
-      if (selectedVariantId || !firstValue) return;
-      setSelectedVariantId(firstValue);
+      if (selectedVariantId || !firstGroupValue) return;
+      setSelectedVariantId(firstGroupValue);
     }, [
       autoSelectFirst,
-      firstValue,
+      firstGroupValue,
       isVariantSelect,
       puck.isEditing,
       selectedVariantId,
@@ -289,11 +402,32 @@ const ContentDropdownInner: ComponentConfig<ContentDropdownProps> = {
         actions.productsPage.setCategory(
           next && next !== ALL_CATEGORY_VALUE ? next : null
         );
+        return;
+      }
+
+      if (isAddressSelect) {
+        actions.checkout.selectAddress(next);
+        return;
+      }
+
+      if (isPaymentMethodSelect) {
+        actions.checkout.selectPaymentMethod(next);
+        return;
+      }
+
+      if (isReturnCondition && orderItemId) {
+        actions.orders.setReturnItemCondition(orderItemId, next);
       }
     };
 
     const selectId = `cd-${name}`;
     const showEditorHint = puck.isEditing && groups.length === 0;
+
+    // A store-bound select with nothing to pick from is a dead control — e.g. no saved address
+    // yet. The empty state is handled by a sibling block instead (matches ContentSelect).
+    if (!puck.isEditing && isBoundDropdownAction(dropdownAction) && groups.length === 0) {
+      return <></>;
+    }
 
     return (
       <div className={getClassName()}>
@@ -367,6 +501,8 @@ const LayoutRender = WithLayoutContentDropdown.render;
 const ContentDropdownGate = ((props: any) => {
   const groups = useResolvedDropdownGroups(
     props.options ?? [],
+    props.dropdownAction ?? "",
+    props.enumMapKey ?? "",
     props.puck?.isEditing === true
   );
 
@@ -393,12 +529,20 @@ export const ContentDropdown: typeof WithLayoutContentDropdown = {
     ).resolveFields;
     const base = resolver?.(data, params);
     const dropdownAction = data.props.dropdownAction ?? "";
+    const enumMapKey = data.props.enumMapKey ?? "";
 
     const apply = (f: Record<string, unknown>) => {
       const next = { ...f };
-      // A wired action owns the selection — a default value would fight it.
+      // Every action (and `enumMapKey`) owns its whole option list — `options[]` only applies to
+      // the plain, unwired dropdown. Hiding it here is the "one field decides everything"
+      // principle: there is nothing left in `options[]` for these to read.
+      if (dropdownAction || enumMapKey) {
+        delete next.options;
+      }
+      // A wired action owns the selection — a default value (typed or bound) would fight it.
       if (dropdownAction) {
         delete next.defaultValue;
+        delete next.valueContext;
       } else {
         delete next.autoSelectFirst;
       }

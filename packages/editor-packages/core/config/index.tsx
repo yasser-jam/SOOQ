@@ -101,7 +101,6 @@ export const conf: UserConfig = {
         "ContentInput",
         "ContentSwitch",
         "ContentDropdown",
-        "ContentSelect",
         "ContentMap",
         "ContentDivider",
         "Space",
@@ -166,6 +165,10 @@ export const conf: UserConfig = {
         "NavMenu",
         "ContentIcon",
         "ContentHtml",
+        // Merged into ContentDropdown (BLOCKS.md § ContentDropdown "Merged from ContentSelect") —
+        // checkout address / payment method / return-condition are now dropdownAction values
+        // there. Kept registered so existing store_config.json with ContentSelect still renders.
+        "ContentSelect",
         // Product detail page primitives - kept for backward compatibility
         "ProductImage",
         "ProductInfo",

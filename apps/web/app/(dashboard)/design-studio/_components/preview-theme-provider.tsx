@@ -2,214 +2,103 @@
 
 import { ReactNode, useLayoutEffect, useMemo } from "react";
 import {
-  buildResponsiveLayoutCss,
-  COLOR_KEYS,
-  colorVar,
-  computeBadgeThemeVars,
-  computeButtonVariantThemeVars,
-  computeDerivedColorThemeVars,
-  computeScaleThemeVars,
-  DEFAULT_BADGE,
-  DEFAULT_COLORS,
-  DEFAULT_THEME,
-  getFontCssValue,
-  getGoogleFontsUrl,
-  normalizeBreakpoints,
-  type BadgeShape,
-  type BadgeStyle,
-  type ColorTheme,
-  type FullThemeProps,
+	DEFAULT_THEME,
+	getGoogleFontsUrl,
+	normalizeBreakpoints,
+	type FullThemeProps,
 } from "@/core/config/theme";
 
 type PreviewThemeProviderProps = {
-  rootProps?: Partial<FullThemeProps>;
-  children: ReactNode;
+	rootProps?: Partial<FullThemeProps>;
+	children: ReactNode;
 };
 
+/**
+ * Loads the theme's Google Fonts and exposes the responsive breakpoint px
+ * values on `:root` (the one thing `Section`'s `readMobileBreakpointPx()`
+ * must read off `document.documentElement`).
+ *
+ * Everything else — colors, fonts, badge/scale/button-variant vars, and the
+ * full-bleed background — is already applied correctly and safely by
+ * `<Root>` itself (`packages/editor-packages/core/config/root.tsx`) as
+ * `style={themeVars}` on its own wrapper div, which cascades to descendant
+ * blocks via normal CSS inheritance and unmounts cleanly with React. This
+ * component must NOT also write those to `:root`/`body`: that write is
+ * global and outlives navigation (client-side routing doesn't reload
+ * `document.head`), which previously bled the previewed theme's colors into
+ * the admin dashboard after leaving a preview.
+ */
 export function PreviewThemeProvider({
-  rootProps,
-  children,
+	rootProps,
+	children,
 }: PreviewThemeProviderProps) {
-  const bodyFont = (rootProps?.bodyFont ?? DEFAULT_THEME.bodyFont) as string;
-  const fontOption1 = (rootProps?.fontOption1 ??
-    DEFAULT_THEME.fontOption1) as string;
-  const fontOption2 = (rootProps?.fontOption2 ??
-    DEFAULT_THEME.fontOption2) as string;
+	const bodyFont = (rootProps?.bodyFont ?? DEFAULT_THEME.bodyFont) as string;
+	const fontOption1 = (rootProps?.fontOption1 ??
+		DEFAULT_THEME.fontOption1) as string;
+	const fontOption2 = (rootProps?.fontOption2 ??
+		DEFAULT_THEME.fontOption2) as string;
 
-  const bodyFontCss = getFontCssValue(bodyFont);
-  const font1Css = getFontCssValue(fontOption1);
-  const font2Css = getFontCssValue(fontOption2);
-  const googleFontsUrl = getGoogleFontsUrl([bodyFont, fontOption1, fontOption2]);
+	const googleFontsUrl = getGoogleFontsUrl([bodyFont, fontOption1, fontOption2]);
 
-  const colors: ColorTheme = useMemo(
-    () => ({
-      primary: rootProps?.primary ?? DEFAULT_COLORS.primary,
-      surface: rootProps?.surface ?? DEFAULT_COLORS.surface,
-      success: rootProps?.success ?? DEFAULT_COLORS.success,
-      warning: rootProps?.warning ?? DEFAULT_COLORS.warning,
-      error: rootProps?.error ?? DEFAULT_COLORS.error,
-      dark: rootProps?.dark ?? DEFAULT_COLORS.dark,
-      text: rootProps?.text ?? DEFAULT_COLORS.text,
-      neutral: rootProps?.neutral ?? DEFAULT_COLORS.neutral,
-    }),
-    [
-      rootProps?.primary,
-      rootProps?.surface,
-      rootProps?.success,
-      rootProps?.warning,
-      rootProps?.error,
-      rootProps?.dark,
-      rootProps?.text,
-      rootProps?.neutral,
-    ]
-  );
+	const bp = useMemo(
+		() =>
+			normalizeBreakpoints({
+				breakpointMobileMax: rootProps?.breakpointMobileMax,
+				breakpointTabletMax: rootProps?.breakpointTabletMax,
+			}),
+		[rootProps?.breakpointMobileMax, rootProps?.breakpointTabletMax]
+	);
 
-  const badgeShape = (rootProps?.badgeShape ??
-    DEFAULT_BADGE.badgeShape) as BadgeShape;
-  const badgeStyle = (rootProps?.badgeStyle ??
-    DEFAULT_BADGE.badgeStyle) as BadgeStyle;
-  const badgeVars = useMemo(
-    () =>
-      computeBadgeThemeVars(
-        badgeShape,
-        badgeStyle,
-        colors.error,
-        colors.success,
-        colors.neutral
-      ),
-    [badgeShape, badgeStyle, colors.error, colors.success, colors.neutral]
-  );
-  const derivedColorVars = useMemo(
-    () => computeDerivedColorThemeVars(colors),
-    [colors]
-  );
-  const scaleVars = useMemo(
-    () => computeScaleThemeVars(rootProps),
-    [rootProps]
-  );
-  const buttonVariantVars = useMemo(
-    () =>
-      computeButtonVariantThemeVars(rootProps as Partial<FullThemeProps>),
-    [rootProps]
-  );
-  const bp = useMemo(
-    () =>
-      normalizeBreakpoints({
-        breakpointMobileMax: rootProps?.breakpointMobileMax,
-        breakpointTabletMax: rootProps?.breakpointTabletMax,
-      }),
-    [rootProps?.breakpointMobileMax, rootProps?.breakpointTabletMax]
-  );
-  const responsiveLayoutCss = useMemo(
-    () => buildResponsiveLayoutCss(bp),
-    [bp]
-  );
+	useLayoutEffect(() => {
+		const doc = document;
 
-  useLayoutEffect(() => {
-    const doc = document;
+		let styleEl = doc.getElementById("puck-theme-vars") as HTMLStyleElement | null;
+		if (!styleEl) {
+			styleEl = doc.createElement("style");
+			styleEl.id = "puck-theme-vars";
+			doc.head.appendChild(styleEl);
+		}
 
-    let styleEl = doc.getElementById("puck-theme-vars") as HTMLStyleElement | null;
-    if (!styleEl) {
-      styleEl = doc.createElement("style");
-      styleEl.id = "puck-theme-vars";
-      doc.head.appendChild(styleEl);
-    }
-
-    const colorVarLines = COLOR_KEYS.map(
-      ({ key }) => `        ${colorVar(key)}: ${colors[key]};`
-    ).join("\n");
-    const badgeVarLines = Object.entries(badgeVars)
-      .map(([k, v]) => `        ${k}: ${v};`)
-      .join("\n");
-    const derivedColorVarLines = Object.entries(derivedColorVars)
-      .map(([k, v]) => `        ${k}: ${v};`)
-      .join("\n");
-    const scaleVarLines = Object.entries(scaleVars)
-      .map(([k, v]) => `        ${k}: ${v};`)
-      .join("\n");
-    const buttonVariantVarLines = Object.entries(buttonVariantVars)
-      .map(([k, v]) => `        ${k}: ${v};`)
-      .join("\n");
-
-    const nextCss = `
+		const nextCss = `
       :root {
-        --theme-body-font: ${bodyFontCss};
-        --theme-font-1: ${font1Css};
-        --theme-font-2: ${font2Css};
-${colorVarLines}
-${derivedColorVarLines}
-${badgeVarLines}
-${scaleVarLines}
-${buttonVariantVarLines}
         --theme-bp-mobile-max: ${bp.breakpointMobileMax}px;
         --theme-bp-tablet-max: ${bp.breakpointTabletMax}px;
       }
       html {
         scroll-behavior: smooth;
       }
-      body {
-        font-family: var(--theme-body-font);
-        color: var(--theme-color-text);
-        background: var(--theme-color-background);
-        margin: 0;
-      }
     `;
 
-    if (styleEl.textContent !== nextCss) {
-      styleEl.textContent = nextCss;
-    }
+		if (styleEl.textContent !== nextCss) {
+			styleEl.textContent = nextCss;
+		}
 
-    let responsiveEl = doc.getElementById(
-      "puck-responsive-layout"
-    ) as HTMLStyleElement | null;
-    if (!responsiveEl) {
-      responsiveEl = doc.createElement("style");
-      responsiveEl.id = "puck-responsive-layout";
-      doc.head.appendChild(responsiveEl);
-    }
-    if (responsiveEl.textContent !== responsiveLayoutCss) {
-      responsiveEl.textContent = responsiveLayoutCss;
-    }
+		let linkEl = doc.getElementById("puck-theme-fonts") as HTMLLinkElement | null;
+		if (googleFontsUrl) {
+			if (!linkEl) {
+				const pre1 = doc.createElement("link");
+				pre1.id = "puck-theme-fonts-preconnect-1";
+				pre1.rel = "preconnect";
+				pre1.href = "https://fonts.googleapis.com";
+				doc.head.appendChild(pre1);
 
-    let linkEl = doc.getElementById("puck-theme-fonts") as HTMLLinkElement | null;
-    if (googleFontsUrl) {
-      if (!linkEl) {
-        const pre1 = doc.createElement("link");
-        pre1.id = "puck-theme-fonts-preconnect-1";
-        pre1.rel = "preconnect";
-        pre1.href = "https://fonts.googleapis.com";
-        doc.head.appendChild(pre1);
+				const pre2 = doc.createElement("link");
+				pre2.id = "puck-theme-fonts-preconnect-2";
+				pre2.rel = "preconnect";
+				pre2.href = "https://fonts.gstatic.com";
+				pre2.crossOrigin = "anonymous";
+				doc.head.appendChild(pre2);
 
-        const pre2 = doc.createElement("link");
-        pre2.id = "puck-theme-fonts-preconnect-2";
-        pre2.rel = "preconnect";
-        pre2.href = "https://fonts.gstatic.com";
-        pre2.crossOrigin = "anonymous";
-        doc.head.appendChild(pre2);
+				linkEl = doc.createElement("link");
+				linkEl.id = "puck-theme-fonts";
+				linkEl.rel = "stylesheet";
+				doc.head.appendChild(linkEl);
+			}
+			if (linkEl.href !== googleFontsUrl) {
+				linkEl.href = googleFontsUrl;
+			}
+		}
+	}, [googleFontsUrl, bp.breakpointMobileMax, bp.breakpointTabletMax]);
 
-        linkEl = doc.createElement("link");
-        linkEl.id = "puck-theme-fonts";
-        linkEl.rel = "stylesheet";
-        doc.head.appendChild(linkEl);
-      }
-      if (linkEl.href !== googleFontsUrl) {
-        linkEl.href = googleFontsUrl;
-      }
-    }
-  }, [
-    badgeVars,
-    bodyFontCss,
-    buttonVariantVars,
-    colors,
-    derivedColorVars,
-    font1Css,
-    font2Css,
-    googleFontsUrl,
-    responsiveLayoutCss,
-    scaleVars,
-    bp.breakpointMobileMax,
-    bp.breakpointTabletMax,
-  ]);
-
-  return <>{children}</>;
+	return <>{children}</>;
 }

@@ -16,7 +16,9 @@ import {
   resolveLineHeight,
 } from "../../content/typography-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
+import type { ValueContext } from "../../binding";
 import { useBoundValue } from "../../binding";
+import { bindPathField } from "../../fields/BindPathField";
 import { createAlignField } from "../../fields/AlignField";
 import {
   bilingualTextField,
@@ -49,6 +51,10 @@ const ContentHeadingInner: ComponentConfig<ContentHeadingProps> = {
       label: "نص العنوان",
       mode: "textarea",
       contentEditable: true,
+    }),
+    valueContext: bindPathField({
+      label: "ربط العنوان ببيانات الصفحة (اختياري)",
+      placeholder: "product.title",
     }),
     textAlign: alignField,
     fontFamily: {
@@ -86,6 +92,7 @@ const ContentHeadingInner: ComponentConfig<ContentHeadingProps> = {
   },
   defaultProps: {
     text: { ar: "عنوان", en: "Heading" },
+    valueContext: null,
     level: "2",
     textAlign: "right",
     fontFamily: "body",

@@ -2965,57 +2965,20 @@ const WEB_ADDRESS_SAVE_PARAMS: Record<string, { source: string; field: string }>
 };
 
 /**
- * `ContentDropdown` option-source `sourcePath` → the array field on the product-detail payload.
+ * True for a `ContentDropdown` the converter can turn into the engine's variant picker.
  *
- * The web block resolves `sourcePath` against the storefront's product shape
- * (`variantMatrix.variants`); the engine resolves `itemsPath` against the detail *request*, where
- * the same list is a top-level `variants`. Mapping rather than hardcoding means an unrecognised
- * source is reported instead of silently emitted as a path that resolves to nothing — and a
- * dropdown with no options is an add-to-cart button that can never fire.
+ * `dropdownAction: "select_variant"` is now self-sufficient: it always means "the current
+ * product's variants," the same fixed source `ProductVariants` reads — no `options[]` source to
+ * configure or get wrong (see `transformContentDropdown`). `hasVariantPicker` and
+ * `transformContentDropdown` must agree exactly: the first decides whether add-to-cart emits
+ * `cart.addItem`, the second whether the form field that call reads exists. Disagreement ships a
+ * button gated on a field nothing writes — it validates forever and never fires, which is
+ * indistinguishable from a dead button on the phone.
  */
-const DROPDOWN_SOURCE_PATH_MAP: Record<string, string> = {
-  "variantMatrix.variants": "variants",
-  variants: "variants",
-};
-
-/** The variant-row field carrying readable text — `itemLabelPath` in the engine's own config. */
-const VARIANT_LABEL_FIELD = "sku";
-
-/** Row-level paths the engine resolves: a single field, no `[]` joins and no nesting. */
-const FLAT_ROW_PATH = /^[A-Za-z_][A-Za-z0-9_]*$/;
-
-/**
- * The bound option source a `select_variant` dropdown reads, or `null` when it names one the
- * engine cannot resolve.
- *
- * `hasVariantPicker` and `transformContentDropdown` must agree exactly: the first decides whether
- * add-to-cart emits `cart.addItem`, the second whether the form field that call reads exists.
- * Disagreement ships a button gated on a field nothing writes — it validates forever and never
- * fires, which is indistinguishable from a dead button on the phone.
- */
-function variantBoundSource(
-  props: Record<string, unknown>
-): { source: Record<string, unknown>; itemsField: string } | null {
-  const sources = Array.isArray(props.options) ? props.options : [];
-  for (const entry of sources) {
-    if (!entry || typeof entry !== "object") continue;
-    const source = entry as Record<string, unknown>;
-    // "خيارات المنتج" needs no merchant-typed path — it is always `variantMatrix.variants`,
-    // the same fixed source `ProductVariants` reads. See the short-circuit in
-    // `buildVariantDropdown`.
-    if (source.mode === "productVariants") return { source, itemsField: "variants" };
-    if (source.mode !== "bound") continue;
-    const itemsField = DROPDOWN_SOURCE_PATH_MAP[(source.sourcePath as string) || ""];
-    if (itemsField) return { source, itemsField };
-  }
-  return null;
-}
-
-/** True for a `ContentDropdown` the converter can turn into the engine's variant picker. */
 function isVariantPickerDropdown(node: Record<string, unknown>): boolean {
   if (node.type !== "ContentDropdown") return false;
   const props = (node.props || {}) as Record<string, unknown>;
-  return props.dropdownAction === "select_variant" && variantBoundSource(props) !== null;
+  return props.dropdownAction === "select_variant";
 }
 
 /**
@@ -3061,116 +3024,6 @@ function transformProductVariants(rootProps: Record<string, unknown>): Record<st
       itemsPath: `${PRODUCT_DETAIL_BASE}.variants`,
       itemValuePath: "variantId",
       itemLabelPath: "sku",
-      onChanged: { type: "formAdjust", field: VARIANT_QTY_FIELD_ID, value: 1 },
-    },
-  };
-}
-
-/**
- * `ContentDropdown` with `dropdownAction: "select_variant"` → the engine's variant picker.
- *
- * Same output node as `transformProductVariants`, because it is the same job: write
- * `selectedVariantId` into the form `cart.addItem` reads. What differs is that the web block lets
- * the merchant name the paths, and three of those choices cannot cross to the engine:
- *
- *   - **`name`** — `addItem` reads `params.variantId` from the form field literally called
- *     `selectedVariantId`. A merchant-chosen name is normalised, exactly like the OTP field.
- *   - **`valuePath`** — the cart line is keyed by variant id; any other value would submit garbage.
- *   - **`required: false`** — the button gates on `requireValidForm`, so an optional field lets the
- *     call through with nothing selected. That is the silent-failure this whole path exists to
- *     avoid, so required is forced on.
- */
-function buildVariantDropdown(
-  props: Record<string, unknown>,
-  rootProps: Record<string, unknown>
-): Record<string, unknown> | null {
-  const lang = (rootProps.language as string) || "ar";
-  const name = (props.name as string) || VARIANT_FIELD_ID;
-  const bound = variantBoundSource(props);
-
-  if (!bound) {
-    const attempted =
-      (Array.isArray(props.options) ? props.options : [])
-        .map((o) => (o && typeof o === "object" ? ((o as Record<string, unknown>).sourcePath as string) : ""))
-        .find(Boolean) || "(no bound source)";
-    addWarning(
-      `ContentDropdown "${name}" selects a variant but its option source "${attempted}" is not a ` +
-        `product-detail array the engine can read, so it was dropped — and add-to-cart falls back ` +
-        `to navigation because nothing writes "${VARIANT_FIELD_ID}". Bind it to ` +
-        `"variantMatrix.variants"`
-    );
-    return noteUnsupportedBlock("ContentDropdown (unmapped option source)");
-  }
-
-  if (!_productDetailRequestEmitted) {
-    addWarning(
-      `ContentDropdown "${name}" selects a variant but sits outside a product-detail page, so ` +
-        `there is no "${PRODUCT_DETAIL_REQUEST_KEY}" request for it to read variants from; dropped`
-    );
-    return noteUnsupportedBlock("ContentDropdown (no product-detail request)");
-  }
-
-  // "خيارات المنتج" is the zero-config mode: no name/titlePath/valuePath to get wrong, so skip
-  // straight to the same converter `ProductVariants` uses instead of validating fields that were
-  // never merchant-authored in the first place.
-  if (bound.source.mode === "productVariants") {
-    return transformProductVariants(rootProps);
-  }
-
-  if (name !== VARIANT_FIELD_ID) {
-    addWarning(
-      `ContentDropdown "${name}" emitted with field id "${VARIANT_FIELD_ID}" — cart.addItem only ` +
-        `reads that name from the form store. Rename it on the web side to make this explicit`
-    );
-  }
-
-  const titlePath = (bound.source.titlePath as string) || "";
-  let itemLabelPath = VARIANT_LABEL_FIELD;
-  if (titlePath && FLAT_ROW_PATH.test(titlePath)) {
-    itemLabelPath = titlePath;
-  } else if (titlePath) {
-    // `optionValues[].value` is how the web composes "سنديان / صغير" out of a variant's option
-    // rows. `itemLabelPath` reads one flat field, so the composed label cannot survive — the
-    // picker lists SKUs instead of readable option names.
-    addWarning(
-      `ContentDropdown "${name}" labels its options with "${titlePath}"; the engine's itemLabelPath ` +
-        `reads a single flat field and cannot join a nested array, so the picker falls back to ` +
-        `"${VARIANT_LABEL_FIELD}" and lists SKUs rather than composed option names`
-    );
-  }
-
-  const valuePath = (bound.source.valuePath as string) || "variantId";
-  if (valuePath !== "variantId") {
-    addWarning(
-      `ContentDropdown "${name}" submits "${valuePath}"; cart.addItem keys the cart line by variant ` +
-        `id, so "variantId" was emitted instead`
-    );
-  }
-
-  if (props.required === false) {
-    addWarning(
-      `ContentDropdown "${name}" is optional on the web, but add-to-cart gates on requireValidForm ` +
-        `— an optional picker lets the call through with no variant chosen. Emitted as required`
-    );
-  }
-  if (props.hideWhenSingle === true || props.autoSelectFirst === true) {
-    addWarning(
-      `ContentDropdown "${name}": hideWhenSingle / autoSelectFirst have no engine equivalent. The ` +
-        `picker always renders and starts empty, so a single-variant product costs one extra tap`
-    );
-  }
-
-  return {
-    id: generateId("product-variant-dropdown"),
-    type: "dropdown",
-    props: {
-      id: VARIANT_FIELD_ID,
-      label: bilingualProp(props.label, rootProps) || (lang === "ar" ? "اختر الخيار" : "Choose an option"),
-      isExpanded: true,
-      validateRequired: true,
-      itemsPath: `${PRODUCT_DETAIL_BASE}.${bound.itemsField}`,
-      itemValuePath: "variantId",
-      itemLabelPath,
       onChanged: { type: "formAdjust", field: VARIANT_QTY_FIELD_ID, value: 1 },
     },
   };
@@ -3278,6 +3131,19 @@ function buildStaticDropdown(
  * routing a dropdown into it is a real option — but it needs the same category request wired to the
  * grid it filters, which is tracked separately.
  */
+/**
+ * Actions merged in from the retired `ContentSelect` block (checkout address / payment method /
+ * return-item-condition pickers). None have a mobile equivalent yet — those screens are the
+ * engine's own checkout/returns flow, not a merchant-authored dropdown — so they drop with a
+ * specific warning rather than falling through to `buildStaticDropdown`'s generic "no options"
+ * one, which named the wrong reason.
+ */
+const UNMAPPED_DROPDOWN_ACTIONS = new Set([
+  "checkout_address",
+  "checkout_payment_method",
+  "return_item_condition",
+]);
+
 function transformContentDropdown(
   block: Record<string, unknown>,
   rootProps: Record<string, unknown>
@@ -3285,17 +3151,61 @@ function transformContentDropdown(
   const props = (block.props || {}) as Record<string, unknown>;
   const action = (props.dropdownAction as string) || "";
   const layout = props.layout as Record<string, unknown> | undefined;
+  const name = (props.name as string) || "dropdown";
 
   if (action === "filter_category") {
     addWarning(
-      `ContentDropdown "${(props.name as string) || "dropdown"}" filters by category; the mobile ` +
+      `ContentDropdown "${name}" filters by category; the mobile ` +
         `category filter is the tabs strip built from ButtonGroup bindingMode "categories". Author ` +
         `it as a ButtonGroup, or wire the filter manually — dropped`
     );
     return noteUnsupportedBlock("ContentDropdown (filter_category)");
   }
 
-  const node = action === "select_variant" ? buildVariantDropdown(props, rootProps) : buildStaticDropdown(props, rootProps);
+  if (UNMAPPED_DROPDOWN_ACTIONS.has(action)) {
+    addWarning(
+      `ContentDropdown "${name}" uses action "${action}"; the engine has no merchant-authored ` +
+        `equivalent — checkout address, payment method, and return-condition are its own built-in ` +
+        `screens, not something a dropdown wires into — dropped`
+    );
+    return noteUnsupportedBlock(`ContentDropdown (${action})`);
+  }
+
+  if (action === "select_variant") {
+    if (!_productDetailRequestEmitted) {
+      addWarning(
+        `ContentDropdown "${name}" selects a variant but sits outside a product-detail page, so ` +
+          `there is no "${PRODUCT_DETAIL_REQUEST_KEY}" request for it to read variants from; dropped`
+      );
+      return noteUnsupportedBlock("ContentDropdown (no product-detail request)");
+    }
+    if (name !== VARIANT_FIELD_ID) {
+      addWarning(
+        `ContentDropdown "${name}" emitted with field id "${VARIANT_FIELD_ID}" — cart.addItem only ` +
+          `reads that name from the form store. Rename it on the web side to make this explicit`
+      );
+    }
+    if (props.required === false) {
+      addWarning(
+        `ContentDropdown "${name}" is optional on the web, but add-to-cart gates on ` +
+          `requireValidForm — an optional picker lets the call through with no variant chosen. ` +
+          `Emitted as required`
+      );
+    }
+    if (props.hideWhenSingle === true || props.autoSelectFirst === true) {
+      addWarning(
+        `ContentDropdown "${name}": hideWhenSingle / autoSelectFirst have no engine equivalent. The ` +
+          `picker always renders and starts empty, so a single-variant product costs one extra tap`
+      );
+    }
+    // "select_variant" is self-sufficient: it always means "the current product's variants," the
+    // same fixed source `ProductVariants` reads — `options[]` plays no part, so there is nothing
+    // here for a merchant to misconfigure.
+    const node = transformProductVariants(rootProps);
+    return node ? applyLayout(node, layout, rootProps) : null;
+  }
+
+  const node = buildStaticDropdown(props, rootProps);
   return node ? applyLayout(node, layout, rootProps) : null;
 }
 

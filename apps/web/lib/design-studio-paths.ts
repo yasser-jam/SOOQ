@@ -86,3 +86,26 @@ export function buildStudioPreviewHrefFromSegment(
 ): string {
 	return `${studioBase}/${themeSegment}/preview`;
 }
+
+/** `/design-preview` renders the tenant's live admin draft (no params) or a
+ *  gallery template's own JSON (`templateKey`/`templateId`) — see
+ *  `apps/web/app/design-preview`. */
+export function buildDesignPreviewHref(
+	ref?:
+		| { templateId: string; templateName?: string }
+		| { templateKey: string; templateName?: string },
+): string {
+	if (!ref) return "/design-preview";
+
+	const params = new URLSearchParams();
+	if ("templateId" in ref) {
+		params.set("templateId", ref.templateId);
+	} else {
+		params.set("templateKey", ref.templateKey);
+	}
+	if (ref.templateName) {
+		params.set("templateName", ref.templateName);
+	}
+
+	return `/design-preview?${params.toString()}`;
+}

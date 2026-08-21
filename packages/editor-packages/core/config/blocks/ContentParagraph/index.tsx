@@ -16,6 +16,7 @@ import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import { AlignRight } from "lucide-react";
 import type { ValueContext } from "../../binding";
 import { useBoundValue } from "../../binding";
+import { bindPathField } from "../../fields/BindPathField";
 import { createAlignField } from "../../fields/AlignField";
 import {
   bilingualTextField,
@@ -46,6 +47,10 @@ const ContentParagraphInner: ComponentConfig<ContentParagraphProps> = {
       label: "النص",
       mode: "textarea",
       contentEditable: true,
+    }),
+    valueContext: bindPathField({
+      label: "ربط النص ببيانات الصفحة (اختياري)",
+      placeholder: "product.description",
     }),
     textAlign: alignField,
     fontFamily: {
@@ -83,6 +88,7 @@ const ContentParagraphInner: ComponentConfig<ContentParagraphProps> = {
   },
   defaultProps: {
     text: { ar: "نص", en: "Text" },
+    valueContext: null,
     textAlign: "right",
     fontFamily: "body",
     fontSize: "theme-md",

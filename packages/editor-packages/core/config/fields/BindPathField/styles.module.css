@@ -1,0 +1,62 @@
+.BindPathField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.BindPathField-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.BindPathField-input {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 12.5px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--puck-color-grey-09, #e5e7eb);
+  background: var(--puck-color-white, #fff);
+  color: var(--puck-color-grey-02, #111827);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+  outline: none;
+}
+
+.BindPathField-input:hover:not(:disabled) {
+  border-color: var(--puck-color-grey-07, #9ca3af);
+}
+
+.BindPathField-input:focus {
+  border-color: var(--puck-color-azure-05, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.BindPathField-clearBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--puck-color-grey-05, #6b7280);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+  flex-shrink: 0;
+}
+
+.BindPathField-clearBtn:hover {
+  background: var(--puck-color-grey-11, #f3f4f6);
+  color: var(--puck-color-grey-02, #111827);
+}
+
+.BindPathField-hint {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--puck-color-grey-05, #6b7280);
+  line-height: 1.45;
+}

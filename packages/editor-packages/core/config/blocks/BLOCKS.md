@@ -991,14 +991,16 @@ with `buttonAction: "saveProfile"` or `"createAddress"`. Used by the `account` s
 
 ## ContentSelect
 
+> 🗄️ **Merged into [`ContentDropdown`](#contentdropdown) — hidden from the palette.**
+> `checkout_address` / `checkout_payment_method` / `return_item_condition` / `enumMapKey` are now
+> `ContentDropdown` values (same labels, same behavior, ported verbatim — see "Merged from
+> ContentSelect" in that section). Kept registered so existing `store_config.json` with
+> `ContentSelect` still renders; author new pickers as `ContentDropdown`.
+
 **Label:** قائمة اختيار  
 **Description:** A native `<select>`. Options come either from a static enum map
 (`enumMapKey`) or, for the checkout actions, from live store data. Shares
 `ContentInput`'s styles.
-
-> Not to be confused with [`ContentDropdown`](#contentdropdown), which is a
-> custom-rendered dropdown with product/collection option sources and its own
-> `dropdownAction` set. `ContentSelect` is the plain native control.
 
 ### Properties
 
@@ -1146,7 +1148,13 @@ The two `checkout_*` actions are **bound sources** (`isBoundSelectAction`):
 ## ContentDropdown
 
 **Label:** قائمة منسدلة
-**Description:** A native `<select>` whose option list is assembled from one or more **option sources**. A source is either a hand-typed list, a **repeater** over an array inside the bound payload, the storefront category list, or the zero-config product-variant source. With `dropdownAction` set it stops being a plain form control and becomes a real selector — the product-variant picker on a product-detail page, or the category filter on a products page.
+**Description:** A native `<select>`. With no `dropdownAction`, its option list comes from
+`options[]` — a hand-typed list, a **repeater** over an array inside the bound payload, or the
+storefront category list. With `dropdownAction` set, the action **owns the whole list**: it
+always means one specific thing (the current product's variants, the category list, the
+customer's saved addresses, …) and `options[]` plays no part at all — nothing to bind, nothing
+to get wrong. Merged in from the retired [`ContentSelect`](#contentselect) block (see below), so
+this is also the single dropdown for checkout/return pickers.
 
 ### Properties
 
@@ -1156,16 +1164,17 @@ The two `checkout_*` actions are **bound sources** (`isBoundSelectAction`):
 | `name` | `string` | `name` attribute — also the key under which `collectSooqInputValues` submits it | `"dropdown"` |
 | `placeholder` | **`BilingualString`** | Text of the leading empty option (disabled when `required`) | `{ ar: "اختر قيمة", en: "Choose a value" }` |
 | `required` | `boolean` | Marks the field required and disables the empty option | `false` |
-| `options` | `DropdownOptionSource[]` | The option sources — see below. Add as many as you need | one static source with two options |
-| `dropdownAction` | `"" \| "select_variant" \| "filter_category"` | Wired store action (`""` = plain form control) | `""` |
+| `options` | `DropdownOptionSource[]` | The option sources — see below. **Hidden** whenever `dropdownAction` or `enumMapKey` is set (neither reads it) | one static source with two options |
+| `dropdownAction` | `"" \| "select_variant" \| "filter_category" \| "checkout_address" \| "checkout_payment_method" \| "return_item_condition"` | Wired store action (`""` = plain form control, reads `options[]`) | `""` |
+| `enumMapKey` | keyof `ENUM_MAPS` \| `""` | Static option source (e.g. `"returnItemCondition"`) — checked before `dropdownAction`-specific sources, so it wins over `select_variant`/`filter_category` too if both are set | `""` |
 | `defaultValue` | `string` | Initial selection. **Hidden** while `dropdownAction` is set | `""` |
+| `valueContext` | `ValueContext \| null` | Seeds the initial selection from bound data instead of a typed `defaultValue` (`BindPathField`, editable field). **Hidden** while `dropdownAction` is set — same reason `defaultValue` is | `null` |
 | `autoSelectFirst` | `boolean` | Adopt the first option on mount so bound pricing has a variant. **Hidden** while `dropdownAction` is empty | `true` |
 | `hideWhenSingle` | `boolean` | Render nothing on the storefront unless 2+ options resolve — a one-variant product shouldn't show a picker | `false` |
-| `valueContext` | `ValueContext \| null` | Preset-only — seeds the initial selection from bound data | `null` |
 
 > **Bilingual:** `label`, `placeholder`, `options[].groupLabel`, `options[].values[].title`.
 
-### Option sources (`options[]`)
+### Option sources (`options[]`) — only read when `dropdownAction` and `enumMapKey` are both empty
 
 Each entry produces a block of options. A non-empty `groupLabel` wraps them in an `<optgroup>`;
 leave it empty to merge them in flat. Because Puck array items share one field schema, **all** the
@@ -1182,7 +1191,26 @@ fields below show on every entry — `mode` decides which ones are actually read
 
 `sourcePath` / `titlePath` / `valuePath` are shown on every row regardless of `mode` (Puck array
 items share one field schema), but `productVariants` and `categories` both ignore all three —
-whatever is typed there is never read.
+whatever is typed there is never read. `mode: "productVariants"` is now largely redundant with
+`dropdownAction: "select_variant"` (see below), which gets you the same zero-config picker without
+touching `options[]` at all — kept for the rare case where a picker needs the variant list without
+also writing `selectedVariantId` (i.e., no `select_variant` action wired).
+
+### Merged from ContentSelect
+
+`checkout_address`, `checkout_payment_method`, and `return_item_condition` are ported verbatim
+from the retired `ContentSelect` block — same store bindings, same sample rows on the edit canvas,
+same "hides itself when the list is empty" rule for the two bound ones:
+
+| `dropdownAction` | Options from | Reads / Writes |
+|---|---|---|
+| `checkout_address` | `customer.addresses` (**bound** — hides when empty) | `checkout.addressId` / `actions.checkout.selectAddress` |
+| `checkout_payment_method` | `checkout.paymentMethods` (**bound** — hides when empty) | `checkout.paymentMethodCode` / `actions.checkout.selectPaymentMethod` |
+| `return_item_condition` | `ENUM_MAPS[enumMapKey]` (set `enumMapKey: "returnItemCondition"` alongside it) | `returnDraft.items[orderItemId].condition` / `actions.orders.setReturnItemCondition` |
+
+None of these three has a mobile equivalent yet (`apps/web/lib/transformer.ts` drops them with a
+named warning) — checkout address / payment method / returns are the engine's own built-in
+screens, not something a merchant-authored dropdown wires into.
 
 **`mode: "static"`** — a value-less option falls back to its own title, so a merchant can type
 titles only and still get a working select.
@@ -1222,13 +1250,21 @@ with the same value apart) and sources that resolve to nothing are dropped.
 
 ### `dropdownAction` values (`config/content/dropdown-actions.ts`)
 
-| Value | Reads | Writes |
-|---|---|---|
-| `select_variant` | `selectedVariantId` from the nearest bound `Group` / product provider | `setSelectedVariantId(value)` — the same binding [`ProductVariants`](#productvariants) drives, so `pricing.*` swaps to the picked variant and `addToCart` submits it |
-| `filter_category` | `productsPage.selectedCategorySlug` | `actions.productsPage.setCategory(slug)`; an empty value or `__all__` clears the filter |
+| Value | Options from | Reads | Writes |
+|---|---|---|---|
+| `select_variant` | Fixed: current product's `variantMatrix.variants` — `options[]` ignored | `selectedVariantId` from the nearest bound `Group` / product provider | `setSelectedVariantId(value)` — the same binding [`ProductVariants`](#productvariants) drives, so `pricing.*` swaps to the picked variant and `addToCart` submits it |
+| `filter_category` | Fixed: storefront category list — `options[]` ignored | `productsPage.selectedCategorySlug` | `actions.productsPage.setCategory(slug)`; an empty value or `__all__` clears the filter |
+| `checkout_address` / `checkout_payment_method` / `return_item_condition` | Store runtime / `enumMapKey` — see "Merged from ContentSelect" above | see above | see above |
 
 ### Behavior
 
+- **Every action owns its whole option list** — `select_variant` and `filter_category` resolve
+  from a fixed source the moment the action is picked, exactly like the three merged-in
+  `ContentSelect` actions. `options[]` is read **only** when `dropdownAction` is `""`. This is
+  deliberate: a merchant who picks "اختيار متغيّر المنتج" gets a working picker with nothing left to
+  configure, rather than a second, easy-to-misconfigure `options[]` step (see
+  `apps/web/lib/transformer.ts`'s `isVariantPickerDropdown` for the transformer side of the same
+  rule).
 - **Bound actions win** — while `dropdownAction` is set the selection is read from store/binding
   state, so the dropdown stays in sync with a `ProductVariants` chip group or a `ButtonGroup`
   category bar on the same page. `defaultValue` is ignored.
@@ -1545,6 +1581,12 @@ Binds one option group (`المقاس`) from the variant matrix rather than whol
 > **Bilingual:** `text`. Resolution order at render: `pickLang(text, activeLanguage)` → then
 > `valueContext` (bound product/cart data) wins if set.
 
+`valueContext` is an editable field in the block panel ("ربط العنوان ببيانات الصفحة") —
+`BindPathField` (`config/fields/BindPathField/`), a plain path input. Type a path like
+`product.title` and the heading follows whatever product the current page is bound to; clear it
+to go back to the typed `text`. Previously this prop only worked when hand-authored in JSON or
+set by a preset — the field just makes the existing mechanism reachable from the UI.
+
 ### JSON Example
 
 ```json
@@ -1644,6 +1686,10 @@ Binds one option group (`المقاس`) from the variant matrix rather than whol
 | `radius` | `string` | Border radius (`"theme-md"` or pixel value) | `"theme-md"` |
 | `maxWidth` | `string` | Max width CSS value | `"100%"` |
 
+`valueContext`/`altValueContext` are editable fields in the block panel ("ربط الصورة ببيانات
+الصفحة" / "ربط النص البديل ببيانات الصفحة") — `BindPathField` (`config/fields/BindPathField/`).
+Same mechanism as `ContentHeading`/`ContentParagraph`.
+
 ### JSON Example
 
 ```json
@@ -1684,6 +1730,9 @@ Binds one option group (`المقاس`) from the variant matrix rather than whol
 | `visibility` | `{ showOnMobile, showOnTablet, showOnDesktop }` | Per-viewport visibility toggles (`VisibilityToggle` field) | all `true` |
 
 > **Bilingual:** `text`.
+
+`valueContext` is an editable field in the block panel ("ربط النص ببيانات الصفحة") — see
+[`ContentHeading`](#contentheading) above for the mechanism; it's identical here.
 
 ### JSON Example
 

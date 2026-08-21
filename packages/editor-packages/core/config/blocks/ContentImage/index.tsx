@@ -6,6 +6,7 @@ import { RADIUS_OPTIONS, resolveRadius } from "../../content/typography-fields";
 import { themeFixedSelectField } from "../../fields/ThemeFixedSelect";
 import type { ValueContext } from "../../binding";
 import { useBoundValue } from "../../binding";
+import { bindPathField } from "../../fields/BindPathField";
 import { createAlignField } from "../../fields/AlignField";
 import {
   bilingualTextField,
@@ -51,7 +52,15 @@ function resolveImageRadius(
 
 const imageFields = {
   src: { type: "text" as const, label: "رابط الصورة" },
+  valueContext: bindPathField({
+    label: "ربط الصورة ببيانات الصفحة (اختياري)",
+    placeholder: "images[0].url",
+  }),
   alt: bilingualTextField({ label: "نص بديل" }),
+  altValueContext: bindPathField({
+    label: "ربط النص البديل ببيانات الصفحة (اختياري)",
+    placeholder: "product.title",
+  }),
   align: alignField,
   objectFit: {
     type: "select" as const,
@@ -78,7 +87,9 @@ export const ContentImage = createBlock<ContentImageProps>({
   propertyPlugins: imageBlockPlugins(imageFields),
   defaultProps: {
     src: "https://placehold.co/800x450/e2e8f0/64748b?text=%D8%B5%D9%88%D8%B1%D8%A9",
+    valueContext: null,
     alt: { ar: "", en: "" },
+    altValueContext: null,
     align: "center",
     objectFit: "cover",
     radius: "theme-md",

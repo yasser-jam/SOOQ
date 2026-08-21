@@ -7,101 +7,133 @@ import type { ApiResponse, Page } from "@/lib/types"
 
 import { bundleIdFor, mobileApiBaseUrl } from "./config"
 import { appBuildKeys } from "./queryKeys"
-import type { AppBuildJob, AppConfigJson, AppConfiguration, BuildChannel } from "./types"
+import type {
+  AppBuildJob,
+  AppConfigJson,
+  AppConfiguration,
+  BuildChannel,
+} from "./types"
 
 const tenantHeaders = (): Record<string, string> | undefined => {
-	const tenantId = getEditorTenantId()
-	return tenantId ? { "X-Tenant-ID": tenantId } : undefined
+  const tenantId = getEditorTenantId()
+  return tenantId ? { "X-Tenant-ID": tenantId } : undefined
 }
 
 /** All APP endpoints respond with the standard `{success, data, message}` envelope. */
 const unwrap = <T>(response: ApiResponse<T>): T => {
-	if (response.data === undefined || response.data === null) {
-		throw new Error(response.message ?? "استجابة فارغة من الخادم")
-	}
-	return response.data
+  if (response.data === undefined || response.data === null) {
+    throw new Error(response.message ?? "استجابة فارغة من الخادم")
+  }
+  return response.data
 }
 
 /** List endpoints may come back as a bare array, a Spring `Page`, or a paged envelope's `data`. */
 const toArray = <T>(data: T[] | Page<T>): T[] =>
-	Array.isArray(data) ? data : (data.content ?? [])
+  Array.isArray(data) ? data : (data.content ?? [])
 
 export const listBuilds = async (params?: {
-	status?: string
-	page?: number
-	size?: number
+  status?: string
+  page?: number
+  size?: number
 }): Promise<Page<AppBuildJob>> => {
-	const response = await api<ApiResponse<Page<AppBuildJob> | AppBuildJob[]>>("/app-builds", {
-		headers: tenantHeaders(),
-		params: { page: 0, size: 20, ...params },
-	})
-	const data = unwrap(response)
-	return Array.isArray(data) ? { content: data } : data
+  const response = await api<ApiResponse<Page<AppBuildJob> | AppBuildJob[]>>(
+    "/app-builds",
+    {
+      headers: tenantHeaders(),
+      params: { page: 0, size: 20, ...params },
+    }
+  )
+  const data = unwrap(response)
+  return Array.isArray(data) ? { content: data } : data
 }
 
 export const getBuild = async (id: string): Promise<AppBuildJob> =>
-	unwrap(await api<ApiResponse<AppBuildJob>>(`/app-builds/${id}`, { headers: tenantHeaders() }))
+  unwrap(
+    await api<ApiResponse<AppBuildJob>>(`/app-builds/${id}`, {
+      headers: tenantHeaders(),
+    })
+  )
 
 export const initiateBuild = async (input: {
-	buildChannel: BuildChannel
-	configVersionId: string
+  buildChannel: BuildChannel
+  configVersionId: string
 }): Promise<AppBuildJob> => {
-	if (!input.configVersionId) {
-		throw new Error("معرّف نسخة الإعدادات مفقود — لا يمكن بدء البناء")
-	}
-	return unwrap(
-		await api<ApiResponse<AppBuildJob>>("/app-builds", {
-			method: "POST",
-			headers: tenantHeaders(),
-			body: input,
-		})
-	)
+  if (!input.configVersionId) {
+    throw new Error("معرّف نسخة الإعدادات مفقود — لا يمكن بدء البناء")
+  }
+  return unwrap(
+    await api<ApiResponse<AppBuildJob>>("/app-builds", {
+      method: "POST",
+      headers: tenantHeaders(),
+      body: input,
+    })
+  )
 }
 
 export const retryBuild = async (id: string): Promise<AppBuildJob> =>
-	unwrap(
-		await api<ApiResponse<AppBuildJob>>(`/app-builds/${id}/retry`, {
-			method: "POST",
-			headers: tenantHeaders(),
-		})
-	)
+  unwrap(
+    await api<ApiResponse<AppBuildJob>>(`/app-builds/${id}/retry`, {
+      method: "POST",
+      headers: tenantHeaders(),
+    })
+  )
 
 export const listConfigurations = async (): Promise<AppConfiguration[]> => {
-	const response = await api<ApiResponse<Page<AppConfiguration> | AppConfiguration[]>>(
-		"/app-configurations",
-		{ headers: tenantHeaders() }
-	)
-	return toArray(unwrap(response))
+  const response = await api<
+    ApiResponse<Page<AppConfiguration> | AppConfiguration[]>
+  >("/app-configurations", { headers: tenantHeaders() })
+  return toArray(unwrap(response))
 }
 
-export const createConfiguration = async (configJson: AppConfigJson): Promise<AppConfiguration> =>
-	unwrap(
-		await api<ApiResponse<AppConfiguration>>("/app-configurations", {
-			method: "POST",
-			headers: tenantHeaders(),
-			body: { schemaVersion: "1.0.0", configJson },
-		})
-	)
+/** Mobile app's public web-config endpoint — always sent alongside merchant-supplied config values. */
+const MOBILE_CONFIG_URL =
+  "https://shopengine-production-9b4c.up.railway.app/api/v1/public/design/config?platform=mobile"
 
-export const publishConfiguration = async (id: string): Promise<AppConfiguration> => {
-	if (!id) {
-		throw new Error("معرّف نسخة الإعدادات مفقود — لا يمكن النشر")
-	}
-	return unwrap(
-		await api<ApiResponse<AppConfiguration>>(`/app-configurations/${id}/publish`, {
-			method: "POST",
-			headers: tenantHeaders(),
-		})
-	)
+export const createConfiguration = async (
+  configJson: AppConfigJson
+): Promise<AppConfiguration> =>
+  unwrap(
+    await api<ApiResponse<AppConfiguration>>("/app-configurations", {
+      method: "POST",
+      headers: tenantHeaders(),
+      body: {
+        schemaVersion: "1.0.0",
+        configJson: {
+			appName: configJson.appName,
+			apiBaseUrl: configJson.apiBaseUrl,
+			bundleId: configJson.bundleId,
+			configUrl: MOBILE_CONFIG_URL,
+        },
+      },
+    })
+  )
+
+export const publishConfiguration = async (
+  id: string
+): Promise<AppConfiguration> => {
+  if (!id) {
+    throw new Error("معرّف نسخة الإعدادات مفقود — لا يمكن النشر")
+  }
+  return unwrap(
+    await api<ApiResponse<AppConfiguration>>(
+      `/app-configurations/${id}/publish`,
+      {
+        method: "POST",
+        headers: tenantHeaders(),
+      }
+    )
+  )
 }
 
 const sameConfig = (a: AppConfigJson, b: AppConfigJson): boolean =>
-	a.appName === b.appName && a.apiBaseUrl === b.apiBaseUrl && a.bundleId === b.bundleId
+  a.appName === b.appName &&
+  a.apiBaseUrl === b.apiBaseUrl &&
+  a.bundleId === b.bundleId
 
 const desiredConfigFor = (appName: string): AppConfigJson => ({
-	appName,
-	apiBaseUrl: mobileApiBaseUrl(),
-	bundleId: bundleIdFor(getTenantSlug()),
+  appName,
+  apiBaseUrl: mobileApiBaseUrl(),
+  bundleId: bundleIdFor(getTenantSlug()),
 })
 
 /**
@@ -111,18 +143,22 @@ const desiredConfigFor = (appName: string): AppConfigJson => ({
  * instead of minting yet another version on every attempt.
  */
 export const getRelevantConfig = async (
-	appName: string
-): Promise<{ desired: AppConfigJson; published?: AppConfiguration; draft?: AppConfiguration }> => {
-	const desired = desiredConfigFor(appName)
-	const matching = (await listConfigurations())
-		.filter((c) => sameConfig(c.configJson, desired))
-		.sort((a, b) => b.versionNumber - a.versionNumber)
+  appName: string
+): Promise<{
+  desired: AppConfigJson
+  published?: AppConfiguration
+  draft?: AppConfiguration
+}> => {
+  const desired = desiredConfigFor(appName)
+  const matching = (await listConfigurations())
+    .filter((c) => sameConfig(c.configJson, desired))
+    .sort((a, b) => b.versionNumber - a.versionNumber)
 
-	return {
-		desired,
-		published: matching.find((c) => c.isPublished),
-		draft: matching.find((c) => !c.isPublished),
-	}
+  return {
+    desired,
+    published: matching.find((c) => c.isPublished),
+    draft: matching.find((c) => !c.isPublished),
+  }
 }
 
 /**
@@ -131,16 +167,18 @@ export const getRelevantConfig = async (
  * whose publish step failed) instead of creating a new version; otherwise
  * creates and publishes a fresh one. Returns its id.
  */
-export const ensurePublishedConfig = async (appName: string): Promise<string> => {
-	const { desired, published, draft } = await getRelevantConfig(appName)
-	if (published) return published.appConfigurationId
+export const ensurePublishedConfig = async (
+  appName: string
+): Promise<string> => {
+  const { desired, published, draft } = await getRelevantConfig(appName)
+  if (published) return published.appConfigurationId
 
-	const target = draft ?? (await createConfiguration(desired))
-	if (!target.appConfigurationId) {
-		throw new Error("لم يتم العثور على معرّف نسخة الإعدادات بعد إنشائها")
-	}
-	await publishConfiguration(target.appConfigurationId)
-	return target.appConfigurationId
+  const target = draft ?? (await createConfiguration(desired))
+  if (!target.appConfigurationId) {
+    throw new Error("لم يتم العثور على معرّف نسخة الإعدادات بعد إنشائها")
+  }
+  await publishConfiguration(target.appConfigurationId)
+  return target.appConfigurationId
 }
 
 /**
@@ -149,35 +187,37 @@ export const ensurePublishedConfig = async (appName: string): Promise<string> =>
  * so this is the "start over" escape hatch when a stuck config needs to be
  * superseded rather than reused.
  */
-export const createAndPublishNewConfig = async (appName: string): Promise<string> => {
-	const created = await createConfiguration(desiredConfigFor(appName))
-	if (!created.appConfigurationId) {
-		throw new Error("لم يتم العثور على معرّف نسخة الإعدادات بعد إنشائها")
-	}
-	await publishConfiguration(created.appConfigurationId)
-	return created.appConfigurationId
+export const createAndPublishNewConfig = async (
+  appName: string
+): Promise<string> => {
+  const created = await createConfiguration(desiredConfigFor(appName))
+  if (!created.appConfigurationId) {
+    throw new Error("لم يتم العثور على معرّف نسخة الإعدادات بعد إنشائها")
+  }
+  await publishConfiguration(created.appConfigurationId)
+  return created.appConfigurationId
 }
 
 export const configStatusQueryOptions = (appName: string) =>
-	queryOptions({
-		queryKey: appBuildKeys.configStatus(appName),
-		queryFn: () => getRelevantConfig(appName),
-		enabled: !!appName,
-	})
+  queryOptions({
+    queryKey: appBuildKeys.configStatus(appName),
+    queryFn: () => getRelevantConfig(appName),
+    enabled: !!appName,
+  })
 
 export const latestBuildQueryOptions = () =>
-	queryOptions({
-		queryKey: appBuildKeys.list(),
-		queryFn: () => listBuilds({ page: 0, size: 1 }),
-		staleTime: 10_000,
-	})
+  queryOptions({
+    queryKey: appBuildKeys.list(),
+    queryFn: () => listBuilds({ page: 0, size: 1 }),
+    staleTime: 10_000,
+  })
 
 export const lastSuccessfulBuildQueryOptions = () =>
-	queryOptions({
-		queryKey: appBuildKeys.lastSuccess,
-		queryFn: () => listBuilds({ status: "SUCCESS", page: 0, size: 1 }),
-		staleTime: 10_000,
-	})
+  queryOptions({
+    queryKey: appBuildKeys.lastSuccess,
+    queryFn: () => listBuilds({ status: "SUCCESS", page: 0, size: 1 }),
+    staleTime: 10_000,
+  })
 
 /**
  * Creates a new config version from merchant-supplied values, publishes it,
@@ -185,19 +225,25 @@ export const lastSuccessfulBuildQueryOptions = () =>
  * from the Design Studio mobile app card.
  */
 export const createConfigPublishAndBuild = async (
-	configJson: AppConfigJson
+  configJson: AppConfigJson
 ): Promise<AppBuildJob> => {
-	const created = await createConfiguration(configJson)
-	if (!created.appConfigurationId) {
-		throw new Error("لم يتم العثور على معرّف نسخة الإعدادات بعد إنشائها")
-	}
-	await publishConfiguration(created.appConfigurationId)
-	return initiateBuild({ buildChannel: "BETA", configVersionId: created.appConfigurationId })
+  const created = await createConfiguration(configJson)
+  if (!created.appConfigurationId) {
+    throw new Error("لم يتم العثور على معرّف نسخة الإعدادات بعد إنشائها")
+  }
+  await publishConfiguration(created.appConfigurationId)
+  return initiateBuild({
+    buildChannel: "BETA",
+    configVersionId: created.appConfigurationId,
+  })
 }
 
-export const buildDetailQueryOptions = (id: string, opts?: { poll?: boolean }) =>
-	queryOptions({
-		queryKey: appBuildKeys.detail(id),
-		queryFn: () => getBuild(id),
-		refetchInterval: opts?.poll ? 10_000 : false,
-	})
+export const buildDetailQueryOptions = (
+  id: string,
+  opts?: { poll?: boolean }
+) =>
+  queryOptions({
+    queryKey: appBuildKeys.detail(id),
+    queryFn: () => getBuild(id),
+    refetchInterval: opts?.poll ? 10_000 : false,
+  })

@@ -1,4 +1,5 @@
 let storeBasePath: string | null = null
+let storeBaseQuery: string | null = null
 
 export function setStoreBasePath(prefix: string | null) {
 	if (!prefix) {
@@ -12,6 +13,18 @@ export function setStoreBasePath(prefix: string | null) {
 
 export function getStoreBasePath(): string | null {
 	return storeBasePath
+}
+
+/** Query string appended to every internally-generated link (no leading `?`).
+ *  Used by the admin design preview to carry `templateKey`/`templateId`
+ *  across in-site navigation, so browsing past the first page doesn't
+ *  silently fall back to the tenant's draft. */
+export function setStoreBaseQuery(query: string | null) {
+	storeBaseQuery = query || null
+}
+
+export function getStoreBaseQuery(): string | null {
+	return storeBaseQuery
 }
 
 export function isExternalOrSpecialHref(href: string): boolean {
@@ -33,11 +46,16 @@ export function withStoreBasePath(
 	if (!storeBasePath) return trimmed
 
 	if (trimmed === storeBasePath || trimmed.startsWith(`${storeBasePath}/`)) {
-		return trimmed
+		return appendStoreBaseQuery(trimmed)
 	}
 
 	const path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`
-	return `${storeBasePath}${path}`
+	return appendStoreBaseQuery(`${storeBasePath}${path}`)
+}
+
+function appendStoreBaseQuery(href: string): string {
+	if (!storeBaseQuery || href.includes("?")) return href
+	return `${href}?${storeBaseQuery}`
 }
 
 export function stripStoreBasePath(pathname: string): string {
