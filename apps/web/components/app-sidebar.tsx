@@ -3,6 +3,7 @@
 import * as React from "react"
 import {
   BadgePercent,
+  BarChart3,
   ChevronDown,
   Circle,
   CircleDollarSign,
@@ -141,6 +142,11 @@ function buildNavGroups(): readonly NavGroup[] {
     {
       label: "المالية",
       items: [
+        {
+          title: "التحليلات",
+          url: `/analytics`,
+          icon: BarChart3,
+        },
         {
           title: "الفواتير",
           url: `/invoices`,
