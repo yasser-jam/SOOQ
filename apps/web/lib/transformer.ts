@@ -1709,6 +1709,50 @@ function normalizeRoute(route: string): string {
 }
 
 // ─── Apply layout cross-cutting (padding, margin, float) ─────────────────────
+/**
+ * A layout edge that actually asks for space, or `undefined` when it does not.
+ *
+ * The layout panel seeds every block with `defaultLayoutValue`, whose eight edges are all
+ * `"0px"`. Testing those with plain truthiness (`if (pt)`) read "never touched" as "explicitly
+ * set to zero", which cost us twice: it emitted a full zero box on every block carrying a layout
+ * (the 477 no-op `padding`/`margin` props the mobile team counted in v45), and that box then
+ * overwrote spacing the block had already computed for itself — see `mergeSpacingBox`.
+ *
+ * Zero is the absence of spacing, so it is the absence of a prop. The engine defaults an unset
+ * edge to zero anyway, and the mobile team explicitly asked us to stop shipping zero boxes.
+ */
+function layoutEdgePx(raw: unknown): number | undefined {
+  if (raw == null || raw === "") return undefined;
+  const n = parsePx(raw as string);
+  return Number.isFinite(n) && n !== 0 ? n : undefined;
+}
+
+/**
+ * Fold layout-panel edges onto whatever spacing the node already carries.
+ *
+ * Blocks compute their own spacing before calling `applyLayout` — `transformSection` turns the
+ * merchant's «المسافة من الجانبين / الأعلى / الأسفل» into a `padding` box. Spreading the panel's
+ * box over the node's props replaced that object wholesale, so every Section holding a default
+ * (all-zero) layout shipped `{0,0,0,0}` and the merchant's spacing never reached the app.
+ *
+ * Emitted as all four keys: `parseEdgeInsets` documents a bare number or the full
+ * `left`/`top`/`right`/`bottom` set, and anything else falls back to zero on every side.
+ * Returns `undefined` when the result is entirely zero so no dead prop is written.
+ */
+function mergeSpacingBox(
+  existing: unknown,
+  override: Record<string, number>
+): Record<string, number> | undefined {
+  const base =
+    typeof existing === "number"
+      ? { top: existing, right: existing, bottom: existing, left: existing }
+      : isPlainRecord(existing)
+        ? (existing as Record<string, number>)
+        : {};
+  const merged = { top: 0, right: 0, bottom: 0, left: 0, ...base, ...override };
+  return Object.values(merged).some((v) => v !== 0) ? merged : undefined;
+}
+
 function applyLayout(
   node: Record<string, unknown>,
   layout: Record<string, unknown> | undefined,
@@ -1720,26 +1764,35 @@ function applyLayout(
   const padding: Record<string, number> = {};
   const margin: Record<string, number> = {};
 
-  const pad = layout.padding as string;
-  if (pad && pad !== "0px") {
-    const p = parsePx(pad);
-    padding.top = p; padding.bottom = p; padding.left = p; padding.right = p;
+  // The `padding` shorthand is the pre-per-edge field, still read for migrated data.
+  const pad = layoutEdgePx(layout.padding);
+  if (pad !== undefined) {
+    padding.top = pad; padding.bottom = pad; padding.left = pad; padding.right = pad;
   }
-  const pt = layout.paddingTop as string; if (pt) padding.top = parsePx(pt);
-  const pr = layout.paddingRight as string; if (pr) padding.right = parsePx(pr);
-  const pb = layout.paddingBottom as string; if (pb) padding.bottom = parsePx(pb);
-  const pl = layout.paddingLeft as string; if (pl) padding.left = parsePx(pl);
+  const pt = layoutEdgePx(layout.paddingTop); if (pt !== undefined) padding.top = pt;
+  const pr = layoutEdgePx(layout.paddingRight); if (pr !== undefined) padding.right = pr;
+  const pb = layoutEdgePx(layout.paddingBottom); if (pb !== undefined) padding.bottom = pb;
+  const pl = layoutEdgePx(layout.paddingLeft); if (pl !== undefined) padding.left = pl;
 
-  const mt = layout.marginTop as string; if (mt) margin.top = parsePx(mt);
-  const mr = layout.marginRight as string; if (mr) margin.right = parsePx(mr);
-  const mb = layout.marginBottom as string; if (mb) margin.bottom = parsePx(mb);
-  const ml = layout.marginLeft as string; if (ml) margin.left = parsePx(ml);
+  const mt = layoutEdgePx(layout.marginTop); if (mt !== undefined) margin.top = mt;
+  const mr = layoutEdgePx(layout.marginRight); if (mr !== undefined) margin.right = mr;
+  const mb = layoutEdgePx(layout.marginBottom); if (mb !== undefined) margin.bottom = mb;
+  const ml = layoutEdgePx(layout.marginLeft); if (ml !== undefined) margin.left = ml;
 
-  if (Object.keys(padding).length > 0) boxProps.padding = padding;
-  if (Object.keys(margin).length > 0) boxProps.margin = margin;
+  // No renderer allowlist: `component_spacing.dart` now wraps any node whose renderer does not
+  // consume `padding`/`margin` itself, so both are honoured on every component type.
+  const nodeProps = (node.props || {}) as Record<string, unknown>;
+  if (Object.keys(padding).length > 0) {
+    const merged = mergeSpacingBox(nodeProps.padding, padding);
+    if (merged) boxProps.padding = merged;
+  }
+  if (Object.keys(margin).length > 0) {
+    const merged = mergeSpacingBox(nodeProps.margin, margin);
+    if (merged) boxProps.margin = merged;
+  }
 
   if (Object.keys(boxProps).length > 0) {
-    node = { ...node, props: { ...((node.props || {}) as Record<string, unknown>), ...boxProps } };
+    node = { ...node, props: { ...nodeProps, ...boxProps } };
   }
 
   const posMode = layout.positionMode as string;
@@ -1940,8 +1993,11 @@ function transformLink(block: Record<string, unknown>, rootProps: Record<string,
 
   const outProps: Record<string, unknown> = { label, variant: "text" };
 
+  // `type: "button"` is the engine node this converts to — its renderer reads
+  // `backgroundColor` / `foregroundColor` / `textColor`, never a bare `color`. A `variant: "text"`
+  // button has no background, so the authored colour is the label colour.
   const color = resolveThemeColor(props.color as string, rootProps);
-  if (color) outProps.color = color;
+  if (color) outProps.textColor = color;
 
   const icon = props.icon as string;
   if (icon && icon !== "none") {
@@ -2970,7 +3026,11 @@ function transformSection(block: Record<string, unknown>, rootProps: Record<stri
     type: "container",
     props: {
       ...(bgColor && !bgImage ? { color: bgColor } : {}),
-      padding: { top: paddingTop, bottom: paddingBottom, left: padH, right: padH },
+      // A Section the merchant set to «بدون» on all three axes wants no inset; the engine already
+      // defaults an absent `padding` to zero, so writing the box would be dead weight on the wire.
+      ...(paddingTop || paddingBottom || padH
+        ? { padding: { top: paddingTop, bottom: paddingBottom, left: padH, right: padH } }
+        : {}),
       ...(declaresOrderDetail ? { data: buildOrderDetailRequestData() } : {}),
     },
     child: contentWrapper,
@@ -4419,7 +4479,16 @@ function buildCanonicalCartBody(rootProps: Record<string, unknown>): Record<stri
                       type: "row",
                       props: { mainAxisAlignment: "spaceBetween", crossAxisAlignment: "center" },
                       children: [
-                        { id: generateId("cart-line-price"), type: "text", props: { valuePath: "item.lineTotalFormatted", value: "", fontSize: 16, fontWeight: "bold", textAlign: "left", color: primary } },
+                        {
+                          id: generateId("cart-line-price-wrap"),
+                          type: "container",
+                          props: { expand: true },
+                          child: {
+                            id: generateId("cart-line-price"),
+                            type: "text",
+                            props: { valuePath: "item.lineTotalFormatted", value: "", fontSize: 16, fontWeight: "bold", textAlign: "left", color: primary, maxLines: 1, overflow: "ellipsis" },
+                          },
+                        },
                         {
                           id: generateId("cart-line-remove"),
                           type: "button",
@@ -4544,12 +4613,12 @@ function buildCanonicalCheckoutBody(rootProps: Record<string, unknown>): {
   const addressPickerSheet = {
     id: generateId("checkout-address-picker-sheet"),
     type: "column",
-    props: { gap: 14, crossAxis: "stretch" },
+    props: { gap: 14, crossAxisAlignment: "stretch" },
     children: [
       {
         id: generateId("checkout-address-picker-header"),
         type: "row",
-        props: { mainAxis: "spaceBetween", crossAxis: "center" },
+        props: { mainAxisAlignment: "spaceBetween", crossAxisAlignment: "center" },
         children: [
           {
             id: generateId("checkout-address-picker-title"),
@@ -4624,7 +4693,7 @@ function buildCanonicalCheckoutBody(rootProps: Record<string, unknown>): {
     child: {
       id: generateId("checkout-summary-item-row"),
       type: "row",
-      props: { gap: 10, crossAxis: "center" },
+      props: { gap: 10, crossAxisAlignment: "center" },
       children: [
         {
           id: generateId("checkout-summary-item-thumb"),
@@ -4639,7 +4708,7 @@ function buildCanonicalCheckoutBody(rootProps: Record<string, unknown>): {
           child: {
             id: generateId("checkout-summary-item-text-col"),
             type: "column",
-            props: { gap: 2, crossAxis: "start" },
+            props: { gap: 2, crossAxisAlignment: "start" },
             children: [
               {
                 id: generateId("checkout-summary-item-title"),
@@ -4666,7 +4735,7 @@ function buildCanonicalCheckoutBody(rootProps: Record<string, unknown>): {
   const summaryRow = (label: string, valuePath: string, opts?: { bold?: boolean; color?: string }) => ({
     id: generateId("checkout-summary-row"),
     type: "row",
-    props: { mainAxis: "spaceBetween", crossAxis: "center" },
+    props: { mainAxisAlignment: "spaceBetween", crossAxisAlignment: "center" },
     children: [
       {
         id: generateId("checkout-summary-row-label"),
@@ -4691,7 +4760,7 @@ function buildCanonicalCheckoutBody(rootProps: Record<string, unknown>): {
   const body: Record<string, unknown>[] = [{
     id: generateId("checkout-summary-wrap"),
     type: "column",
-    props: { gap: 12, crossAxis: "stretch" },
+    props: { gap: 12, crossAxisAlignment: "stretch" },
     children: [
       {
         id: generateId("checkout-address-card"),
@@ -4704,17 +4773,17 @@ function buildCanonicalCheckoutBody(rootProps: Record<string, unknown>): {
           child: {
             id: generateId("checkout-address-col"),
             type: "column",
-            props: { gap: 10, crossAxis: "stretch" },
+            props: { gap: 10, crossAxisAlignment: "stretch" },
             children: [
               {
                 id: generateId("checkout-address-header"),
                 type: "row",
-                props: { mainAxis: "spaceBetween", crossAxis: "center" },
+                props: { mainAxisAlignment: "spaceBetween", crossAxisAlignment: "center" },
                 children: [
                   {
                     id: generateId("checkout-address-title-row"),
                     type: "row",
-                    props: { gap: 6, crossAxis: "center" },
+                    props: { gap: 6, crossAxisAlignment: "center" },
                     children: [
                       { id: generateId("checkout-address-pin"), type: "icon", props: { name: "location_on", size: 20, color: danger } },
                       { id: generateId("checkout-address-title"), type: "text", props: { value: "العنوان", fontSize: 15, fontWeight: "semibold", textAlign: "right", color: text } },
@@ -4723,7 +4792,7 @@ function buildCanonicalCheckoutBody(rootProps: Record<string, unknown>): {
                   {
                     id: generateId("checkout-address-edit"),
                     type: "row",
-                    props: { gap: 4, crossAxis: "center" },
+                    props: { gap: 4, crossAxisAlignment: "center" },
                     tap: { type: "openBottomSheet", semanticLabel: "تعديل العنوان", child: addressPickerSheet },
                     children: [
                       { id: generateId("checkout-address-edit-icon"), type: "icon", props: { name: "edit", size: 16, color: primary } },
@@ -4736,7 +4805,7 @@ function buildCanonicalCheckoutBody(rootProps: Record<string, unknown>): {
               {
                 id: generateId("checkout-address-filled"),
                 type: "column",
-                props: { gap: 4, crossAxis: "stretch", visibleWhen: visibleWhenData("checkout.hasAddress", "true") },
+                props: { gap: 4, crossAxisAlignment: "stretch", visibleWhen: visibleWhenData("checkout.hasAddress", "true") },
                 children: [
                   { id: generateId("checkout-address-summary"), type: "text", props: { valuePath: "checkout.addressSummary", value: "", fontSize: 14, fontWeight: "semibold", textAlign: "right", color: text } },
                   { id: generateId("checkout-address-label"), type: "text", props: { valuePath: "checkout.draft.shippingAddress.addressLabel", value: "", fontSize: 13, textAlign: "right", color: muted } },
@@ -4768,7 +4837,7 @@ function buildCanonicalCheckoutBody(rootProps: Record<string, unknown>): {
           child: {
             id: generateId("checkout-payment-col"),
             type: "column",
-            props: { gap: 10, crossAxis: "stretch" },
+            props: { gap: 10, crossAxisAlignment: "stretch" },
             children: [
               { id: generateId("checkout-payment-title"), type: "text", props: { value: "طرق الدفع", fontSize: 15, fontWeight: "semibold", textAlign: "right", color: text } },
               {
@@ -4809,7 +4878,7 @@ function buildCanonicalCheckoutBody(rootProps: Record<string, unknown>): {
           child: {
             id: generateId("checkout-summary-col"),
             type: "column",
-            props: { gap: 10, crossAxis: "stretch" },
+            props: { gap: 10, crossAxisAlignment: "stretch" },
             children: [
               { id: generateId("checkout-summary-title"), type: "text", props: { value: "ملخص الطلب", fontSize: 15, fontWeight: "semibold", textAlign: "right", color: text } },
               {
@@ -4880,7 +4949,7 @@ function buildAddressDetailsPage(rootProps: Record<string, unknown>): Record<str
     body: [{
       id: "address-details-col",
       type: "column",
-      props: { gap: 12, crossAxis: "stretch" },
+      props: { gap: 12, crossAxisAlignment: "stretch" },
       style: { padding: { top: 12, bottom: 24, left: 16, right: 16 } },
       children: [
         {
@@ -4894,7 +4963,7 @@ function buildAddressDetailsPage(rootProps: Record<string, unknown>): Record<str
             child: {
               id: generateId("address-details-location-row"),
               type: "row",
-              props: { mainAxis: "spaceBetween", crossAxis: "center", gap: 8 },
+              props: { mainAxisAlignment: "spaceBetween", crossAxisAlignment: "center", gap: 8 },
               children: [
                 {
                   id: generateId("address-details-location-info-wrap"),
@@ -4903,7 +4972,7 @@ function buildAddressDetailsPage(rootProps: Record<string, unknown>): Record<str
                   child: {
                     id: generateId("address-details-location-info"),
                     type: "row",
-                    props: { gap: 8, crossAxis: "center" },
+                    props: { gap: 8, crossAxisAlignment: "center" },
                     children: [
                       { id: generateId("address-details-location-pin"), type: "icon", props: { name: "location_on", size: 22, color: primary } },
                       {
@@ -4913,7 +4982,7 @@ function buildAddressDetailsPage(rootProps: Record<string, unknown>): Record<str
                         child: {
                           id: generateId("address-details-location-lines"),
                           type: "column",
-                          props: { gap: 2, crossAxis: "start" },
+                          props: { gap: 2, crossAxisAlignment: "start" },
                           children: [
                             { id: generateId("address-details-area-line"), type: "text", props: { valuePath: "checkout.pendingLocation.areaLine", value: "", fontSize: 14, fontWeight: "semibold", textAlign: "right", color: text, maxLines: 1 } },
                             { id: generateId("address-details-street-line"), type: "text", props: { valuePath: "checkout.pendingLocation.streetLine", value: "", fontSize: 12, textAlign: "right", color: muted, maxLines: 2 } },
@@ -4940,7 +5009,7 @@ function buildAddressDetailsPage(rootProps: Record<string, unknown>): Record<str
           child: {
             id: "address-details-form-col",
             type: "column",
-            props: { gap: 12, crossAxis: "stretch" },
+            props: { gap: 12, crossAxisAlignment: "stretch" },
             children: [
               {
                 id: "address-details-label-chips",
@@ -5013,14 +5082,14 @@ function buildOrderSuccessPage(rootProps: Record<string, unknown>): Record<strin
       child: {
         id: generateId("order-success-center-wrap"),
         type: "column",
-        props: { crossAxis: "stretch", mainAxis: "center", mainAxisSize: "max" },
+        props: { crossAxisAlignment: "stretch", mainAxisAlignment: "center", mainAxisSize: "max" },
         child: {
           id: generateId("order-success-root"),
           type: "container",
           child: {
             id: generateId("order-success-col"),
             type: "column",
-            props: { crossAxis: "center", gap: 12 },
+            props: { crossAxisAlignment: "center", gap: 12 },
             children: [
               { id: generateId("order-success-icon"), type: "icon", props: { name: "check_circle", size: 72, color: success } },
               { id: generateId("order-success-title"), type: "text", props: { value: "تم تأكيد طلبك", fontSize: 22, fontWeight: "bold", textAlign: "center", color: text } },
@@ -5029,7 +5098,7 @@ function buildOrderSuccessPage(rootProps: Record<string, unknown>): Record<strin
               {
                 id: generateId("order-success-subtotal-row"),
                 type: "row",
-                props: { mainAxis: "center", crossAxis: "center", gap: 6 },
+                props: { mainAxisAlignment: "center", crossAxisAlignment: "center", gap: 6 },
                 children: [
                   { id: generateId("order-success-subtotal-label"), type: "text", props: { value: "المجموع الفرعي", fontSize: 13, color: muted } },
                   { id: generateId("order-success-subtotal-value"), type: "text", props: { valuePath: "checkout.lastOrder.subtotalFormatted", value: "", fontSize: 13, fontWeight: "semibold", color: text } },
@@ -5038,7 +5107,7 @@ function buildOrderSuccessPage(rootProps: Record<string, unknown>): Record<strin
               {
                 id: generateId("order-success-primary"),
                 type: "button",
-                props: { label: "العودة للرئيسية", variant: "filled", fullWidth: true, color: primary },
+                props: { label: "العودة للرئيسية", variant: "filled", fullWidth: true, backgroundColor: primary },
                 tap: { type: "navigate", route: "/home", navigation_type: "clear_stack" },
               },
             ],
@@ -5065,7 +5134,7 @@ function buildOrderFailurePage(rootProps: Record<string, unknown>): Record<strin
       child: {
         id: generateId("order-failure-col"),
         type: "column",
-        props: { crossAxis: "center", gap: 12 },
+        props: { crossAxisAlignment: "center", gap: 12 },
         children: [
           { id: generateId("order-failure-icon"), type: "icon", props: { name: "cancel", size: 72, color: danger } },
           { id: generateId("order-failure-title"), type: "text", props: { value: "تعذر إتمام الطلب", fontSize: 22, fontWeight: "bold", textAlign: "center", color: text } },
@@ -5073,7 +5142,7 @@ function buildOrderFailurePage(rootProps: Record<string, unknown>): Record<strin
           {
             id: generateId("order-failure-primary"),
             type: "button",
-            props: { label: "إعادة المحاولة", variant: "filled", fullWidth: true, color: primary },
+            props: { label: "إعادة المحاولة", variant: "filled", fullWidth: true, backgroundColor: primary },
             tap: { type: "navigate", route: "/checkout", navigation_type: "clear_stack" },
           },
         ],
@@ -7316,6 +7385,33 @@ function pruneDanglingNavigation(pages: Record<string, unknown>[]): void {
     delete barProps.cartAction;
     delete barProps.showCartIcon;
     delete barProps.cartBadgePath;
+  }
+
+  /**
+   * The app bar's other action slots hold a bare action object rather than a `tap`, so the walk
+   * above never saw them either — `/home`'s bell shipped pointing at `/notifications`, a route no
+   * page defines, and tapping it did nothing. Each slot's paired icon goes with it so the bar does
+   * not keep a button that no longer acts. Reported, unlike `cartAction`: this one the merchant
+   * (or the theme preset) authored, so the fix is theirs — add the page or drop the action.
+   */
+  const APP_BAR_ACTION_CHROME: Record<string, string[]> = {
+    trailingAction: ["trailingIcon"],
+    leadingAction: ["leadingIcon"],
+    menuAction: ["menuIcon", "showMenu"],
+  };
+  for (const page of pages) {
+    const barProps = ((page.appBar as Record<string, unknown> | undefined)?.props || {}) as Record<string, unknown>;
+    for (const [slot, chrome] of Object.entries(APP_BAR_ACTION_CHROME)) {
+      const action = barProps[slot] as Record<string, unknown> | undefined;
+      // `openDrawer` and friends carry no route; only navigation can dangle.
+      if (!action || action.type !== "navigate" || typeof action.route !== "string") continue;
+      const route = action.route as string;
+      if (defined.has(route)) continue;
+      if (route.includes(":")) { missingDynamic.add(route); continue; }
+      dropped.set(route, (dropped.get(route) || 0) + 1);
+      delete barProps[slot];
+      for (const key of chrome) delete barProps[key];
+    }
   }
 
   // `/auth/*` targets are the converter's own, and checkAuthRouteTargets already reports them with
