@@ -1,86 +1,76 @@
-# Development Guidelines for SOOQ Frontend Project
+# SOOQ — Shopify-like Multi-tenant E-commerce Platform
 
-## Environment Status
+Arabic-first (RTL, `lang="ar"`) platform for creating stores, managing products/orders/shipments/offers,
+and visually building the storefront with a Puck-based editor. Currency default: SYP.
 
-**IMPORTANT**: This project is NOT in production. This is a development environment.
-- Database operations (DELETE, DROP, TRUNCATE, etc.) are safe to use
-- Data can be freely modified, added, or deleted without fear of data loss
-- No production data exists in this environment
+## Monorepo layout (pnpm + Turborepo)
 
-**مهم**: هذا المشروع ليس في بيئة الإنتاج. هذه بيئة تطوير.
-- عمليات قاعدة البيانات (حذف، إسقاط، تفريغ، إلخ) آمنة للاستخدام
-- يمكن تعديل البيانات وإضافتها أو حذفها بحرية دون الخوف من فقدان البيانات
-- لا توجد بيانات إنتاج في هذه البيئة
+| Path | What it is |
+|---|---|
+| `apps/web` | Main Next.js app: merchant admin dashboard, platform-owner pages, auth, onboarding, **Design Studio** (editor host). Port 3000. |
+| `apps/store` | Rendered storefront (the "published" site). Renders store pages from the editor's Site JSON via Puck `<Render>`. Port 3001. |
+| `packages/editor-packages/core` | **Fork of Puck 0.21.1** (`@puckeditor/core`) heavily customized — all editor blocks, plugins, theme, and Site JSON logic live in `config/`. |
+| `packages/editor-packages/plugin-*` | Puck plugins (heading-analyzer, emotion-cache). |
+| `packages/ui` | Shared design system (`@workspace/ui`) — shadcn-style components, Tailwind 4 tokens. |
+| `packages/{eslint-config,typescript-config}` | Shared tooling configs (`@workspace/*`). |
+| `docs/` | Living docs — read before big changes (see below). |
 
-## Project Structure Compliance
-- **Strictly follow the existing project structure** - do not create new directories or files outside the established patterns
-- Use the monorepo structure with `apps/web/` for the main application
-- Place shared components in `packages/ui/src/components/`
-- Follow the established file naming conventions and organization
+(Historical note: leftover husks from the Puck repo import — top-level `packages/core`,
+`create-puck-app`, `field-contentful`, `plugin-*`, `tsup-config`, `tsconfig`,
+`eslint-config-custom`, plus `apps/demo`, `apps/editor` and the root `app/` dir — were
+purged on 2026-07-12. The only live copies are inside `packages/editor-packages/`.)
 
-## React Best Practices
-- **Adhere to React best practices** at all times
-- Use functional components with hooks
-- Implement proper state management with React hooks (useState, useEffect, etc.)
-- Follow the component composition pattern
-- Use TypeScript for all components and utilities
-- Implement proper error boundaries and error handling
+## The two main flows
 
-## Code Standards
-- **Do not invent custom solutions** - use established patterns and libraries already in the project
-- Follow the existing code style and formatting (Prettier, ESLint)
-- Use shadcn/ui components as provided - do not create custom UI components unless absolutely necessary
-- Maintain consistency with existing code patterns
+1. **Admin flow** — `apps/web/app/store/[storeSlug]/(dashboard)/**` routes, backed by domain
+   modules in `apps/web/modules/**` (see `apps/web/modules/CLAUDE.md` for the module pattern).
+2. **Builder flow** — Design Studio at
+   `apps/web/app/store/[storeSlug]/(dashboard)/design-studio/**` mounts the Puck editor from
+   `@/core` (path alias → `packages/editor-packages/core`). The editor produces a **Site JSON**
+   (`SiteData`: root theme + zones + pages[]) persisted via
+   `packages/editor-packages/core/config/lib/site-data.ts` (currently **localStorage only** —
+   backend persistence is a known gap). `apps/store` reads that same JSON and renders it.
 
-## Git & Version Control
-- **DO NOT PUSH TO GIT** without explicit permission from KarmoVsky
-- All commits must be reviewed and approved before pushing
-- Use descriptive commit messages following the established convention
-- Create branches for new features following the project's branching strategy
+## Commands
 
-## Communication
-- **Address me as "KarmoVsky" or "كرموفيسكي"** in all communications
-- Ask for clarification when requirements are unclear
-- Provide progress updates regularly
-- Report any blockers or issues immediately
+```bash
+pnpm dev          # turbo dev (all apps) — or: pnpm --filter web dev / --filter store dev
+pnpm build        # turbo build
+pnpm lint         # eslint via turbo
+pnpm typecheck    # tsc --noEmit via turbo
+```
 
-## Additional Guidelines
+Node >= 20, pnpm 9. Backend API is external (Spring-style, `NEXT_PUBLIC_API_URL`), with
+Bearer auth + `X-Tenant-ID` and an `ApiResponse`/`PagedApiResponse` envelope.
 
-### Performance
-- Optimize components for performance (use React.memo, useMemo, useCallback when appropriate)
-- Implement lazy loading for routes and components
-- Monitor bundle size and optimize imports
+## Path aliases (important)
 
-### Security
-- Follow security best practices for React applications
-- Validate all user inputs
-- Use proper authentication and authorization patterns
-- Keep dependencies updated and secure
+- `@/core` and `@/core/*` → `packages/editor-packages/core` (both apps/web and apps/store)
+- `@workspace/ui/*` → `packages/ui/src/*`
+- In `apps/store`: `@/modules/*`, `@/lib/*`, `@/config/*` alias into **`apps/web`** (cross-app
+  coupling — store reuses web's modules/lib; be careful when moving files in web).
 
-### Testing
-- Write unit tests for components and utilities
-- Implement integration tests for critical user flows
-- Maintain test coverage above the project threshold
+## Key docs (read these before touching related areas)
 
-### Documentation
-- Document complex logic and business rules
-- Update README when adding new features
-- Comment code where necessary for clarity
+- `docs/editor-study-and-enhancement-plan.md` — deep dive into the editor architecture,
+  its perf bottlenecks, and a phased enhancement plan. **Required reading before editor work.**
+- `docs/editor-code-roadmap.html` — open in a browser. File-level map of the editor packages
+  (layers, Site JSON flow, DnD engine, plugins), a ranked audit of code smells / perf traps /
+  dead code with a phased remediation plan, and the root-cause writeup of the drag-and-drop
+  freeze (dnd-kit's un-guarded drop promise) fixed in
+  `core/lib/dnd/recover-drag-operation.ts`.
+- `docs/PRD_COMPLIANCE_PLAN.md` — admin/PRD execution plan with progress dashboard (~95% done).
+- `docs/frontend-standards.md` — inferred code conventions for `apps/web` + `packages/ui`.
+- `docs/routing-refactor-plan.md` — the three-audience routing split (merchant `/store/[slug]`,
+  customer `/shop/[slug]`, platform `/platform`).
+- `docs/order-admin-ai-rules.md` — rules for order-module work (also: this is a dev env, no prod data).
+- `docs/refactoring-notes-detail-pages.md` — create/edit detail-page pattern.
 
-### Dependencies
-- Do not add new dependencies without approval
-- Prefer existing libraries over new ones
-- Keep package.json clean and organized
+## Conventions that apply repo-wide
 
-## Code Review Process
-1. Self-review code before requesting review
-2. Ensure all tests pass
-3. Check for TypeScript errors
-4. Verify ESLint and Prettier compliance
-5. Request review from KarmoVsky
-
----
-
-**Remember**: Quality over quantity. It's better to take time and do it right than rush and create technical debt.
-
-**Contact**: KarmoVsky (كرموفيسكي) for any questions, approvals, or guidance.
+- Arabic-first UI: user-facing strings in Arabic, layout RTL. Bilingual data fields use
+  `*Ar` / `*En` suffixes (e.g. `titleAr`, `titleEn`).
+- Zod schemas are the type source (`z.infer`); react-hook-form + zodResolver for forms.
+- TanStack Query for server state; per-module `queryKeys.ts` + actions.
+- Files kebab-case; no default exports for components (named exports preferred).
+- Toasts via sonner. Icons via lucide-react.

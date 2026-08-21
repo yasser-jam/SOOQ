@@ -547,7 +547,13 @@ const ButtonGroupInner: ComponentConfig<ButtonGroupProps> = {
         const values = collectSooqInputValues(scope);
         try {
           await actions.verifyOtp(values.otp ?? "");
-          maybeRedirect(item.submitRedirectUrl);
+          if (item.submitRedirectUrl) {
+            maybeRedirect(item.submitRedirectUrl);
+          } else if (typeof window !== "undefined") {
+            // Without a configured redirect the verify page is a dead end after
+            // login — land the customer on the store home instead.
+            window.location.href = withStoreBasePath("/") ?? "/";
+          }
         } catch (err) {
           window.alert(err instanceof Error ? err.message : "رمز التحقق غير صحيح.");
         }

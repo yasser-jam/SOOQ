@@ -5,6 +5,7 @@ import {
 } from "@/core/config/cart/store-cart"
 import { api } from "@/lib/api"
 import { publicApi } from "@/lib/public-api"
+import { randomUuid } from "@/lib/random-uuid"
 import { isMockApiEnabled } from "@/lib/mock/enabled"
 import { MOCK_STORE_TENANT_ID } from "@/lib/mock/seed"
 import { getEditorTenantId } from "@/lib/tenant-context"
@@ -288,7 +289,7 @@ export async function submitCheckoutOrder(
 					addressLabel: values.addressLabel,
 				},
 				paymentMethod: "COD",
-				checkoutToken: crypto.randomUUID(),
+				checkoutToken: randomUuid(),
 				guestEmail: DEFAULT_GUEST_EMAIL,
 			},
 		})

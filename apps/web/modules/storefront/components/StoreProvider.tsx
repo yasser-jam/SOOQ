@@ -43,6 +43,7 @@ import { MOCK_STORE_SLUG } from "@/lib/mock/seed"
 import { getTenantIdFromToken } from "@/lib/jwt"
 import {
 	getStoreTenantId,
+	isCustomerAuthenticated,
 	listPaymentMethods,
 	placeCheckoutOrder,
 	reverseGeocode,
@@ -313,7 +314,16 @@ export function StoreProvider({
 		const phone = localStorage.getItem("sooq-login-phone") ?? ""
 		const fullName = localStorage.getItem("sooq-login-fullName") ?? ""
 
-		if (!otp || !phone) return
+		// A successful verify clears the stored phone; pressing the button again
+		// is a no-op success so the block's post-verify redirect still runs.
+		if (!phone && isCustomerAuthenticated()) return
+
+		if (!otp) {
+			throw new Error("أدخل رمز التحقق أولاً.")
+		}
+		if (!phone) {
+			throw new Error("انتهت جلسة التحقق. عد لصفحة تسجيل الدخول وأعد إرسال الرمز.")
+		}
 
 		setLoading((prev) => ({ ...prev, verifyOtp: true }))
 		setErrors((prev) => ({ ...prev, verifyOtp: null }))
@@ -548,7 +558,7 @@ export function StoreProvider({
 				throw new Error("اختر طريقة الدفع أولاً.")
 			}
 
-			const orderId = await placeCheckoutOrder(
+			const placed = await placeCheckoutOrder(
 				{
 					cart: readStoreCart(),
 					address,
@@ -557,10 +567,21 @@ export function StoreProvider({
 				getStoreTenantId(),
 			)
 
+			// Online payment (e.g. PAYMERA): hand the customer to the hosted
+			// payment page. The cart is only cleared after the payment-result
+			// page confirms the charge — keep it intact so a failed/canceled
+			// payment lets the customer retry checkout.
+			if (placed.paymentRedirectUrl) {
+				if (typeof window !== "undefined") {
+					window.location.href = placed.paymentRedirectUrl
+				}
+				return
+			}
+
 			clearCart()
 			setCheckout((prev) => ({
 				...prev,
-				placedOrderId: orderId || "placed",
+				placedOrderId: placed.orderId || "placed",
 				...recomputeTotals(prev.discount),
 			}))
 			await ordersStateActions.refreshOrders()
