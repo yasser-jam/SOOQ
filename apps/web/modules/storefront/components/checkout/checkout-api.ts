@@ -345,7 +345,10 @@ export async function listPaymentMethods(
 }
 
 type ApiDiscountValidation = {
-	discountAmount?: number | string
+	discountCodeId?: string
+	code?: string
+	discountType?: CheckoutDiscount["discountType"]
+	appliedAmount?: number | string
 }
 
 /**
@@ -354,7 +357,7 @@ type ApiDiscountValidation = {
  * own Arabic message when the code is rejected.
  */
 export async function validateDiscountCode(
-	input: { code: string; subtotal: number; shippingCost: number },
+	input: { code: string; subtotal: number },
 	tenantId: string | null,
 ): Promise<CheckoutDiscount> {
 	const code = input.code.trim()
@@ -371,18 +374,22 @@ export async function validateDiscountCode(
 				params: {
 					code,
 					subtotal: input.subtotal,
-					shippingCost: input.shippingCost,
 				},
 			},
 		)
 
-		const amount = Number(response.data?.discountAmount ?? 0)
+		const amount = Number(response.data?.appliedAmount ?? 0)
 
 		if (!Number.isFinite(amount) || amount <= 0) {
 			throw new Error("كود الخصم غير صالح.")
 		}
 
-		return { code, discountAmount: amount }
+		return {
+			code: response.data?.code ?? code,
+			discountAmount: amount,
+			discountType: response.data?.discountType ?? "FIXED_AMOUNT",
+			discountCodeId: response.data?.discountCodeId ?? "",
+		}
 	} catch (err) {
 		throw new Error(getApiErrorMessage(err, "كود الخصم غير صالح."))
 	}

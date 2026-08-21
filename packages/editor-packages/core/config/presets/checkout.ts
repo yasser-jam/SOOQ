@@ -3,6 +3,7 @@ import { buildCheckoutSectionProps } from "../blocks/Section/section-preset-kind
 import {
   createContentLink,
   createHeading,
+  createInput,
   createParagraph,
   createPrimaryButton,
   createSection,
@@ -23,7 +24,10 @@ import {
  * placed/unplaced swap leaves no empty padded section behind.
  */
 
-function createRowGroup(content: ComponentDataOptionalId[]) {
+function createRowGroup(
+  content: ComponentDataOptionalId[],
+  overrides: Record<string, unknown> = {}
+) {
   return {
     type: "RowGroup" as const,
     props: {
@@ -33,6 +37,7 @@ function createRowGroup(content: ComponentDataOptionalId[]) {
       justifyContent: "space-between",
       wrap: "wrap",
       content,
+      ...overrides,
     },
   };
 }
@@ -66,17 +71,24 @@ function createCheckoutGroup(
 }
 
 /** A money row bound to `checkout.<field>`, formatted in the store currency. */
-function createMoneyRow(label: string, field: string) {
-  return createRowGroup([
-    createParagraph(label),
-    createParagraph("", {
-      valueContext: {
-        path: `checkout.${field}`,
-        format: "money",
-        currencyPath: "checkout.currencyCode",
-      },
-    }),
-  ]);
+function createMoneyRow(
+  label: string,
+  field: string,
+  overrides: Record<string, unknown> = {}
+) {
+  return createRowGroup(
+    [
+      createParagraph(label),
+      createParagraph("", {
+        valueContext: {
+          path: `checkout.${field}`,
+          format: "money",
+          currencyPath: "checkout.currencyCode",
+        },
+      }),
+    ],
+    overrides
+  );
 }
 
 export function createCheckoutPageContent(): ComponentDataOptionalId[] {
@@ -194,18 +206,31 @@ export function createCheckoutPageContent(): ComponentDataOptionalId[] {
 
         // ── Totals + place order ──────────────────────────────────────────
         //
-        // No discount-code group: `POST /public/checkout` does not accept a
-        // code, so applying one would lower the displayed total while the
-        // backend still charged full price. The `discount_code` input action,
-        // the `validateDiscount` button action and the `checkout.discount*`
-        // bindings all still exist — re-add the blocks once the backend takes
-        // a `discountCode`.
+        // `POST /public/checkout` still has no `discountCode` field, so an
+        // applied code only changes the displayed total below — the order is
+        // still placed at full price server-side until the backend accepts a
+        // code on that endpoint. Track that as a separate, backend-owned
+        // follow-up before relying on this for anything but a display.
         createCheckoutGroup(
           [
             createHeading("ملخّص الطلب"),
+            createInput("كود الخصم", "discount-code", {
+              inputAction: "discount_code",
+            }),
+            createPrimaryButton("تطبيق كود الخصم", {
+              destinationType: "action",
+              buttonAction: "validateDiscount",
+            }),
+            createParagraph("", {
+              valueContext: { path: "errors.discount" },
+              dataCondition: { path: "errors.discount", op: "truthy" },
+            }),
             createMoneyRow("المجموع الفرعي", "subtotal"),
             // Always 0 until a public endpoint quotes a shipping price.
             createMoneyRow("تكلفة الشحن", "shippingCost"),
+            createMoneyRow("الخصم", "discountAmount", {
+              dataCondition: { path: "checkout.hasDiscount", op: "truthy" },
+            }),
             createMoneyRow("الإجمالي", "payableTotal"),
             createPrimaryButton("تأكيد الطلب", {
               destinationType: "action",

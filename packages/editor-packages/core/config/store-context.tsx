@@ -290,6 +290,8 @@ export type PaymentMethodOption = {
 export type CheckoutDiscount = {
   code: string;
   discountAmount: number;
+  discountType: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_SHIPPING";
+  discountCodeId: string;
 };
 
 /**

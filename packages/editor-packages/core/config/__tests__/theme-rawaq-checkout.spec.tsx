@@ -103,7 +103,12 @@ function signedInStore(): StoreContextValue {
         },
       ],
       paymentMethodCode: "COD",
-      discount: { code: "10OFF", discountAmount: 10000 },
+      discount: {
+        code: "10OFF",
+        discountAmount: 10000,
+        discountType: "PERCENTAGE",
+        discountCodeId: "test-discount-id",
+      },
       subtotal: 100000,
       shippingCost: 5000,
       discountAmount: 10000,
@@ -196,11 +201,11 @@ describe("theme-rawaq-furniture /checkout page", () => {
     expect(propValues("buttonAction")).toContain("placeOrder");
   });
 
-  it("ships no discount UI while the backend cannot take a code", () => {
-    // POST /public/checkout has no discountCode field, so a working discount
-    // input would lower the shown total while the customer paid full price.
-    expect(propValues("inputAction")).not.toContain("discount_code");
-    expect(propValues("buttonAction")).not.toContain("validateDiscount");
+  it("wires the discount-code input and apply button", () => {
+    // POST /public/checkout still has no discountCode field, so this only
+    // affects the displayed total, not what the backend actually charges.
+    expect(propValues("inputAction")).toContain("discount_code");
+    expect(propValues("buttonAction")).toContain("validateDiscount");
   });
 
   it("binds the money rows to the checkout scope in store currency", () => {
@@ -257,13 +262,17 @@ describe("theme-rawaq-furniture /checkout page", () => {
     expect(selects[0]?.textContent).toContain("المنزل");
     expect(selects[1]?.textContent).toContain("الدفع عند الاستلام");
 
-    // Place-order button, and no discount UI.
+    // Place-order button, and the discount-code input.
     expect(text).toContain("تأكيد الطلب");
-    expect(container.querySelector('input[name="discountCode"]')).toBeNull();
+    expect(
+      container.querySelector('input[name="discount-code"]')
+    ).not.toBeNull();
 
-    // Money rows, formatted in the store currency.
+    // Money rows, formatted in the store currency, including the discount
+    // line (shown because `signedInStore()` has an applied discount).
     expect(text).toContain("المجموع الفرعي");
     expect(text).toContain("تكلفة الشحن");
+    expect(text).toContain("الخصم");
     expect(text).toContain("الإجمالي");
 
     // The sign-in gate and the success panel are both hidden.

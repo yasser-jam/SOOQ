@@ -41,8 +41,11 @@ const BILINGUAL: Record<string, { ar: string; en: string }> = {
     en: "Choose a payment method",
   },
   "ملخّص الطلب": { ar: "ملخّص الطلب", en: "Order summary" },
+  "كود الخصم": { ar: "كود الخصم", en: "Discount code" },
+  "تطبيق كود الخصم": { ar: "تطبيق كود الخصم", en: "Apply discount code" },
   "المجموع الفرعي": { ar: "المجموع الفرعي", en: "Subtotal" },
   "تكلفة الشحن": { ar: "تكلفة الشحن", en: "Shipping" },
+  الخصم: { ar: "الخصم", en: "Discount" },
   الإجمالي: { ar: "الإجمالي", en: "Total" },
   "تأكيد الطلب": { ar: "تأكيد الطلب", en: "Confirm order" },
   "اختر عنوان التوصيل وطريقة الدفع لتتمكن من تأكيد الطلب.": {

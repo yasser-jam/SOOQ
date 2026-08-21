@@ -506,7 +506,6 @@ export function StoreProvider({
 				{
 					code: checkout.discountCodeDraft,
 					subtotal: totals.subtotal ?? 0,
-					shippingCost: totals.shippingCost ?? 0,
 				},
 				getStoreTenantId(),
 			)
