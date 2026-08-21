@@ -65,6 +65,11 @@ Bearer auth + `X-Tenant-ID` and an `ApiResponse`/`PagedApiResponse` envelope.
   customer `/shop/[slug]`, platform `/platform`).
 - `docs/order-admin-ai-rules.md` — rules for order-module work (also: this is a dev env, no prod data).
 - `docs/refactoring-notes-detail-pages.md` — create/edit detail-page pattern.
+- `docs/orders-mobile-conversion.md` — how the `customer-order*` Section presets become a
+  Flutter orders screen via `apps/web/lib/transformer.ts`: the URL-substring contract the
+  mobile engine classifies requests by, the enriched field maps (`totalFormatted`,
+  `orderStatusLabel`), and why pagination and returns still cannot work.
+  **Read before touching orders or the web→mobile converter.**
 
 ## Conventions that apply repo-wide
 

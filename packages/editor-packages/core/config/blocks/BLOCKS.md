@@ -585,12 +585,15 @@ Defined in `config/content/button-actions.ts`.
 
 **Orders** — inside the `customer-orders*` / `customer-order-*` preset sections.
 
-| Action | Arabic label | Notes |
-|---|---|---|
-| `ordersNextPage` / `ordersPrevPage` | الصفحة التالية / السابقة | Inside a `customer-orders-pager` section |
-| `downloadInvoice` | تحميل الفاتورة | Order-detail section; errors in `errors.invoice` |
-| `cancelOrder` | إلغاء الطلب | Submits `orderDetail.cancelReason`; usually inside the `cancel-order` zone popup |
-| `submitReturn` | إرسال طلب الإرجاع | Submits the `returnDraft` built by the order-items repeater |
+The **Mobile** column is what `apps/web/lib/transformer.ts` emits for the Flutter app; see
+`docs/orders-mobile-conversion.md` for the full contract.
+
+| Action | Arabic label | Notes | Mobile |
+|---|---|---|---|
+| `ordersNextPage` / `ordersPrevPage` | الصفحة التالية / السابقة | Inside a `customer-orders-pager` section | ✗ — the engine's `setPageState` assigns literals only, so `page ± 1` is inexpressible. Warned no-op; the list loads the first 20 |
+| `downloadInvoice` | تحميل الفاتورة | Order-detail section; errors in `errors.invoice` | ✓ `order.openInvoice`, `orderId` from the route |
+| `cancelOrder` | إلغاء الطلب | Submits `orderDetail.cancelReason`; usually inside the `cancel-order` zone popup | ✓ `order.cancelOrder`. **A `zoneKey` alone does not dispatch** — set `destinationType: "action"` too, or mobile gets a dead button |
+| `submitReturn` | إرسال طلب الإرجاع | Submits the `returnDraft` built by the order-items repeater | ✗ — the Flutter app has no returns endpoint, model, or cubit method yet |
 
 ### JSON Example
 

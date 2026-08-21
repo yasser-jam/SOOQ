@@ -87,8 +87,17 @@ const PRESET_ONLY_TYPES = new Set(["CartList"]);
  *   - `"item"` inside a repeat template (cart line, grid item)
  *   - `"dataContext.requests.<key>.data"` for a standalone product-bound Group
  */
-type BindingScope = { kind: "product" | "cart"; base: string };
+type BindingScope = {
+  kind: "product" | "cart" | "orderList" | "orderDetail" | "orderItem" | "orderTimeline";
+  base: string;
+};
 let _bindingScope: BindingScope | null = null;
+/**
+ * The order-detail request is declared once per page. Every `customer-order-*` Section on
+ * `/orders/:orderId` reads the same `CustomerOrder`, so the first one to convert carries the
+ * `data` block and the rest bind to it by absolute path.
+ */
+let _orderDetailRequestEmitted = false;
 /** One cart-line template per page — later `cartLineId` Groups are duplicates of the same list. */
 let _cartTemplateEmitted = false;
 /** Mobile route of the page being converted; `product: null` only means "route-bound" on one of them. */
@@ -374,9 +383,112 @@ const CART_VALUE_CONTEXT_MAP: Record<string, { valueField?: string; urlField?: s
   variantId: { valueField: "variantId" },
 };
 
-/** The `valueContext` map for the scope in play — cart items and products differ. */
+/**
+ * An orders-list row. The engine hands `variant_screen.dart`'s `_handleOrdersListSuccess`
+ * an `OrderSummary.toJson()` per row and enriches it with two derived fields, so the
+ * bindable set is the summary's own camelCase keys plus `totalFormatted` /
+ * `orderStatusLabel`.
+ *
+ * Money and status go to the **enriched** fields on purpose: the raw `total` is minor
+ * units (an int) and the raw `orderStatus` is the wire enum (`"SHIPPED"`), neither of
+ * which is showable. `totalFormatted` is `formatSyp`'d and `orderStatusLabel` is the
+ * Arabic label — which is also why the web side's `format: "money"` / `format: "datetime"`
+ * hints are dropped rather than translated: the engine `text` node has no formatter.
+ *
+ * `order.currencyCode` is deliberately absent — `OrderSummary` carries no currency (only
+ * the detail's `CustomerOrder` does), so a card binding it would render empty.
+ */
+const ORDER_LIST_VALUE_CONTEXT_MAP: Record<string, { valueField?: string; urlField?: string }> = {
+  "order.orderNumber": { valueField: "orderNumber" },
+  "order.orderStatus": { valueField: "orderStatusLabel" },
+  "order.paymentStatus": { valueField: "paymentStatus" },
+  "order.paymentMethod": { valueField: "paymentMethod" },
+  "order.placedAt": { valueField: "placedAt" },
+  "order.itemCount": { valueField: "itemCount" },
+  "order.total": { valueField: "totalFormatted" },
+  "order.orderId": { valueField: "orderId" },
+};
+
+/**
+ * The order-detail request's payload: `CustomerOrder.toJson()` plus the five `*Formatted`
+ * fields and `orderStatusLabel` that `_enrichOrderJson` adds. Richer than the list row —
+ * `shippingCost`, `currencyCode`, `shippingAddress.*` and `notesCustomer` only exist here.
+ */
+const ORDER_DETAIL_VALUE_CONTEXT_MAP: Record<string, { valueField?: string; urlField?: string }> = {
+  "order.orderNumber": { valueField: "orderNumber" },
+  "order.orderStatus": { valueField: "orderStatusLabel" },
+  "order.paymentStatus": { valueField: "paymentStatus" },
+  "order.paymentMethod": { valueField: "paymentMethod" },
+  "order.placedAt": { valueField: "placedAt" },
+  "order.currencyCode": { valueField: "currencyCode" },
+  "order.subtotal": { valueField: "subtotalFormatted" },
+  "order.discountAmount": { valueField: "discountAmountFormatted" },
+  "order.taxAmount": { valueField: "taxAmountFormatted" },
+  "order.shippingCost": { valueField: "shippingCostFormatted" },
+  "order.total": { valueField: "totalFormatted" },
+  "order.notesCustomer": { valueField: "notesCustomer" },
+  "order.invoiceNumber": { valueField: "invoiceNumber" },
+  "order.orderId": { valueField: "orderId" },
+  "order.shippingAddress.recipientName": { valueField: "shippingAddress.recipientName" },
+  "order.shippingAddress.phone": { valueField: "shippingAddress.phone" },
+  "order.shippingAddress.addressLabel": { valueField: "shippingAddress.addressLabel" },
+};
+
+/** A row of `CustomerOrder.items` — `OrderItem.toJson()`, no enrichment. */
+const ORDER_ITEM_VALUE_CONTEXT_MAP: Record<string, { valueField?: string; urlField?: string }> = {
+  "item.productTitle": { valueField: "productTitle" },
+  "item.variantTitle": { valueField: "variantTitle" },
+  "item.sku": { valueField: "sku" },
+  "item.quantity": { valueField: "quantity" },
+  "item.unitPrice": { valueField: "unitPrice" },
+  "item.discountAmount": { valueField: "discountAmount" },
+  "item.totalPrice": { valueField: "totalPrice" },
+  "item.variantId": { valueField: "variantId" },
+  "item.orderItemId": { valueField: "orderItemId" },
+};
+
+/** A row of `CustomerOrder.timeline` — `OrderTimelineEntry.toJson()`. */
+const ORDER_TIMELINE_VALUE_CONTEXT_MAP: Record<string, { valueField?: string; urlField?: string }> = {
+  "timelineEntry.action": { valueField: "action" },
+  "timelineEntry.actor": { valueField: "actor" },
+  "timelineEntry.details": { valueField: "details" },
+  "timelineEntry.createdAt": { valueField: "createdAt" },
+};
+
+/** The `valueContext` map for the scope in play — each request shape exposes different fields. */
 function valueContextMapFor(scope: BindingScope): Record<string, { valueField?: string; urlField?: string }> {
-  return scope.kind === "cart" ? CART_VALUE_CONTEXT_MAP : VALUE_CONTEXT_MAP;
+  switch (scope.kind) {
+    case "cart":
+      return CART_VALUE_CONTEXT_MAP;
+    case "orderList":
+      return ORDER_LIST_VALUE_CONTEXT_MAP;
+    case "orderDetail":
+      return ORDER_DETAIL_VALUE_CONTEXT_MAP;
+    case "orderItem":
+      return ORDER_ITEM_VALUE_CONTEXT_MAP;
+    case "orderTimeline":
+      return ORDER_TIMELINE_VALUE_CONTEXT_MAP;
+    default:
+      return VALUE_CONTEXT_MAP;
+  }
+}
+
+/** Human-readable note for the "no mobile field mapping" warning. */
+function bindingScopeNote(scope: BindingScope): string {
+  switch (scope.kind) {
+    case "cart":
+      return " for cart rows (the cart item carries no such field)";
+    case "orderList":
+      return " for orders-list rows (OrderSummary carries no such field — the detail request is richer)";
+    case "orderDetail":
+      return " for the order-detail request (CustomerOrder carries no such field)";
+    case "orderItem":
+      return " for order-item rows (OrderItem carries no such field)";
+    case "orderTimeline":
+      return " for order-timeline rows (OrderTimelineEntry carries no such field)";
+    default:
+      return "";
+  }
 }
 
 function withBindingScope<T>(scope: BindingScope | null, fn: () => T): T {
@@ -400,6 +512,18 @@ function applyValueContext(
   kind: "text" | "image" | "button"
 ): void {
   const path = getValueContextPath(props);
+  if (path && !_bindingScope) {
+    // A bound node that landed outside every scope. This used to return silently, which is
+    // exactly how the `customer-orders` gap shipped unnoticed: the whole orders page bound
+    // `order.*` paths, no scope was ever pushed for them, and the converter emitted the
+    // template's empty `value: ""` placeholders without a word. Never silent again.
+    addWarning(
+      `valueContext path "${path}" was dropped: the block is not inside a bound Group, repeat ` +
+        `template, or data-bound Section preset, so there is no request for it to read from. ` +
+        `The static fallback value was kept — it will render blank if the template had none`
+    );
+    return;
+  }
   if (path && _bindingScope) {
     const mapped = valueContextMapFor(_bindingScope)[path];
     const base = _bindingScope.base;
@@ -412,8 +536,10 @@ function applyValueContext(
       delete outProps.url;
     }
     if (!mapped) {
-      const scopeNote = _bindingScope.kind === "cart" ? " for cart rows (the cart item carries no such field)" : "";
-      addWarning(`valueContext path "${path}" has no mobile field mapping${scopeNote}; the static fallback value was kept`);
+      addWarning(
+        `valueContext path "${path}" has no mobile field mapping${bindingScopeNote(_bindingScope)}; ` +
+          `the static fallback value was kept`
+      );
     }
   }
   // labelValueContext / altValueContext: engine has no labelPath or semanticsLabelPath —
@@ -1163,6 +1289,16 @@ function getChildren(block: Record<string, unknown>): Record<string, unknown>[] 
   return (props.content as Record<string, unknown>[]) || (props.items as Record<string, unknown>[]) || (props.children as Record<string, unknown>[]) || [];
 }
 
+/**
+ * Zone keys that read as a command rather than a slot. A merchant who writes
+ * `zoneKey: "cancel-order"` means "cancel the order", but zones only open popups — so when the
+ * slot turns out to be empty we name the `buttonAction` that does the real work.
+ */
+const ZONE_KEY_DIRECT_ACTION: Record<string, { buttonAction: string; intent: string }> = {
+  "cancel-order": { buttonAction: "cancelOrder", intent: "cancel the order" },
+  "download-invoice": { buttonAction: "downloadInvoice", intent: "open the invoice PDF" },
+};
+
 // ─── Aspect ratio map ────────────────────────────────────────────────────────
 const ASPECT_RATIO_MAP: Record<string, number> = {
   square: 1, landscape: 16 / 9, portrait: 3 / 4, wide: 21 / 9, "16:9": 16 / 9, "4:3": 4 / 3, "1:1": 1,
@@ -1202,7 +1338,18 @@ function resolveTap(props: Record<string, unknown>, rootProps: Record<string, un
           };
       return { type: "openBottomSheet", child };
     }
-    addWarning(`Zone "${zoneKey}" has no slot content; zone tap omitted`);
+    // Naming a zone after an operation does not perform it — the zone mechanism only opens
+    // whatever blocks the merchant put in the slot. An empty one is a dead button, so point at
+    // the buttonAction that would actually do the job.
+    const directAction = ZONE_KEY_DIRECT_ACTION[zoneKey];
+    addWarning(
+      `Zone "${zoneKey}" has no slot content; zone tap omitted` +
+        (directAction
+          ? `. If the intent was to ${directAction.intent}, set the button's destinationType to ` +
+            `"action" and buttonAction to "${directAction.buttonAction}" — a zone key is only a ` +
+            `popup target, it does not dispatch anything`
+          : "")
+    );
     return undefined;
   }
 
@@ -1314,6 +1461,71 @@ function resolveTap(props: Record<string, unknown>, rootProps: Record<string, un
         { formId: AUTH_ACTION_CONTRACT.verifyOtp.formId, fields: [OTP_FIELD_ID] },
         onRedirect
       );
+
+    // ── Customer order actions ──────────────────────────────────────────────
+    // `orderId` comes from the route, not the tapped item: both live on /orders/:orderId,
+    // where the engine has already put `orderId` in `dataContext.routeParams`.
+    case "downloadInvoice":
+      if (!isOrderDetailRoute()) {
+        addWarning(
+          `ContentButton buttonAction "downloadInvoice" needs an order in scope; it only works on ` +
+            `/orders/:orderId. On "${_currentRoute}" the button renders with no tap`
+        );
+        return undefined;
+      }
+      // `openInvoice` fetches the invoice then hands the PDF url to the OS — there is no
+      // in-app viewer, so no onSuccess navigation to wire.
+      return {
+        type: "cubitCall",
+        cubit: "order",
+        method: "openInvoice",
+        requireAuth: true,
+        params: { orderId: { source: "routeParams", field: "orderId" } },
+      };
+
+    case "cancelOrder":
+      if (!isOrderDetailRoute()) {
+        addWarning(
+          `ContentButton buttonAction "cancelOrder" needs an order in scope; it only works on ` +
+            `/orders/:orderId. On "${_currentRoute}" the button renders with no tap`
+        );
+        return undefined;
+      }
+      return {
+        type: "cubitCall",
+        cubit: "order",
+        method: "cancelOrder",
+        requireAuth: true,
+        params: { orderId: { source: "routeParams", field: "orderId" } },
+        onSuccess: { type: "reloadRequest", requestKey: ORDER_DETAIL_REQUEST_KEY },
+      };
+
+    case "ordersPrevPage":
+    case "ordersNextPage":
+      // Deliberately unmapped. `setPageState` can only assign a literal — the engine has no
+      // increment primitive — so a prev/next pager cannot compute `page ± 1` from config alone.
+      // Emitting a `setPageState` to a fixed page would give a Next button that always jumps to
+      // page 1 and a Prev that always jumps to page 0, which is worse than an obviously dead
+      // button. The list already fetches `size=20`; add a delta op to PageStateStore (or a
+      // `loadMore` on OrderCubit, which currently replaces rather than appends) to make this real.
+      addWarning(
+        `ContentButton buttonAction "${action}" is not supported: the mobile engine's setPageState ` +
+          `assigns literal values only, so it cannot express "current page ± 1". The orders list ` +
+          `loads the first ${ORDER_PAGE_SIZE} orders and the pager buttons render with no tap — ` +
+          `drop them from the mobile-facing page until the engine grows a page-state delta action`
+      );
+      return undefined;
+
+    case "submitReturn":
+      // No engine surface at all: the Flutter app has no returns endpoint, model, or cubit
+      // method (only `PaymentStatus.refunded` / `OrderStatus.refunded` as enum values). This
+      // needs the backend first, then an OrderCubit method, then a mapping here.
+      addWarning(
+        `ContentButton buttonAction "submitReturn" has no engine equivalent: the mobile app has no ` +
+          `returns API, model, or cubit method yet. The return-item switches and reason select on ` +
+          `this Section are decorative — the button renders with no tap`
+      );
+      return undefined;
 
     // ── Customer account / address actions (BLOCKS.md § buttonAction values) ──
     // The account presets submit a draft held in web `customer` state. On mobile the equivalent
@@ -2064,11 +2276,77 @@ function transformContentMap(block: Record<string, unknown>, rootProps: Record<s
   return applyLayout(node, props.layout as Record<string, unknown> | undefined, rootProps);
 }
 
-function transformChip(block: Record<string, unknown>, _rootProps: Record<string, unknown>): null {
+/**
+ * Two different blocks share the `Chip` type.
+ *
+ * With `listValueContext` it is a chip *list* over a runtime array (`product.tags`), which the
+ * engine cannot express — no chip-list primitive — so it is dropped.
+ *
+ * With a scalar `valueContext` it is a **status badge** (`order.orderStatus` + `enumMap`), which
+ * is just a pill-shaped text node. Dropping those was why order status never appeared on the
+ * converted orders screens even though the field was bound.
+ */
+function transformChip(
+  block: Record<string, unknown>,
+  rootProps: Record<string, unknown>
+): Record<string, unknown> | null {
   const props = (block.props || {}) as Record<string, unknown>;
-  const path = ((props.listValueContext as Record<string, unknown>)?.path as string) || "(unbound)";
+  const scalarPath = getValueContextPath(props);
+
+  if (scalarPath && _bindingScope && valueContextMapFor(_bindingScope)[scalarPath]) {
+    const size = (props.size as string) || "sm";
+    const fontSize = size === "sm" ? 12 : size === "lg" ? 16 : 14;
+    const label: Record<string, unknown> = {
+      id: generateId("chip-label"),
+      type: "text",
+      props: { fontSize, fontWeight: "bold" },
+    };
+    applyValueContext(props, label.props as Record<string, unknown>, "text");
+
+    const fg = resolveThemeColor(props.textColor as string, rootProps);
+    const bg = resolveThemeColor(props.bgColor as string, rootProps);
+    if (fg) (label.props as Record<string, unknown>).color = fg;
+
+    // `enumMap` names a web-side label dictionary (orderStatus → "تم الشحن"). The engine has no
+    // such lookup, but for order status it does not need one: `_enrichOrderJson` already ships
+    // `orderStatusLabel`, which is what ORDER_*_VALUE_CONTEXT_MAP points `order.orderStatus` at.
+    // Anything else lands on the raw wire enum, so say so.
+    const enumMap = props.enumMap as string | undefined;
+    if (enumMap && enumMap !== "orderStatus") {
+      addWarning(
+        `Chip enumMap "${enumMap}" has no mobile equivalent; the engine has no enum-label ` +
+          `dictionary, so "${scalarPath}" renders the raw uppercase wire value. Only orderStatus ` +
+          `is pre-labelled (the engine derives orderStatusLabel server-side) — either add a ` +
+          `matching *Label field to the API response or accept the wire value on mobile`
+      );
+    }
+
+    const node: Record<string, unknown> = {
+      id: generateId("chip-badge"),
+      type: "container",
+      props: {
+        padding: { left: 8, right: 8, top: 4, bottom: 4 },
+        borderRadius: 9999,
+        ...(bg ? { color: bg } : {}),
+      },
+      child: label,
+    };
+    return applyLayout(node, props.layout as Record<string, unknown> | undefined, rootProps);
+  }
+
+  const listPath = ((props.listValueContext as Record<string, unknown>)?.path as string) || "";
+  if (listPath) {
+    addWarning(
+      `Chip renders a runtime array from "${listPath}"; the engine has no chip-list primitive and the path is not in the valueContext map — block skipped`
+    );
+    return null;
+  }
+
   addWarning(
-    `Chip renders a runtime array from "${path}"; the engine has no chip-list primitive and the path is not in the valueContext map — block skipped`
+    scalarPath
+      ? `Chip bound to "${scalarPath}" was skipped: that path has no mobile field mapping in the ` +
+          `scope it sits in, so the badge would render blank`
+      : `Chip has neither a bound value nor a list source; block skipped`
   );
   return null;
 }
@@ -2597,14 +2875,38 @@ function transformSection(block: Record<string, unknown>, rootProps: Record<stri
     checkAuthFormFields(authAction as string, AUTH_ACTION_CONTRACT[authAction as string], authFields);
   }
 
-  const templateGrid = transformProductsTemplateSection(block, rootProps);
+  const preset = readSectionPreset(props);
+  const templateGrid =
+    transformProductsTemplateSection(block, rootProps) ??
+    (preset === "customer-orders" ? transformCustomerOrdersSection(block, rootProps) : null) ??
+    (preset === "customer-order-items" ? transformOrderSubListSection(block, rootProps, "orderItem") : null) ??
+    (preset === "customer-order-timeline" ? transformOrderSubListSection(block, rootProps, "orderTimeline") : null);
+
+  // A `customer-order-detail` Section is not a repeat: its children are ordinary blocks reading
+  // scalar fields off the one order. They convert normally, just inside the detail binding scope
+  // so `order.*` resolves to an absolute path into the shared request.
+  const isOrderDetailSection = preset === "customer-order-detail" && !templateGrid && isOrderDetailRoute();
+  if (preset === "customer-order-detail" && !isOrderDetailSection && !templateGrid) {
+    addWarning(
+      `Section preset "customer-order-detail" sits on route "${_currentRoute}"; the order-detail ` +
+        `request is only declared on /orders/:orderId, so its fields render blank here`
+    );
+  }
+
   const prevAuthForm = _activeAuthForm;
   if (authForm) _activeAuthForm = authForm;
   let transformedChildren: Record<string, unknown>[];
   try {
+    const convertChildren = () =>
+      children.map((c: Record<string, unknown>) => transformBlock(c, rootProps)).filter(Boolean) as Record<
+        string,
+        unknown
+      >[];
     transformedChildren = templateGrid
       ? []
-      : (children.map((c: Record<string, unknown>) => transformBlock(c, rootProps)).filter(Boolean) as Record<string, unknown>[]);
+      : isOrderDetailSection
+        ? withBindingScope({ kind: "orderDetail", base: ORDER_DETAIL_BASE }, convertChildren)
+        : convertChildren();
   } finally {
     _activeAuthForm = prevAuthForm;
   }
@@ -2650,12 +2952,21 @@ function transformSection(block: Record<string, unknown>, rootProps: Record<stri
     };
   }
 
+  // First Section on /orders/:orderId that reads the order carries the fetch for all of them —
+  // detail Sections and the items / timeline repeats alike share one `CustomerOrder`.
+  const declaresOrderDetail =
+    isOrderDetailRoute() &&
+    !_orderDetailRequestEmitted &&
+    (isOrderDetailSection || preset === "customer-order-items" || preset === "customer-order-timeline");
+  if (declaresOrderDetail) _orderDetailRequestEmitted = true;
+
   const innerContainer: Record<string, unknown> = {
     id: generateId("section-inner"),
     type: "container",
     props: {
       ...(bgColor && !bgImage ? { color: bgColor } : {}),
       padding: { top: paddingTop, bottom: paddingBottom, left: padH, right: padH },
+      ...(declaresOrderDetail ? { data: buildOrderDetailRequestData() } : {}),
     },
     child: contentWrapper,
   };
@@ -3684,6 +3995,185 @@ function transformProductsTemplateSection(
       source: `dataContext.requests.${requestKey}.data`,
       item: itemWithTap,
     },
+  };
+}
+
+// ─── Customer order presets ─────────────────────────────────────────────────
+//
+// The engine has had full orders support for a while (`OrderCubit.loadOrders` /
+// `loadOrderDetail`, dispatched from `EngineRequestMapper` in the mobile repo) but the
+// converter had no vocabulary for it: `readSectionPreset` was only ever consulted by
+// `transformProductsTemplateSection`, so every `customer-order*` Section fell through to a
+// plain static column and the page declared no request at all. The result rendered as a
+// card of empty strings with a dead pager.
+//
+// Requests are classified by URL substring on the mobile side, so these paths are load-bearing:
+//   `/customer/orders`      + no id segment → `_isCustomerOrdersListRequest`  → loadOrders
+//   `/customer/orders/<id>`                → `_isCustomerOrderDetailRequest` → loadOrderDetail
+// Changing them silently unhooks the cubit — the page still renders, just never fetches.
+
+const ORDER_LIST_REQUEST_KEY = "customer-orders";
+const ORDER_DETAIL_REQUEST_KEY = "customer-order-detail";
+const ORDER_DETAIL_BASE = `dataContext.requests.${ORDER_DETAIL_REQUEST_KEY}.data`;
+const ORDER_PAGE_SIZE = 20;
+
+/**
+ * `/orders` is one of the three routes `variant_screen.dart`'s `_isOrderRoute` recognises
+ * (`/orders`, `/orders/track`, `/orders/<id>`); off them the `OrderCubit` host is never
+ * mounted and the request is collected but never dispatched.
+ */
+function isOrdersListRoute(): boolean {
+  return _currentRoute === "/orders";
+}
+
+function isOrderDetailRoute(): boolean {
+  return /^\/orders\/[^/]+$/.test(_currentRoute);
+}
+
+/**
+ * The one-template-card contract, shared with the products presets: `content` is exactly one
+ * `Group` whose children bind through `valueContext`, and the web repeater clones it per row
+ * at render time. `cardTemplate` mirrors `content[0]` and is the only copy left if the web
+ * editor cleared `content`.
+ */
+function readCardTemplate(block: Record<string, unknown>): Record<string, unknown> | null {
+  const props = (block.props || {}) as Record<string, unknown>;
+  const children = getChildren(block);
+  const cardTemplate = Array.isArray(props.cardTemplate) ? (props.cardTemplate as Record<string, unknown>[]) : [];
+  const source = children.length > 0 ? children : cardTemplate;
+  if (source.length !== 1) return null;
+  const template = source[0];
+  return template?.type === "Group" ? template : null;
+}
+
+/**
+ * `metadata.preset: "customer-orders"` → a `listView` over `GET /api/v1/customer/orders`.
+ *
+ * Each row taps through to `/orders/:orderId`; the engine's `_lookupRouteValue` fills
+ * `:orderId` from the repeat item, so no explicit binding is needed on the tap.
+ */
+function transformCustomerOrdersSection(
+  block: Record<string, unknown>,
+  rootProps: Record<string, unknown>
+): Record<string, unknown> | null {
+  const template = readCardTemplate(block);
+  if (!template) {
+    addWarning(
+      `Section preset "customer-orders" needs exactly one Group as its card template ` +
+        `(the row cloned per order); found something else, so the orders list was left static ` +
+        `and no request is declared`
+    );
+    return null;
+  }
+
+  if (!isOrdersListRoute()) {
+    addWarning(
+      `Section preset "customer-orders" sits on route "${_currentRoute}", but the mobile engine ` +
+        `only mounts the OrderCubit on /orders — the list would render empty. Move it to the ` +
+        `/orders page`
+    );
+    return null;
+  }
+
+  const item = withBindingScope({ kind: "orderList", base: "item" }, () => transformBlock(template, rootProps));
+  if (!item) {
+    addWarning(`Section preset "customer-orders" has an empty card template; the list was dropped`);
+    return null;
+  }
+
+  const itemWithTap = item.tap
+    ? item
+    : { ...item, tap: { type: "navigate", route: "/orders/:orderId", navigation_type: "push" } };
+
+  return {
+    id: generateId("customer-orders"),
+    type: "listView",
+    props: {
+      enableInnerScroll: false,
+      emptyMessage: "لا توجد طلبات",
+      errorMessage: "تعذّر تحميل الطلبات",
+      data: {
+        source: "collection",
+        id: ORDER_LIST_REQUEST_KEY,
+        requestKey: ORDER_LIST_REQUEST_KEY,
+        requestUrl: `/api/v1/customer/orders?page=0&size=${ORDER_PAGE_SIZE}`,
+        page: 0,
+        size: ORDER_PAGE_SIZE,
+      },
+    },
+    itemBuilder: {
+      type: "repeat",
+      source: `dataContext.requests.${ORDER_LIST_REQUEST_KEY}.data`,
+      item: itemWithTap,
+    },
+  };
+}
+
+/**
+ * `customer-order-items` / `customer-order-timeline` → a `listView` repeating over a slice of
+ * the **already-declared** order-detail request. These rows are not their own fetch: `items`
+ * and `timeline` arrive inside the same `CustomerOrder`, so the repeat source is a path into
+ * that response and no `data` block is emitted.
+ */
+function transformOrderSubListSection(
+  block: Record<string, unknown>,
+  rootProps: Record<string, unknown>,
+  kind: "orderItem" | "orderTimeline"
+): Record<string, unknown> | null {
+  const preset = kind === "orderItem" ? "customer-order-items" : "customer-order-timeline";
+  const field = kind === "orderItem" ? "items" : "timeline";
+
+  const template = readCardTemplate(block);
+  if (!template) {
+    addWarning(`Section preset "${preset}" needs exactly one Group as its row template; left static`);
+    return null;
+  }
+
+  if (!isOrderDetailRoute()) {
+    addWarning(
+      `Section preset "${preset}" reads the order-detail request, which only exists on ` +
+        `/orders/:orderId; on "${_currentRoute}" it has nothing to repeat over`
+    );
+    return null;
+  }
+
+  const item = withBindingScope({ kind, base: "item" }, () => transformBlock(template, rootProps));
+  if (!item) {
+    addWarning(`Section preset "${preset}" has an empty row template; the list was dropped`);
+    return null;
+  }
+
+  return {
+    id: generateId(preset),
+    type: "listView",
+    props: {
+      enableInnerScroll: false,
+      emptyMessage: kind === "orderItem" ? "لا توجد عناصر" : "لا يوجد سجل",
+    },
+    itemBuilder: {
+      type: "repeat",
+      source: `${ORDER_DETAIL_BASE}.${field}`,
+      item,
+    },
+  };
+}
+
+/**
+ * Declares `GET /api/v1/customer/orders/:orderId` once per page. `:orderId` comes from the
+ * route, which the engine resolves in `resolveRequestUrl` before classifying the request.
+ *
+ * The request rides on a plain `container`: `_buildMappedRequest` reads `props.data` off any
+ * node type, not just list views, so the detail page's non-repeating Sections (header, totals,
+ * address, notes) can share one fetch.
+ */
+function buildOrderDetailRequestData(): Record<string, unknown> {
+  return {
+    source: "collection",
+    id: ORDER_DETAIL_REQUEST_KEY,
+    requestKey: ORDER_DETAIL_REQUEST_KEY,
+    requestUrl: "/api/v1/customer/orders/:orderId",
+    page: 0,
+    size: 1,
   };
 }
 
@@ -6258,6 +6748,7 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
   _pageHasAuthForm = false;
   _currentRoute = path;
   _productDetailRequestEmitted = false;
+  _orderDetailRequestEmitted = false;
   _variantPickerAvailable = false;
   _variantFormEmitted = false;
 

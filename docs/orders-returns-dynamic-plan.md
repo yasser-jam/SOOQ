@@ -15,6 +15,15 @@ Design Studio.
 > once and reverted; everything it proved is written down in §3 and §8 so it can
 > be rebuilt without rediscovery.
 
+> **Mobile is ahead of web here.** The `customer-orders`, `customer-order-detail`,
+> `customer-order-items` and `customer-order-timeline` presets already convert to a
+> working Flutter orders screen — list, detail, status, invoice, cancel — via
+> `apps/web/lib/transformer.ts`. The contract, the field maps, and the two things that
+> still cannot work (pagination, returns) are in
+> [`orders-mobile-conversion.md`](orders-mobile-conversion.md). Keep the preset names and
+> `valueContext` paths in this plan aligned with it: the converter matches on
+> `metadata.preset` and on the exact `order.*` / `item.*` / `timelineEntry.*` path strings.
+
 ---
 
 ## 0. Hard constraint — no domain-coupled blocks
