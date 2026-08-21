@@ -37,31 +37,27 @@ const readTemplateKey = (
 }
 
 /**
- * Writes a design config into localStorage (desktop, and mobile when present)
- * and clears crash-safety page drafts so they can't overlay the previous theme.
+ * Writes a design config into localStorage and clears crash-safety page drafts
+ * so they can't overlay the previous theme.
+ *
+ * Only `config.web` is written. `config.mobile` is the **converter output**
+ * (`transformWebToMobile`: `{ schemaVersion, app, theme, navigation, pages }`
+ * with Flutter screens under `route`/`body`), not a `SiteData` — normalizing it
+ * as one produced pages with `path: undefined` and `content: []`, which
+ * `dedupeSitePages` then collapsed to a single empty page. The mobile editor is
+ * seeded from the desktop site instead (`writeSiteData` → `seedMobileSiteFromDesktop`).
  */
 export function applyDesignConfigToLocalStorage(
   config: DesignConfigJson | undefined | null
 ): boolean {
   if (!isBrowser || !config) return false
 
-  let wrote = false
+  if (!hasUsableSitePages(config.web)) return false
 
-  if (hasUsableSitePages(config.web)) {
-    writeSiteData(normalizeSiteData(config.web), "desktop")
-    wrote = true
-  }
+  writeSiteData(normalizeSiteData(config.web), "desktop")
+  clearAllPageDrafts()
 
-  if (hasUsableSitePages(config.mobile)) {
-    writeSiteData(normalizeSiteData(config.mobile), "mobile")
-    wrote = true
-  }
-
-  if (wrote) {
-    clearAllPageDrafts()
-  }
-
-  return wrote
+  return true
 }
 
 export type HydrateLocalSiteSource =

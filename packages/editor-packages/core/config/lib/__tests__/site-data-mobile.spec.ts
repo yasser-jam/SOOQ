@@ -27,6 +27,19 @@ const desktopFixture: SiteData = normalizeSiteData({
   ],
 });
 
+const withHeading = (site: SiteData, text: string): SiteData =>
+  normalizeSiteData({
+    ...site,
+    pages: site.pages.map((page) =>
+      page.path === "/"
+        ? {
+            ...page,
+            content: [{ type: "ContentHeading", props: { id: "h1", text } }],
+          }
+        : page
+    ),
+  });
+
 const readHeadingText = (site: SiteData, pageIndex = 0): string => {
   const text = site.pages[pageIndex]?.content?.[0]?.props?.text;
   if (typeof text === "string") return text;
@@ -54,6 +67,30 @@ describe("mobile site storage (M1)", () => {
 
     expect(readHeadingText(mobile)).toBe("Desktop title");
     expect(window.localStorage.getItem(getSiteStorageKey("mobile"))).not.toBeNull();
+  });
+
+  // Why `applyDesignConfigToLocalStorage` must not write `configJson.mobile`
+  // into the mobile key: that field is the `transformWebToMobile` envelope
+  // (Flutter screens under `route`/`body`), not a SiteData. Normalizing it as
+  // one is what left the mobile editor with no pages and no content.
+  it("mangles converter output if it is mistaken for a mobile SiteData", () => {
+    const converterEnvelope = {
+      schemaVersion: "1.0",
+      app: { name: "SOOQ" },
+      navigation: { tabs: [{ route: "/home" }] },
+      pages: [
+        { route: "/home", title: "Home", body: [{ type: "text" }] },
+        { route: "/cart", title: "Cart", body: [{ type: "text" }] },
+      ],
+    } as unknown as SiteData;
+
+    const mangled = normalizeSiteData(converterEnvelope);
+
+    // `route` is not `path`, so every page dedupes onto the same undefined key…
+    expect(mangled.pages).toHaveLength(1);
+    expect(mangled.pages[0]?.path).toBeUndefined();
+    // …and `body` is not `content`, so nothing is left to render.
+    expect(mangled.pages[0]?.content).toEqual([]);
   });
 
   it("keeps desktop and mobile sites independent after seeding", () => {
@@ -106,25 +143,27 @@ describe("mobile site storage (M1)", () => {
     expect(readHeadingText(viaActive)).toBe("Desktop title");
 
     setActiveEditorMode("desktop");
-    writeSiteData(
-      normalizeSiteData({
-        ...desktopFixture,
-        pages: desktopFixture.pages.map((page) => ({
-          ...page,
-          content: [
-            {
-              type: "ContentHeading",
-              props: { id: "h1", text: "Desktop updated" },
-            },
-          ],
-        })),
-      }),
-      "desktop"
-    );
+    writeSiteData(withHeading(desktopFixture, "Desktop updated"), "desktop");
 
     setActiveEditorMode("mobile");
-    const mobileStill = readSiteData();
-    expect(readHeadingText(mobileStill)).toBe("Desktop title");
+    const mobileAfterWebEdit = readSiteData();
+    expect(readHeadingText(mobileAfterWebEdit)).toBe("Desktop updated");
+  });
+
+  // Web is the source of truth: editing web re-derives mobile, editing mobile
+  // leaves web alone. The draft hydrate rewrites the desktop blob on every
+  // editor mount, so an unchanged rewrite must not count as a web edit.
+  it("re-seeds mobile on a web edit but not on an unchanged desktop rewrite", () => {
+    writeSiteData(desktopFixture, "desktop");
+    const mobileSeed = readSiteData("mobile");
+    writeSiteData(withHeading(mobileSeed, "Mobile title"), "mobile");
+
+    writeSiteData(desktopFixture, "desktop");
+    expect(readHeadingText(readSiteData("mobile"))).toBe("Mobile title");
+
+    writeSiteData(withHeading(desktopFixture, "Desktop updated"), "desktop");
+    expect(readHeadingText(readSiteData("mobile"))).toBe("Desktop updated");
+    expect(readHeadingText(readSiteData("desktop"))).toBe("Desktop updated");
   });
 });
 

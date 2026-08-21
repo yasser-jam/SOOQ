@@ -41,14 +41,22 @@ const buildMobileConfig = (site: SiteData): Record<string, unknown> => {
     : emptyMobileConfig()
 }
 
+/**
+ * A draft PUT always replaces both platform keys. `web` is whatever the desktop
+ * Site JSON holds — a save made from the mobile editor passes the *untouched*
+ * desktop site, so mobile edits never leak into web. `mobile` is the converter
+ * output of `mobileSite` when the mobile editor made the save, else of `web`
+ * (editing web therefore re-derives the mobile app too).
+ */
 export const buildDesignConfigJson = (
   webSite: Partial<SiteData>,
-  templateKey?: string | null
+  templateKey?: string | null,
+  mobileSite?: Partial<SiteData> | null
 ): DesignConfigJson => {
   const web = normalizeSiteData(webSite)
   return {
     web,
-    mobile: buildMobileConfig(web),
+    mobile: buildMobileConfig(mobileSite ? normalizeSiteData(mobileSite) : web),
     templateKey: templateKey || CUSTOM_TEMPLATE_KEY,
   }
 }
@@ -71,12 +79,14 @@ const resolveTemplateKey = async (): Promise<string> => {
  * browser.
  */
 export const saveWebDesignDraft = async (
-  webSite?: Partial<SiteData>
+  webSite?: Partial<SiteData>,
+  mobileSite?: Partial<SiteData> | null
 ): Promise<DesignVersion> =>
   saveDesignDraft({
     configJson: buildDesignConfigJson(
       webSite ?? readSiteData("desktop"),
-      await resolveTemplateKey()
+      await resolveTemplateKey(),
+      mobileSite
     ),
     schemaVersion: DESIGN_SCHEMA_VERSION,
   })

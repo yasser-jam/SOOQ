@@ -732,7 +732,10 @@ export function Client({
     // screen instead of a stale server copy.
     if (canWrite) {
       try {
-        await saveWebDesignDraft(readSiteData("desktop"))
+        await saveWebDesignDraft(
+          readSiteData("desktop"),
+          isMobileEditor ? readSiteData("mobile") : undefined
+        )
         await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
       } catch {
         toast.error("تعذر حفظ التصميم على الخادم. ستظهر المعاينة بآخر نسخة محفوظة.")
@@ -746,14 +749,17 @@ export function Client({
     savePageData,
     markPageSaved,
     editorMode,
+    isMobileEditor,
     themeSlug,
     canWrite,
     queryClient,
   ])
 
   // The header "حفظ" button: local write (unchanged) + the draft PUT that
-  // makes the design survive this browser. Only `configJson.web` carries data
-  // today — the mobile app builder has no screens to send yet.
+  // makes the design survive this browser. `configJson.web` is always the
+  // desktop Site JSON — a save from the mobile editor sends it untouched and
+  // only re-converts `configJson.mobile` from the mobile site, so mobile edits
+  // never rewrite web.
   const handleSave = useCallback(
     async (puckData: UserData) => {
       if (!canWrite) return
@@ -762,14 +768,24 @@ export function Client({
       markPageSaved(puckData)
 
       try {
-        await saveWebDesignDraft(readSiteData("desktop"))
+        await saveWebDesignDraft(
+          readSiteData("desktop"),
+          isMobileEditor ? readSiteData("mobile") : undefined
+        )
         await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
         toast.success("تم حفظ التصميم")
       } catch {
         toast.error("تعذر حفظ التصميم على الخادم. التغييرات محفوظة محلياً فقط.")
       }
     },
-    [canWrite, editorMode, markPageSaved, queryClient, savePageData]
+    [
+      canWrite,
+      editorMode,
+      isMobileEditor,
+      markPageSaved,
+      queryClient,
+      savePageData,
+    ]
   )
 
   const handleExportJson = () => {

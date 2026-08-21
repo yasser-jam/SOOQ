@@ -733,14 +733,50 @@ export function readSiteData(mode?: EditorMode): SiteData {
   }
 }
 
+/**
+ * `normalizeSiteData` is not idempotent today (`config/lib/__tests__/site-data-fixtures.spec.ts`
+ * proves `N(N(x)) !== N(x)` for the shipped themes — empty strings become
+ * `{ ar, en }` on a second pass). A raw string compare would therefore read a
+ * re-save of unchanged data as a web edit, so the stored blob is put through
+ * one more normalize before deciding. Only reached when the strings already
+ * differ, so the extra deep clone is off the editing path.
+ */
+function isRealSiteChange(previous: string | null, serialized: string): boolean {
+  if (previous === null) return true;
+
+  try {
+    return JSON.stringify(normalizeSiteData(JSON.parse(previous))) !== serialized;
+  } catch {
+    return true;
+  }
+}
+
 export function writeSiteData(site: SiteData, mode?: EditorMode) {
   if (!isBrowser) return;
 
   const resolvedMode = mode ?? getActiveEditorMode();
   const normalized = normalizeSiteData(site);
   const serialized = JSON.stringify(normalized);
-  window.localStorage.setItem(getSiteStorageKey(resolvedMode), serialized);
+  const storageKey = getSiteStorageKey(resolvedMode);
+  const previous = window.localStorage.getItem(storageKey);
+
+  window.localStorage.setItem(storageKey, serialized);
   siteReadCache[resolvedMode] = { raw: serialized, site: normalized };
+
+  // Web is the source of truth: the mobile editor renders the same Site JSON,
+  // so a real change to the desktop site re-seeds mobile from it. Mobile-only
+  // edits survive until the next web edit and never propagate back to web.
+  // Unchanged rewrites (the draft hydrate on every editor mount) are skipped so
+  // simply opening the editor can't discard mobile work.
+  if (
+    resolvedMode === "desktop" &&
+    previous !== serialized &&
+    hasMobileSiteData() &&
+    isRealSiteChange(previous, serialized)
+  ) {
+    seedMobileSiteFromDesktop();
+  }
+
   window.dispatchEvent(new CustomEvent(PAGES_UPDATED_EVENT));
 }
 

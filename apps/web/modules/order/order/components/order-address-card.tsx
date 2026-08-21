@@ -37,7 +37,7 @@ export default function OrderAddressCard({
         <CardTitle className="text-xl">عنوان الشحن</CardTitle>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-4">
+      <CardContent className="flex flex-col gap-4 z-10">
         {isLoading ? (
           <Skeleton className="h-60 w-full rounded-lg" />
         ) : hasCoords ? (
