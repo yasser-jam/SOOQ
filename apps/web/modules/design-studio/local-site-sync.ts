@@ -19,6 +19,7 @@ import {
   getDesignDraft,
   saveDesignDraft,
 } from "./actions"
+import { writeLocalMobileSyncPreference } from "./mobile-sync-preference"
 import type { DesignConfigJson, DesignVersion } from "./types"
 
 const isBrowser = typeof window !== "undefined"
@@ -52,9 +53,22 @@ export function applyDesignConfigToLocalStorage(
     wrote = true
   }
 
-  if (hasUsableSitePages(config.mobile)) {
-    writeSiteData(normalizeSiteData(config.mobile), "mobile")
+  // `mobileSite` is the editable mobile Site JSON (independent mobile design);
+  // legacy `mobile` only matches when an old draft stored Site JSON there —
+  // today it carries the app-builder screens contract, which has no pages.
+  const mobileSiteSource = hasUsableSitePages(config.mobileSite)
+    ? config.mobileSite
+    : hasUsableSitePages(config.mobile)
+      ? config.mobile
+      : null
+
+  if (mobileSiteSource) {
+    writeSiteData(normalizeSiteData(mobileSiteSource), "mobile")
     wrote = true
+  }
+
+  if (typeof config.mobileSyncEnabled === "boolean") {
+    writeLocalMobileSyncPreference(config.mobileSyncEnabled)
   }
 
   if (wrote) {

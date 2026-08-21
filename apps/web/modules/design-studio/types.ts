@@ -12,6 +12,20 @@ export type GalleryTemplateSource = TemplateSource | "builtin"
 export type DesignConfigJson = {
   web: Partial<SiteData> | Record<string, unknown>
   mobile: Partial<SiteData> | Record<string, unknown>
+  /**
+   * Editable mobile Site JSON (editor format — same schema as `web` plus
+   * appBar/sidebar). Present only while web→mobile sync is disabled and the
+   * merchant saved the mobile editor at least once. Absent = mobile is
+   * derived from `web` (`mobile` above stays the derived screens contract
+   * consumed by the app builder in both cases).
+   */
+  mobileSite?: Partial<SiteData> | Record<string, unknown> | null
+  /**
+   * Web→mobile sync preference. `true`/absent = every web save regenerates
+   * the mobile design from web (historic behavior); `false` = the mobile
+   * design is independent and web saves leave it untouched.
+   */
+  mobileSyncEnabled?: boolean
   schema_version?: string
   /**
    * Which gallery card produced this draft. Frontend-owned: the backend tracks

@@ -21,6 +21,8 @@ import {
   FileJson,
   Keyboard,
   MousePointer2,
+  RefreshCw,
+  Smartphone,
   Type,
   X,
 } from "lucide-react"
@@ -39,7 +41,10 @@ import {
   normalizeSiteData,
   parseEditorMode,
   readSiteData,
+  resetMobileSiteFromDesktop,
   setActiveEditorMode,
+  syncMobilePageFromDesktop,
+  syncMobileThemeFromDesktop,
   type EditorMode,
   type SiteData,
 } from "@/core/config/lib/site-data"
@@ -52,9 +57,14 @@ import { ThemeInjector } from "@/core/config/plugins/settings/ThemeInjector"
 import type { UserData } from "@/core/config/types"
 import type { FullThemeProps } from "@/core/config/theme"
 import { Button } from "@workspace/ui/components/button"
+import { Switch } from "@workspace/ui/components/switch"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { saveWebDesignDraft } from "@/modules/design-studio/draft"
+import { saveEditorDesignDraft } from "@/modules/design-studio/draft"
+import {
+  resolveMobileSyncEnabled,
+  writeLocalMobileSyncPreference,
+} from "@/modules/design-studio/mobile-sync-preference"
 import { hydrateLocalSiteFromSources } from "@/modules/design-studio/local-site-sync"
 import { designStudioKeys } from "@/modules/design-studio/queryKeys"
 import { useCurrentUser } from "@/modules/auth/auth/hooks/useCurrentUser"
@@ -240,6 +250,223 @@ function JsonViewerDialog({
   )
 }
 
+function MobileSyncFloatingButton({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      className="EditorHintPill"
+      onClick={onOpen}
+      aria-label="إعدادات مزامنة الجوال"
+      style={{ bottom: "104px" }}
+    >
+      <Smartphone size={16} />
+      مزامنة الجوال
+    </button>
+  )
+}
+
+/**
+ * Web↔mobile sync controls. The switch decides whether a web save regenerates
+ * the mobile design (`configJson.mobileSyncEnabled`, applied on the next
+ * save); mobile mode adds the manual pull actions (current page / theme /
+ * full reset from the web design). Pulls rewrite the local mobile copy only —
+ * the next حفظ uploads the result.
+ */
+function MobileSyncDialog({
+  open,
+  ...contentProps
+}: {
+  open: boolean
+  onClose: () => void
+  editorMode: EditorMode
+  editPath: string
+  onSiteMutated: () => void
+}) {
+  // Mount the content fresh on every open so its state initializers re-read
+  // the preference (hydration or another tab may have changed it) and the
+  // reset confirmation starts collapsed — no state-syncing effect needed.
+  if (!open) return null
+  return <MobileSyncDialogContent {...contentProps} />
+}
+
+function MobileSyncDialogContent({
+  onClose,
+  editorMode,
+  editPath,
+  onSiteMutated,
+}: {
+  onClose: () => void
+  editorMode: EditorMode
+  editPath: string
+  onSiteMutated: () => void
+}) {
+  const [syncEnabled, setSyncEnabled] = useState(() => resolveMobileSyncEnabled())
+  const [confirmReset, setConfirmReset] = useState(false)
+
+  const handleToggle = (checked: boolean) => {
+    setSyncEnabled(checked)
+    writeLocalMobileSyncPreference(checked)
+    toast.success(
+      checked
+        ? "سيُعاد توليد تصميم الجوال من الويب عند كل حفظ"
+        : "أصبح تصميم الجوال مستقلاً — حفظ الويب لن يمسّه"
+    )
+  }
+
+  const runMobilePull = (message: string, pull: () => void) => {
+    pull()
+    onSiteMutated()
+    toast.success(`${message} — اضغط حفظ لرفع النتيجة للخادم`)
+    onClose()
+  }
+
+  return (
+    <div
+      className="EditorShortcutOverlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="إعدادات مزامنة الجوال"
+      data-puck-no-shortcuts="true"
+    >
+      <button
+        type="button"
+        className="EditorShortcutOverlayBackdrop"
+        onClick={onClose}
+        aria-label="إغلاق"
+      />
+
+      <div
+        className="EditorShortcutDialog"
+        data-puck-no-shortcuts="true"
+        dir="rtl"
+      >
+        <div className="EditorShortcutDialogHeader">
+          <div>
+            <p className="EditorShortcutEyebrow">الويب والجوال</p>
+            <h2 className="EditorShortcutTitle">مزامنة تصميم الجوال</h2>
+          </div>
+
+          <button
+            type="button"
+            className="EditorShortcutClose"
+            onClick={onClose}
+            aria-label="إغلاق"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+            padding: "4px 2px",
+          }}
+        >
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              cursor: "pointer",
+            }}
+          >
+            <span>
+              <span style={{ display: "block", fontSize: 14, fontWeight: 600 }}>
+                تطبيق تغييرات الويب على الجوال تلقائياً
+              </span>
+              <span
+                style={{
+                  display: "block",
+                  fontSize: 12,
+                  color: "#6b7280",
+                  marginTop: 4,
+                  lineHeight: 1.6,
+                }}
+              >
+                عند التفعيل: كل حفظ لتصميم الويب يعيد توليد تصميم الجوال منه
+                ويستبدل أي تعديلات يدوية عليه. عند الإيقاف: تصميم الجوال مستقل
+                ولا يتأثر بحفظ الويب.
+              </span>
+            </span>
+            <Switch checked={syncEnabled} onCheckedChange={handleToggle} />
+          </label>
+
+          {editorMode === "mobile" && syncEnabled ? (
+            <p
+              style={{
+                fontSize: 12,
+                color: "#7a5a10",
+                background: "#fdf6e3",
+                border: "1px solid #e0b252",
+                borderRadius: 8,
+                padding: "8px 12px",
+                margin: 0,
+                lineHeight: 1.6,
+              }}
+            >
+              تنبيه: المزامنة التلقائية مفعّلة — أي حفظ لتصميم الويب سيستبدل
+              تعديلات الجوال الحالية.
+            </p>
+          ) : null}
+
+          {editorMode === "mobile" ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>
+                سحب يدوي من تصميم الويب
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  runMobilePull("تم نسخ هذه الصفحة من تصميم الويب", () =>
+                    syncMobilePageFromDesktop(editPath)
+                  )
+                }
+              >
+                <RefreshCw size={14} />
+                مزامنة هذه الصفحة من الويب
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  runMobilePull("تمت مزامنة الثيم من تصميم الويب", () =>
+                    syncMobileThemeFromDesktop()
+                  )
+                }
+              >
+                <RefreshCw size={14} />
+                مزامنة الثيم فقط من الويب
+              </Button>
+              <Button
+                variant={confirmReset ? "destructive" : "outline"}
+                size="sm"
+                onClick={() => {
+                  if (!confirmReset) {
+                    setConfirmReset(true)
+                    return
+                  }
+                  runMobilePull("تمت إعادة تعيين تصميم الجوال من الويب", () =>
+                    resetMobileSiteFromDesktop()
+                  )
+                }}
+              >
+                <RefreshCw size={14} />
+                {confirmReset
+                  ? "اضغط مرة أخرى للتأكيد — سيستبدل كل تصميم الجوال"
+                  : "إعادة تعيين الجوال كاملاً من الويب"}
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /**
  * Floating helpers rendered inside the Puck tree (needs Puck context for the
  * JSON viewer). Owns the hint-pill + shortcut/JSON dialog state and the
@@ -251,13 +478,20 @@ function EditorFloatingTools({
   getSiteSnapshot,
   modKeyLabel,
   editorMode = "desktop",
+  editPath = "/",
+  canWrite = false,
+  onSiteMutated,
 }: {
   getSiteSnapshot: () => SiteData
   modKeyLabel: string
   editorMode?: EditorMode
+  editPath?: string
+  canWrite?: boolean
+  onSiteMutated?: () => void
 }) {
   const [isShortcutDialogOpen, setShortcutDialogOpen] = useState(false)
   const [isJsonDialogOpen, setJsonDialogOpen] = useState(false)
+  const [isMobileSyncDialogOpen, setMobileSyncDialogOpen] = useState(false)
   const [showHintPill, setShowHintPill] = useState(false)
 
   useEffect(() => {
@@ -270,6 +504,7 @@ function EditorFloatingTools({
       if (event.key === "Escape") {
         setShortcutDialogOpen(false)
         setJsonDialogOpen(false)
+        setMobileSyncDialogOpen(false)
         return
       }
 
@@ -313,11 +548,23 @@ function EditorFloatingTools({
 
       <JsonViewerFloatingButton onOpen={() => setJsonDialogOpen(true)} />
 
+      {canWrite ? (
+        <MobileSyncFloatingButton onOpen={() => setMobileSyncDialogOpen(true)} />
+      ) : null}
+
       <JsonViewerDialog
         open={isJsonDialogOpen}
         onClose={() => setJsonDialogOpen(false)}
         getSiteSnapshot={getSiteSnapshot}
         editorMode={editorMode}
+      />
+
+      <MobileSyncDialog
+        open={isMobileSyncDialogOpen}
+        onClose={() => setMobileSyncDialogOpen(false)}
+        editorMode={editorMode}
+        editPath={editPath}
+        onSiteMutated={onSiteMutated ?? (() => {})}
       />
 
       {isShortcutDialogOpen ? (
@@ -519,6 +766,12 @@ export function Client({
   const [siteRevision, setSiteRevision] = useState(0)
   const exportDataRef = useRef<UserData | null>(null)
   const siteDataRef = useRef<SiteData | null>(null)
+
+  // Remounts <Puck> with freshly-read storage after an external site mutation
+  // (e.g. a mobile pull from the web design). Stable — safe inside overrides.
+  const refreshSite = useCallback(() => {
+    setSiteRevision((revision) => revision + 1)
+  }, [])
 
   useEffect(() => {
     setIsClient(true)
@@ -732,7 +985,7 @@ export function Client({
     // screen instead of a stale server copy.
     if (canWrite) {
       try {
-        await saveWebDesignDraft(readSiteData("desktop"))
+        await saveEditorDesignDraft(editorMode)
         await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
       } catch {
         toast.error("تعذر حفظ التصميم على الخادم. ستظهر المعاينة بآخر نسخة محفوظة.")
@@ -752,8 +1005,9 @@ export function Client({
   ])
 
   // The header "حفظ" button: local write (unchanged) + the draft PUT that
-  // makes the design survive this browser. Only `configJson.web` carries data
-  // today — the mobile app builder has no screens to send yet.
+  // makes the design survive this browser. Which halves of `configJson` the
+  // PUT updates depends on the editor mode and the web→mobile sync preference
+  // (see saveEditorDesignDraft in modules/design-studio/draft.ts).
   const handleSave = useCallback(
     async (puckData: UserData) => {
       if (!canWrite) return
@@ -762,7 +1016,7 @@ export function Client({
       markPageSaved(puckData)
 
       try {
-        await saveWebDesignDraft(readSiteData("desktop"))
+        await saveEditorDesignDraft(editorMode)
         await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
         toast.success("تم حفظ التصميم")
       } catch {
@@ -823,6 +1077,9 @@ export function Client({
             getSiteSnapshot={getSiteSnapshot}
             modKeyLabel={modKeyLabel}
             editorMode={editorMode}
+            editPath={path}
+            canWrite={canWrite}
+            onSiteMutated={refreshSite}
           />
         </>
       ),
@@ -870,6 +1127,8 @@ export function Client({
       handleOpenPreview,
       modKeyLabel,
       editorMode,
+      path,
+      refreshSite,
     ]
   )
 
