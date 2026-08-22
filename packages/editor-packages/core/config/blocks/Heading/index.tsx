@@ -24,6 +24,8 @@ export type HeadingProps = WithLayout<{
   colorMode: "theme" | "fixed";
   colorTheme: ColorKey;
   colorFixed: string;
+  /** Truncates with an ellipsis past this many lines. Empty = unlimited. */
+  maxLines?: number;
 }>;
 
 const sizeOptions = [
@@ -73,6 +75,12 @@ const HeadingInternal: ComponentConfig<HeadingProps> = {
       label: "نوع الخط",
       options: COMPONENT_FONT_OPTIONS,
     },
+    maxLines: {
+      type: "number",
+      label: "أقصى عدد أسطر (اتركه فارغاً بدون حد)",
+      min: 1,
+      max: 10,
+    },
     ...contentColorFields,
   },
   defaultProps: {
@@ -96,6 +104,7 @@ const HeadingInternal: ComponentConfig<HeadingProps> = {
     colorMode,
     colorTheme,
     colorFixed,
+    maxLines,
   }) => {
     const fontCss = COMPONENT_FONT_CSS[fontFamily ?? "body"] ?? COMPONENT_FONT_CSS.body;
     const color = resolveContentColor(colorMode, colorTheme, colorFixed);
@@ -104,11 +113,18 @@ const HeadingInternal: ComponentConfig<HeadingProps> = {
         <_Heading size={size} rank={level as any}>
           <span
             style={{
-              display: "block",
+              display: maxLines ? "-webkit-box" : "block",
               textAlign: align,
               width: "100%",
               fontFamily: fontCss,
               color,
+              ...(maxLines
+                ? {
+                    WebkitLineClamp: maxLines,
+                    WebkitBoxOrient: "vertical" as const,
+                    overflow: "hidden",
+                  }
+                : {}),
             }}
           >
             {text}

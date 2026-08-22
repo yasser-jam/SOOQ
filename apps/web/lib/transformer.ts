@@ -605,6 +605,17 @@ const PHONE_ROW_BUDGET = PHONE_MIN_WIDTH - PHONE_SECTION_PAD_MAX * 2;
 const PHONE_CARD_PAD_MAX = 20;
 
 /**
+ * Vertical padding a background-image Section may draw before its `stack` (`fit: "cover"`, sized
+ * by the image's aspect ratio, not by its content — see {@link STACK_FIT}) clips instead of
+ * scrolling. An ordinary Section is safe to leave unclamped, since its vertical padding only adds
+ * scroll height, but a hero stack's box height is fixed by the image, so oversized padding pushes
+ * the copy past its bottom edge. Rawaq's 160px top + 160px bottom clipped the hero 101-153px on
+ * every device (v50 audit item 1); 64 is the ceiling the mobile team measured as still reading as
+ * a hero.
+ */
+const PHONE_HERO_PADDING_MAX = 64;
+
+/**
  * Horizontal padding each button variant draws around its label. A `text` button is a link with no
  * box; `filled` and `outlined` carry the theme's `buttonMdPaddingX` on both sides.
  */
@@ -631,6 +642,44 @@ function estimateButtonWidth(node: Record<string, unknown>): number {
  * every Rawaq product card clipped.
  */
 const BOUND_TEXT_ASSUMED_LINES = 2;
+
+/**
+ * Lines a bound card field is capped at inside a grid cell, keyed by the `valueContext.path` the
+ * merchant authored on the web side.
+ *
+ * A grid cell's height is one number for the whole grid ({@link estimateGridAspectRatio}), so an
+ * uncapped bound text makes the card's real height depend on how long *this* product's name
+ * happens to be — one design renders cards of several different heights, and the cell has to be
+ * sized for the worst one. Every card then pays that worst case as dead space. Capping turns the
+ * height back into a fact both sides agree on: the estimator stops charging
+ * {@link GRID_HEIGHT_SLACK}, and the engine truncates instead of overflowing.
+ *
+ * Money is 1 line on purpose. It never legitimately wraps, and at a 90px content width Rawaq's
+ * "1,150.00 USD" broke across two — the v50 audit's §2 screenshot. Reserving a second line for it
+ * cost every card ~27px of whitespace.
+ */
+const GRID_CELL_MAX_LINES: Record<string, number> = {
+  "product.title": 2,
+  "product.description": 2,
+  "pricing.displayPrice": 1,
+  "pricing.displayLineTotal": 1,
+  quantity: 1,
+};
+
+/**
+ * `maxLines` to apply to a bound text the merchant did not cap themselves, when it sits in a grid
+ * cell. Unknown paths fall back to {@link BOUND_TEXT_ASSUMED_LINES} so the cap matches what the
+ * cell was already sized for — the estimate stops being a guess without the card getting shorter.
+ *
+ * Only product-card templates reach here: `withGridCell` is entered from
+ * {@link transformProductsTemplateSection} alone, so ordinary page text is never truncated.
+ */
+function gridCellMaxLines(props: Record<string, unknown>): number | undefined {
+  if (_gridCellDepth === 0) return undefined;
+  const path = (props.valueContext as Record<string, unknown> | undefined)?.path;
+  if (typeof path !== "string") return undefined;
+  return GRID_CELL_MAX_LINES[path] ?? BOUND_TEXT_ASSUMED_LINES;
+}
 
 /** Inset a `card` draws even when nothing declares a padding on it. */
 const CARD_DEFAULT_PADDING = 12;
@@ -685,16 +734,29 @@ function estimateHeroHeight(
   return Math.max(240, Math.ceil(height / 20) * 20);
 }
 
+/** Height contributed by a node, split by how sure the estimate is. */
+interface NodeHeightParts {
+  /** Fixed/declared sizing (images with an aspect ratio, buttons, gaps, padding) — never wrong. */
+  certain: number;
+  /** Text wrapped from an unmeasurable runtime string — the only part that needs slack. */
+  uncertain: number;
+}
+
+const ZERO_PARTS: NodeHeightParts = { certain: 0, uncertain: 0 };
+
 /**
- * Laid-out height of an emitted node at `width` px, for sizing grid cells.
+ * Laid-out height of an emitted node at `width` px, for sizing grid cells, split into the part
+ * we know exactly (images, buttons, fixed sizes, padding, gaps) and the part that is a guess
+ * (a data-bound text with no literal to measure, so line count is assumed).
  *
  * `childAspectRatio` is content-dependent, so a constant is always wrong for something: 0.75
  * clipped every Rawaq product card, and the mobile team had to measure four grids by hand (0.34,
  * 0.27, 0.24, 0.26). Estimating from the card we actually emit is the only way to get close
- * without a layout engine. Unknown node types contribute 0 — the caller adds slack.
+ * without a layout engine. Unknown node types contribute 0 — the caller adds slack to the
+ * uncertain part only, not to sizes we already know for a fact.
  */
-function estimateNodeHeight(node: unknown, width: number): number {
-  if (!node || typeof node !== "object") return 0;
+function estimateNodeHeightParts(node: unknown, width: number): NodeHeightParts {
+  if (!node || typeof node !== "object") return ZERO_PARTS;
   const n = node as Record<string, unknown>;
   const props = (n.props || {}) as Record<string, unknown>;
   const pad = props.padding as Record<string, unknown> | number | undefined;
@@ -714,47 +776,63 @@ function estimateNodeHeight(node: unknown, width: number): number {
 
   switch (n.type) {
     case "image":
-      if (typeof props.height === "number") return props.height + padY;
-      return inner / ((props.aspectRatio as number) || 1) + padY;
+      if (typeof props.height === "number") return { certain: props.height + padY, uncertain: 0 };
+      return { certain: inner / ((props.aspectRatio as number) || 1) + padY, uncertain: 0 };
     case "text":
     case "richtext": {
       const size = (props.fontSize as number) || 16;
       const literal = String(props.value ?? "");
       // A data-bound field has no literal to measure, and the runtime value is usually a product
       // title — long, Arabic, and wrapping. Assuming one line is what clipped the Rawaq cards.
+      // `maxLines` turns this back into a fact: the engine truncates there, so it can't overflow.
+      const isGuess = !literal && !!props.valuePath && typeof props.maxLines !== "number";
       const lines = literal
         ? estimateWrappedLines(literal, size, inner)
         : props.valuePath
           ? BOUND_TEXT_ASSUMED_LINES
           : 1;
       const capped = typeof props.maxLines === "number" ? Math.min(lines, props.maxLines as number) : lines;
-      return capped * size * LINE_HEIGHT_RATIO + padY;
+      const textHeight = capped * size * LINE_HEIGHT_RATIO;
+      return isGuess ? { certain: padY, uncertain: textHeight } : { certain: textHeight + padY, uncertain: 0 };
     }
     case "button":
-      return ((props.height as number) || 48) + padY;
+      return { certain: ((props.height as number) || 48) + padY, uncertain: 0 };
     case "divider":
-      return ((props.thickness as number) || 1) + 16 + padY;
+      return { certain: ((props.thickness as number) || 1) + 16 + padY, uncertain: 0 };
     case "sizedBox":
-      return ((props.height as number) || 0) + padY;
+      return { certain: ((props.height as number) || 0) + padY, uncertain: 0 };
     case "otpInput":
-      return ((props.boxHeight as number) || 52) + padY;
+      return { certain: ((props.boxHeight as number) || 52) + padY, uncertain: 0 };
     case "textFormField":
-      return 56 + padY;
-    case "row":
-      return Math.max(0, ...kids.map((k) => estimateNodeHeight(k, inner))) + padY;
+      return { certain: 56 + padY, uncertain: 0 };
+    case "row": {
+      const parts = kids.map((k) => estimateNodeHeightParts(k, inner));
+      const tallest = parts.reduce<NodeHeightParts>(
+        (best, p) => (p.certain + p.uncertain > best.certain + best.uncertain ? p : best),
+        ZERO_PARTS
+      );
+      return { certain: tallest.certain + padY, uncertain: tallest.uncertain };
+    }
     case "column":
-    case "listView":
-      return kids.reduce<number>((sum, k) => sum + estimateNodeHeight(k, inner), 0)
-        + Math.max(0, kids.length - 1) * gap + padY;
-    default:
+    case "listView": {
+      const parts = kids.map((k) => estimateNodeHeightParts(k, inner));
+      const certain = parts.reduce((sum, p) => sum + p.certain, 0) + Math.max(0, kids.length - 1) * gap + padY;
+      const uncertain = parts.reduce((sum, p) => sum + p.uncertain, 0);
+      return { certain, uncertain };
+    }
+    default: {
       // container / card / stack and anything else: a single `child` slot.
-      return estimateNodeHeight(n.child, inner) + padY;
+      const child = estimateNodeHeightParts(n.child, inner);
+      return { certain: child.certain + padY, uncertain: child.uncertain };
+    }
   }
 }
 
 /**
- * How much taller than the estimate a grid cell is made. The estimate cannot know runtime string
- * lengths or the engine's exact metrics, and the two failure modes are not symmetric.
+ * How much taller than the estimate the uncertain (text-wrap) portion of a grid cell is made.
+ * The estimate cannot know runtime string lengths or the engine's exact metrics, and the two
+ * failure modes are not symmetric — so only the part that could be wrong pays the margin;
+ * images, buttons, padding and gaps are declared facts and get none.
  */
 const GRID_HEIGHT_SLACK = 1.25;
 
@@ -768,8 +846,10 @@ function phoneCellWidth(columns: number, gap: number, sectionPadding = PHONE_SEC
  * `childAspectRatio` for a grid, measured from the cells it will actually render — one repeated
  * template, or every static child (the grid sizes them all alike, so the tallest wins).
  *
- * Deliberately biased tall by {@link GRID_HEIGHT_SLACK}: extra whitespace under a card is
- * invisible, a clipped card is a render error the app reports.
+ * Deliberately biased tall by {@link GRID_HEIGHT_SLACK} on the parts of the estimate that are
+ * genuinely a guess: extra whitespace under a card is invisible, a clipped card is a render
+ * error the app reports. Declared sizes (an image's aspect ratio, a button's height, padding,
+ * gaps) are not guesses and get no slack, so they no longer inflate every cell's whitespace.
  */
 function estimateGridAspectRatio(
   cells: unknown[],
@@ -778,8 +858,12 @@ function estimateGridAspectRatio(
   fallback: number
 ): number {
   const cellWidth = phoneCellWidth(columns, gap);
-  const tallest = Math.max(0, ...cells.map((c) => estimateNodeHeight(c, cellWidth)));
-  const height = tallest * GRID_HEIGHT_SLACK;
+  const parts = cells.map((c) => estimateNodeHeightParts(c, cellWidth));
+  const tallest = parts.reduce<NodeHeightParts>(
+    (best, p) => (p.certain + p.uncertain > best.certain + best.uncertain ? p : best),
+    ZERO_PARTS
+  );
+  const height = tallest.certain + tallest.uncertain * GRID_HEIGHT_SLACK;
   if (!Number.isFinite(height) || height <= 0) return fallback;
   return Math.round((cellWidth / height) * 100) / 100;
 }
@@ -1860,6 +1944,13 @@ function transformText(block: Record<string, unknown>, rootProps: Record<string,
     || resolveTextColor(props.color as string);
   if (textColor) (node.props as Record<string, unknown>).color = textColor;
 
+  const maxLines =
+    typeof props.maxLines === "number" && props.maxLines > 0 ? props.maxLines : gridCellMaxLines(props);
+  if (maxLines) {
+    (node.props as Record<string, unknown>).maxLines = maxLines;
+    (node.props as Record<string, unknown>).overflow = "ellipsis";
+  }
+
   if (_bindingScope) applyValueContext(props, node.props as Record<string, unknown>, "text");
 
   return applyLayout(node, props.layout as Record<string, unknown> | undefined, rootProps);
@@ -1894,6 +1985,13 @@ function transformHeading(block: Record<string, unknown>, rootProps: Record<stri
   const color = resolveColor(props.colorMode as string, props.colorTheme as string, props.colorFixed as string, rootProps)
     || resolveThemeColor(props.color as string, rootProps);
   if (color) (node.props as Record<string, unknown>).color = color;
+
+  const maxLines =
+    typeof props.maxLines === "number" && props.maxLines > 0 ? props.maxLines : gridCellMaxLines(props);
+  if (maxLines) {
+    (node.props as Record<string, unknown>).maxLines = maxLines;
+    (node.props as Record<string, unknown>).overflow = "ellipsis";
+  }
 
   if (_bindingScope) applyValueContext(props, node.props as Record<string, unknown>, "text");
 
@@ -2066,8 +2164,9 @@ function buildOtpInput(): Record<string, unknown> {
       fieldId: OTP_FIELD_ID,
       length: OTP_LENGTH,
       // Sized for a 320px screen: 6 boxes at the engine's 48px default overflow once nested
-      // paddings eat into the row. Numbers supplied by the mobile team.
-      boxWidth: 36,
+      // paddings eat into the row. 36 (v45 fix) still overflowed by 9px on a bare 320px row —
+      // 6 * 36 + 5 * 5 = 241 against 232 available. 32 is the v50 mobile-team measurement.
+      boxWidth: 32,
       boxHeight: 52,
       gap: 5,
       autofocus: true,
@@ -2907,8 +3006,24 @@ function transformSection(block: Record<string, unknown>, rootProps: Record<stri
     }
   }
 
-  const paddingTop = parsePx(props.paddingTop as string, 0);
-  const paddingBottom = parsePx(props.paddingBottom as string, 0);
+  const bgImage = (props.backgroundImage as string) || "";
+  // Vertical padding is otherwise left alone: it only costs scroll on an ordinary Section. A
+  // background-image Section is the exception — its stack is sized by the image (`fit: "cover"`),
+  // not by this padding, so an oversized value clips the hero copy instead of growing the page.
+  const paddingTop = bgImage
+    ? clampToPhone(
+        parsePx(props.paddingTop as string, 0),
+        PHONE_HERO_PADDING_MAX,
+        `Section "${(props.name as string) || block.type}" paddingTop (background-image hero)`
+      )
+    : parsePx(props.paddingTop as string, 0);
+  const paddingBottom = bgImage
+    ? clampToPhone(
+        parsePx(props.paddingBottom as string, 0),
+        PHONE_HERO_PADDING_MAX,
+        `Section "${(props.name as string) || block.type}" paddingBottom (background-image hero)`
+      )
+    : parsePx(props.paddingBottom as string, 0);
   // Horizontal only: vertical padding costs scroll, horizontal padding costs content width, and
   // on a 320px screen there is none to spare. Pages are emitted at `padding: 0` so this is the
   // only inset the content pays (mobile checklist item 9 — declare page padding once).
@@ -2917,7 +3032,6 @@ function transformSection(block: Record<string, unknown>, rootProps: Record<stri
     PHONE_SECTION_PAD_MAX,
     `Section "${(props.name as string) || block.type}" paddingHorizontal`
   );
-  const bgImage = (props.backgroundImage as string) || "";
   const bgColor = (props.backgroundColor as string) || undefined;
   const columnsMobile = parseInt(String(props.columnsMobile || props.columns || 1), 10);
   const gridGap = parsePx(props.gridGap as string, 16);
@@ -6613,6 +6727,12 @@ const TAB_CATALOGUE: Record<string, { id: string; label: string; icon: string }>
   "/profile": { id: "tab-profile", label: "حسابي", icon: "person" },
   "/products": { id: "tab-products", label: "المنتجات", icon: "grid_view" },
   "/wishlist": { id: "tab-wishlist", label: "المفضلة", icon: "favorite" },
+  // Both standard pages, and both fell through to the fallback below before this entry existed:
+  // the merchant's page title ("إعدادات الحساب", 14 chars) ran uncropped into a 5-tab bar and
+  // clipped, and both landed on the fallback's one hardcoded icon ("article") — indistinguishable
+  // from each other in the bar. v50 audit item 4.
+  "/settings": { id: "tab-settings", label: "الحساب", icon: "settings" },
+  "/about": { id: "tab-about", label: "عن المتجر", icon: "info" },
   // No `/login` entry: AUTH_ROUTE_ALIASES rewrites it to LOGIN_ROUTE, which is shell-excluded and
   // therefore ineligible for the tab bar. The drawer's login link covers it.
 };

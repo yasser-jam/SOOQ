@@ -22,6 +22,8 @@ export type TextProps = WithLayout<{
   lineHeight: string;
   fontFamily?: "body" | "option1" | "option2";
   color: string;
+  /** Truncates with an ellipsis past this many lines. Empty = unlimited. */
+  maxLines?: number;
 }>;
 
 const alignField = {
@@ -112,6 +114,12 @@ const TextInner: ComponentConfig<TextProps> = {
       placeholder: "القيمة (مثال: 1.5)",
     }),
     color: colorField,
+    maxLines: {
+      type: "number",
+      label: "أقصى عدد أسطر (اتركه فارغاً بدون حد)",
+      min: 1,
+      max: 10,
+    },
   },
   defaultProps: {
     align: "right",
@@ -122,7 +130,7 @@ const TextInner: ComponentConfig<TextProps> = {
     fontFamily: "body",
     color: "theme-text",
   },
-  render: ({ align, color, text, fontSize, fontWeight, lineHeight, fontFamily }) => {
+  render: ({ align, color, text, fontSize, fontWeight, lineHeight, fontFamily, maxLines }) => {
     const fontCss = COMPONENT_FONT_CSS[fontFamily ?? "body"] ?? COMPONENT_FONT_CSS.body;
     const fs = resolveFontSize(fontSize);
     const fw = resolveFontWeight(fontWeight);
@@ -132,13 +140,20 @@ const TextInner: ComponentConfig<TextProps> = {
       <span
         style={{
           color: c,
-          display: "block",
+          display: maxLines ? "-webkit-box" : "block",
           textAlign: align,
           width: "100%",
           fontSize: fs,
           fontWeight: fw as React.CSSProperties["fontWeight"],
           lineHeight: lh,
           fontFamily: fontCss,
+          ...(maxLines
+            ? {
+                WebkitLineClamp: maxLines,
+                WebkitBoxOrient: "vertical" as const,
+                overflow: "hidden",
+              }
+            : {}),
         }}
       >
         {text}
