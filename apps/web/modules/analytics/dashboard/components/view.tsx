@@ -86,7 +86,7 @@ export function HomeDashboardView() {
   })
   const buildsQuery = useQuery({
     queryKey: appBuildKeys.list(),
-    queryFn: () => listBuilds({ page: 0, size: 1 }),
+    queryFn: () => listBuilds(),
   })
   const ordersSummaryQuery = useQuery({
     queryKey: orderQueryKeys.summary(),

@@ -21,36 +21,34 @@ import {
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
 import {
-	buildDetailQueryOptions,
 	configStatusQueryOptions,
 	createAndPublishNewConfig,
 	createConfigPublishAndBuild,
 	ensurePublishedConfig,
 	initiateBuild,
-	lastSuccessfulBuildQueryOptions,
-	latestBuildQueryOptions,
 	publishConfiguration,
+	recentBuildsQueryOptions,
 	retryBuild,
 } from "../actions"
-import { bundleIdFor, mobileApiBaseUrl } from "../config"
+import { bundleIdFor, IN_FLIGHT_BUILD_STATUSES, mobileApiBaseUrl, POLL_GIVE_UP_MS } from "../config"
 import { appBuildKeys } from "../queryKeys"
-import type { AppBuildJob, AppConfigJson } from "../types"
+import type { AppConfigJson } from "../types"
 import { BuildStatusBadge } from "./build-status-badge"
 import { CreateConfigDialog } from "./create-config-dialog"
 
-const POLL_GIVE_UP_MS = 20 * 60 * 1000
-const IN_FLIGHT: AppBuildJob["buildStatus"][] = ["QUEUED", "BUILDING"]
+const formatDateTime = (iso: string): string =>
+	new Date(iso).toLocaleString("ar", { dateStyle: "medium", timeStyle: "short" })
 
 export function AppBuildCard() {
 	const queryClient = useQueryClient()
 	const { data: settings } = useQuery(getStoreSettingsQueryOptions())
-	const { data: latestPage, isPending: isLatestPending } = useQuery(latestBuildQueryOptions())
-	const { data: lastSuccessPage } = useQuery(lastSuccessfulBuildQueryOptions())
-	const lastSuccessBuild = lastSuccessPage?.content?.[0]
+	const { data: buildsPage, isPending: isBuildsPending } = useQuery(recentBuildsQueryOptions())
 	const [configDialogOpen, setConfigDialogOpen] = useState(false)
 
-	const latest = latestPage?.content?.[0]
-	const isInFlight = !!latest && IN_FLIGHT.includes(latest.buildStatus)
+	const builds = useMemo(() => buildsPage?.content ?? [], [buildsPage])
+	// The list comes back oldest-first — the current build is the last item.
+	const current = builds[builds.length - 1]
+	const isInFlight = !!current && IN_FLIGHT_BUILD_STATUSES.includes(current.buildStatus)
 
 	const [now, setNow] = useState(() => Date.now())
 	useEffect(() => {
@@ -59,16 +57,15 @@ export function AppBuildCard() {
 		return () => window.clearInterval(id)
 	}, [isInFlight])
 
-	const elapsedMs = latest?.queuedAt ? now - new Date(latest.queuedAt).getTime() : 0
+	const elapsedMs = current?.queuedAt ? now - new Date(current.queuedAt).getTime() : 0
 	const gaveUpPolling = elapsedMs > POLL_GIVE_UP_MS
 
-	const { data: detail } = useQuery({
-		...buildDetailQueryOptions(latest?.appBuildJobId ?? "", { poll: isInFlight && !gaveUpPolling }),
-		enabled: !!latest?.appBuildJobId && isInFlight,
-		initialData: latest,
-	})
+	const currentStatusDate = current?.completedAt ?? current?.queuedAt ?? null
 
-	const current = (isInFlight ? detail : latest) ?? latest
+	const lastSuccessBuild = useMemo(
+		() => [...builds].reverse().find((build) => build.buildStatus === "SUCCESS"),
+		[builds]
+	)
 
 	const appName = useMemo(
 		() => settings?.storeName || settings?.profileNameAr || settings?.profileNameEn || "متجري",
@@ -82,7 +79,6 @@ export function AppBuildCard() {
 		Promise.all([
 			queryClient.invalidateQueries({ queryKey: appBuildKeys.all }),
 			queryClient.invalidateQueries({ queryKey: appBuildKeys.configStatus(appName) }),
-			current ? queryClient.invalidateQueries({ queryKey: appBuildKeys.detail(current.appBuildJobId) }) : null,
 		])
 
 	const buildMutation = useMutation({
@@ -137,7 +133,7 @@ export function AppBuildCard() {
 		onError: () => toast.error("تعذّر إنشاء الإعدادات أو بدء البناء"),
 	})
 
-	if (isLatestPending) {
+	if (isBuildsPending) {
 		return (
 			<Card>
 				<CardHeader>
@@ -169,17 +165,24 @@ export function AppBuildCard() {
 						</span>
 					)}
 				</CardDescription>
-				<CardAction className="flex items-center gap-2">
-					{current && <BuildStatusBadge status={current.buildStatus} />}
-					<Button
-						size="sm"
-						variant="outline"
-						onClick={() => setConfigDialogOpen(true)}
-						disabled={createConfigMutation.isPending}
-					>
-						<Plus className="size-4" />
-						إعدادات جديدة
-					</Button>
+				<CardAction className="flex flex-col items-end gap-1.5">
+					<div className="flex items-center gap-2">
+						{current && <BuildStatusBadge status={current.buildStatus} />}
+						<Button
+							size="sm"
+							variant="outline"
+							onClick={() => setConfigDialogOpen(true)}
+							disabled={createConfigMutation.isPending}
+						>
+							<Plus className="size-4" />
+							إعدادات جديدة
+						</Button>
+					</div>
+					{current && currentStatusDate && (
+						<span className="text-xs text-muted-foreground" dir="ltr">
+							{formatDateTime(currentStatusDate)}
+						</span>
+					)}
 				</CardAction>
 			</CardHeader>
 
