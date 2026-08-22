@@ -12,18 +12,28 @@
  */
 
 /** Filenames under `public/seed-images/`. Spaces/parens are URL-encoded on fetch. */
+// const SEED_IMAGE_FILENAMES = [
+//   "download.avif",
+//   "download (1).avif",
+//   "shopping.avif",
+//   "shopping (1).avif",
+//   "shopping (2).avif",
+//   "shopping (3).avif",
+//   "shopping (4).avif",
+//   "shopping (5).avif",
+//   "shopping (6).avif",
+//   "shopping (7).avif",
+//   "shopping (8).avif",
+// ] as const
+
 const SEED_IMAGE_FILENAMES = [
-  "download.avif",
-  "download (1).avif",
-  "shopping.avif",
-  "shopping (1).avif",
-  "shopping (2).avif",
-  "shopping (3).avif",
-  "shopping (4).avif",
-  "shopping (5).avif",
-  "shopping (6).avif",
-  "shopping (7).avif",
-  "shopping (8).avif",
+  "seed-1.png",
+  "seed-2.png",
+  "seed-3.png",
+  "seed-4.png",
+  "seed-5.png",
+  "seed-6.png",
+  "seed-7.png",
 ] as const
 
 export type SeedImageConfig = {
