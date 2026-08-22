@@ -106,27 +106,15 @@ const getPointerCollisions = (
       const id = element.getAttribute("data-puck-dnd");
       const isVoid = element.hasAttribute("data-puck-dnd-void");
 
-      // Only include this candidate if we're within a threshold of the bounding box
-      if (BUFFER && (dropzoneId || id) && !isVoid) {
-        const box = element.getBoundingClientRect();
-
-        const contractedBox = {
-          left: box.left + BUFFER,
-          right: box.right - BUFFER,
-          top: box.top + BUFFER,
-          bottom: box.bottom - BUFFER,
-        };
-
-        if (
-          position.frame.x < contractedBox.left ||
-          position.frame.x > contractedBox.right ||
-          position.frame.y > contractedBox.bottom ||
-          position.frame.y < contractedBox.top
-        ) {
-          continue;
-        }
-      }
-
+      // A dropzone (container) candidate is always included as long as the
+      // pointer is literally inside it — no buffer. The buffer below exists
+      // only to disambiguate between tightly-packed SIBLING components; if
+      // it also shrinks the container's own hit box, a drag near a nested
+      // zone's edge (e.g. swapping two adjacent items in a padding-less
+      // Group, or any tight layout at narrow/mobile viewport widths) can
+      // fall through the shrunk child box with nothing else left to match
+      // it, and the deepest candidate resolves to an ancestor zone instead
+      // — the drag appears to "escape" the group it started in.
       if (dropzoneId) {
         const droppable = manager.registry.droppables.get(dropzoneId);
 
@@ -135,11 +123,36 @@ const getPointerCollisions = (
         }
       }
 
+      // Only include a component candidate if we're within a threshold of
+      // its bounding box, so the collision doesn't flip between two
+      // touching/adjacent siblings on every sub-pixel pointer jitter.
       if (id) {
-        const droppable = manager.registry.droppables.get(id);
+        let withinBuffer = true;
 
-        if (droppable) {
-          candidates.push(droppable);
+        if (BUFFER && !isVoid) {
+          const box = element.getBoundingClientRect();
+
+          const contractedBox = {
+            left: box.left + BUFFER,
+            right: box.right - BUFFER,
+            top: box.top + BUFFER,
+            bottom: box.bottom - BUFFER,
+          };
+
+          withinBuffer = !(
+            position.frame.x < contractedBox.left ||
+            position.frame.x > contractedBox.right ||
+            position.frame.y > contractedBox.bottom ||
+            position.frame.y < contractedBox.top
+          );
+        }
+
+        if (withinBuffer) {
+          const droppable = manager.registry.droppables.get(id);
+
+          if (droppable) {
+            candidates.push(droppable);
+          }
         }
       }
     }

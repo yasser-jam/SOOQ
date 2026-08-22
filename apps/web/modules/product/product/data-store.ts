@@ -71,11 +71,6 @@ function pickLocalizedString(
 	return readKeys(locale === "ar" ? enKeys : arKeys)
 }
 
-/**
- * Build a locale-specific one-line summary of product attributes for the
- * ContentParagraph binding on the product-details preset — e.g. Arabic:
- * "العلامة التجارية: SOOQ · سعة التخزين: ٦٤ جيجابايت · الضمان: 1".
- */
 function formatAttributesDisplay(
 	attributes: Array<Record<string, unknown>>,
 	locale: "ar" | "en",

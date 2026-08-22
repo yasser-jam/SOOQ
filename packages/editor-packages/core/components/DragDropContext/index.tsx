@@ -496,16 +496,36 @@ const DragDropContextClient = ({
           const { source, target } = event.operation;
 
           if (!target || !source || target.type === "void") {
-            if (
-              dragMode.current === "existing" &&
-              !loggedMoveDiagnostic.current
-            ) {
+            if (!loggedMoveDiagnostic.current) {
               loggedMoveDiagnostic.current = true;
-              console.warn("[puck-debug] move: no valid target", {
-                hasTarget: !!target,
-                targetType: target?.type,
-                hasSource: !!source,
-              });
+
+              const frameEl = getFrame()?.querySelector<HTMLElement>(
+                "[data-puck-entry]"
+              );
+              const previewFrameEl =
+                document.querySelector<HTMLIFrameElement>(
+                  "iframe#preview-frame"
+                );
+              const { state, zoomConfig } = appStore.getState();
+
+              console.warn(
+                `[puck-debug] ${dragMode.current}: no valid target`,
+                {
+                  hasTarget: !!target,
+                  targetType: target?.type,
+                  hasSource: !!source,
+                  viewportWidth: state.ui.viewports?.current?.width,
+                  zoom: zoomConfig?.zoom,
+                  frameRect: previewFrameEl?.getBoundingClientRect(),
+                  frameScroll: frameEl
+                    ? {
+                        scrollWidth: frameEl.scrollWidth,
+                        clientWidth: frameEl.clientWidth,
+                        scrollLeft: frameEl.scrollLeft,
+                      }
+                    : undefined,
+                }
+              );
             }
             return;
           }
