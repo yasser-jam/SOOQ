@@ -65,6 +65,8 @@ const getZoneId = (candidate: Droppable | undefined) => {
 
 const BUFFER = 6;
 
+let loggedFrameMiss = false;
+
 const getPointerCollisions = (
   position: GlobalPosition,
   manager: DragDropManager
@@ -89,11 +91,14 @@ const getPointerCollisions = (
 
   // If cursor is over iframe (but not drawer), and user is in host doc, go into the iframe doc
   // This occurs when dragging in new items
+  let usedFrameLookup = false;
+
   if (previewFrame) {
     // Perf: Consider moving this outside of this plugin
     const frame = getFrame();
 
     if (frame) {
+      usedFrameLookup = true;
       elements = frame.elementsFromPoint(position.frame.x, position.frame.y);
     }
   }
@@ -156,6 +161,33 @@ const getPointerCollisions = (
         }
       }
     }
+  }
+
+  if (usedFrameLookup && candidates.length === 0 && !loggedFrameMiss) {
+    loggedFrameMiss = true;
+
+    const frameEl = document.querySelector<HTMLIFrameElement>(
+      "iframe#preview-frame"
+    );
+    const frameRect = frameEl?.getBoundingClientRect();
+    const innerWidth = frameEl?.contentWindow?.innerWidth;
+    const innerHeight = frameEl?.contentWindow?.innerHeight;
+
+    console.warn("[puck-debug] iframe pointer lookup found no candidates", {
+      pointer: { x: position.x, y: position.y },
+      frameRelative: { x: position.frame.x, y: position.frame.y },
+      elementsFound: elements?.length,
+      elementTags: elements?.slice(0, 5).map((el) => ({
+        tag: el.tagName,
+        dropzone: el.getAttribute("data-puck-dropzone"),
+        dnd: el.getAttribute("data-puck-dnd"),
+      })),
+      frameRect,
+      innerWidth,
+      innerHeight,
+      scaleFactor:
+        frameRect && innerWidth ? frameRect.width / innerWidth : undefined,
+    });
   }
 
   return candidates;
