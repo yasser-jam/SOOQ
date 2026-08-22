@@ -5,7 +5,7 @@ import { getEditorTenantId } from "@/lib/tenant-context"
 import { getTenantSlug } from "@/lib/tenant-slug"
 import type { ApiResponse, Page } from "@/lib/types"
 
-import { bundleIdFor, mobileApiBaseUrl } from "./config"
+import { IN_FLIGHT_BUILD_STATUSES, POLL_GIVE_UP_MS, bundleIdFor, mobileApiBaseUrl } from "./config"
 import { appBuildKeys } from "./queryKeys"
 import type {
   AppBuildJob,
@@ -33,26 +33,18 @@ const toArray = <T>(data: T[] | Page<T>): T[] =>
 
 export const listBuilds = async (params?: {
   status?: string
-  page?: number
-  size?: number
+  pageSize?: number
 }): Promise<Page<AppBuildJob>> => {
   const response = await api<ApiResponse<Page<AppBuildJob> | AppBuildJob[]>>(
     "/app-builds",
     {
       headers: tenantHeaders(),
-      params: { page: 0, size: 20, ...params },
+      params: { pageSize: 100, ...params },
     }
   )
   const data = unwrap(response)
   return Array.isArray(data) ? { content: data } : data
 }
-
-export const getBuild = async (id: string): Promise<AppBuildJob> =>
-  unwrap(
-    await api<ApiResponse<AppBuildJob>>(`/app-builds/${id}`, {
-      headers: tenantHeaders(),
-    })
-  )
 
 export const initiateBuild = async (input: {
   buildChannel: BuildChannel
@@ -205,18 +197,26 @@ export const configStatusQueryOptions = (appName: string) =>
     enabled: !!appName,
   })
 
-export const latestBuildQueryOptions = () =>
+/**
+ * The single source of truth for the mobile app card: the last 100 builds,
+ * newest last. Current status/date is derived from the last array item —
+ * no separate "latest"/"last success"/per-build-detail calls.
+ */
+export const recentBuildsQueryOptions = () =>
   queryOptions({
     queryKey: appBuildKeys.list(),
-    queryFn: () => listBuilds({ page: 0, size: 1 }),
+    queryFn: () => listBuilds(),
     staleTime: 10_000,
-  })
-
-export const lastSuccessfulBuildQueryOptions = () =>
-  queryOptions({
-    queryKey: appBuildKeys.lastSuccess,
-    queryFn: () => listBuilds({ status: "SUCCESS", page: 0, size: 1 }),
-    staleTime: 10_000,
+    refetchInterval: (query) => {
+      const builds = query.state.data?.content ?? []
+      const current = builds[builds.length - 1]
+      if (!current || !IN_FLIGHT_BUILD_STATUSES.includes(current.buildStatus)) {
+        return false
+      }
+      const queuedAt = current.queuedAt ? new Date(current.queuedAt).getTime() : null
+      if (queuedAt !== null && Date.now() - queuedAt > POLL_GIVE_UP_MS) return false
+      return 10_000
+    },
   })
 
 /**
@@ -237,13 +237,3 @@ export const createConfigPublishAndBuild = async (
     configVersionId: created.appConfigurationId,
   })
 }
-
-export const buildDetailQueryOptions = (
-  id: string,
-  opts?: { poll?: boolean }
-) =>
-  queryOptions({
-    queryKey: appBuildKeys.detail(id),
-    queryFn: () => getBuild(id),
-    refetchInterval: opts?.poll ? 10_000 : false,
-  })

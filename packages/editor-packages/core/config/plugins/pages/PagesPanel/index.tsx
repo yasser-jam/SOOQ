@@ -27,8 +27,14 @@ import {
   addSitePage,
   readSiteData,
   removeSitePage,
+  updateSitePageMobileTab,
   writeSiteData,
 } from "../../../lib/site-data"
+import {
+  DEFAULT_MOBILE_TAB_ICON,
+  MOBILE_TAB_ICON_OPTIONS,
+  isValidMobileTabIcon,
+} from "../../../lib/mobile-tab-icons"
 import { syncPagesMenuZones } from "../../../lib/sync-pages-menu"
 import { normalizeEditorData } from "../../../lib/normalize-editor-data"
 import type { UserData } from "../../../types"
@@ -52,6 +58,7 @@ import styles from "./styles.module.css"
 import { Input } from "@workspace/ui/components/input"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
+import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Card,
   CardAction,
@@ -133,14 +140,21 @@ const createStarterPageContent = (title: string): UserData["content"] => {
 function PageCard({
   page,
   isActive,
+  isMobileEditor,
   onSelect,
   onDelete,
+  onTabIconChange,
+  onShowInTabsChange,
 }: {
   page: PageDefinition
   isActive: boolean
+  /** Mobile tab-bar settings (icon + show/hide) only make sense in the mobile editor. */
+  isMobileEditor: boolean
   onSelect: (page: PageDefinition) => void
   /** Omitted for built-in pages, which cannot be deleted. */
   onDelete?: (page: PageDefinition) => void
+  onTabIconChange: (page: PageDefinition, tabIcon: string) => void
+  onShowInTabsChange: (page: PageDefinition, showInTabs: boolean) => void
 }) {
   const IconComponent = ICON_MAP[page.iconName]
   const accent = ICON_ACCENT[page.iconName]
@@ -232,6 +246,47 @@ function PageCard({
             )}
           </CardAction>
         </CardHeader>
+
+        {isMobileEditor && !page.dynamic ? (
+          <CardContent className="pt-0" onClick={stopCardClick}>
+            <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-2">
+              <div className="flex min-w-[160px] flex-1 items-center gap-2">
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  أيقونة التبويب
+                </span>
+                <Select
+                  value={
+                    page.tabIcon && isValidMobileTabIcon(page.tabIcon)
+                      ? page.tabIcon
+                      : DEFAULT_MOBILE_TAB_ICON
+                  }
+                  onValueChange={(value) => onTabIconChange(page, value)}
+                >
+                  <SelectTrigger className="h-8 flex-1 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MOBILE_TAB_ICON_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <label className="flex items-center gap-1.5 text-xs text-foreground">
+                <Checkbox
+                  checked={page.showInTabs !== false}
+                  onCheckedChange={(checked) =>
+                    onShowInTabsChange(page, checked === true)
+                  }
+                />
+                إظهار في تبويبات الموبايل
+              </label>
+            </div>
+          </CardContent>
+        ) : null}
 
         {confirmingDelete && onDelete ? (
           <CardContent className="pt-0" onClick={stopCardClick}>
@@ -325,6 +380,19 @@ export function PagesPanel() {
       }
     },
     [selectedPagePath]
+  )
+
+  const handleTabIconChange = useCallback((page: PageDefinition, tabIcon: string) => {
+    if (typeof window === "undefined") return
+    writeSiteData(updateSitePageMobileTab(readSiteData(), page.path, { tabIcon }))
+  }, [])
+
+  const handleShowInTabsChange = useCallback(
+    (page: PageDefinition, showInTabs: boolean) => {
+      if (typeof window === "undefined") return
+      writeSiteData(updateSitePageMobileTab(readSiteData(), page.path, { showInTabs }))
+    },
+    []
   )
 
   useEffect(() => {
@@ -521,8 +589,11 @@ export function PagesPanel() {
               key={`${page.path}-${page.isCustom ? "custom" : "core"}`}
               page={page}
               isActive={selectedPagePath === getEditPath(page)}
+              isMobileEditor={isMobileEditor}
               onSelect={handleSelectPage}
               onDelete={page.isCustom ? handleDeletePage : undefined}
+              onTabIconChange={handleTabIconChange}
+              onShowInTabsChange={handleShowInTabsChange}
             />
           ))}
         </div>
@@ -663,6 +734,9 @@ export function PagesPanel() {
       <p className={getClassName("hint")}>
         انقر على أي صفحة للتبديل إليها داخل المحرر. لكل صفحة محتواها المستقل.
         يمكن حذف الصفحات المخصصة فقط؛ الصفحات الأساسية جزء من بنية المتجر.
+        {isMobileEditor
+          ? " يمكن لكل صفحة اختيار أيقونة تبويب الموبايل، وتحديد ما إذا كانت تظهر في شريط التبويبات السفلي (حتى 5 صفحات كحد أقصى)."
+          : ""}
       </p>
     </div>
   )

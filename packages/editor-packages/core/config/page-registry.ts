@@ -16,6 +16,10 @@ export type PageDefinition = {
   examplePath?: string;
   /** Whether this page was created by the merchant at runtime. */
   isCustom?: boolean;
+  /** Mobile bottom-tab icon (engine allow-list, see `mobile-tab-icons.ts`). Mobile editor only. */
+  tabIcon?: string;
+  /** Whether this page appears in the mobile bottom tab bar. Defaults to true when unset. */
+  showInTabs?: boolean;
 };
 
 export const PAGES_UPDATED_EVENT = "puck-demo-pages-updated";

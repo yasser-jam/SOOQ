@@ -115,6 +115,10 @@ export type SitePage = {
   dynamic?: boolean;
   examplePath?: string;
   isCustom?: boolean;
+  /** Mobile bottom-tab icon (engine allow-list, see `mobile-tab-icons.ts`). Mobile editor only. */
+  tabIcon?: string;
+  /** Whether this page appears in the mobile bottom tab bar. Defaults to true when unset. */
+  showInTabs?: boolean;
   content: UserData["content"];
   /**
    * Mobile app bar for this page. Empty object `{}` when the page has none.
@@ -189,6 +193,8 @@ export function sitePageToDefinition(page: SitePage): PageDefinition {
     dynamic: page.dynamic,
     examplePath: page.examplePath,
     isCustom: page.isCustom,
+    tabIcon: page.tabIcon,
+    showInTabs: page.showInTabs,
   };
 }
 
@@ -615,6 +621,8 @@ export function normalizeSiteData(value: Partial<SiteData> | null | undefined): 
       dynamic: definition.dynamic,
       examplePath: definition.examplePath,
       isCustom: definition.isCustom,
+      tabIcon: page.tabIcon,
+      showInTabs: page.showInTabs,
       content: stripMobileShellFromContent(fromContent.content),
       appBar,
       fullScreen,
@@ -1002,6 +1010,8 @@ export function addSitePage(
         dynamic: definition.dynamic,
         examplePath: definition.examplePath,
         isCustom: definition.isCustom ?? true,
+        tabIcon: definition.tabIcon,
+        showInTabs: definition.showInTabs,
         content: starterContent ?? [],
         appBar: definition.appBar ?? emptyAppBar(),
         fullScreen: definition.fullScreen ?? false,
@@ -1029,4 +1039,25 @@ export function removeSitePage(site: SiteData, path: string): SiteData {
     ...site,
     pages: site.pages.filter((page) => page.path !== normalized),
   });
+}
+
+/**
+ * Set a page's mobile bottom-tab icon and/or its inclusion in the tab bar
+ * (the mobile editor's per-page pages-panel settings). Applies to any page,
+ * built-in or custom — unlike the label/route, the tab bar is mobile-only
+ * config with no desktop equivalent to protect.
+ */
+export function updateSitePageMobileTab(
+  site: SiteData,
+  path: string,
+  patch: { tabIcon?: string; showInTabs?: boolean }
+): SiteData {
+  const normalized = normalizePagePath(path) ?? path;
+
+  return {
+    ...site,
+    pages: site.pages.map((page) =>
+      page.path === normalized ? { ...page, ...patch } : page
+    ),
+  };
 }

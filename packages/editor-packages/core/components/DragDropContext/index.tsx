@@ -309,6 +309,12 @@ const DragDropContextClient = ({
 
   const initialSelector = useRef<{ zone: string; index: number }>(undefined);
 
+  // TEMP DEBUG: pin down why "move existing component" drags snap back
+  // without dropping in some canvases. Logs once per drag attempt so it
+  // doesn't spam onDragOver (which fires on every pointer move). Remove
+  // once the root cause is confirmed.
+  const loggedMoveDiagnostic = useRef(false);
+
   const nextContextValue = useMemo<DropZoneContext>(
     () => ({
       mode: "edit",
@@ -489,7 +495,20 @@ const DragDropContextClient = ({
 
           const { source, target } = event.operation;
 
-          if (!target || !source || target.type === "void") return;
+          if (!target || !source || target.type === "void") {
+            if (
+              dragMode.current === "existing" &&
+              !loggedMoveDiagnostic.current
+            ) {
+              loggedMoveDiagnostic.current = true;
+              console.warn("[puck-debug] move: no valid target", {
+                hasTarget: !!target,
+                targetType: target?.type,
+                hasSource: !!source,
+              });
+            }
+            return;
+          }
 
           const [sourceId] = (source.id as string).split(":");
           const [targetId] = (target.id as string).split(":");
@@ -542,6 +561,17 @@ const DragDropContextClient = ({
               return pathId === sourceId;
             })
           ) {
+            if (
+              dragMode.current === "existing" &&
+              !loggedMoveDiagnostic.current
+            ) {
+              loggedMoveDiagnostic.current = true;
+              console.warn("[puck-debug] move: aborted as self/descendant", {
+                sourceId,
+                targetId,
+                path,
+              });
+            }
             return;
           }
 
@@ -585,6 +615,13 @@ const DragDropContextClient = ({
                     element: source.element,
                   },
                 },
+              });
+            } else if (!loggedMoveDiagnostic.current) {
+              loggedMoveDiagnostic.current = true;
+              console.warn("[puck-debug] move: getItem returned nothing", {
+                initialSelector: initialSelector.current,
+                targetZone,
+                targetIndex,
               });
             }
           }
@@ -632,6 +669,7 @@ const DragDropContextClient = ({
 
           dragMode.current = isNewComponent ? "new" : "existing";
           initialSelector.current = undefined;
+          loggedMoveDiagnostic.current = false;
 
           zoneStore.setState({ draggedItem: event.operation.source });
 

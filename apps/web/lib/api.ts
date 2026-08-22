@@ -129,11 +129,11 @@ apiInstance.interceptors.response.use(
     const status = error.response?.status
 
     // 403 = forbidden / invalid session for merchant APIs → go to login now.
-    if (shouldHandleMerchantAuthError(status, original?.url) && status === 403) {
-      await logoutSession().catch(() => undefined)
-      redirectToLogin()
-      return Promise.reject(handleApiError(error))
-    }
+    // if (shouldHandleMerchantAuthError(status, original?.url) && status === 403) {
+    //   await logoutSession().catch(() => undefined)
+    //   redirectToLogin()
+    //   return Promise.reject(handleApiError(error))
+    // }
 
     if (
       shouldHandleMerchantAuthError(status, original?.url) &&
