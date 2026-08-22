@@ -56,6 +56,7 @@ import { ZoneDrawerProps } from "./blocks/ZoneDrawer";
 import { ZonePopupProps } from "./blocks/ZonePopup";
 import { ZoneBottomSheetProps } from "./blocks/ZoneBottomSheet";
 import type { AppBarProps } from "./blocks/AppBar";
+import type { SplashHeroProps } from "./blocks/SplashHero/constants";
 import type { CartIconButtonProps } from "./blocks/CartIconButton";
 import type { OrdersIconButtonProps } from "./blocks/OrdersIconButton";
 
@@ -69,6 +70,7 @@ export type Components = {
   ZonePopup: ZonePopupProps;
   ZoneBottomSheet: ZoneBottomSheetProps;
   AppBar: AppBarProps;
+  SplashHero: SplashHeroProps;
   Section: SectionProps;
   Group: GroupProps;
   RowGroup: RowGroupProps;

@@ -9,7 +9,6 @@ import {
   Palette,
   Plus,
   ShoppingCart,
-  Smartphone,
   Trash2,
 } from "lucide-react"
 import { getClassNameFactory } from "@/core/lib"
@@ -43,12 +42,6 @@ import {
   createSectionStarterContent,
 } from "../../../blocks/Section/starter-data"
 import { createProductsPagePresetContent } from "../../../presets/products-page"
-import {
-  SPLASH_PAGE_PATH,
-  SPLASH_VARIANTS,
-  getSplashVariant,
-  type SplashVariantId,
-} from "../../../presets/splash-page"
 import { isMobileEditorMode } from "../../../lib/editor-mode"
 import { useSelectedPage } from "../../../lib/use-selected-page"
 import {
@@ -340,11 +333,8 @@ export function PagesPanel() {
   const [labelDraft, setLabelDraft] = useState("")
   const [pathDraft, setPathDraft] = useState("")
   const [formError, setFormError] = useState<string | null>(null)
-  const [splashVariant, setSplashVariant] = useState<SplashVariantId>("basic")
-  const [splashError, setSplashError] = useState<string | null>(null)
-
-  // Splash screens only exist in the mobile app shell — the desktop storefront
-  // has no launch surface to put one on.
+  // The splash page (mobile-only) is mandatory and seeded by site-data.ts — it
+  // has no "create" affordance here, it always shows up under core pages.
   const isMobileEditor = isMobileEditorMode()
 
   const selectedPagePath = useSelectedPage()
@@ -526,49 +516,6 @@ export function PagesPanel() {
     setPathDraft("")
   }
 
-  const handleCreateSplashPage = () => {
-    if (typeof window === "undefined") return
-
-    const variant = getSplashVariant(splashVariant)
-    if (!variant?.create) {
-      setSplashError("هذا النوع من شاشات البداية غير متاح بعد.")
-      return
-    }
-
-    const existingEditPaths = new Set(pages.map((page) => getEditPath(page)))
-    if (existingEditPaths.has(SPLASH_PAGE_PATH)) {
-      setSplashError("توجد شاشة بداية بالفعل على المسار /splash.")
-      return
-    }
-
-    const nonce = Date.now().toString(36)
-    const presetContent = variant.create().map((item, index) => ({
-      ...item,
-      props: {
-        ...(item.props ?? {}),
-        id: `${item.type}-${nonce}-${index}`,
-      },
-    }))
-
-    const nextSite = addSitePage(
-      readSiteData(),
-      {
-        path: SPLASH_PAGE_PATH,
-        name: "شاشة البداية",
-        link: SPLASH_PAGE_PATH,
-        title: "شاشة البداية",
-        description: "أول ما يراه المستخدم عند فتح التطبيق — بدون شريط أو تذييل",
-        iconName: "Palette",
-        isCustom: true,
-        fullScreen: true,
-      },
-      presetContent as UserData["content"]
-    )
-
-    writeSiteData(nextSite)
-    setSplashError(null)
-  }
-
   const renderPageGroup = (
     title: string,
     groupPages: PageDefinition[],
@@ -667,62 +614,6 @@ export function PagesPanel() {
           </form>
         </CardContent>
       </Card>
-
-      {isMobileEditor ? (
-        <Card size="sm" className="mx-3 mb-4 border-border/70 bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">شاشة البداية</CardTitle>
-            <CardDescription className="text-xs">
-              صفحة بملء الشاشة تظهر عند فتح التطبيق — بلا شريط تطبيق وبلا تذييل.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <FieldGroup className="gap-4">
-              <Field>
-                <FieldLabel htmlFor="splash-variant">النوع</FieldLabel>
-                <Select
-                  value={splashVariant}
-                  onValueChange={(value) =>
-                    setSplashVariant(value as SplashVariantId)
-                  }
-                >
-                  <SelectTrigger id="splash-variant" className="w-full text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SPLASH_VARIANTS.map((variant) => (
-                      <SelectItem
-                        key={variant.id}
-                        value={variant.id}
-                        disabled={!variant.create}
-                      >
-                        {variant.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  {getSplashVariant(splashVariant)?.description}
-                </p>
-              </Field>
-
-              {splashError ? <FieldError>{splashError}</FieldError> : null}
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={handleCreateSplashPage}
-              >
-                <Smartphone size={14} />
-                إضافة شاشة البداية
-              </Button>
-            </FieldGroup>
-          </CardContent>
-        </Card>
-      ) : null}
 
       <div className={getClassName("list")}>
         {renderPageGroup("الصفحات الأساسية", corePages)}

@@ -45,8 +45,7 @@ describe("splash page renders chrome-less", () => {
       <Render config={conf as any} data={composePuckData(site, "/splash") as any} />
     );
 
-    expect(screen.getByAltText("شعار المتجر")).toBeTruthy();
-    expect(screen.getByText("تسوّق.. اختر واستلم")).toBeTruthy();
+    expect(screen.getByText("تسوق.. اختر, واستلم")).toBeTruthy();
     expect(screen.getByText("ابدأ الآن")).toBeTruthy();
 
     expect(container.querySelectorAll(SHELL_SELECTOR)).toHaveLength(0);

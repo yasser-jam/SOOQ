@@ -60,6 +60,7 @@ import { ZoneDrawer } from "./blocks/ZoneDrawer";
 import { ZonePopup } from "./blocks/ZonePopup";
 import { ZoneBottomSheet } from "./blocks/ZoneBottomSheet";
 import { AppBar } from "./blocks/AppBar";
+import { SplashHero } from "./blocks/SplashHero";
 
 import Root from "./root";
 import { UserConfig } from "./types";
@@ -198,6 +199,9 @@ export const conf: UserConfig = {
     SiteDrawerShell: withShowCondition(SiteDrawerShell),
     // Mobile per-page chrome (palette only in mobile editor)
     AppBar: withShowCondition(AppBar),
+    // The mobile launch screen — seeded/reconciled by site-data.ts, never inserted
+    // from the palette. Registered but deliberately left out of every category.
+    SplashHero: withShowCondition(SplashHero),
     // Sections
     Section: withShowCondition(Section),
     // Group / Layout

@@ -6503,6 +6503,41 @@ function transformCartIconButton(_block: Record<string, unknown>, _rootProps: Re
   return null;
 }
 
+/**
+ * The mobile launch screen. Only `image` and the six colour props are authorable in the web
+ * editor (`@/core/config/blocks/SplashHero`) — everything else here is fixed by contract with the
+ * mobile engine and mirrors that block's `SPLASH_HERO_DEFAULT_PROPS` verbatim, so a merchant edit
+ * to any of these fields (icons, headline, button label, tap target) can never reach the output.
+ */
+function transformSplashHero(block: Record<string, unknown>, _rootProps: Record<string, unknown>): Record<string, unknown> {
+  const props = (block.props || {}) as Record<string, unknown>;
+  return {
+    id: "splash-hero",
+    type: "splashHero",
+    props: {
+      image: (props.image as string) || "assets/images/splashImage.png",
+      imageFit: "contain",
+      background: (props.background as string) || "#132A4F",
+      decorColor: (props.decorColor as string) || "#2A3F63",
+      accentColor: (props.accentColor as string) || "#E8912B",
+      icons: [
+        { name: "shopping_cart", color: "#12244A" },
+        { name: "smartphone", color: "#FFFFFF", background: "#E8912B" },
+        { name: "palette", color: "#12244A" },
+        { name: "inventory_2", color: "#12244A" },
+        { name: "local_shipping", color: "#12244A" },
+        { name: "bookmark", color: "#12244A" },
+      ],
+      headline: "تسوق.. اختر, واستلم",
+      headlineColor: (props.headlineColor as string) || "#FFFFFF",
+      buttonLabel: "ابدأ الآن",
+      buttonColor: (props.buttonColor as string) || "#D7DCE5",
+      buttonTextColor: (props.buttonTextColor as string) || "#12244A",
+      tap: { type: "navigate", route: "/home", navigation_type: "clear_stack" },
+    },
+  };
+}
+
 // ─── Block Dispatcher ───────────────────────────────────────────────────────
 
 function transformBlock(block: Record<string, unknown>, rootProps: Record<string, unknown>): Record<string, unknown> | null {
@@ -6630,6 +6665,9 @@ function dispatchBlock(block: Record<string, unknown>, rootProps: Record<string,
 
     // Logo
     case "Logo": return transformLogo(block, rootProps);
+
+    // The fixed mobile launch screen — only image + colors are authorable.
+    case "SplashHero": return transformSplashHero(block, rootProps);
 
     // Zone / shell blocks handled at page level — return null to skip
     case "SiteHeader":
@@ -6762,47 +6800,42 @@ function transformTheme(rootProps: Record<string, unknown>): Record<string, unkn
 const SPLASH_ROUTE = "/splash";
 
 /**
- * The launch screen, emitted verbatim as `pages[0]` on every conversion.
- *
- * It is not derived from anything on the web side — a website has no splash — but the engine's
- * `initialRoute` has to point at a page that exists, and this is the shape the mobile team ships.
- * Fixed for now; when the web builder grows a splash editor this becomes a real transform.
+ * The launch screen, emitted verbatim as `pages[0]` when the input carries no `/splash` page at
+ * all — raw page arrays, hand-crafted fixtures, or pre-M1 exports. In the ordinary case the web
+ * editor always authors a mandatory `/splash` page (`@/core/config/lib/site-data.ts`), which goes
+ * through the normal `transformPage`/`transformSplashHero` pipeline instead; this is only the
+ * defensive fallback so `navigation.initialRoute` always resolves to a real page.
  */
 const SPLASH_PAGE: Record<string, unknown> = {
   id: "page-splash",
   route: SPLASH_ROUTE,
-  title: "Splash Intro",
+  title: "Splash",
   background: "#132A4F",
   layout: "centered",
   body: [
     {
-      id: "splash-intro-expand",
-      type: "container",
-      props: { expand: true },
-      child: {
-        id: "splash-intro-root",
-        type: "splashHero",
-        props: {
-          image: "assets/images/splashImage.png",
-          imageFit: "contain",
-          background: "#132A4F",
-          decorColor: "#2A3F63",
-          accentColor: "#E8912B",
-          icons: [
-            { name: "shopping_cart", color: "#12244A" },
-            { name: "smartphone", color: "#FFFFFF", background: "#E8912B" },
-            { name: "palette", color: "#12244A" },
-            { name: "inventory_2", color: "#12244A" },
-            { name: "local_shipping", color: "#12244A" },
-            { name: "bookmark", color: "#12244A" },
-          ],
-          headline: "تسوق.. اختر, واستلم",
-          headlineColor: "#FFFFFF",
-          buttonLabel: "ابدأ الآن",
-          buttonColor: "#D7DCE5",
-          buttonTextColor: "#12244A",
-          tap: { type: "navigate", route: "/splash-carousel", navigation_type: "clear_stack" },
-        },
+      id: "splash-hero",
+      type: "splashHero",
+      props: {
+        image: "assets/images/splashImage.png",
+        imageFit: "contain",
+        background: "#132A4F",
+        decorColor: "#2A3F63",
+        accentColor: "#E8912B",
+        icons: [
+          { name: "shopping_cart", color: "#12244A" },
+          { name: "smartphone", color: "#FFFFFF", background: "#E8912B" },
+          { name: "palette", color: "#12244A" },
+          { name: "inventory_2", color: "#12244A" },
+          { name: "local_shipping", color: "#12244A" },
+          { name: "bookmark", color: "#12244A" },
+        ],
+        headline: "تسوق.. اختر, واستلم",
+        headlineColor: "#FFFFFF",
+        buttonLabel: "ابدأ الآن",
+        buttonColor: "#D7DCE5",
+        buttonTextColor: "#12244A",
+        tap: { type: "navigate", route: "/home", navigation_type: "clear_stack" },
       },
     },
   ],
@@ -7330,7 +7363,7 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
     background,
     // The canonical cart body owns its own scrolling (an expanding scroll area above a pinned
     // checkout panel), so the page must not scroll underneath it.
-    ...(_pageHasAuthForm
+    ...(_pageHasAuthForm || fullScreen
       ? { layout: "centered" }
       : { scroll: isDecorativeCart ? "none" : (page.scroll as string) || "vertical" }),
     // Declared once, and it is the Sections that declare it. Left unset the engine insets the page
@@ -7479,12 +7512,24 @@ function normalizeSiteData(site: Record<string, unknown>): Record<string, unknow
     const appBar = isPlainRecord(page.appBar) && Object.keys(page.appBar).length > 0
       ? (page.appBar as Record<string, unknown>)
       : null;
+    // The splash page has no page-level `background` of its own — its one authorable colour is
+    // the `SplashHero` block's own `background` prop, so the page background is derived from it.
+    const splashHero = content.find((node) => (node as Record<string, unknown>).type === "SplashHero") as
+      | Record<string, unknown>
+      | undefined;
+    const splashBackground = splashHero
+      ? ((splashHero.props as Record<string, unknown> | undefined)?.background as string | undefined)
+      : undefined;
     return {
       path,
       label: (page.title as string) || (page.name as string) || (page.label as string) || "Page",
       rootProps,
       blocks: [...zoneBlocks, ...content],
-      ...(page.background ? { background: page.background } : {}),
+      ...(page.background
+        ? { background: page.background }
+        : splashBackground
+          ? { background: splashBackground }
+          : {}),
       ...(page.scroll ? { scroll: page.scroll } : {}),
       // A chrome-less page (splash) carries neither app bar nor drawer.
       ...(page.fullScreen === true ? { fullScreen: true } : {}),
@@ -7879,12 +7924,12 @@ function buildEnvelope(pages: Record<string, unknown>[], rootProps: Record<strin
 
   const navigation = transformNavigation(rootProps, allPages);
 
-  // The splash CTA jumps to `/splash-carousel`, which the converter does not emit — retarget it at
-  // the first real screen so the launch path works end to end.
+  // The fallback splash's CTA defaults to "/home" — retarget it at the first real tab so the
+  // launch path always works, even when the store has no "/home" page.
   if (!hasSplash) {
     const firstTab = ((navigation.tabs as Record<string, unknown>[])[0]?.route as string) || "/home";
     const splash = JSON.parse(JSON.stringify(SPLASH_PAGE)) as Record<string, unknown>;
-    const splashHero = ((splash.body as Record<string, unknown>[])[0].child) as Record<string, unknown>;
+    const splashHero = (splash.body as Record<string, unknown>[])[0] as Record<string, unknown>;
     (splashHero.props as Record<string, unknown>).tap =
       { type: "navigate", route: firstTab, navigation_type: "clear_stack" };
     allPages[0] = splash;

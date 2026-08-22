@@ -7650,895 +7650,6 @@
    }
   },
   {
-   "path": "/checkout",
-   "slug": "/checkout",
-   "link": "/checkout",
-   "name": {
-    "ar": "إتمام الطلب",
-    "en": "Checkout"
-   },
-   "title": {
-    "ar": "إتمام الطلب",
-    "en": "Checkout"
-   },
-   "description": {
-    "ar": "اختيار العنوان وطريقة الدفع وتأكيد الطلب.",
-    "en": "Pick an address and payment method, then confirm the order."
-   },
-   "iconName": "ShoppingCart",
-   "isCustom": false,
-   "content": [
-    {
-     "type": "Section",
-     "props": {
-      "columns": 1,
-      "columnsMobile": 1,
-      "gridGap": "28px",
-      "paddingTop": "48px",
-      "paddingBottom": "24px",
-      "paddingHorizontal": "32px",
-      "backgroundColor": "#f7f2ea",
-      "theme": "dark",
-      "maxWidth": "640px",
-      "visible": true,
-      "anchorId": "",
-      "backgroundImage": "",
-      "backgroundOverlayColor": "",
-      "id": "Section-checkout-signedout",
-      "name": "تسجيل الدخول",
-      "showCondition": "loggedOut",
-      "content": [
-       {
-        "type": "Group",
-        "props": {
-         "direction": "column",
-         "gap": 16,
-         "alignItems": "stretch",
-         "justifyContent": "flex-start",
-         "wrap": "nowrap",
-         "language": "ar",
-         "backgroundColor": "#fffdf9",
-         "backgroundImage": "",
-         "backgroundOverlayColor": "",
-         "padding": "28px",
-         "borderRadius": "theme-md",
-         "boxShadow": "none",
-         "product": null,
-         "metadata": null,
-         "cartLineId": null,
-         "content": [
-          {
-           "type": "ContentHeading",
-           "props": {
-            "text": {
-             "ar": "سجّل دخولك لإتمام الطلب.",
-             "en": "Sign in to complete your order."
-            },
-            "textAlign": "center",
-            "fontFamily": "option1",
-            "fontSize": "theme-xl",
-            "fontWeight": "theme-bold",
-            "lineHeight": "theme-tight",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-text",
-            "id": "ContentHeading-checkout-0-content-0-content-0",
-            "level": "2"
-           }
-          },
-          {
-           "type": "ContentParagraph",
-           "props": {
-            "text": {
-             "ar": "نحتاج رقم هاتفك وعنوان التوصيل قبل تأكيد الطلب.",
-             "en": "We need your phone number and delivery address before confirming."
-            },
-            "textAlign": "center",
-            "fontFamily": "body",
-            "fontSize": "theme-md",
-            "fontWeight": "theme-light",
-            "lineHeight": "theme-normal",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-neutral",
-            "id": "ContentParagraph-checkout-0-content-0-content-1"
-           }
-          },
-          {
-           "type": "ContentLink",
-           "props": {
-            "title": {
-             "ar": "تسجيل الدخول",
-             "en": "Sign in"
-            },
-            "link": {
-             "kind": "page",
-             "pageId": "/login"
-            },
-            "align": "right",
-            "color": "theme-primary",
-            "hoverColor": "theme-primary",
-            "hoverEffect": "border",
-            "fontSize": "theme-md",
-            "icon": "chevron-left",
-            "iconPosition": "end",
-            "id": "ContentLink-checkout-0-content-0-content-2"
-           }
-          }
-         ],
-         "id": "Group-checkout-0-content-0"
-        }
-       }
-      ]
-     }
-    },
-    {
-     "type": "Section",
-     "props": {
-      "columns": 1,
-      "columnsMobile": 1,
-      "gridGap": "28px",
-      "paddingTop": "32px",
-      "paddingBottom": "48px",
-      "paddingHorizontal": "32px",
-      "backgroundColor": "#f7f2ea",
-      "theme": "dark",
-      "maxWidth": "760px",
-      "visible": true,
-      "anchorId": "",
-      "backgroundImage": "",
-      "backgroundOverlayColor": "",
-      "id": "Section-checkout",
-      "name": "إتمام الطلب",
-      "showCondition": "loggedIn",
-      "sectionKind": "checkout",
-      "metadata": {
-       "preset": "checkout"
-      },
-      "content": [
-       {
-        "type": "Group",
-        "props": {
-         "direction": "column",
-         "gap": 16,
-         "alignItems": "stretch",
-         "justifyContent": "flex-start",
-         "wrap": "nowrap",
-         "language": "ar",
-         "backgroundColor": "#fffdf9",
-         "backgroundImage": "",
-         "backgroundOverlayColor": "",
-         "padding": "28px",
-         "borderRadius": "theme-md",
-         "boxShadow": "none",
-         "product": null,
-         "metadata": null,
-         "cartLineId": null,
-         "content": [
-          {
-           "type": "ContentHeading",
-           "props": {
-            "text": {
-             "ar": "تم استلام طلبك",
-             "en": "Your order was received"
-            },
-            "textAlign": "center",
-            "fontFamily": "option1",
-            "fontSize": "theme-xl",
-            "fontWeight": "theme-bold",
-            "lineHeight": "theme-tight",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-text",
-            "id": "ContentHeading-checkout-1-content-0-content-0",
-            "level": "2"
-           }
-          },
-          {
-           "type": "ContentParagraph",
-           "props": {
-            "text": {
-             "ar": "سنتواصل معك لتأكيد موعد التوصيل. يمكنك متابعة الطلب من صفحة طلباتي.",
-             "en": "We'll contact you to confirm delivery. Track it from My orders."
-            },
-            "textAlign": "center",
-            "fontFamily": "body",
-            "fontSize": "theme-md",
-            "fontWeight": "theme-light",
-            "lineHeight": "theme-normal",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-neutral",
-            "id": "ContentParagraph-checkout-1-content-0-content-1"
-           }
-          },
-          {
-           "type": "ContentLink",
-           "props": {
-            "title": {
-             "ar": "عرض طلباتي",
-             "en": "View my orders"
-            },
-            "link": {
-             "kind": "page",
-             "pageId": "/orders"
-            },
-            "align": "right",
-            "color": "theme-primary",
-            "hoverColor": "theme-primary",
-            "hoverEffect": "border",
-            "fontSize": "theme-md",
-            "icon": "chevron-left",
-            "iconPosition": "end",
-            "id": "ContentLink-checkout-1-content-0-content-2"
-           }
-          }
-         ],
-         "id": "Group-checkout-success",
-         "dataCondition": {
-          "path": "checkout.isPlaced",
-          "op": "truthy"
-         }
-        }
-       },
-       {
-        "type": "Group",
-        "props": {
-         "direction": "column",
-         "gap": 16,
-         "alignItems": "stretch",
-         "justifyContent": "flex-start",
-         "wrap": "nowrap",
-         "language": "ar",
-         "backgroundColor": "#fffdf9",
-         "backgroundImage": "",
-         "backgroundOverlayColor": "",
-         "padding": "28px",
-         "borderRadius": "theme-md",
-         "boxShadow": "none",
-         "product": null,
-         "metadata": null,
-         "cartLineId": null,
-         "content": [
-          {
-           "type": "ContentHeading",
-           "props": {
-            "text": {
-             "ar": "عنوان التوصيل",
-             "en": "Delivery address"
-            },
-            "textAlign": "right",
-            "fontFamily": "option1",
-            "fontSize": "theme-lg",
-            "fontWeight": "theme-bold",
-            "lineHeight": "theme-tight",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-text",
-            "id": "ContentHeading-checkout-1-content-1-content-0",
-            "level": "3"
-           }
-          },
-          {
-           "type": "ContentSelect",
-           "props": {
-            "label": {
-             "ar": "اختر عنوان التوصيل",
-             "en": "Choose a delivery address"
-            },
-            "name": "checkout-address",
-            "selectAction": "checkout_address",
-            "enumMapKey": "",
-            "id": "ContentSelect-checkout-1-content-1-content-1"
-           }
-          },
-          {
-           "type": "ContentParagraph",
-           "props": {
-            "text": {
-             "ar": "",
-             "en": ""
-            },
-            "textAlign": "right",
-            "fontFamily": "body",
-            "fontSize": "theme-md",
-            "fontWeight": "theme-light",
-            "lineHeight": "theme-normal",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-neutral",
-            "valueContext": {
-             "path": "checkout.addressSummary"
-            },
-            "dataCondition": {
-             "path": "checkout.hasAddress",
-             "op": "truthy"
-            },
-            "id": "ContentParagraph-checkout-1-content-1-content-2"
-           }
-          },
-          {
-           "type": "ContentParagraph",
-           "props": {
-            "text": {
-             "ar": "لا يوجد عنوان محفوظ. أضف عنوانك من صفحة الحساب أولاً.",
-             "en": "No saved address yet. Add one from your account page first."
-            },
-            "textAlign": "right",
-            "fontFamily": "body",
-            "fontSize": "theme-md",
-            "fontWeight": "theme-light",
-            "lineHeight": "theme-normal",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-neutral",
-            "dataCondition": {
-             "path": "checkout.hasAddress",
-             "op": "falsy"
-            },
-            "id": "ContentParagraph-checkout-1-content-1-content-3"
-           }
-          },
-          {
-           "type": "ContentLink",
-           "props": {
-            "title": {
-             "ar": "إدارة العناوين",
-             "en": "Manage addresses"
-            },
-            "link": {
-             "kind": "page",
-             "pageId": "/settings"
-            },
-            "align": "right",
-            "color": "theme-primary",
-            "hoverColor": "theme-primary",
-            "hoverEffect": "border",
-            "fontSize": "theme-md",
-            "icon": "chevron-left",
-            "iconPosition": "end",
-            "id": "ContentLink-checkout-1-content-1-content-4"
-           }
-          }
-         ],
-         "id": "Group-checkout-address",
-         "dataCondition": {
-          "path": "checkout.isPlaced",
-          "op": "falsy"
-         }
-        }
-       },
-       {
-        "type": "Group",
-        "props": {
-         "direction": "column",
-         "gap": 16,
-         "alignItems": "stretch",
-         "justifyContent": "flex-start",
-         "wrap": "nowrap",
-         "language": "ar",
-         "backgroundColor": "#fffdf9",
-         "backgroundImage": "",
-         "backgroundOverlayColor": "",
-         "padding": "28px",
-         "borderRadius": "theme-md",
-         "boxShadow": "none",
-         "product": null,
-         "metadata": null,
-         "cartLineId": null,
-         "content": [
-          {
-           "type": "ContentHeading",
-           "props": {
-            "text": {
-             "ar": "طريقة الدفع",
-             "en": "Payment method"
-            },
-            "textAlign": "right",
-            "fontFamily": "option1",
-            "fontSize": "theme-lg",
-            "fontWeight": "theme-bold",
-            "lineHeight": "theme-tight",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-text",
-            "id": "ContentHeading-checkout-1-content-2-content-0",
-            "level": "3"
-           }
-          },
-          {
-           "type": "ContentSelect",
-           "props": {
-            "label": {
-             "ar": "اختر طريقة الدفع",
-             "en": "Choose a payment method"
-            },
-            "name": "checkout-payment-method",
-            "selectAction": "checkout_payment_method",
-            "enumMapKey": "",
-            "id": "ContentSelect-checkout-1-content-2-content-1"
-           }
-          },
-          {
-           "type": "ContentParagraph",
-           "props": {
-            "text": {
-             "ar": "",
-             "en": ""
-            },
-            "textAlign": "right",
-            "fontFamily": "body",
-            "fontSize": "theme-md",
-            "fontWeight": "theme-light",
-            "lineHeight": "theme-normal",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-neutral",
-            "valueContext": {
-             "path": "checkout.paymentMethodName"
-            },
-            "dataCondition": {
-             "path": "checkout.hasPaymentMethod",
-             "op": "truthy"
-            },
-            "id": "ContentParagraph-checkout-1-content-2-content-2"
-           }
-          }
-         ],
-         "id": "Group-checkout-payment",
-         "dataCondition": {
-          "path": "checkout.isPlaced",
-          "op": "falsy"
-         }
-        }
-       },
-       {
-        "type": "Group",
-        "props": {
-         "direction": "column",
-         "gap": 16,
-         "alignItems": "stretch",
-         "justifyContent": "flex-start",
-         "wrap": "nowrap",
-         "language": "ar",
-         "backgroundColor": "#fffdf9",
-         "backgroundImage": "",
-         "backgroundOverlayColor": "",
-         "padding": "28px",
-         "borderRadius": "theme-md",
-         "boxShadow": "none",
-         "product": null,
-         "metadata": null,
-         "cartLineId": null,
-         "content": [
-          {
-           "type": "ContentHeading",
-           "props": {
-            "text": {
-             "ar": "ملخّص الطلب",
-             "en": "Order summary"
-            },
-            "textAlign": "right",
-            "fontFamily": "option1",
-            "fontSize": "theme-lg",
-            "fontWeight": "theme-bold",
-            "lineHeight": "theme-tight",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-text",
-            "id": "ContentHeading-checkout-1-content-3-content-0",
-            "level": "3"
-           }
-          },
-          {
-           "type": "ContentInput",
-           "props": {
-            "label": {
-             "ar": "كود الخصم",
-             "en": "Discount code"
-            },
-            "name": "discount-code",
-            "inputType": "text",
-            "placeholder": {
-             "ar": "",
-             "en": ""
-            },
-            "required": false,
-            "inputAction": "discount_code",
-            "id": "ContentInput-checkout-1-content-3-content-1"
-           }
-          },
-          {
-           "type": "ContentButton",
-           "props": {
-            "label": {
-             "ar": "تطبيق كود الخصم",
-             "en": "Apply discount code"
-            },
-            "align": "center",
-            "destinationType": "action",
-            "buttonAction": "validateDiscount",
-            "link": {
-             "kind": "none"
-            },
-            "buttonVariantMode": "variant",
-            "buttonVariant": "primary",
-            "buttonVariantSize": "md",
-            "radius": "theme-sm",
-            "bgColor": "theme-primary",
-            "textColor": "theme-surface",
-            "buttonSize": "theme-md",
-            "submitRedirectUrl": "",
-            "id": "ContentButton-checkout-1-content-3-content-2"
-           }
-          },
-          {
-           "type": "ContentParagraph",
-           "props": {
-            "text": {
-             "ar": "",
-             "en": ""
-            },
-            "textAlign": "right",
-            "fontFamily": "body",
-            "fontSize": "theme-md",
-            "fontWeight": "theme-light",
-            "lineHeight": "theme-normal",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-neutral",
-            "valueContext": {
-             "path": "errors.discount"
-            },
-            "dataCondition": {
-             "path": "errors.discount",
-             "op": "truthy"
-            },
-            "id": "ContentParagraph-checkout-1-content-3-content-3"
-           }
-          },
-          {
-           "type": "RowGroup",
-           "props": {
-            "direction": "row",
-            "gap": 16,
-            "alignItems": "center",
-            "justifyContent": "space-between",
-            "wrap": "wrap",
-            "content": [
-             {
-              "type": "ContentParagraph",
-              "props": {
-               "text": {
-                "ar": "المجموع الفرعي",
-                "en": "Subtotal"
-               },
-               "textAlign": "right",
-               "fontFamily": "body",
-               "fontSize": "theme-md",
-               "fontWeight": "theme-light",
-               "lineHeight": "theme-normal",
-               "fontStyle": "normal",
-               "textTransform": "none",
-               "color": "theme-neutral",
-               "id": "ContentParagraph-checkout-1-content-3-content-4-content-0"
-              }
-             },
-             {
-              "type": "ContentParagraph",
-              "props": {
-               "text": {
-                "ar": "",
-                "en": ""
-               },
-               "textAlign": "right",
-               "fontFamily": "body",
-               "fontSize": "theme-md",
-               "fontWeight": "theme-bold",
-               "lineHeight": "theme-normal",
-               "fontStyle": "normal",
-               "textTransform": "none",
-               "color": "theme-primary",
-               "valueContext": {
-                "path": "checkout.subtotal",
-                "format": "money",
-                "currencyPath": "checkout.currencyCode"
-               },
-               "id": "ContentParagraph-checkout-1-content-3-content-4-content-1"
-              }
-             }
-            ],
-            "id": "RowGroup-checkout-1-content-3-content-4",
-            "backgroundColor": "",
-            "padding": "0px",
-            "borderRadius": "theme-none"
-           }
-          },
-          {
-           "type": "RowGroup",
-           "props": {
-            "direction": "row",
-            "gap": 16,
-            "alignItems": "center",
-            "justifyContent": "space-between",
-            "wrap": "wrap",
-            "content": [
-             {
-              "type": "ContentParagraph",
-              "props": {
-               "text": {
-                "ar": "تكلفة الشحن",
-                "en": "Shipping"
-               },
-               "textAlign": "right",
-               "fontFamily": "body",
-               "fontSize": "theme-md",
-               "fontWeight": "theme-light",
-               "lineHeight": "theme-normal",
-               "fontStyle": "normal",
-               "textTransform": "none",
-               "color": "theme-neutral",
-               "id": "ContentParagraph-checkout-1-content-3-content-5-content-0"
-              }
-             },
-             {
-              "type": "ContentParagraph",
-              "props": {
-               "text": {
-                "ar": "",
-                "en": ""
-               },
-               "textAlign": "right",
-               "fontFamily": "body",
-               "fontSize": "theme-md",
-               "fontWeight": "theme-bold",
-               "lineHeight": "theme-normal",
-               "fontStyle": "normal",
-               "textTransform": "none",
-               "color": "theme-primary",
-               "valueContext": {
-                "path": "checkout.shippingCost",
-                "format": "money",
-                "currencyPath": "checkout.currencyCode"
-               },
-               "id": "ContentParagraph-checkout-1-content-3-content-5-content-1"
-              }
-             }
-            ],
-            "id": "RowGroup-checkout-1-content-3-content-5",
-            "backgroundColor": "",
-            "padding": "0px",
-            "borderRadius": "theme-none"
-           }
-          },
-          {
-           "type": "RowGroup",
-           "props": {
-            "direction": "row",
-            "gap": 16,
-            "alignItems": "center",
-            "justifyContent": "space-between",
-            "wrap": "wrap",
-            "content": [
-             {
-              "type": "ContentParagraph",
-              "props": {
-               "text": {
-                "ar": "الخصم",
-                "en": "Discount"
-               },
-               "textAlign": "right",
-               "fontFamily": "body",
-               "fontSize": "theme-md",
-               "fontWeight": "theme-light",
-               "lineHeight": "theme-normal",
-               "fontStyle": "normal",
-               "textTransform": "none",
-               "color": "theme-neutral",
-               "id": "ContentParagraph-checkout-1-content-3-content-6-content-0"
-              }
-             },
-             {
-              "type": "ContentParagraph",
-              "props": {
-               "text": {
-                "ar": "",
-                "en": ""
-               },
-               "textAlign": "right",
-               "fontFamily": "body",
-               "fontSize": "theme-md",
-               "fontWeight": "theme-bold",
-               "lineHeight": "theme-normal",
-               "fontStyle": "normal",
-               "textTransform": "none",
-               "color": "theme-primary",
-               "valueContext": {
-                "path": "checkout.discountAmount",
-                "format": "money",
-                "currencyPath": "checkout.currencyCode"
-               },
-               "id": "ContentParagraph-checkout-1-content-3-content-6-content-1"
-              }
-             }
-            ],
-            "dataCondition": {
-             "path": "checkout.hasDiscount",
-             "op": "truthy"
-            },
-            "id": "RowGroup-checkout-1-content-3-content-6",
-            "backgroundColor": "",
-            "padding": "0px",
-            "borderRadius": "theme-none"
-           }
-          },
-          {
-           "type": "RowGroup",
-           "props": {
-            "direction": "row",
-            "gap": 16,
-            "alignItems": "center",
-            "justifyContent": "space-between",
-            "wrap": "wrap",
-            "content": [
-             {
-              "type": "ContentParagraph",
-              "props": {
-               "text": {
-                "ar": "الإجمالي",
-                "en": "Total"
-               },
-               "textAlign": "right",
-               "fontFamily": "body",
-               "fontSize": "theme-md",
-               "fontWeight": "theme-light",
-               "lineHeight": "theme-normal",
-               "fontStyle": "normal",
-               "textTransform": "none",
-               "color": "theme-neutral",
-               "id": "ContentParagraph-checkout-1-content-3-content-7-content-0"
-              }
-             },
-             {
-              "type": "ContentParagraph",
-              "props": {
-               "text": {
-                "ar": "",
-                "en": ""
-               },
-               "textAlign": "right",
-               "fontFamily": "body",
-               "fontSize": "theme-md",
-               "fontWeight": "theme-bold",
-               "lineHeight": "theme-normal",
-               "fontStyle": "normal",
-               "textTransform": "none",
-               "color": "theme-primary",
-               "valueContext": {
-                "path": "checkout.payableTotal",
-                "format": "money",
-                "currencyPath": "checkout.currencyCode"
-               },
-               "id": "ContentParagraph-checkout-1-content-3-content-7-content-1"
-              }
-             }
-            ],
-            "id": "RowGroup-checkout-1-content-3-content-7",
-            "backgroundColor": "",
-            "padding": "0px",
-            "borderRadius": "theme-none"
-           }
-          },
-          {
-           "type": "ContentButton",
-           "props": {
-            "label": {
-             "ar": "تأكيد الطلب",
-             "en": "Confirm order"
-            },
-            "align": "center",
-            "destinationType": "action",
-            "buttonAction": "placeOrder",
-            "link": {
-             "kind": "none"
-            },
-            "buttonVariantMode": "variant",
-            "buttonVariant": "primary",
-            "buttonVariantSize": "md",
-            "radius": "theme-sm",
-            "bgColor": "theme-primary",
-            "textColor": "theme-surface",
-            "buttonSize": "theme-md",
-            "submitRedirectUrl": "",
-            "dataCondition": {
-             "path": "checkout.canPlaceOrder",
-             "op": "truthy"
-            },
-            "id": "ContentButton-checkout-1-content-3-content-8"
-           }
-          },
-          {
-           "type": "ContentParagraph",
-           "props": {
-            "text": {
-             "ar": "اختر عنوان التوصيل وطريقة الدفع لتتمكن من تأكيد الطلب.",
-             "en": "Choose an address and a payment method to confirm your order."
-            },
-            "textAlign": "right",
-            "fontFamily": "body",
-            "fontSize": "theme-md",
-            "fontWeight": "theme-light",
-            "lineHeight": "theme-normal",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-neutral",
-            "dataCondition": {
-             "path": "checkout.canPlaceOrder",
-             "op": "falsy"
-            },
-            "id": "ContentParagraph-checkout-1-content-3-content-9"
-           }
-          },
-          {
-           "type": "ContentParagraph",
-           "props": {
-            "text": {
-             "ar": "",
-             "en": ""
-            },
-            "textAlign": "right",
-            "fontFamily": "body",
-            "fontSize": "theme-md",
-            "fontWeight": "theme-light",
-            "lineHeight": "theme-normal",
-            "fontStyle": "normal",
-            "textTransform": "none",
-            "color": "theme-neutral",
-            "valueContext": {
-             "path": "errors.placeOrder"
-            },
-            "dataCondition": {
-             "path": "errors.placeOrder",
-             "op": "truthy"
-            },
-            "id": "ContentParagraph-checkout-1-content-3-content-10"
-           }
-          },
-          {
-           "type": "ContentLink",
-           "props": {
-            "title": {
-             "ar": "← العودة إلى السلة",
-             "en": "← Back to cart"
-            },
-            "link": {
-             "kind": "page",
-             "pageId": "/cart"
-            },
-            "align": "right",
-            "color": "theme-primary",
-            "hoverColor": "theme-primary",
-            "hoverEffect": "border",
-            "fontSize": "theme-md",
-            "icon": "chevron-left",
-            "iconPosition": "end",
-            "id": "ContentLink-checkout-1-content-3-content-11"
-           }
-          }
-         ],
-         "id": "Group-checkout-summary",
-         "dataCondition": {
-          "path": "checkout.isPlaced",
-          "op": "falsy"
-         }
-        }
-       }
-      ]
-     }
-    }
-   ]
-  },
-  {
    "path": "/orders",
    "slug": "/orders",
    "link": "/orders",
@@ -11132,6 +10243,895 @@
        "path": "isReturnable",
        "op": "truthy"
       }
+     }
+    }
+   ]
+  },
+  {
+   "path": "/checkout",
+   "slug": "/checkout",
+   "link": "/checkout",
+   "name": {
+    "ar": "إتمام الطلب",
+    "en": "Checkout"
+   },
+   "title": {
+    "ar": "إتمام الطلب",
+    "en": "Checkout"
+   },
+   "description": {
+    "ar": "اختيار العنوان وطريقة الدفع وتأكيد الطلب.",
+    "en": "Pick an address and payment method, then confirm the order."
+   },
+   "iconName": "ShoppingCart",
+   "isCustom": false,
+   "content": [
+    {
+     "type": "Section",
+     "props": {
+      "columns": 1,
+      "columnsMobile": 1,
+      "gridGap": "28px",
+      "paddingTop": "48px",
+      "paddingBottom": "24px",
+      "paddingHorizontal": "32px",
+      "backgroundColor": "#f7f2ea",
+      "theme": "dark",
+      "maxWidth": "640px",
+      "visible": true,
+      "anchorId": "",
+      "backgroundImage": "",
+      "backgroundOverlayColor": "",
+      "id": "Section-checkout-signedout",
+      "name": "تسجيل الدخول",
+      "showCondition": "loggedOut",
+      "content": [
+       {
+        "type": "Group",
+        "props": {
+         "direction": "column",
+         "gap": 16,
+         "alignItems": "stretch",
+         "justifyContent": "flex-start",
+         "wrap": "nowrap",
+         "language": "ar",
+         "backgroundColor": "#fffdf9",
+         "backgroundImage": "",
+         "backgroundOverlayColor": "",
+         "padding": "28px",
+         "borderRadius": "theme-md",
+         "boxShadow": "none",
+         "product": null,
+         "metadata": null,
+         "cartLineId": null,
+         "content": [
+          {
+           "type": "ContentHeading",
+           "props": {
+            "text": {
+             "ar": "سجّل دخولك لإتمام الطلب.",
+             "en": "Sign in to complete your order."
+            },
+            "textAlign": "center",
+            "fontFamily": "option1",
+            "fontSize": "theme-xl",
+            "fontWeight": "theme-bold",
+            "lineHeight": "theme-tight",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-text",
+            "id": "ContentHeading-checkout-0-content-0-content-0",
+            "level": "2"
+           }
+          },
+          {
+           "type": "ContentParagraph",
+           "props": {
+            "text": {
+             "ar": "نحتاج رقم هاتفك وعنوان التوصيل قبل تأكيد الطلب.",
+             "en": "We need your phone number and delivery address before confirming."
+            },
+            "textAlign": "center",
+            "fontFamily": "body",
+            "fontSize": "theme-md",
+            "fontWeight": "theme-light",
+            "lineHeight": "theme-normal",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-neutral",
+            "id": "ContentParagraph-checkout-0-content-0-content-1"
+           }
+          },
+          {
+           "type": "ContentLink",
+           "props": {
+            "title": {
+             "ar": "تسجيل الدخول",
+             "en": "Sign in"
+            },
+            "link": {
+             "kind": "page",
+             "pageId": "/login"
+            },
+            "align": "right",
+            "color": "theme-primary",
+            "hoverColor": "theme-primary",
+            "hoverEffect": "border",
+            "fontSize": "theme-md",
+            "icon": "chevron-left",
+            "iconPosition": "end",
+            "id": "ContentLink-checkout-0-content-0-content-2"
+           }
+          }
+         ],
+         "id": "Group-checkout-0-content-0"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "type": "Section",
+     "props": {
+      "columns": 1,
+      "columnsMobile": 1,
+      "gridGap": "28px",
+      "paddingTop": "32px",
+      "paddingBottom": "48px",
+      "paddingHorizontal": "32px",
+      "backgroundColor": "#f7f2ea",
+      "theme": "dark",
+      "maxWidth": "760px",
+      "visible": true,
+      "anchorId": "",
+      "backgroundImage": "",
+      "backgroundOverlayColor": "",
+      "id": "Section-checkout",
+      "name": "إتمام الطلب",
+      "showCondition": "loggedIn",
+      "sectionKind": "checkout",
+      "metadata": {
+       "preset": "checkout"
+      },
+      "content": [
+       {
+        "type": "Group",
+        "props": {
+         "direction": "column",
+         "gap": 16,
+         "alignItems": "stretch",
+         "justifyContent": "flex-start",
+         "wrap": "nowrap",
+         "language": "ar",
+         "backgroundColor": "#fffdf9",
+         "backgroundImage": "",
+         "backgroundOverlayColor": "",
+         "padding": "28px",
+         "borderRadius": "theme-md",
+         "boxShadow": "none",
+         "product": null,
+         "metadata": null,
+         "cartLineId": null,
+         "content": [
+          {
+           "type": "ContentHeading",
+           "props": {
+            "text": {
+             "ar": "تم استلام طلبك",
+             "en": "Your order was received"
+            },
+            "textAlign": "center",
+            "fontFamily": "option1",
+            "fontSize": "theme-xl",
+            "fontWeight": "theme-bold",
+            "lineHeight": "theme-tight",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-text",
+            "id": "ContentHeading-checkout-1-content-0-content-0",
+            "level": "2"
+           }
+          },
+          {
+           "type": "ContentParagraph",
+           "props": {
+            "text": {
+             "ar": "سنتواصل معك لتأكيد موعد التوصيل. يمكنك متابعة الطلب من صفحة طلباتي.",
+             "en": "We'll contact you to confirm delivery. Track it from My orders."
+            },
+            "textAlign": "center",
+            "fontFamily": "body",
+            "fontSize": "theme-md",
+            "fontWeight": "theme-light",
+            "lineHeight": "theme-normal",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-neutral",
+            "id": "ContentParagraph-checkout-1-content-0-content-1"
+           }
+          },
+          {
+           "type": "ContentLink",
+           "props": {
+            "title": {
+             "ar": "عرض طلباتي",
+             "en": "View my orders"
+            },
+            "link": {
+             "kind": "page",
+             "pageId": "/orders"
+            },
+            "align": "right",
+            "color": "theme-primary",
+            "hoverColor": "theme-primary",
+            "hoverEffect": "border",
+            "fontSize": "theme-md",
+            "icon": "chevron-left",
+            "iconPosition": "end",
+            "id": "ContentLink-checkout-1-content-0-content-2"
+           }
+          }
+         ],
+         "id": "Group-checkout-success",
+         "dataCondition": {
+          "path": "checkout.isPlaced",
+          "op": "truthy"
+         }
+        }
+       },
+       {
+        "type": "Group",
+        "props": {
+         "direction": "column",
+         "gap": 16,
+         "alignItems": "stretch",
+         "justifyContent": "flex-start",
+         "wrap": "nowrap",
+         "language": "ar",
+         "backgroundColor": "#fffdf9",
+         "backgroundImage": "",
+         "backgroundOverlayColor": "",
+         "padding": "28px",
+         "borderRadius": "theme-md",
+         "boxShadow": "none",
+         "product": null,
+         "metadata": null,
+         "cartLineId": null,
+         "content": [
+          {
+           "type": "ContentHeading",
+           "props": {
+            "text": {
+             "ar": "عنوان التوصيل",
+             "en": "Delivery address"
+            },
+            "textAlign": "right",
+            "fontFamily": "option1",
+            "fontSize": "theme-lg",
+            "fontWeight": "theme-bold",
+            "lineHeight": "theme-tight",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-text",
+            "id": "ContentHeading-checkout-1-content-1-content-0",
+            "level": "3"
+           }
+          },
+          {
+           "type": "ContentSelect",
+           "props": {
+            "label": {
+             "ar": "اختر عنوان التوصيل",
+             "en": "Choose a delivery address"
+            },
+            "name": "checkout-address",
+            "selectAction": "checkout_address",
+            "enumMapKey": "",
+            "id": "ContentSelect-checkout-1-content-1-content-1"
+           }
+          },
+          {
+           "type": "ContentParagraph",
+           "props": {
+            "text": {
+             "ar": "",
+             "en": ""
+            },
+            "textAlign": "right",
+            "fontFamily": "body",
+            "fontSize": "theme-md",
+            "fontWeight": "theme-light",
+            "lineHeight": "theme-normal",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-neutral",
+            "valueContext": {
+             "path": "checkout.addressSummary"
+            },
+            "dataCondition": {
+             "path": "checkout.hasAddress",
+             "op": "truthy"
+            },
+            "id": "ContentParagraph-checkout-1-content-1-content-2"
+           }
+          },
+          {
+           "type": "ContentParagraph",
+           "props": {
+            "text": {
+             "ar": "لا يوجد عنوان محفوظ. أضف عنوانك من صفحة الحساب أولاً.",
+             "en": "No saved address yet. Add one from your account page first."
+            },
+            "textAlign": "right",
+            "fontFamily": "body",
+            "fontSize": "theme-md",
+            "fontWeight": "theme-light",
+            "lineHeight": "theme-normal",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-neutral",
+            "dataCondition": {
+             "path": "checkout.hasAddress",
+             "op": "falsy"
+            },
+            "id": "ContentParagraph-checkout-1-content-1-content-3"
+           }
+          },
+          {
+           "type": "ContentLink",
+           "props": {
+            "title": {
+             "ar": "إدارة العناوين",
+             "en": "Manage addresses"
+            },
+            "link": {
+             "kind": "page",
+             "pageId": "/settings"
+            },
+            "align": "right",
+            "color": "theme-primary",
+            "hoverColor": "theme-primary",
+            "hoverEffect": "border",
+            "fontSize": "theme-md",
+            "icon": "chevron-left",
+            "iconPosition": "end",
+            "id": "ContentLink-checkout-1-content-1-content-4"
+           }
+          }
+         ],
+         "id": "Group-checkout-address",
+         "dataCondition": {
+          "path": "checkout.isPlaced",
+          "op": "falsy"
+         }
+        }
+       },
+       {
+        "type": "Group",
+        "props": {
+         "direction": "column",
+         "gap": 16,
+         "alignItems": "stretch",
+         "justifyContent": "flex-start",
+         "wrap": "nowrap",
+         "language": "ar",
+         "backgroundColor": "#fffdf9",
+         "backgroundImage": "",
+         "backgroundOverlayColor": "",
+         "padding": "28px",
+         "borderRadius": "theme-md",
+         "boxShadow": "none",
+         "product": null,
+         "metadata": null,
+         "cartLineId": null,
+         "content": [
+          {
+           "type": "ContentHeading",
+           "props": {
+            "text": {
+             "ar": "طريقة الدفع",
+             "en": "Payment method"
+            },
+            "textAlign": "right",
+            "fontFamily": "option1",
+            "fontSize": "theme-lg",
+            "fontWeight": "theme-bold",
+            "lineHeight": "theme-tight",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-text",
+            "id": "ContentHeading-checkout-1-content-2-content-0",
+            "level": "3"
+           }
+          },
+          {
+           "type": "ContentSelect",
+           "props": {
+            "label": {
+             "ar": "اختر طريقة الدفع",
+             "en": "Choose a payment method"
+            },
+            "name": "checkout-payment-method",
+            "selectAction": "checkout_payment_method",
+            "enumMapKey": "",
+            "id": "ContentSelect-checkout-1-content-2-content-1"
+           }
+          },
+          {
+           "type": "ContentParagraph",
+           "props": {
+            "text": {
+             "ar": "",
+             "en": ""
+            },
+            "textAlign": "right",
+            "fontFamily": "body",
+            "fontSize": "theme-md",
+            "fontWeight": "theme-light",
+            "lineHeight": "theme-normal",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-neutral",
+            "valueContext": {
+             "path": "checkout.paymentMethodName"
+            },
+            "dataCondition": {
+             "path": "checkout.hasPaymentMethod",
+             "op": "truthy"
+            },
+            "id": "ContentParagraph-checkout-1-content-2-content-2"
+           }
+          }
+         ],
+         "id": "Group-checkout-payment",
+         "dataCondition": {
+          "path": "checkout.isPlaced",
+          "op": "falsy"
+         }
+        }
+       },
+       {
+        "type": "Group",
+        "props": {
+         "direction": "column",
+         "gap": 16,
+         "alignItems": "stretch",
+         "justifyContent": "flex-start",
+         "wrap": "nowrap",
+         "language": "ar",
+         "backgroundColor": "#fffdf9",
+         "backgroundImage": "",
+         "backgroundOverlayColor": "",
+         "padding": "28px",
+         "borderRadius": "theme-md",
+         "boxShadow": "none",
+         "product": null,
+         "metadata": null,
+         "cartLineId": null,
+         "content": [
+          {
+           "type": "ContentHeading",
+           "props": {
+            "text": {
+             "ar": "ملخّص الطلب",
+             "en": "Order summary"
+            },
+            "textAlign": "right",
+            "fontFamily": "option1",
+            "fontSize": "theme-lg",
+            "fontWeight": "theme-bold",
+            "lineHeight": "theme-tight",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-text",
+            "id": "ContentHeading-checkout-1-content-3-content-0",
+            "level": "3"
+           }
+          },
+          {
+           "type": "ContentInput",
+           "props": {
+            "label": {
+             "ar": "كود الخصم",
+             "en": "Discount code"
+            },
+            "name": "discount-code",
+            "inputType": "text",
+            "placeholder": {
+             "ar": "",
+             "en": ""
+            },
+            "required": false,
+            "inputAction": "discount_code",
+            "id": "ContentInput-checkout-1-content-3-content-1"
+           }
+          },
+          {
+           "type": "ContentButton",
+           "props": {
+            "label": {
+             "ar": "تطبيق كود الخصم",
+             "en": "Apply discount code"
+            },
+            "align": "center",
+            "destinationType": "action",
+            "buttonAction": "validateDiscount",
+            "link": {
+             "kind": "none"
+            },
+            "buttonVariantMode": "variant",
+            "buttonVariant": "primary",
+            "buttonVariantSize": "md",
+            "radius": "theme-sm",
+            "bgColor": "theme-primary",
+            "textColor": "theme-surface",
+            "buttonSize": "theme-md",
+            "submitRedirectUrl": "",
+            "id": "ContentButton-checkout-1-content-3-content-2"
+           }
+          },
+          {
+           "type": "ContentParagraph",
+           "props": {
+            "text": {
+             "ar": "",
+             "en": ""
+            },
+            "textAlign": "right",
+            "fontFamily": "body",
+            "fontSize": "theme-md",
+            "fontWeight": "theme-light",
+            "lineHeight": "theme-normal",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-neutral",
+            "valueContext": {
+             "path": "errors.discount"
+            },
+            "dataCondition": {
+             "path": "errors.discount",
+             "op": "truthy"
+            },
+            "id": "ContentParagraph-checkout-1-content-3-content-3"
+           }
+          },
+          {
+           "type": "RowGroup",
+           "props": {
+            "direction": "row",
+            "gap": 16,
+            "alignItems": "center",
+            "justifyContent": "space-between",
+            "wrap": "wrap",
+            "content": [
+             {
+              "type": "ContentParagraph",
+              "props": {
+               "text": {
+                "ar": "المجموع الفرعي",
+                "en": "Subtotal"
+               },
+               "textAlign": "right",
+               "fontFamily": "body",
+               "fontSize": "theme-md",
+               "fontWeight": "theme-light",
+               "lineHeight": "theme-normal",
+               "fontStyle": "normal",
+               "textTransform": "none",
+               "color": "theme-neutral",
+               "id": "ContentParagraph-checkout-1-content-3-content-4-content-0"
+              }
+             },
+             {
+              "type": "ContentParagraph",
+              "props": {
+               "text": {
+                "ar": "",
+                "en": ""
+               },
+               "textAlign": "right",
+               "fontFamily": "body",
+               "fontSize": "theme-md",
+               "fontWeight": "theme-bold",
+               "lineHeight": "theme-normal",
+               "fontStyle": "normal",
+               "textTransform": "none",
+               "color": "theme-primary",
+               "valueContext": {
+                "path": "checkout.subtotal",
+                "format": "money",
+                "currencyPath": "checkout.currencyCode"
+               },
+               "id": "ContentParagraph-checkout-1-content-3-content-4-content-1"
+              }
+             }
+            ],
+            "id": "RowGroup-checkout-1-content-3-content-4",
+            "backgroundColor": "",
+            "padding": "0px",
+            "borderRadius": "theme-none"
+           }
+          },
+          {
+           "type": "RowGroup",
+           "props": {
+            "direction": "row",
+            "gap": 16,
+            "alignItems": "center",
+            "justifyContent": "space-between",
+            "wrap": "wrap",
+            "content": [
+             {
+              "type": "ContentParagraph",
+              "props": {
+               "text": {
+                "ar": "تكلفة الشحن",
+                "en": "Shipping"
+               },
+               "textAlign": "right",
+               "fontFamily": "body",
+               "fontSize": "theme-md",
+               "fontWeight": "theme-light",
+               "lineHeight": "theme-normal",
+               "fontStyle": "normal",
+               "textTransform": "none",
+               "color": "theme-neutral",
+               "id": "ContentParagraph-checkout-1-content-3-content-5-content-0"
+              }
+             },
+             {
+              "type": "ContentParagraph",
+              "props": {
+               "text": {
+                "ar": "",
+                "en": ""
+               },
+               "textAlign": "right",
+               "fontFamily": "body",
+               "fontSize": "theme-md",
+               "fontWeight": "theme-bold",
+               "lineHeight": "theme-normal",
+               "fontStyle": "normal",
+               "textTransform": "none",
+               "color": "theme-primary",
+               "valueContext": {
+                "path": "checkout.shippingCost",
+                "format": "money",
+                "currencyPath": "checkout.currencyCode"
+               },
+               "id": "ContentParagraph-checkout-1-content-3-content-5-content-1"
+              }
+             }
+            ],
+            "id": "RowGroup-checkout-1-content-3-content-5",
+            "backgroundColor": "",
+            "padding": "0px",
+            "borderRadius": "theme-none"
+           }
+          },
+          {
+           "type": "RowGroup",
+           "props": {
+            "direction": "row",
+            "gap": 16,
+            "alignItems": "center",
+            "justifyContent": "space-between",
+            "wrap": "wrap",
+            "content": [
+             {
+              "type": "ContentParagraph",
+              "props": {
+               "text": {
+                "ar": "الخصم",
+                "en": "Discount"
+               },
+               "textAlign": "right",
+               "fontFamily": "body",
+               "fontSize": "theme-md",
+               "fontWeight": "theme-light",
+               "lineHeight": "theme-normal",
+               "fontStyle": "normal",
+               "textTransform": "none",
+               "color": "theme-neutral",
+               "id": "ContentParagraph-checkout-1-content-3-content-6-content-0"
+              }
+             },
+             {
+              "type": "ContentParagraph",
+              "props": {
+               "text": {
+                "ar": "",
+                "en": ""
+               },
+               "textAlign": "right",
+               "fontFamily": "body",
+               "fontSize": "theme-md",
+               "fontWeight": "theme-bold",
+               "lineHeight": "theme-normal",
+               "fontStyle": "normal",
+               "textTransform": "none",
+               "color": "theme-primary",
+               "valueContext": {
+                "path": "checkout.discountAmount",
+                "format": "money",
+                "currencyPath": "checkout.currencyCode"
+               },
+               "id": "ContentParagraph-checkout-1-content-3-content-6-content-1"
+              }
+             }
+            ],
+            "dataCondition": {
+             "path": "checkout.hasDiscount",
+             "op": "truthy"
+            },
+            "id": "RowGroup-checkout-1-content-3-content-6",
+            "backgroundColor": "",
+            "padding": "0px",
+            "borderRadius": "theme-none"
+           }
+          },
+          {
+           "type": "RowGroup",
+           "props": {
+            "direction": "row",
+            "gap": 16,
+            "alignItems": "center",
+            "justifyContent": "space-between",
+            "wrap": "wrap",
+            "content": [
+             {
+              "type": "ContentParagraph",
+              "props": {
+               "text": {
+                "ar": "الإجمالي",
+                "en": "Total"
+               },
+               "textAlign": "right",
+               "fontFamily": "body",
+               "fontSize": "theme-md",
+               "fontWeight": "theme-light",
+               "lineHeight": "theme-normal",
+               "fontStyle": "normal",
+               "textTransform": "none",
+               "color": "theme-neutral",
+               "id": "ContentParagraph-checkout-1-content-3-content-7-content-0"
+              }
+             },
+             {
+              "type": "ContentParagraph",
+              "props": {
+               "text": {
+                "ar": "",
+                "en": ""
+               },
+               "textAlign": "right",
+               "fontFamily": "body",
+               "fontSize": "theme-md",
+               "fontWeight": "theme-bold",
+               "lineHeight": "theme-normal",
+               "fontStyle": "normal",
+               "textTransform": "none",
+               "color": "theme-primary",
+               "valueContext": {
+                "path": "checkout.payableTotal",
+                "format": "money",
+                "currencyPath": "checkout.currencyCode"
+               },
+               "id": "ContentParagraph-checkout-1-content-3-content-7-content-1"
+              }
+             }
+            ],
+            "id": "RowGroup-checkout-1-content-3-content-7",
+            "backgroundColor": "",
+            "padding": "0px",
+            "borderRadius": "theme-none"
+           }
+          },
+          {
+           "type": "ContentButton",
+           "props": {
+            "label": {
+             "ar": "تأكيد الطلب",
+             "en": "Confirm order"
+            },
+            "align": "center",
+            "destinationType": "action",
+            "buttonAction": "placeOrder",
+            "link": {
+             "kind": "none"
+            },
+            "buttonVariantMode": "variant",
+            "buttonVariant": "primary",
+            "buttonVariantSize": "md",
+            "radius": "theme-sm",
+            "bgColor": "theme-primary",
+            "textColor": "theme-surface",
+            "buttonSize": "theme-md",
+            "submitRedirectUrl": "",
+            "dataCondition": {
+             "path": "checkout.canPlaceOrder",
+             "op": "truthy"
+            },
+            "id": "ContentButton-checkout-1-content-3-content-8"
+           }
+          },
+          {
+           "type": "ContentParagraph",
+           "props": {
+            "text": {
+             "ar": "اختر عنوان التوصيل وطريقة الدفع لتتمكن من تأكيد الطلب.",
+             "en": "Choose an address and a payment method to confirm your order."
+            },
+            "textAlign": "right",
+            "fontFamily": "body",
+            "fontSize": "theme-md",
+            "fontWeight": "theme-light",
+            "lineHeight": "theme-normal",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-neutral",
+            "dataCondition": {
+             "path": "checkout.canPlaceOrder",
+             "op": "falsy"
+            },
+            "id": "ContentParagraph-checkout-1-content-3-content-9"
+           }
+          },
+          {
+           "type": "ContentParagraph",
+           "props": {
+            "text": {
+             "ar": "",
+             "en": ""
+            },
+            "textAlign": "right",
+            "fontFamily": "body",
+            "fontSize": "theme-md",
+            "fontWeight": "theme-light",
+            "lineHeight": "theme-normal",
+            "fontStyle": "normal",
+            "textTransform": "none",
+            "color": "theme-neutral",
+            "valueContext": {
+             "path": "errors.placeOrder"
+            },
+            "dataCondition": {
+             "path": "errors.placeOrder",
+             "op": "truthy"
+            },
+            "id": "ContentParagraph-checkout-1-content-3-content-10"
+           }
+          },
+          {
+           "type": "ContentLink",
+           "props": {
+            "title": {
+             "ar": "← العودة إلى السلة",
+             "en": "← Back to cart"
+            },
+            "link": {
+             "kind": "page",
+             "pageId": "/cart"
+            },
+            "align": "right",
+            "color": "theme-primary",
+            "hoverColor": "theme-primary",
+            "hoverEffect": "border",
+            "fontSize": "theme-md",
+            "icon": "chevron-left",
+            "iconPosition": "end",
+            "id": "ContentLink-checkout-1-content-3-content-11"
+           }
+          }
+         ],
+         "id": "Group-checkout-summary",
+         "dataCondition": {
+          "path": "checkout.isPlaced",
+          "op": "falsy"
+         }
+        }
+       }
+      ]
      }
     }
    ]

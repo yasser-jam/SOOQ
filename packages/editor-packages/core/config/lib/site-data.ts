@@ -39,6 +39,8 @@ import {
   type BilingualString,
 } from "../../lib/bilingual";
 import { ROOT_ZONE_DRAWER } from "../shell-zones";
+import { SPLASH_PAGE_PATH } from "../presets/splash-page";
+import { reconcileSplashHeroProps } from "../blocks/SplashHero/constants";
 
 export type { EditorMode } from "./editor-mode";
 export {
@@ -568,7 +570,56 @@ const migrateLegacyPerPageStorage = (site: SiteData): SiteData => {
   };
 };
 
-export function normalizeSiteData(value: Partial<SiteData> | null | undefined): SiteData {
+/**
+ * Rebuilds the mandatory `/splash` page from scratch, keeping only the image and the six colour
+ * props a merchant may have set on its `SplashHero` block — every other prop (icons, headline,
+ * button label, tap target) is locked, so any other authored content is discarded rather than
+ * merged. This is what makes the page's restricted prop set actually enforced, not just a UI
+ * convention.
+ */
+function buildSplashPage(existing: SitePage | undefined): SitePage {
+  const heroNode = (existing?.content ?? []).find(
+    (node) => (node as ComponentLike)?.type === "SplashHero"
+  ) as ComponentLike | undefined;
+
+  return {
+    path: SPLASH_PAGE_PATH,
+    slug: SPLASH_PAGE_PATH,
+    name: "شاشة البداية",
+    link: SPLASH_PAGE_PATH,
+    title: "Splash",
+    description:
+      "شاشة بداية التطبيق — عنصر ثابت لا يمكن حذفه؛ يمكن تعديل الصورة والألوان فقط.",
+    iconName: "Palette",
+    isCustom: false,
+    showInTabs: false,
+    content: [
+      {
+        type: "SplashHero",
+        props: reconcileSplashHeroProps(heroNode?.props),
+      },
+    ] as UserData["content"],
+    appBar: emptyAppBar(),
+    fullScreen: true,
+  } satisfies SitePage;
+}
+
+/** Mobile-only: the splash page always exists and cannot be removed (M1 — see `PagesPanel`). */
+function enforceSplashPage(pages: SitePage[]): SitePage[] {
+  const index = pages.findIndex((page) => page.path === SPLASH_PAGE_PATH);
+  const splash = buildSplashPage(index >= 0 ? pages[index] : undefined);
+
+  if (index === -1) return [...pages, splash];
+
+  const next = [...pages];
+  next[index] = splash;
+  return next;
+}
+
+export function normalizeSiteData(
+  value: Partial<SiteData> | null | undefined,
+  mode: EditorMode = getActiveEditorMode()
+): SiteData {
   const input = value ?? {};
   const rootNormalized = normalizeEditorData({
     root: input.root ?? { props: {} },
@@ -644,13 +695,17 @@ export function normalizeSiteData(value: Partial<SiteData> | null | undefined): 
     ? normalizeSiteSidebar(input.sidebar)
     : sidebarFromContent;
 
+  const dedupedPages = dedupeSitePages(
+    pages.length > 0 ? pages : buildInitialSiteData().pages
+  );
+
   return {
     root: {
       ...(isPlainObject(input.root) ? input.root : {}),
       props: extractGlobalRootProps((rootNormalized.root?.props ?? {}) as JsonRecord),
     },
     zones: (rootNormalized.zones ?? input.zones ?? {}) as ZoneMap,
-    pages: dedupeSitePages(pages.length > 0 ? pages : buildInitialSiteData().pages),
+    pages: mode === "mobile" ? enforceSplashPage(dedupedPages) : dedupedPages,
     sidebar,
   };
 }
@@ -678,7 +733,7 @@ function readDesktopSiteFromStorage(): SiteData {
     }
 
     try {
-      const site = normalizeSiteData(JSON.parse(raw) as SiteData);
+      const site = normalizeSiteData(JSON.parse(raw) as SiteData, "desktop");
       siteReadCache.desktop = { raw, site };
       return site;
     } catch {
@@ -695,7 +750,7 @@ function readDesktopSiteFromStorage(): SiteData {
 export function seedMobileSiteFromDesktop(): SiteData {
   const desktop = readDesktopSiteFromStorage();
   const seeded = migrateMobileDrawerToSidebar(
-    normalizeSiteData(JSON.parse(JSON.stringify(desktop)) as SiteData)
+    normalizeSiteData(JSON.parse(JSON.stringify(desktop)) as SiteData, "mobile")
   );
   // Ensure every page has an appBar key (empty if none).
   const withAppBars: SiteData = {
@@ -722,8 +777,13 @@ export function seedMobileSiteFromDesktop(): SiteData {
  * blank. Detect the shape and re-seed from desktop instead.
  */
 function isUsableMobileSite(site: SiteData): boolean {
+  // The splash page is always synthesized by `normalizeSiteData` (mobile mode), so its presence
+  // is not evidence the rest of the blob is a real SiteData — only a *different* valid-path page is.
   return site.pages.some(
-    (page) => typeof page.path === "string" && page.path.length > 0
+    (page) =>
+      typeof page.path === "string" &&
+      page.path.length > 0 &&
+      page.path !== SPLASH_PAGE_PATH
   );
 }
 
@@ -750,7 +810,7 @@ export function readSiteData(mode?: EditorMode): SiteData {
   }
 
   try {
-    const site = normalizeSiteData(JSON.parse(raw) as SiteData);
+    const site = normalizeSiteData(JSON.parse(raw) as SiteData, "mobile");
     if (!isUsableMobileSite(site)) {
       return seedMobileSiteFromDesktop();
     }
@@ -783,7 +843,7 @@ export function writeSiteData(site: SiteData, mode?: EditorMode) {
   if (!isBrowser) return;
 
   const resolvedMode = mode ?? getActiveEditorMode();
-  const normalized = normalizeSiteData(site);
+  const normalized = normalizeSiteData(site, resolvedMode);
   const serialized = JSON.stringify(normalized);
   const storageKey = getSiteStorageKey(resolvedMode);
   const previous = window.localStorage.getItem(storageKey);
@@ -977,7 +1037,7 @@ export function applyPuckSave(
     zones: normalized.zones ?? site.zones ?? {},
     pages: updatedPages,
     sidebar: nextSidebar,
-  });
+  }, mode);
 }
 
 export function addSitePage(
