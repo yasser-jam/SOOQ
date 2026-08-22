@@ -605,15 +605,56 @@ const PHONE_ROW_BUDGET = PHONE_MIN_WIDTH - PHONE_SECTION_PAD_MAX * 2;
 const PHONE_CARD_PAD_MAX = 20;
 
 /**
+ * Padding a surface container may draw when it sits inside a grid cell (`_gridCellDepth > 0`).
+ *
+ * A grid cell already pays the card's own inset before a merchant-authored `Group` adds a second,
+ * nested surface on top — `146px cell − card padding − inner surface padding` left a 90px-wide
+ * price no 12-character `"1,150.00 USD"` fits into, so it clipped to `…U 640.00`. `PHONE_CARD_PAD_MAX`
+ * (20/side) is sized for a card sitting directly in a section, not for a second wrapper stacked
+ * inside one that already spent its share — this is the tighter budget for that inner layer.
+ */
+const PHONE_GRID_CELL_SURFACE_PAD_MAX = 6;
+
+/**
  * Vertical padding a background-image Section may draw before its `stack` (`fit: "cover"`, sized
  * by the image's aspect ratio, not by its content — see {@link STACK_FIT}) clips instead of
- * scrolling. An ordinary Section is safe to leave unclamped, since its vertical padding only adds
- * scroll height, but a hero stack's box height is fixed by the image, so oversized padding pushes
- * the copy past its bottom edge. Rawaq's 160px top + 160px bottom clipped the hero 101-153px on
- * every device (v50 audit item 1); 64 is the ceiling the mobile team measured as still reading as
- * a hero.
+ * scrolling. A hero stack's box height is fixed by the image, so oversized padding pushes the copy
+ * past its bottom edge. Rawaq's 160px top + 160px bottom clipped the hero 101-153px on every
+ * device (v50 audit item 1); 64 is the ceiling the mobile team measured as still reading as a hero.
  */
 const PHONE_HERO_PADDING_MAX = 64;
+
+/**
+ * Ceiling for an *ordinary* Section's vertical padding on mobile — {@link scaleSectionVPad}.
+ *
+ * The "only costs scroll height" reasoning this used to run on breaks for the first Section on a
+ * page: `section { padding: 6rem 0 }` (96px) copied literally opened `page-products` on 72px of
+ * blank space above a 56px app bar, before any content was visible at all (audit item 5). Not a
+ * hero-specific problem — every Section pays this now.
+ */
+const PHONE_SECTION_VPAD_MAX = 40;
+/** Floor for {@link scaleSectionVPad} — keeps a deliberately small desktop value from vanishing. */
+const PHONE_SECTION_VPAD_MIN = 16;
+/** Desktop-to-phone scale factor for ordinary Section vertical padding (audit item 5). */
+const PHONE_SECTION_VPAD_SCALE = 0.33;
+
+/** Ceiling for a converted heading's `fontSize` — see {@link transformHeading}. */
+const MOBILE_HEADING_MAX_FONT_SIZE = 24;
+
+/**
+ * Scales a desktop Section's `paddingTop`/`paddingBottom` down for a 360px phone screen.
+ * `0` (the merchant explicitly wants no inset) passes through untouched; any positive value is
+ * scaled by {@link PHONE_SECTION_VPAD_SCALE} and clamped into
+ * [{@link PHONE_SECTION_VPAD_MIN}, {@link PHONE_SECTION_VPAD_MAX}].
+ */
+function scaleSectionVPad(webPx: number, what: string): number {
+  if (webPx <= 0) return webPx;
+  const scaled = Math.round(
+    Math.min(Math.max(webPx * PHONE_SECTION_VPAD_SCALE, PHONE_SECTION_VPAD_MIN), PHONE_SECTION_VPAD_MAX)
+  );
+  if (scaled !== webPx) _phoneClamps.push({ what, from: webPx, to: scaled });
+  return scaled;
+}
 
 /**
  * Horizontal padding each button variant draws around its label. A `text` button is a link with no
@@ -851,6 +892,16 @@ function phoneCellWidth(columns: number, gap: number, sectionPadding = PHONE_SEC
  * error the app reports. Declared sizes (an image's aspect ratio, a button's height, padding,
  * gaps) are not guesses and get no slack, so they no longer inflate every cell's whitespace.
  */
+/**
+ * Safety band for any emitted `childAspectRatio`, estimate or fallback alike (validator rule #3).
+ * The estimator is a heuristic, not a layout engine — an unmodelled Dart-side quirk (see the
+ * column `mainAxisAlignment` fix above) can still inflate its input past what the actual card
+ * needs. 0.43 (a 146px cell rendered ~340px tall) is exactly the shape that clamp stops: below
+ * 0.5 a two-column phone grid reads as a wall of near-square cards standing on stilts.
+ */
+const GRID_ASPECT_RATIO_MIN = 0.5;
+const GRID_ASPECT_RATIO_MAX = 1.8;
+
 function estimateGridAspectRatio(
   cells: unknown[],
   columns: number,
@@ -865,7 +916,12 @@ function estimateGridAspectRatio(
   );
   const height = tallest.certain + tallest.uncertain * GRID_HEIGHT_SLACK;
   if (!Number.isFinite(height) || height <= 0) return fallback;
-  return Math.round((cellWidth / height) * 100) / 100;
+  const ratio = Math.round((cellWidth / height) * 100) / 100;
+  const clamped = Math.min(GRID_ASPECT_RATIO_MAX, Math.max(GRID_ASPECT_RATIO_MIN, ratio));
+  if (clamped !== ratio) {
+    _phoneClamps.push({ what: "gridView childAspectRatio", from: ratio, to: clamped });
+  }
+  return clamped;
 }
 
 /** Clamps recorded this run, reported as one summary warning rather than eighty. */
@@ -912,6 +968,17 @@ function resolveButtonVariant(variant: string | undefined): string {
  */
 function buttonColorProp(engineVariant: string): "backgroundColor" | "textColor" {
   return engineVariant === "outlined" || engineVariant === "text" ? "textColor" : "backgroundColor";
+}
+
+/**
+ * `#fff` / `#ffffff` in any case — the one colour `button_renderer.dart` cannot render on an
+ * `outlined`/`text` button, because it reads `textColor` for **both** the label and the border
+ * (see {@link buttonColorProp}). White there is white-on-white against a light card: a button
+ * that is clickable but invisible.
+ */
+function isWhiteHex(color: string): boolean {
+  const hex = color.trim().toLowerCase();
+  return hex === "#fff" || hex === "#ffffff";
 }
 
 /**
@@ -1022,11 +1089,22 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/**
+ * `"0.9375rem"` → `15`, not `0.9375`. A bare `parseFloat` stops at the first non-numeric
+ * character, so it silently kept the rem *number* and dropped the unit — the engine then read
+ * that number as px straight into padding math (`(height − fontSize) / 2`), so a 0.9375rem
+ * (15px) button font size was consumed as if it were 0.9375px, ballooning vertical padding.
+ * Every other unit (bare number, `px`, anything else `parseFloat` already handled) is unchanged.
+ */
 function parsePx(value: string | number | undefined, fallback = 0): number {
   if (value === undefined || value === null) return fallback;
   if (typeof value === "number") return value;
-  const n = parseFloat(String(value));
-  return isNaN(n) ? fallback : n;
+  const s = String(value).trim();
+  // parseFloat already stops at the first non-numeric character, so it reads the leading number
+  // out of "0.9375rem" on its own — no capture group (and no noUncheckedIndexedAccess fight) needed.
+  const n = parseFloat(s);
+  if (isNaN(n)) return fallback;
+  return /rem$/i.test(s) ? n * 16 : n;
 }
 
 /**
@@ -1967,9 +2045,12 @@ function transformHeading(block: Record<string, unknown>, rootProps: Record<stri
   const sizeMap: Record<number, number> = { 1: 28, 2: 22, 3: 18, 4: 16 };
   const levelSize = resolveFontSize(props.size as string, sizeMap[levelNum] || 22);
   // ContentHeading carries `fontSize` as a theme token; legacy Heading carries `size`.
-  const fontSize = props.fontSize
+  const rawFontSize = props.fontSize
     ? resolveThemeFontSize(props.fontSize as string, rootProps, levelSize)
     : levelSize;
+  // `theme-xxl`/`h1` desktop headings resolve to 28px, which wraps Arabic copy onto 3 lines at a
+  // 360px width — 22-24 is the ceiling the mobile team measured as still fitting 2 lines.
+  const fontSize = Math.min(rawFontSize, MOBILE_HEADING_MAX_FONT_SIZE);
 
   const node: Record<string, unknown> = {
     id: generateId("heading"),
@@ -2033,9 +2114,13 @@ function transformButton(block: Record<string, unknown>, rootProps: Record<strin
   const btnColor = resolveColor(props.colorMode as string, props.colorTheme as string, props.colorFixed as string, rootProps)
     || (isFixedMode ? resolveThemeColor(props.bgColor as string, rootProps) : undefined);
   if (btnColor) outProps[buttonColorProp(variant)] = btnColor;
-  // An explicitly authored label colour always wins over the variant-derived placement above.
+  // An explicitly authored label colour wins over the variant-derived placement above — except
+  // white on outlined/text, which buttonColorProp also routes into the border. Dropping it lets
+  // the button fall back to theme.colors.primary instead of rendering invisible (see isWhiteHex).
   const btnTextColor = resolveThemeColor(props.textColor as string, rootProps);
-  if (btnTextColor) outProps.textColor = btnTextColor;
+  if (btnTextColor && !(buttonColorProp(variant) === "textColor" && isWhiteHex(btnTextColor))) {
+    outProps.textColor = btnTextColor;
+  }
   if (fullWidth) outProps.fullWidth = true;
 
   const tap = resolveTap(props, rootProps);
@@ -3007,23 +3092,31 @@ function transformSection(block: Record<string, unknown>, rootProps: Record<stri
   }
 
   const bgImage = (props.backgroundImage as string) || "";
-  // Vertical padding is otherwise left alone: it only costs scroll on an ordinary Section. A
-  // background-image Section is the exception — its stack is sized by the image (`fit: "cover"`),
-  // not by this padding, so an oversized value clips the hero copy instead of growing the page.
+  // A background-image Section's stack is sized by the image (`fit: "cover"`), not by this
+  // padding, so it gets a hard ceiling rather than the scale — an oversized value clips the hero
+  // copy instead of growing the page. An ordinary Section scales down instead: copied literally
+  // (`section { padding: 6rem 0 }`), it opens the page on a screen's worth of blank space before
+  // any content is visible — see {@link scaleSectionVPad}.
   const paddingTop = bgImage
     ? clampToPhone(
         parsePx(props.paddingTop as string, 0),
         PHONE_HERO_PADDING_MAX,
         `Section "${(props.name as string) || block.type}" paddingTop (background-image hero)`
       )
-    : parsePx(props.paddingTop as string, 0);
+    : scaleSectionVPad(
+        parsePx(props.paddingTop as string, 0),
+        `Section "${(props.name as string) || block.type}" paddingTop`
+      );
   const paddingBottom = bgImage
     ? clampToPhone(
         parsePx(props.paddingBottom as string, 0),
         PHONE_HERO_PADDING_MAX,
         `Section "${(props.name as string) || block.type}" paddingBottom (background-image hero)`
       )
-    : parsePx(props.paddingBottom as string, 0);
+    : scaleSectionVPad(
+        parsePx(props.paddingBottom as string, 0),
+        `Section "${(props.name as string) || block.type}" paddingBottom`
+      );
   // Horizontal only: vertical padding costs scroll, horizontal padding costs content width, and
   // on a 320px screen there is none to spare. Pages are emitted at `padding: 0` so this is the
   // only inset the content pays (mobile checklist item 9 — declare page padding once).
@@ -3209,7 +3302,9 @@ function wrapWithSurfaceContainer(
   const containerProps: Record<string, unknown> = {};
   if (bgColor) containerProps.color = resolveThemeColor(bgColor, rootProps) || bgColor;
   if (padding && padding !== "0px") {
-    const p = clampToPhone(parsePx(padding), PHONE_CARD_PAD_MAX, "card padding");
+    const p = _gridCellDepth > 0
+      ? clampToPhone(parsePx(padding), PHONE_GRID_CELL_SURFACE_PAD_MAX, "grid cell surface padding")
+      : clampToPhone(parsePx(padding), PHONE_CARD_PAD_MAX, "card padding");
     containerProps.padding = { top: p, bottom: p, left: p, right: p };
   }
   if (borderRadius) {
@@ -6737,6 +6832,25 @@ const TAB_CATALOGUE: Record<string, { id: string; label: string; icon: string }>
   // therefore ineligible for the tab bar. The drawer's login link covers it.
 };
 
+/**
+ * Icon names the mobile engine accepts for `navigation.tabs[].icon` — the union of
+ * supported-icons.md categories (أ) "safe everywhere" and (ب) "tabs/app bar only". A name
+ * outside this list doesn't error, it silently renders a placeholder glyph, so an authored
+ * `tabIcon` that isn't in here is treated as if it were never set.
+ */
+const VALID_TAB_ICONS = new Set([
+  "account_circle", "close", "delete", "edit", "favorite", "grid_view", "home",
+  "list", "local_offer", "notifications", "person", "search", "settings",
+  "shopping_bag", "shopping_cart",
+  "add", "arrow_back", "arrow_forward", "back", "category", "favorite_outline",
+  "home_outlined", "image", "info", "inventory", "menu", "notifications_outlined",
+  "person_outline", "play_circle", "receipt", "share", "shopping_cart_outlined",
+  "star", "star_outline", "store", "videocam", "view_list",
+]);
+
+/** Fallback tab icon for a page with no canonical entry and no valid authored `tabIcon`. */
+const DEFAULT_TAB_ICON = "list";
+
 /** Routes synthesised when the theme has a /cart page but no checkout wizard. */
 const SYNTHETIC_CHECKOUT_ROUTES = [
   "/checkout",
@@ -6758,11 +6872,20 @@ const MAX_TABS = 5;
 function transformNavigation(rootProps: Record<string, unknown>, pages: Record<string, unknown>[]): Record<string, unknown> {
   const systemRoutes = new Set(SYSTEM_EXCLUDE_ROUTES);
   const pageRoutes = [...new Set(pages.map((p) => normalizeRoute((p.route as string) || "/")))];
+  const pageByRoute = new Map(
+    pages.map((p) => [normalizeRoute((p.route as string) || "/"), p])
+  );
 
   // Tabs are derived from the pages that actually exist. A hardcoded list produces tabs that
   // navigate to a route with no page behind it — every merchant without the full canonical
   // catalogue (and both worked examples) shipped four dead tabs.
-  const candidates = pageRoutes.filter((r) => !systemRoutes.has(r) && !r.includes(":"));
+  //
+  // A merchant can also opt a page out of the tab bar from the mobile editor's page settings
+  // (`showInTabs: false`); absent/undefined still defaults to included, matching the behaviour
+  // before that toggle existed.
+  const candidates = pageRoutes.filter(
+    (r) => !systemRoutes.has(r) && !r.includes(":") && pageByRoute.get(r)?.showInTabs !== false
+  );
   const ordered = [
     ...candidates.filter((r) => r === "/home"),
     ...candidates.filter((r) => r !== "/home"),
@@ -6776,14 +6899,17 @@ function transformNavigation(rootProps: Record<string, unknown>, pages: Record<s
     );
   }
 
-  const titleByRoute = new Map(
-    pages.map((p) => [normalizeRoute((p.route as string) || "/"), (p.title as string) || ""])
-  );
   const tabs = tabRoutes.map((route) => {
     const canonical = TAB_CATALOGUE[route];
-    if (canonical) return { ...canonical, route };
+    const authoredIcon = pageByRoute.get(route)?.tabIcon;
+    const icon =
+      typeof authoredIcon === "string" && VALID_TAB_ICONS.has(authoredIcon)
+        ? authoredIcon
+        : canonical?.icon || DEFAULT_TAB_ICON;
+    if (canonical) return { ...canonical, icon, route };
     const slug = route.replace(/^\//, "").replace(/[/:]/g, "-") || "page";
-    return { id: `tab-${slug}`, label: titleByRoute.get(route) || slug, icon: "article", route };
+    const label = (pageByRoute.get(route)?.title as string) || slug;
+    return { id: `tab-${slug}`, label, icon, route };
   });
 
   // Derived, never templated: `pages[].route − tabs[].route`. Unioning SYSTEM_EXCLUDE_ROUTES in
@@ -7216,6 +7342,10 @@ function transformPage(page: Record<string, unknown>): Record<string, unknown> {
     // canvas, so emitting a derived one here would contradict the editor.
     ...(fullScreen ? {} : { appBar }),
     body,
+    // Transient — read by transformNavigation below, stripped in buildEnvelope before the
+    // final pages array is assembled. Not part of the mobile page schema.
+    ...(typeof page.tabIcon === "string" ? { tabIcon: page.tabIcon } : {}),
+    ...(page.showInTabs === false ? { showInTabs: false } : {}),
   };
 
   if (footerNode) {
@@ -7360,6 +7490,10 @@ function normalizeSiteData(site: Record<string, unknown>): Record<string, unknow
       ...(page.fullScreen === true ? { fullScreen: true } : {}),
       ...(appBar ? { appBar } : {}),
       ...(sidebar ? { sidebar } : {}),
+      // Mobile tab-bar authoring (page settings panel): read by transformNavigation via
+      // transformPage below, then stripped in buildEnvelope before the final pages array.
+      ...(typeof page.tabIcon === "string" ? { tabIcon: page.tabIcon } : {}),
+      ...(page.showInTabs === false ? { showInTabs: false } : {}),
     };
   });
 }
@@ -7380,7 +7514,10 @@ export type AppEnvelopeConfig = {
 const PLACEHOLDER_APP_ENVELOPE = {
   name: "SOOQ Merchant Mobile",
   bundleId: "com.sooq.merchant.mobile",
-  apiBaseUrl: "https://sooq.up.railway.app",
+  // "sooq.up.railway.app" 404s — the backend moved and this placeholder went stale with it
+  // (web-to-mobile-config-audit-2026-08-22.md item P2). Still a placeholder: callers should pass
+  // the real merchant apiBaseUrl, but the fallback should at least be a live host.
+  apiBaseUrl: "https://shopengine-production-9b4c.up.railway.app",
   tenantId: "00000000-0000-0000-0000-000000000000",
   tenantSlug: "example-merchant",
 } as const;
@@ -7563,29 +7700,57 @@ function pruneDanglingNavigation(pages: Record<string, unknown>[]): void {
 }
 
 /**
- * Two width contracts the phone needs and the web canvas never did.
+ * `column.mainAxisAlignment` values `column_renderer.dart:250-259` wraps in
+ * `ConstrainedBox(minHeight: constraints.maxHeight)` — any alignment that isn't `start`/`end`
+ * makes the column stretch to fill its parent's full height (a grid cell, a card) and pushes
+ * whatever sits last in it down into empty space. `row` has no such quirk; only `column` does.
+ */
+const DISALLOWED_COLUMN_MAIN_AXIS = new Set(["spaceBetween", "spaceAround", "spaceEvenly"]);
+
+/**
+ * Node-tree contracts the phone needs and the web canvas never did. Runs once, after the whole
+ * tree is built, so it catches every source — `transformFlex`'s own conversions, hand-built
+ * templates (cart lines, testimonial cards), and the row→column demotion a few lines below, all
+ * in one place instead of re-deriving these rules at every call site that can produce them.
  *
- * 1. *Images in a repeated cell.* An unsized image sizes to its intrinsic bitmap, so a 134px grid
- *    cell tries to lay out a 407px column and the grid throws. Inside a `gridView` cell or an
- *    `itemBuilder` template an image must declare `aspectRatio` or `height`; square is the safe
- *    default for a product thumbnail.
+ * 1. *Images with no size.* An unsized image sizes to its intrinsic bitmap — inside a grid cell
+ *    that throws (a 134px cell trying to lay out a 407px column); standalone it can eat the whole
+ *    first screen before the real content scrolls into view. Every `network` image needs a
+ *    declared `aspectRatio` or `height`; square is the safe default.
  * 2. *Fixed pixel widths in a row.* Three 120px thumbnails and two 12px gaps need 384px; a 320px
  *    screen minus section gutters has 288. Rather than drop children, the row's fixed widths are
  *    scaled down to fit — the layout survives at every width.
+ * 3. *`spaceBetween`/`spaceAround`/`spaceEvenly` on a `column`* — see
+ *    {@link DISALLOWED_COLUMN_MAIN_AXIS}. Reset to `start`; a two-item row a grid cell can't fit
+ *    side by side should be authored as a stack on the web side, not rely on this fallback to look
+ *    intentional.
+ * 4. *Oversized gaps.* A literal (non-token) `gap` above what a 320px screen can spare between two
+ *    stacked elements — `spacing.xl` (36-48px desktop) reads as an intentional section break, not a
+ *    gap between a form and its label.
+ * 5. *Physical `textAlign`.* `"right"`/`"left"` hardcode a direction; the app is RTL-only today
+ *    (`dir` defaults `"rtl"` everywhere the value gets no explicit align), so `"right"` is always
+ *    logical `"start"` and `"left"` is `"end"` — see docs/orders-mobile-conversion.md and
+ *    CLAUDE.md's Arabic-first convention. Only physical values are rewritten; anything already
+ *    `start`/`end`/`center` is left alone.
  */
+const PHONE_GAP_MAX = 24;
+
 function enforcePhoneWidthContracts(pages: Record<string, unknown>[]): void {
   const rowBudget = PHONE_MIN_WIDTH - PHONE_SECTION_PAD_MAX * 2;
 
-  const visit = (node: unknown, inCell: boolean): void => {
+  const visit = (node: unknown): void => {
     if (Array.isArray(node)) {
-      for (const child of node) visit(child, inCell);
+      for (const child of node) visit(child);
       return;
     }
     if (!node || typeof node !== "object") return;
     const n = node as Record<string, unknown>;
     const props = (n.props || {}) as Record<string, unknown>;
 
-    if (inCell && n.type === "image" && props.aspectRatio === undefined && props.height === undefined) {
+    if (
+      n.type === "image" && props.source === "network" &&
+      props.aspectRatio === undefined && props.height === undefined
+    ) {
       props.aspectRatio = 1;
     }
 
@@ -7624,15 +7789,79 @@ function enforcePhoneWidthContracts(pages: Record<string, unknown>[]): void {
       }
     }
 
-    const nested = n.type === "gridView" || n.type === "listView";
-    for (const [key, value] of Object.entries(n)) {
-      visit(value, inCell || key === "itemBuilder" || (nested && key === "children"));
+    // Checked by current `n.type`, not the original one — this also catches the row→column
+    // demotion just above, which never had a reason to know about this constraint.
+    if (n.type === "column" && DISALLOWED_COLUMN_MAIN_AXIS.has(props.mainAxisAlignment as string)) {
+      addWarning(
+        `A column had mainAxisAlignment "${props.mainAxisAlignment}"; the engine's column_renderer ` +
+          `stretches any non-start/end alignment to fill the full parent height, leaving a blank gap ` +
+          `where the last child got pushed. Reset to "start" — author opposite-ends content ` +
+          `("price ↔ button") as a row on the web side if there is room for one.`
+      );
+      props.mainAxisAlignment = "start";
     }
+
+    if (typeof props.gap === "number" && props.gap > PHONE_GAP_MAX) {
+      _phoneClamps.push({ what: `${n.type} gap`, from: props.gap, to: PHONE_GAP_MAX });
+      props.gap = PHONE_GAP_MAX;
+    }
+
+    if (props.textAlign === "right") props.textAlign = "start";
+    else if (props.textAlign === "left") props.textAlign = "end";
+
+    for (const value of Object.values(n)) visit(value);
   };
 
   for (const page of pages) {
-    visit(page.body, false);
-    visit(page.footer, false);
+    visit(page.body);
+    visit(page.footer);
+  }
+}
+
+/** Counts nodes {@link pruneDeadNodes} removes this run, for the one summary warning. */
+let _deadNodesPruned = 0;
+function resetDeadNodesPruned() {
+  _deadNodesPruned = 0;
+}
+
+/**
+ * A node with nothing in it: a `text` with no literal `value` and no `valuePath` to fetch one at
+ * runtime, or a `column`/`row` whose `children` array is empty. Both still occupy their box —
+ * line height for the text, `mainAxisSize` for the flex — so they render as a blank gap rather
+ * than nothing at all (validator checklist items 8 and 9).
+ */
+function isDeadNode(node: unknown): boolean {
+  if (!node || typeof node !== "object" || Array.isArray(node)) return false;
+  const n = node as Record<string, unknown>;
+  const props = (n.props || {}) as Record<string, unknown>;
+  if (n.type === "text" && !props.valuePath && (props.value === undefined || props.value === "")) return true;
+  if ((n.type === "column" || n.type === "row") && Array.isArray(n.children) && n.children.length === 0) return true;
+  return false;
+}
+
+/**
+ * Removes dead nodes bottom-up so a container that only becomes empty *after* its own dead
+ * children are dropped is caught too — a `column` holding one now-removed empty `text` is itself
+ * empty once that child is gone, and a grandparent should not have to know that.
+ */
+function pruneDeadNodes(node: unknown): void {
+  if (Array.isArray(node)) {
+    for (const child of node) pruneDeadNodes(child);
+    return;
+  }
+  if (!node || typeof node !== "object") return;
+  const n = node as Record<string, unknown>;
+
+  for (const value of Object.values(n)) pruneDeadNodes(value);
+
+  if (Array.isArray(n.children)) {
+    const before = (n.children as unknown[]).length;
+    n.children = (n.children as unknown[]).filter((c) => !isDeadNode(c));
+    _deadNodesPruned += before - (n.children as unknown[]).length;
+  }
+  if (n.child !== undefined && isDeadNode(n.child)) {
+    delete n.child;
+    _deadNodesPruned++;
   }
 }
 
@@ -7661,10 +7890,26 @@ function buildEnvelope(pages: Record<string, unknown>[], rootProps: Record<strin
     allPages[0] = splash;
   }
 
+  // `tabIcon`/`showInTabs` are editor-only authoring fields consumed above by
+  // transformNavigation; the mobile page schema has a fixed key set and doesn't know about
+  // them, so strip before they reach the final pages array.
+  for (const p of allPages) {
+    delete p.tabIcon;
+    delete p.showInTabs;
+  }
+
   checkAuthRouteTargets(pages);
   pruneDanglingNavigation(allPages);
   assertCheckoutContracts(allPages);
   enforcePhoneWidthContracts(allPages);
+  pruneDeadNodes(allPages);
+  if (_deadNodesPruned > 0) {
+    addWarning(
+      `${_deadNodesPruned} node${_deadNodesPruned === 1 ? "" : "s"} removed as dead output: an empty ` +
+        `text with neither a literal value nor a valuePath, or a column/row with no children. Each ` +
+        `still reserved layout space (line height, mainAxisSize) as a blank gap.`
+    );
+  }
   if (_usedAppEnvelopeSource && app.tenantSlug === PLACEHOLDER_APP_ENVELOPE.tenantSlug) {
     addWarning(TENANT_PLACEHOLDER_WARNING);
   }
@@ -7770,6 +8015,7 @@ export function transformWebToMobile(input: string, appConfig: AppEnvelopeConfig
   resetWarnings();
   resetUnsupportedBlocks();
   resetPhoneClamps();
+  resetDeadNodesPruned();
   _warnedContainerRequest = false;
   _warnedAddToCartRedirect = false;
   _usedAppEnvelopeSource = false;
