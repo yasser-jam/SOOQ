@@ -111,19 +111,84 @@ export const getMineTemplateQueryOptions = (templateId: string) =>
   })
 
 /** Storefront read: needs tenant UUID because it's unauthenticated. */
+/**
+ * HTTP revalidation cache for the published design config.
+ *
+ * NOT a data source: on any cache miss the request behaves exactly as before —
+ * this only lets the backend answer `304 Not Modified` (empty body, `config_json`
+ * never loaded server-side) instead of re-sending the large payload when the
+ * published version is unchanged. Distinct from the editor's Site JSON buffer
+ * (`@/core/config/lib/site-data.ts`) which remains the Design Studio's private
+ * working storage — see `apps/store/CLAUDE.md`.
+ */
+const publishedConfigCacheKey = (tenantId: string, platform: DesignPlatform) =>
+  `sooq:published-design-config:${tenantId}:${platform}`
+
+const readPublishedConfigCache = (
+  tenantId: string,
+  platform: DesignPlatform
+): PublishedDesignConfig | null => {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = window.localStorage.getItem(
+      publishedConfigCacheKey(tenantId, platform)
+    )
+    if (!raw) return null
+    const cached = JSON.parse(raw) as PublishedDesignConfig
+    return typeof cached?.versionNumber === "number" ? cached : null
+  } catch {
+    return null
+  }
+}
+
+const writePublishedConfigCache = (
+  tenantId: string,
+  platform: DesignPlatform,
+  config: PublishedDesignConfig
+) => {
+  if (typeof window === "undefined") return
+  try {
+    window.localStorage.setItem(
+      publishedConfigCacheKey(tenantId, platform),
+      JSON.stringify(config)
+    )
+  } catch {
+    // Quota exceeded / private mode — the cache is best-effort by design.
+  }
+}
+
 export const getPublishedDesignConfig = async (
   tenantId: string,
   platform: DesignPlatform = "web"
 ): Promise<PublishedDesignConfig | null> => {
+  const cached = readPublishedConfigCache(tenantId, platform)
   try {
-    const res = await publicApi<ApiResponse<PublishedDesignConfig>>(
+    const res = await publicApi<ApiResponse<PublishedDesignConfig> | "">(
       `${PUBLIC_BASE}/config`,
       {
         tenantId,
         params: { platform },
+        ...(cached
+          ? {
+              // Server ETag contract (SOOQ-Back DSN.md): "<platform>-v<versionNumber>".
+              // Built from the cached body so we never need to read the ETag response
+              // header (not CORS-exposed).
+              headers: {
+                "If-None-Match": `"${platform}-v${cached.versionNumber}"`,
+              },
+              // Let 304 resolve normally — the default validateStatus would route it
+              // through the error interceptor, which toasts.
+              validateStatus: (status: number) =>
+                (status >= 200 && status < 300) || status === 304,
+            }
+          : {}),
       }
     )
-    return res.data ?? null
+    // 304 Not Modified has an empty body: the cached copy is still current.
+    if (!res || typeof res !== "object") return cached
+    const fresh = res.data ?? null
+    if (fresh) writePublishedConfigCache(tenantId, platform, fresh)
+    return fresh
   } catch (err) {
     const status = (err as { status?: number })?.status
     if (status === 404) return null

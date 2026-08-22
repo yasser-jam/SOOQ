@@ -66,6 +66,7 @@ const formVerifyOtp: SectionPreset = {
         align: "center",
         destinationType: "action",
         buttonAction: "verifyOtp",
+        submitRedirectUrl: "/",
       }),
     ],
   }),

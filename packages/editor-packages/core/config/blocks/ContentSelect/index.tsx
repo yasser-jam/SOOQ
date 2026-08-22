@@ -139,6 +139,32 @@ const ContentSelectInner: ComponentConfig<ContentSelectProps> = {
       setLocalValue(boundValue);
     }, [boundValue]);
 
+    // The select renders options[0] as chosen when nothing is bound yet;
+    // commit that default into checkout state so the visible choice and the
+    // state never diverge — otherwise "selecting" the pre-displayed option
+    // fires no change event and `canPlaceOrder` silently stays false.
+    const firstOptionValue = options[0]?.value ?? "";
+    useEffect(() => {
+      if (puck.isEditing || !firstOptionValue) return;
+
+      if (selectAction === "checkout_address" && !checkout.addressId) {
+        actions.checkout.selectAddress(firstOptionValue);
+      }
+      if (
+        selectAction === "checkout_payment_method" &&
+        !checkout.paymentMethodCode
+      ) {
+        actions.checkout.selectPaymentMethod(firstOptionValue);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+      selectAction,
+      firstOptionValue,
+      checkout.addressId,
+      checkout.paymentMethodCode,
+      puck.isEditing,
+    ]);
+
     const handleChange = (next: string) => {
       setLocalValue(next);
       if (puck.isEditing) return;

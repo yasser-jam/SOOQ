@@ -79,6 +79,7 @@ import {
 import { buildStudioEditHref } from "@/lib/design-studio-paths"
 import {
   DESIGN_SCHEMA_VERSION,
+  createBlankDraft,
   saveDesignDraft,
 } from "@/modules/design-studio/actions"
 import { applyDesignConfigToLocalStorage } from "@/modules/design-studio/local-site-sync"
@@ -676,14 +677,26 @@ export function ThemeOnboardingDialog({
       const themeName = data.themeName.trim() || FALLBACK_THEME_NAME
       const siteData = normalizeSiteData(await buildSiteDataFromState(data))
 
-      const version = await saveDesignDraft({
+      // `PUT /admin/design/draft` is update-only (404 on a tenant that never
+      // had a draft — the first-run case this wizard exists for). Create the
+      // blank draft row on 404, then retry the save with the wizard's config.
+      const draftInput = {
         configJson: {
           web: siteData,
           mobile: {},
           templateKey: CUSTOM_TEMPLATE_KEY,
         },
         schemaVersion: DESIGN_SCHEMA_VERSION,
-      })
+      }
+
+      let version
+      try {
+        version = await saveDesignDraft(draftInput)
+      } catch (err) {
+        if ((err as { status?: number })?.status !== 404) throw err
+        await createBlankDraft()
+        version = await saveDesignDraft(draftInput)
+      }
 
       // Keep editor localStorage in lockstep with the new API draft.
       applyDesignConfigToLocalStorage(version.configJson)

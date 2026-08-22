@@ -8,8 +8,10 @@ import type {
 	CustomerAddress,
 	PaymentMethodOption,
 } from "@/core/config/store-context"
+import { withStoreBasePath } from "@/core/config/lib/store-base-path"
 import { api } from "@/lib/api"
 import { publicApi } from "@/lib/public-api"
+import { randomUuid } from "@/lib/random-uuid"
 import type { ApiResponse } from "@/lib/types"
 import { isMockApiEnabled } from "@/lib/mock/enabled"
 import { MOCK_STORE_TENANT_ID } from "@/lib/mock/seed"
@@ -294,7 +296,7 @@ export async function submitCheckoutOrder(
 					addressLabel: values.addressLabel,
 				},
 				paymentMethod: "COD",
-				checkoutToken: crypto.randomUUID(),
+				checkoutToken: randomUuid(),
 				guestEmail: DEFAULT_GUEST_EMAIL,
 			},
 		})
@@ -395,6 +397,45 @@ export async function validateDiscountCode(
 	}
 }
 
+// ─── Online payment (redirect gateways, e.g. Paymera) ─────────────────────────
+
+/**
+ * Absolute URL of the storefront's payment-result landing page. Sent to the
+ * backend as `returnUrl`; the gateway redirects the customer back here after
+ * the hosted payment page (with `orderId` appended server-side).
+ */
+export function buildPaymentReturnUrl(): string | undefined {
+	if (typeof window === "undefined") return undefined
+	const path = withStoreBasePath("/payment/result") ?? "/payment/result"
+	return `${window.location.origin}${path}`
+}
+
+export type OrderPaymentStatus = {
+	/** Backend transaction status: PENDING | PAID | FAILED | UNPAID | REFUNDED */
+	status: string
+	rrn: string | null
+}
+
+/**
+ * `GET /public/payments/order/{orderId}/status` — polls the gateway through the
+ * backend and syncs the transaction + order. Used by the payment-result page.
+ */
+export async function getOrderPaymentStatus(
+	orderId: string,
+	tenantId: string | null,
+): Promise<OrderPaymentStatus> {
+	const response = await publicApi<
+		ApiResponse<{ status?: string; rrn?: string | null }>
+	>(`/public/payments/order/${orderId}/status`, {
+		tenantId: resolveCheckoutTenantId(tenantId),
+	})
+
+	return {
+		status: String(response.data?.status ?? "PENDING"),
+		rrn: response.data?.rrn ?? null,
+	}
+}
+
 /** Turn a saved address into the `shippingAddress` block the API expects. */
 function toShippingAddress(address: CustomerAddress) {
 	const { recipientName, phone } = getCheckoutCustomerFromCookies()
@@ -431,12 +472,20 @@ function toShippingAddress(address: CustomerAddress) {
 	}
 }
 
+export type PlaceOrderResult = {
+	orderId: string
+	/** Hosted payment page URL — non-null when the method requires redirect (e.g. PAYMERA). */
+	paymentRedirectUrl: string | null
+	paymentTxnId: string | null
+}
+
 /**
  * `POST /public/checkout` driven by the /checkout page's selections.
- * Returns the new order id so the page can switch to its success state.
+ * Returns the new order id plus the gateway redirect URL when the selected
+ * payment method is an online one (the caller must send the customer there).
  *
- * The body is the fixed five-key shape the backend expects; only
- * `shippingAddress` varies, and it comes from the address the customer picked.
+ * Only `shippingAddress` and `paymentMethod` vary; `returnUrl` tells the
+ * backend where the gateway should land the customer afterwards.
  * Note there is no `discountCode` field — a validated code currently affects
  * the displayed total only, not what the backend charges.
  */
@@ -447,7 +496,7 @@ export async function placeCheckoutOrder(
 		paymentMethodCode: string
 	},
 	tenantId: string | null,
-): Promise<string> {
+): Promise<PlaceOrderResult> {
 	const { items, warnings } = mapCartToOrderItems(input.cart)
 
 	if (items.length === 0) {
@@ -464,25 +513,33 @@ export async function placeCheckoutOrder(
 	const accessToken = readCookie(ACCESS_TOKEN_COOKIE)
 
 	try {
-		const response = await publicApi<ApiResponse<{ orderId?: string }>>(
-			"/public/checkout",
-			{
-				method: "POST",
-				tenantId: resolveCheckoutTenantId(tenantId),
-				headers: accessToken
-					? { Authorization: `Bearer ${accessToken}` }
-					: undefined,
-				body: {
-					items,
-					shippingAddress,
-					paymentMethod: input.paymentMethodCode,
-					checkoutToken: crypto.randomUUID(),
-					guestEmail: DEFAULT_GUEST_EMAIL,
-				},
+		const response = await publicApi<
+			ApiResponse<{
+				orderId?: string
+				paymentRedirectUrl?: string | null
+				paymentTxnId?: string | null
+			}>
+		>("/public/checkout", {
+			method: "POST",
+			tenantId: resolveCheckoutTenantId(tenantId),
+			headers: accessToken
+				? { Authorization: `Bearer ${accessToken}` }
+				: undefined,
+			body: {
+				items,
+				shippingAddress,
+				paymentMethod: input.paymentMethodCode,
+				checkoutToken: randomUuid(),
+				guestEmail: DEFAULT_GUEST_EMAIL,
+				returnUrl: buildPaymentReturnUrl(),
 			},
-		)
+		})
 
-		return response.data?.orderId ?? ""
+		return {
+			orderId: response.data?.orderId ?? "",
+			paymentRedirectUrl: response.data?.paymentRedirectUrl ?? null,
+			paymentTxnId: response.data?.paymentTxnId ?? null,
+		}
 	} catch (err) {
 		throw new Error(getApiErrorMessage(err, "حدث خطأ أثناء تقديم الطلب."))
 	}

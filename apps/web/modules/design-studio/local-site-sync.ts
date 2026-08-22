@@ -19,6 +19,7 @@ import {
   getDesignDraft,
   saveDesignDraft,
 } from "./actions"
+import { writeLocalMobileSyncPreference } from "./mobile-sync-preference"
 import type { DesignConfigJson, DesignVersion } from "./types"
 
 const isBrowser = typeof window !== "undefined"
@@ -50,6 +51,7 @@ const readTemplateKey = (
 export function applyDesignConfigToLocalStorage(
   config: DesignConfigJson | undefined | null
 ): boolean {
+  let wrote = false
   if (!isBrowser || !config) return false
 
   if (!hasUsableSitePages(config.web)) return false
@@ -57,7 +59,29 @@ export function applyDesignConfigToLocalStorage(
   writeSiteData(normalizeSiteData(config.web), "desktop")
   clearAllPageDrafts()
 
-  return true
+  // `mobileSite` is the editable mobile Site JSON (independent mobile design);
+  // legacy `mobile` only matches when an old draft stored Site JSON there —
+  // today it carries the app-builder screens contract, which has no pages.
+  const mobileSiteSource = hasUsableSitePages(config.mobileSite)
+    ? config.mobileSite
+    : hasUsableSitePages(config.mobile)
+      ? config.mobile
+      : null
+
+  if (mobileSiteSource) {
+    writeSiteData(normalizeSiteData(mobileSiteSource), "mobile")
+    wrote = true
+  }
+
+  if (typeof config.mobileSyncEnabled === "boolean") {
+    writeLocalMobileSyncPreference(config.mobileSyncEnabled)
+  }
+
+  if (wrote) {
+    clearAllPageDrafts()
+  }
+
+  return wrote
 }
 
 export type HydrateLocalSiteSource =
