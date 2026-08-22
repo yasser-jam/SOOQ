@@ -66,6 +66,7 @@ const getZoneId = (candidate: Droppable | undefined) => {
 const BUFFER = 6;
 
 let loggedFrameMiss = false;
+let loggedEmptyAfterFilter = false;
 
 const getPointerCollisions = (
   position: GlobalPosition,
@@ -163,7 +164,7 @@ const getPointerCollisions = (
     }
   }
 
-  if (usedFrameLookup && candidates.length === 0 && !loggedFrameMiss) {
+  if (candidates.length === 0 && !loggedFrameMiss) {
     loggedFrameMiss = true;
 
     const frameEl = document.querySelector<HTMLIFrameElement>(
@@ -173,7 +174,9 @@ const getPointerCollisions = (
     const innerWidth = frameEl?.contentWindow?.innerWidth;
     const innerHeight = frameEl?.contentWindow?.innerHeight;
 
-    console.warn("[puck-debug] iframe pointer lookup found no candidates", {
+    console.warn("[puck-debug] getPointerCollisions found no candidates", {
+      previewFrameFound: !!previewFrame,
+      usedFrameLookup,
       pointer: { x: position.x, y: position.y },
       frameRelative: { x: position.frame.x, y: position.frame.y },
       elementsFound: elements?.length,
@@ -257,7 +260,25 @@ export const findDeepestCandidate = (
 
     const primaryCandidate = filteredCandidates[0];
 
-    if (!primaryCandidate) return { zone: null, area: null };
+    if (!primaryCandidate) {
+      if (!loggedEmptyAfterFilter) {
+        loggedEmptyAfterFilter = true;
+
+        console.warn(
+          "[puck-debug] candidates found but all filtered out",
+          {
+            rawCandidates: candidates.map((c) => ({
+              id: c.id,
+              type: c.type,
+              data: c.data,
+            })),
+            draggedCandidateId: draggable?.id,
+          }
+        );
+      }
+
+      return { zone: null, area: null };
+    }
 
     const primaryCandidateData = primaryCandidate.data as
       | ComponentDndData

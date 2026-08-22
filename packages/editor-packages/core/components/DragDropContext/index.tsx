@@ -314,6 +314,7 @@ const DragDropContextClient = ({
   // doesn't spam onDragOver (which fires on every pointer move). Remove
   // once the root cause is confirmed.
   const loggedMoveDiagnostic = useRef(false);
+  const loggedNoDraggedItem = useRef(false);
 
   const nextContextValue = useMemo<DropZoneContext>(
     () => ({
@@ -488,7 +489,16 @@ const DragDropContextClient = ({
           const draggedItem = zoneStore.getState()?.draggedItem;
 
           // Drag end can sometimes trigger after drag
-          if (!draggedItem) return;
+          if (!draggedItem) {
+            if (!loggedNoDraggedItem.current) {
+              loggedNoDraggedItem.current = true;
+              console.warn(
+                "[puck-debug] onDragOver fired but draggedItem is unset",
+                { mode: dragMode.current }
+              );
+            }
+            return;
+          }
 
           // Cancel any stale debounces
           cancelDb();
@@ -690,6 +700,15 @@ const DragDropContextClient = ({
           dragMode.current = isNewComponent ? "new" : "existing";
           initialSelector.current = undefined;
           loggedMoveDiagnostic.current = false;
+          loggedNoDraggedItem.current = false;
+
+          console.warn("[puck-debug] onBeforeDragStart fired", {
+            mode: dragMode.current,
+            sourceType: event.operation.source?.type,
+            sourceId: event.operation.source?.id,
+            viewportWidth: appStore.getState().state.ui.viewports?.current
+              ?.width,
+          });
 
           zoneStore.setState({ draggedItem: event.operation.source });
 

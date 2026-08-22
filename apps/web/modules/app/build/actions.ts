@@ -95,6 +95,7 @@ export const createConfiguration = async (
 			apiBaseUrl: configJson.apiBaseUrl,
 			bundleId: configJson.bundleId,
 			configUrl: MOBILE_CONFIG_URL,
+			...(configJson.iconUrl ? { iconUrl: configJson.iconUrl } : {}),
         },
       },
     })
