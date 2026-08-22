@@ -38,7 +38,7 @@ export function ErteqaLogo({ size = "sm", className, priority }: ErteqaLogoProps
       aria-label="إرتقاء — erteqa"
     >
       <Image
-        src="/images/erteqa-logo.png"
+        src="/images/sooq-logo.png"
         alt=""
         width={px}
         height={px}

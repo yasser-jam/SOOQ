@@ -170,7 +170,7 @@ export const Root: RootConfig<{
     title: bilingualTextField({ label: "Page title" }),
   } as any,
   defaultProps: {
-    title: { ar: "متجر Ertqaa", en: "Ertqaa Store" },
+    title: { ar: "متجر SOOQ", en: "SOOQ Store" },
     enableHtmlRichTextBlock: false,
     direction: "rtl",
     language: "ar",

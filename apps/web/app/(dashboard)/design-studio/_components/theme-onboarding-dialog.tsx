@@ -2006,7 +2006,7 @@ async function buildSiteDataFromState(
     FOOTER_PRESETS.find((f) => f.id === state.footerPresetId) ?? FOOTER_PRESETS[0]!
 
   const rootProps: Record<string, unknown> = {
-    title: state.themeName || "متجر Ertqaa",
+    title: state.themeName || "متجر SOOQ",
     direction: "rtl",
     language: "ar",
     currency: "SYP",
