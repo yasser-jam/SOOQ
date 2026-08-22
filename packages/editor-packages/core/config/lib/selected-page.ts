@@ -1,25 +1,22 @@
-import { componentKey } from "../index";
-
 export const SELECTED_PAGE_EVENT = "puck-demo-selected-page";
 
-const SELECTED_PAGE_KEY = `puck-demo:${componentKey}:selected-page`;
+// In-memory only: the currently selected page must not survive a reload or a
+// fresh editor mount. Every time the editor is (re)opened it should start on
+// the home page ("/"), regardless of what page was last edited.
+let selectedPage: string | null = null;
 
 export function readSelectedPage(): string | null {
-  if (typeof window === "undefined") return null;
-
-  const raw = window.localStorage.getItem(SELECTED_PAGE_KEY);
-  if (!raw) return null;
-
-  try {
-    const parsed = JSON.parse(raw) as { path?: string };
-    return typeof parsed.path === "string" ? parsed.path : null;
-  } catch {
-    return null;
-  }
+  return selectedPage;
 }
 
 function writeSelectedPage(path: string) {
-  window.localStorage.setItem(SELECTED_PAGE_KEY, JSON.stringify({ path }));
+  selectedPage = path;
+}
+
+// Call when the editor is (re)entered so a fresh mount never inherits the
+// page selected during a previous editing session.
+export function resetSelectedPage() {
+  selectedPage = null;
 }
 
 export function applySelectedPage(pagePath: string) {

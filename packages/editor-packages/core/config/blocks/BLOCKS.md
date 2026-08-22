@@ -2411,6 +2411,39 @@ A `Group` with `cartLineId` set binds to a line in `localStorage` key `store-car
 
 ---
 
+## ProductImagesGallery
+
+> 🧩 **Preset-only.** Hidden from the palette; inserted by the `product-detail-layout` and `product-images-slider` presets.
+
+**Label:** معرض صور المنتج  
+**Description:** Data-bound counterpart to [`ImageGallery`](#imagegallery) — reuses the same `GalleryView` renderer (grid/slider), but the `images` array is resolved at render time from the nearest bound `Group` (via `resolveBoundImageUrls`) instead of being authored per item. Always renders exactly as many images as the bound product has, so it replaces the old pattern of adding one [`ContentImage`](#contentimage) per index (`images[0].url`, `images[1].url`, …). Falls back to a single `placeholderSrc` image when no product is bound.
+
+### Properties
+
+Same style fields as [`ImageGallery`](#imagegallery) (`mode`, `aspectRatio`, `objectFit`, `radius`, `gap`, `gridColumns`, `gridRows`, `slidesPerView`, `autoplay`, `autoplayDuration`, `showArrows`), minus the static `images` array, plus:
+
+| Property | Type | Values / Notes | Default |
+|---|---|---|---|
+| `placeholderSrc` | `string` | Fallback image URL when no product is bound / no images | `"https://placehold.co/800x600/e2e8f0/64748b?text=Product"` |
+
+### JSON Example
+
+```json
+{
+  "type": "ProductImagesGallery",
+  "props": {
+    "mode": "slider",
+    "aspectRatio": "square",
+    "objectFit": "cover",
+    "radius": "theme-md",
+    "autoplay": true,
+    "showArrows": true
+  }
+}
+```
+
+---
+
 ## ProductInfo
 
 > 🗄️ **Legacy — use a bound [`Group`](#group) + [`ContentHeading`](#contentheading) / [`ContentParagraph`](#contentparagraph) with `valueContext`.** Hidden from the palette.

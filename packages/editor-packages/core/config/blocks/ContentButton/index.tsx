@@ -136,6 +136,11 @@ const cartBadgeStyle: CSSProperties = {
   lineHeight: 1,
   boxSizing: "border-box",
   pointerEvents: "none",
+  // Without an explicit stacking order the badge only outranks the button's own
+  // in-flow content (icon/label). Any positioned sibling in the header (e.g. a
+  // themed overlay or an adjacent nav item) painted after it in DOM order can
+  // still cover this corner, making the count look clipped — pin it above.
+  zIndex: 1,
 };
 
 function getVariantColors(variant: string): { bg: string; fg: string } {

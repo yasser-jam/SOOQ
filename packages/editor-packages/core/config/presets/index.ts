@@ -117,6 +117,7 @@ export {
   createDemoProductCard,
   createProductsGridSection,
   createProductDetailSection,
+  createProductImagesGalleryBlock,
 } from "./products-grid";
 export {
   createProductsPagePreset,
@@ -139,6 +140,12 @@ export {
 } from "./cart";
 export { createSettingsPageContent } from "./account";
 export { createCheckoutPageContent } from "./checkout";
+export {
+  createOrdersListSection,
+  createOrdersPageContent,
+  createOrderDetailPageContent,
+  createCancelOrderZonePopup,
+} from "./orders";
 export {
   createSplashPageContent,
   SPLASH_PAGE_PATH,

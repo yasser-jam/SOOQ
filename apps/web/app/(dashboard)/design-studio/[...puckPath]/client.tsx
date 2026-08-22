@@ -81,6 +81,7 @@ import {
   withEditorMode,
 } from "@/lib/design-studio-paths"
 import { useSelectedPage } from "@/core/config/lib/use-selected-page"
+import { resetSelectedPage } from "@/core/config/lib/selected-page"
 import { PAGES_UPDATED_EVENT } from "@/core/config/page-registry"
 
 // shopifyOutlinePlugin registers as "sections" (الأقسام); built-in outline
@@ -716,6 +717,14 @@ export function Client({
   isEdit: boolean
   isPreview?: boolean
 }) {
+  // Every fresh mount of the editor (opening it, or reopening after closing)
+  // must start on the home page, never on whatever page was last edited.
+  const hasResetSelectedPageRef = useRef(false)
+  if (!hasResetSelectedPageRef.current) {
+    resetSelectedPage()
+    hasResetSelectedPageRef.current = true
+  }
+
   const selectedPagePath = useSelectedPage()
   const path = themeSlug ? selectedPagePath : (pathProp ?? "/")
 

@@ -13,11 +13,9 @@ function subscribe(onStoreChange: () => void) {
   }
 
   window.addEventListener(SELECTED_PAGE_EVENT, onStoreChange);
-  window.addEventListener("storage", onStoreChange);
 
   return () => {
     window.removeEventListener(SELECTED_PAGE_EVENT, onStoreChange);
-    window.removeEventListener("storage", onStoreChange);
   };
 }
 

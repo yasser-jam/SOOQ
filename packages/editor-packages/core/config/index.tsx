@@ -12,6 +12,7 @@ import { Space } from "./blocks/Space";
 import { RichText } from "./blocks/RichText";
 import { ProductCard } from "./blocks/ProductCard";
 import { ProductImageCarousel } from "./blocks/ProductImageCarousel";
+import { ProductImagesGallery } from "./blocks/ProductImagesGallery";
 import { ProductVariants } from "./blocks/ProductVariants";
 import { CartSection } from "./blocks/CartSection";
 import { CartList } from "./blocks/CartList";
@@ -210,6 +211,9 @@ export const conf: UserConfig = {
     // Bound — commerce
     ProductCard: withShowCondition(ProductCard),
     ProductImageCarousel: withShowCondition(ProductImageCarousel),
+    // Preset-only (like SplashHero) — inserted by the product-images-gallery /
+    // product-images-slider presets, not dragged from the palette directly.
+    ProductImagesGallery: withShowCondition(ProductImagesGallery),
     ProductVariants: withShowCondition(ProductVariants),
     CategoryListMenu: withShowCondition(CategoryListMenu),
     CheckoutForm: withShowCondition(CheckoutForm),

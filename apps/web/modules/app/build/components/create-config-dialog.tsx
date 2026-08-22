@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import ImageUploader, {
 	type ImageUploaderState,
 } from "@/components/system/image-uploader"
+import { resolveMediaUrl } from "@/lib/media"
 import { uploadMedia } from "@/modules/media/upload/actions"
 import { validateImageFile } from "@/modules/media/upload/init"
 import { MEDIA_CONSTRAINTS } from "@/modules/media/upload/types"
@@ -63,7 +64,7 @@ function CreateConfigForm({
 				toast.error("لم يتم استلام رابط الصورة من الخادم")
 				return
 			}
-			setIconUrl(uploaded.publicUrl)
+			setIconUrl(resolveMediaUrl(uploaded.publicUrl) ?? uploaded.publicUrl)
 			toast.success("تم رفع الأيقونة")
 		},
 	})

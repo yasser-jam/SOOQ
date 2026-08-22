@@ -8,6 +8,7 @@ import type { ValueContext } from "../../binding";
 import { useBoundValue } from "../../binding";
 import { bindPathField } from "../../fields/BindPathField";
 import { createAlignField } from "../../fields/AlignField";
+import { imageUrlField } from "../../fields/ImageUrlField";
 import {
   bilingualTextField,
   pickLang,
@@ -68,7 +69,7 @@ function resolveImageRadius(
 }
 
 const imageFields = {
-  src: { type: "text" as const, label: "رابط الصورة" },
+  src: imageUrlField({ label: "رابط الصورة" }),
   valueContext: bindPathField({
     label: "ربط الصورة ببيانات الصفحة (اختياري)",
     placeholder: "images[0].url",

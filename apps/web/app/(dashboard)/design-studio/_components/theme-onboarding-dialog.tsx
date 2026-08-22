@@ -62,20 +62,21 @@ import {
 import { builtinThemeCatalog, loadBuiltinThemeSiteData } from "@/core/themes"
 import { DEFAULT_HEADER_LINKS, type HeaderLink } from "@/core/config/components/Header"
 import { DEFAULT_FOOTER_COLUMNS, type FooterColumn } from "@/core/config/components/Footer"
-import {
-  createProductCardBlock,
-  createStorefrontProductCardBlock,
-  createProductsGridSection,
-  createProductDetailSection,
-} from "@/core/config/presets/products-grid"
+import { createProductDetailSection } from "@/core/config/presets/products-grid"
 import { createProductsPagePresetContent } from "@/core/config/presets/products-page"
 import {
+  createCancelOrderZonePopup,
   createCartPageContent,
+  createCheckoutPageContent,
+  createOrderDetailPageContent,
+  createOrdersPageContent,
+  createSettingsPageContent,
   FORMS_PRESETS,
   GENERAL_PRESETS,
   HERO_PRESETS,
   type SectionPreset,
 } from "@/core/config/presets"
+import { ROOT_ZONE_POPUP } from "@/core/config/shell-zones"
 import { buildStudioEditHref } from "@/lib/design-studio-paths"
 import {
   DESIGN_SCHEMA_VERSION,
@@ -1783,6 +1784,10 @@ function StepHomeSections({
           <li>/cart — السلة</li>
           <li>/login — تسجيل الدخول</li>
           <li>/verify-otp — التحقق من الرمز</li>
+          <li>/checkout — إتمام الطلب</li>
+          <li>/orders — طلباتي</li>
+          <li>/orders/:order-id — تفاصيل الطلب (ديناميكية)</li>
+          <li>/settings — إعدادات الحساب</li>
         </ul>
       </div>
     </div>
@@ -2036,13 +2041,6 @@ async function buildSiteDataFromState(
     }
   }
 
-  const productCardBlock =
-    state.productCardPresetId === "storefront"
-      ? createStorefrontProductCardBlock()
-      : state.productCardPresetId === "minimal"
-        ? createStorefrontProductCardBlock({ content: undefined })
-        : createProductCardBlock()
-
   const heroPreset =
     HERO_PRESETS.find((preset) => preset.id === state.heroPresetId) ?? HERO_PRESETS[0]
   const generalPresets = state.generalSectionIds
@@ -2056,11 +2054,6 @@ async function buildSiteDataFromState(
   for (const preset of generalPresets) {
     homePageContent.push(clonePresetSection(preset))
   }
-  homePageContent.push(
-    createProductsGridSection({
-      content: [productCardBlock],
-    }) as SitePage["content"][number]
-  )
 
   const loginPreset = findFormPreset("form-login")
   const verifyOtpPreset = findFormPreset("form-verify-otp")
@@ -2137,9 +2130,60 @@ async function buildSiteDataFromState(
     content: [createProductDetailSection() as SitePage["content"][number]],
   }
 
+  const checkoutPage: SitePage = {
+    path: "/checkout",
+    slug: "/checkout",
+    name: "إتمام الطلب",
+    link: "/checkout",
+    title: "إتمام الطلب",
+    description: "عنوان التوصيل وطريقة الدفع وتأكيد الطلب",
+    iconName: "ShoppingCart",
+    content: createCheckoutPageContent() as SitePage["content"],
+  }
+
+  const ordersPage: SitePage = {
+    path: "/orders",
+    slug: "/orders",
+    name: "طلباتي",
+    link: "/orders",
+    title: "طلباتي",
+    description: "قائمة طلبات العميل",
+    iconName: "Package",
+    content: createOrdersPageContent() as SitePage["content"],
+  }
+
+  const orderDetailPage: SitePage = {
+    path: "/orders/:order-id",
+    slug: "/orders/example-order",
+    name: "تفاصيل الطلب",
+    link: "/orders/example-order",
+    title: "تفاصيل الطلب",
+    description: "صفحة تفاصيل الطلب (ديناميكية)",
+    iconName: "Package",
+    dynamic: true,
+    examplePath: "/orders/example-order",
+    content: createOrderDetailPageContent() as SitePage["content"],
+  }
+
+  const settingsPage: SitePage = {
+    path: "/settings",
+    slug: "/settings",
+    name: "إعدادات الحساب",
+    link: "/settings",
+    title: "إعدادات الحساب",
+    description: "الملف الشخصي وتفضيلات التسويق والعناوين المحفوظة",
+    iconName: "FileText",
+    content: createSettingsPageContent() as SitePage["content"],
+  }
+
+  const cancelOrderPopup = createCancelOrderZonePopup()
+  cancelOrderPopup.props.is_active = false
+
   return {
     root: { props: rootProps },
-    zones: {},
+    zones: {
+      [ROOT_ZONE_POPUP]: [cancelOrderPopup],
+    } as SiteData["zones"],
     pages: [
       homePage,
       productsPage,
@@ -2147,6 +2191,10 @@ async function buildSiteDataFromState(
       cartPage,
       loginPage,
       verifyOtpPage,
+      checkoutPage,
+      ordersPage,
+      orderDetailPage,
+      settingsPage,
     ],
   }
 }

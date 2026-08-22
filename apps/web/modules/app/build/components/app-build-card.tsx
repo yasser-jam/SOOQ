@@ -167,7 +167,9 @@ export function AppBuildCard() {
 				</CardDescription>
 				<CardAction className="flex flex-col items-end gap-1.5">
 					<div className="flex items-center gap-2">
-						{current && <BuildStatusBadge status={current.buildStatus} />}
+						{current && current.buildStatus !== "QUEUED" && (
+							<BuildStatusBadge status={current.buildStatus} />
+						)}
 						<Button
 							size="sm"
 							variant="outline"
@@ -259,16 +261,6 @@ export function AppBuildCard() {
 							جارٍ البناء...
 						</Button>
 					</div>
-				)}
-
-				{current && isInFlight && gaveUpPolling && (
-					<Alert>
-						<AlertTriangle className="size-4" />
-						<AlertTitle>تأخر البناء</AlertTitle>
-						<AlertDescription>
-							لا يزال البناء قيد التنفيذ منذ فترة أطول من المعتاد. راجع الفريق التقني إذا استمر الأمر.
-						</AlertDescription>
-					</Alert>
 				)}
 
 				{current && current.buildStatus === "SUCCESS" && (

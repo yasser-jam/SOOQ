@@ -5868,6 +5868,100 @@ function transformImageGallery(block: Record<string, unknown>, rootProps: Record
   );
 }
 
+/**
+ * `ProductImagesGallery` — the bound counterpart to `ImageGallery`: the web block
+ * resolves every image on the bound product at render time instead of authoring one
+ * `ContentImage` per index, so the mobile side has to repeat too rather than pick a
+ * single field. Only meaningful on the product-detail page (the one place the
+ * `images` array is fetched in full, via `include=IMAGES` on `PRODUCT_DETAIL_REQUEST`);
+ * anywhere else there is no such array to repeat over.
+ *
+ * Grid mode reuses the same `gridView` + `itemBuilder.repeat` primitive as every other
+ * collection on mobile (products grid, cart, wishlist), pointed at `<base>.images`
+ * instead of a top-level request. Slider mode has no repeat-based primitive to reuse —
+ * `imageSlider` (the widget `ImageGallery`'s slider mode already emits) takes a static
+ * `props.images` list — so it is extended here with an `imagesPath` + `urlField` pair,
+ * mirroring the `itemsPath` convention the `dropdown` widget already uses for the
+ * variants picker (`transformProductVariants`). This is the one part of the mapping
+ * that assumes an engine capability not yet confirmed; flagged via warning below.
+ */
+function transformProductImagesGallery(block: Record<string, unknown>, rootProps: Record<string, unknown>): Record<string, unknown> | null {
+  const props = (block.props || {}) as Record<string, unknown>;
+  const mode = (props.mode as string) || "grid";
+  const aspect = resolveAspectRatio((props.aspectRatio as string) || "square") ?? 1.0;
+  const objectFit = (props.objectFit as string) || "cover";
+  const radius = resolveThemePx((props.radius as string) || "theme-md", rootProps, 12);
+
+  if (!_bindingScope || _bindingScope.kind !== "product" || _bindingScope.base !== PRODUCT_DETAIL_BASE) {
+    addWarning(
+      "ProductImagesGallery repeats over the product-detail request's own images array; " +
+        "outside the product-detail page there is nothing to repeat over, so it rendered as a " +
+        "single placeholder image"
+    );
+    const node: Record<string, unknown> = {
+      id: generateId("product-images-gallery"),
+      type: "image",
+      props: { source: "network", url: (props.placeholderSrc as string) || "", fit: objectFit, aspectRatio: aspect, borderRadius: radius },
+    };
+    return applyLayout(node, props.layout as Record<string, unknown> | undefined, rootProps);
+  }
+
+  const imagesSource = `${_bindingScope.base}.images`;
+
+  if (mode === "slider") {
+    const autoplayDuration = props.autoplayDuration as string | undefined;
+    const intervalMs = autoplayDuration ? resolveThemePx(autoplayDuration, rootProps, 4) * 1000 : 4000;
+    addWarning(
+      "ProductImagesGallery slider mode converts to \"imageSlider\" with an \"imagesPath\"/\"urlField\" " +
+        `pair (source: "${imagesSource}", urlField: "url") instead of a static image list — confirm ` +
+        "the engine's imageSlider widget supports resolving its images dynamically, the same way " +
+        "\"dropdown\" resolves \"itemsPath\""
+    );
+    const node: Record<string, unknown> = {
+      id: generateId("product-images-slider"),
+      type: "imageSlider",
+      props: {
+        imagesPath: imagesSource,
+        urlField: "url",
+        aspectRatio: aspect,
+        fit: objectFit,
+        borderRadius: radius,
+        autoPlay: props.autoplay === true,
+        intervalMs,
+        showIndicators: true,
+        indicatorStyle: "dot",
+        showArrows: props.showArrows === true,
+      },
+    };
+    return applyLayout(node, props.layout as Record<string, unknown> | undefined, rootProps);
+  }
+
+  const cols = Math.min(Math.max(parseInt(String(props.gridColumns || 3), 10), 1), 6);
+  const gap = resolveThemePx((props.gap as string) || "theme-16", rootProps, 16);
+
+  const node: Record<string, unknown> = {
+    id: generateId("product-images-gallery"),
+    type: "gridView",
+    props: {
+      crossAxisCount: cols,
+      mainAxisSpacing: gap,
+      crossAxisSpacing: gap,
+      childAspectRatio: aspect,
+      enableInnerScroll: false,
+    },
+    itemBuilder: {
+      type: "repeat",
+      source: imagesSource,
+      item: {
+        id: generateId("product-images-gallery-item"),
+        type: "image",
+        props: { source: "network", urlPath: "item.url", fit: objectFit, aspectRatio: aspect, borderRadius: radius },
+      },
+    },
+  };
+  return applyLayout(node, props.layout as Record<string, unknown> | undefined, rootProps);
+}
+
 function transformAccordion(block: Record<string, unknown>, rootProps: Record<string, unknown>): Record<string, unknown> {
   const props = (block.props || {}) as Record<string, unknown>;
   const items = (props.items as Record<string, unknown>[]) || [];
@@ -6612,6 +6706,7 @@ function dispatchBlock(block: Record<string, unknown>, rootProps: Record<string,
     case "Accordion": return transformAccordion(block, rootProps);
     case "Blank": return transformBlank(block, rootProps);
     case "ImageGallery": return transformImageGallery(block, rootProps);
+    case "ProductImagesGallery": return transformProductImagesGallery(block, rootProps);
     case "Logos": return transformLogos(block, rootProps);
     case "Stats": return transformStats(block, rootProps);
     case "ContactForm": return transformContactForm(block, rootProps);

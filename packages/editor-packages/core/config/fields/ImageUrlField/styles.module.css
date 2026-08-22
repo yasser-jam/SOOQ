@@ -1,0 +1,67 @@
+.ImageUrlField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ImageUrlField-uploadRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ImageUrlField-uploadButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s ease;
+}
+
+.ImageUrlField-uploadButton:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.ImageUrlField-uploadButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ImageUrlField-spinner {
+  animation: ImageUrlField-spin 0.8s linear infinite;
+}
+
+@keyframes ImageUrlField-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ImageUrlField-preview {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.ImageUrlField-hiddenInput {
+  display: none;
+}
+
+.ImageUrlField-error {
+  font-size: 11px;
+  color: #dc2626;
+}

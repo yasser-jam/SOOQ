@@ -112,6 +112,9 @@ export const CartIconButton: ComponentConfig<CartIconButtonProps> = {
       lineHeight: 1,
       boxSizing: "border-box",
       pointerEvents: "none",
+      // Same stacking fix as ContentButton's cart badge: pin above the icon and
+      // any positioned sibling in the header so the count never renders under it.
+      zIndex: 1,
     };
 
     const inner = (

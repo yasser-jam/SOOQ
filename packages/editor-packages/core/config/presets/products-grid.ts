@@ -268,6 +268,36 @@ export function createDemoProductCard(
   };
 }
 
+/**
+ * Bound product images block — resolves every image on the bound product at render
+ * time (`ProductImagesGallery`), instead of one `ContentImage` per hard-coded index
+ * (`images[0].url`, `images[1].url`, …). Always shows the same number of images as
+ * the product actually has. `mode: "grid"` is the default; pass `{ mode: "slider" }`
+ * for a carousel.
+ */
+export function createProductImagesGalleryBlock(
+  overrides: Record<string, unknown> = {}
+): ComponentDataOptionalId {
+  return {
+    type: "ProductImagesGallery",
+    props: {
+      mode: "grid",
+      placeholderSrc: "https://placehold.co/600x600/e2e8f0/64748b?text=Product",
+      aspectRatio: "square",
+      objectFit: "cover",
+      radius: "theme-md",
+      gap: "theme-16",
+      gridColumns: 3,
+      gridRows: 0,
+      slidesPerView: 1,
+      autoplay: true,
+      autoplayDuration: "theme-4",
+      showArrows: true,
+      ...overrides,
+    },
+  };
+}
+
 export function createProductDetailSection(
   overrides: Record<string, unknown> = {}
 ): ComponentDataOptionalId {
@@ -297,21 +327,7 @@ export function createProductDetailSection(
                 justifyContent: "flex-start",
                 wrap: "nowrap",
                 layout: { grow: true },
-                content: [
-                  {
-                    type: "ContentImage",
-                    props: {
-                      src: "https://placehold.co/600x600/e2e8f0/64748b?text=Product",
-                      alt: { ar: "", en: "" },
-                      align: "center",
-                      objectFit: "cover",
-                      radius: "theme-md",
-                      maxWidth: "100%",
-                      altValueContext: { path: "product.title" },
-                      valueContext: { path: "images[0].url" },
-                    },
-                  },
-                ],
+                content: [createProductImagesGalleryBlock()],
               },
             },
             {
@@ -428,8 +444,26 @@ const productDetailLayout: SectionPreset = {
   componentData: createProductDetailSection(),
 };
 
+const productImagesSlider: SectionPreset = {
+  id: "product-images-slider",
+  category: "products-grid",
+  title: "سلايدر صور المنتج",
+  previewImage:
+    "https://placehold.co/800x500/e2e8f0/64748b?text=Product+Images+Slider",
+  componentData: createSection({
+    name: "Product images slider",
+    columns: 1,
+    columnsMobile: 1,
+    gridGap: "24px",
+    paddingTop: "0px",
+    paddingBottom: "0px",
+    content: [createProductImagesGalleryBlock({ mode: "slider" })],
+  }),
+};
+
 export const PRODUCTS_GRID_PRESETS: SectionPreset[] = [
   productCardVertical,
   productsGridThreeColumns,
   productDetailLayout,
+  productImagesSlider,
 ];

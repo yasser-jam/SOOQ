@@ -12,6 +12,7 @@ import { TextProps } from "./blocks/Text";
 import { SpaceProps } from "./blocks/Space";
 import type { GroupProps } from "./blocks/Group";
 import type { ProductImageCarouselProps } from "./blocks/ProductImageCarousel";
+import type { ProductImagesGalleryProps } from "./blocks/ProductImagesGallery";
 import type { ProductVariantsProps } from "./blocks/ProductVariants";
 import { CartSectionProps } from "./blocks/CartSection";
 import type { CartListProps } from "./blocks/CartList";
@@ -88,6 +89,7 @@ export type Components = {
   RichText: RichTextProps;
   ProductCard: GroupProps;
   ProductImageCarousel: ProductImageCarouselProps;
+  ProductImagesGallery: ProductImagesGalleryProps;
   ProductVariants: ProductVariantsProps;
   CartSection: CartSectionProps;
   CartList: CartListProps;
