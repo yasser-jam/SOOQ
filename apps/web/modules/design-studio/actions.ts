@@ -265,14 +265,15 @@ export const deleteMineTemplate = async (templateId: string): Promise<void> => {
 }
 
 export const getDesignDraft = async (): Promise<DesignVersion | null> => {
-  try {
-    const res = await api<ApiResponse<DesignVersion>>(`${ADMIN_BASE}/draft`)
-    return res.data ?? null
-  } catch (err) {
-    const status = (err as { status?: number })?.status
-    if (status === 404) return null
-    throw err
-  }
+  // No draft yet is a normal first-load state (new store, nothing designed).
+  // Accept the 404 here so it never reaches the response interceptor's error
+  // toast — see getPublishedDesignConfig's 304 handling for the same pattern.
+  const res = await api<ApiResponse<DesignVersion> | "">(`${ADMIN_BASE}/draft`, {
+    validateStatus: (status: number) =>
+      (status >= 200 && status < 300) || status === 404,
+  })
+  if (!res || typeof res !== "object") return null
+  return res.data ?? null
 }
 
 export const getDesignDraftQueryOptions = () =>

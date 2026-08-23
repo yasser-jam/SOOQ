@@ -27,6 +27,9 @@ const builtinThemeLoaders: Record<string, () => Promise<unknown>> = {
   "builtin-meridian-almarai": () => import("./theme-meridian-almarai.json"),
   "builtin-rawaq-furniture": () => import("./theme-rawaq-furniture.json"),
   "builtin-nova-electronics": () => import("./theme-nova-electronics.json"),
+  "builtin-lamsa-beauty": () => import("./theme-lamsa-beauty.json"),
+  "builtin-nabd-sport": () => import("./theme-nabd-sport.json"),
+  "builtin-farha-kids": () => import("./theme-farha-kids.json"),
 };
 
 export const builtinThemeCatalog: BuiltinThemeSummary[] = [
@@ -61,6 +64,30 @@ export const builtinThemeCatalog: BuiltinThemeSummary[] = [
       "قالب إلكترونيات داكن وعصري بخط IBM Plex Sans Arabic وألوان نيلية على خلفية داكنة — هيرو بصورة، شريط ثقة، فئات، عروض لفترة محدودة، منتجات مختارة، مزايا، معرض صور، وآراء عملاء.",
     previewImageUrl:
       "https://placehold.co/400x250/0b0f1a/4f6df5?text=%D9%86%D9%88%D9%81%D8%A7",
+  },
+  {
+    templateKey: "builtin-lamsa-beauty",
+    templateName: "لمسة للتجميل",
+    description:
+      "قالب تجميل ناعم بخط Tajawal وعناوين Amiri وألوان وردية دافئة — هيرو بصورة، شريط ثقة، فئات عناية وتجميل، عروض لفترة محدودة، منتجات مختارة، مزايا، معرض صور، وآراء عميلات.",
+    previewImageUrl:
+      "https://placehold.co/400x250/8f2a4e/f5e3e9?text=%D9%84%D9%85%D8%B3%D8%A9",
+  },
+  {
+    templateKey: "builtin-nabd-sport",
+    templateName: "نبض للرياضة",
+    description:
+      "قالب رياضي حيوي بخط Readex Pro وعناوين Changa وألوان برتقالية طاقوية — هيرو بصورة، شريط ثقة، فئات ملابس ومعدات رياضية، عروض لفترة محدودة، منتجات مختارة، مزايا، معرض صور، وآراء عملاء.",
+    previewImageUrl:
+      "https://placehold.co/400x250/8f5a2a/f5ece3?text=%D9%86%D8%A8%D8%B6",
+  },
+  {
+    templateKey: "builtin-farha-kids",
+    templateName: "فرحة للأطفال",
+    description:
+      "قالب أطفال مرح بخط Noto Sans Arabic وعناوين Rubik وألوان فيروزية زاهية — هيرو بصورة، شريط ثقة، فئات ألعاب وأنشطة، عروض لفترة محدودة، منتجات مختارة، مزايا، معرض صور، وآراء أهالي.",
+    previewImageUrl:
+      "https://placehold.co/400x250/2a7d8f/e3f2f5?text=%D9%81%D8%B1%D8%AD%D8%A9",
   },
 ];
 
