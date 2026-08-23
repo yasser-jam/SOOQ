@@ -95,6 +95,7 @@ const GroupInternal: ComponentConfig<GroupProps> = {
     product: {
       ...productExternalField,
       label: "اختر منتج",
+      visible: false,
       metadata: {
         helpText: "ابحث واختر منتجاً لربط هذه المجموعة ببياناته الحية.",
       },

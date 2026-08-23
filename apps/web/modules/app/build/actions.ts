@@ -90,6 +90,12 @@ export const createConfiguration = async (
       headers: tenantHeaders(),
       body: {
         schemaVersion: "1.0.0",
+        // `configJson.iconUrl` is silently ignored by the mobile `app` model (it only reads
+        // name/bundleId/tenantId/apiBaseUrl/tenantSlug) — `icon_url` at the top level is the
+        // field the build-dispatch payload actually reads
+        // (config-issues-v89-2026-08-23.md §0). Sent in both places: nested for whenever the
+        // backend starts honouring it there too, top-level for the path that already works.
+        ...(configJson.iconUrl ? { icon_url: configJson.iconUrl } : {}),
         configJson: {
 			appName: configJson.appName,
 			apiBaseUrl: configJson.apiBaseUrl,

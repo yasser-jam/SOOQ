@@ -8,6 +8,7 @@ import {
 } from "@/core/config/lib/site-data"
 import { readSelectedTheme } from "@/core/config/lib/selected-theme"
 import { getEditorTenantId } from "@/lib/tenant-context"
+import { getTenantSlug } from "@/lib/tenant-slug"
 import { transformWebToMobile } from "@/lib/transformer"
 
 import {
@@ -36,10 +37,18 @@ export {
  */
 const emptyMobileConfig = (): Record<string, unknown> => ({ screens: [] })
 
-/** Derives the app-builder screen contract from a Site JSON (web or mobile). */
+/**
+ * Derives the app-builder screen contract from a Site JSON (web or mobile).
+ *
+ * `tenantSlug` used to be left out here entirely, so every build fell back to the converter's
+ * `"example-merchant"` placeholder and shipped in `app.tenantSlug` — sent on every request via
+ * `X-Tenant-Slug` (config-issues-v89-2026-08-23.md §4.2). Wiring the real slug through is the fix;
+ * `transformWebToMobile`'s own placeholder warning only fires when a caller forgets this.
+ */
 const buildMobileConfig = (site: SiteData): Record<string, unknown> => {
   const result = transformWebToMobile(JSON.stringify(site), {
     tenantId: getEditorTenantId() ?? undefined,
+    tenantSlug: getTenantSlug() ?? undefined,
   })
   return result.success
     ? (result.output as Record<string, unknown>)

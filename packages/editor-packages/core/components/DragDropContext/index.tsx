@@ -309,13 +309,6 @@ const DragDropContextClient = ({
 
   const initialSelector = useRef<{ zone: string; index: number }>(undefined);
 
-  // TEMP DEBUG: pin down why "move existing component" drags snap back
-  // without dropping in some canvases. Logs once per drag attempt so it
-  // doesn't spam onDragOver (which fires on every pointer move). Remove
-  // once the root cause is confirmed.
-  const loggedMoveDiagnostic = useRef(false);
-  const loggedNoDraggedItem = useRef(false);
-
   const nextContextValue = useMemo<DropZoneContext>(
     () => ({
       mode: "edit",
@@ -490,13 +483,6 @@ const DragDropContextClient = ({
 
           // Drag end can sometimes trigger after drag
           if (!draggedItem) {
-            if (!loggedNoDraggedItem.current) {
-              loggedNoDraggedItem.current = true;
-              console.warn(
-                "[puck-debug] onDragOver fired but draggedItem is unset",
-                { mode: dragMode.current }
-              );
-            }
             return;
           }
 
@@ -506,37 +492,6 @@ const DragDropContextClient = ({
           const { source, target } = event.operation;
 
           if (!target || !source || target.type === "void") {
-            if (!loggedMoveDiagnostic.current) {
-              loggedMoveDiagnostic.current = true;
-
-              const frameEl = getFrame()?.querySelector<HTMLElement>(
-                "[data-puck-entry]"
-              );
-              const previewFrameEl =
-                document.querySelector<HTMLIFrameElement>(
-                  "iframe#preview-frame"
-                );
-              const { state, zoomConfig } = appStore.getState();
-
-              console.warn(
-                `[puck-debug] ${dragMode.current}: no valid target`,
-                {
-                  hasTarget: !!target,
-                  targetType: target?.type,
-                  hasSource: !!source,
-                  viewportWidth: state.ui.viewports?.current?.width,
-                  zoom: zoomConfig?.zoom,
-                  frameRect: previewFrameEl?.getBoundingClientRect(),
-                  frameScroll: frameEl
-                    ? {
-                        scrollWidth: frameEl.scrollWidth,
-                        clientWidth: frameEl.clientWidth,
-                        scrollLeft: frameEl.scrollLeft,
-                      }
-                    : undefined,
-                }
-              );
-            }
             return;
           }
 
@@ -591,17 +546,6 @@ const DragDropContextClient = ({
               return pathId === sourceId;
             })
           ) {
-            if (
-              dragMode.current === "existing" &&
-              !loggedMoveDiagnostic.current
-            ) {
-              loggedMoveDiagnostic.current = true;
-              console.warn("[puck-debug] move: aborted as self/descendant", {
-                sourceId,
-                targetId,
-                path,
-              });
-            }
             return;
           }
 
@@ -645,13 +589,6 @@ const DragDropContextClient = ({
                     element: source.element,
                   },
                 },
-              });
-            } else if (!loggedMoveDiagnostic.current) {
-              loggedMoveDiagnostic.current = true;
-              console.warn("[puck-debug] move: getItem returned nothing", {
-                initialSelector: initialSelector.current,
-                targetZone,
-                targetIndex,
               });
             }
           }
@@ -699,16 +636,6 @@ const DragDropContextClient = ({
 
           dragMode.current = isNewComponent ? "new" : "existing";
           initialSelector.current = undefined;
-          loggedMoveDiagnostic.current = false;
-          loggedNoDraggedItem.current = false;
-
-          console.warn("[puck-debug] onBeforeDragStart fired", {
-            mode: dragMode.current,
-            sourceType: event.operation.source?.type,
-            sourceId: event.operation.source?.id,
-            viewportWidth: appStore.getState().state.ui.viewports?.current
-              ?.width,
-          });
 
           zoneStore.setState({ draggedItem: event.operation.source });
 
