@@ -8,24 +8,11 @@ import {
   Render,
   type Overrides,
 } from "@/core"
-import { createUsePuck } from "@/core/lib/use-puck"
 import config from "@/core/config"
 import { useDemoData } from "@/lib/use-demo-data"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import {
-  CircleHelp,
-  Copy,
-  Check,
-  Eye,
-  FileJson,
-  Keyboard,
-  MousePointer2,
-  RefreshCw,
-  Smartphone,
-  Type,
-  X,
-} from "lucide-react"
+import { useSearchParams } from "next/navigation"
+import { RefreshCw, Smartphone, Type, X } from "lucide-react"
 import { settingsPlugin } from "@/core/config/plugins/settings"
 import { HtmlBlockPaletteSync } from "@/core/config/plugins/html-block-palette"
 import { MobilePaletteSync } from "@/core/config/plugins/mobile-palette"
@@ -71,13 +58,10 @@ import { useCurrentUser } from "@/modules/auth/auth/hooks/useCurrentUser"
 import { EditorFullscreenShell } from "../_components/editor-fullscreen-shell"
 import { PreviewPageShell } from "../_components/preview-page-shell"
 import { PreviewThemeProvider } from "../_components/preview-theme-provider"
-import { SiteJsonViewer } from "../_components/site-json-viewer"
 import { StoreProvider } from "@/modules/storefront/components/StoreProvider"
 import {
   buildStudioEditHrefFromSegment,
-  buildStudioPreviewHrefFromSegment,
   resolveStudioThemeEditHref,
-  resolveStudioThemePreviewHref,
   withEditorMode,
 } from "@/lib/design-studio-paths"
 import { useSelectedPage } from "@/core/config/lib/use-selected-page"
@@ -87,8 +71,6 @@ import { PAGES_UPDATED_EVENT } from "@/core/config/page-registry"
 // shopifyOutlinePlugin registers as "sections" (الأقسام); built-in outline
 // stays as "شجرة العناصر". Both tabs remain visible in the left sidebar.
 const hiddenPluginNames = new Set(["themes", "heading-analyzer"])
-
-const EDITOR_HINT_DISMISSED_KEY = "puck-demo-editor-hint-dismissed-v1"
 
 // Must be referentially stable per editor mode — PuckProvider rebuilds when
 // metadata identity changes.
@@ -116,139 +98,6 @@ const MOBILE_PUCK_UI = {
 // Stable for the same reason — feeds PuckProvider's loadedFieldTransforms.
 const fieldTransforms = {
   userField: ({ value }: any) => value, // Included to check types
-}
-
-const usePuck = createUsePuck()
-
-const isTypingTarget = (target: EventTarget | null) => {
-  if (!(target instanceof HTMLElement)) return false
-  if (target.isContentEditable) return true
-  const tagName = target.tagName
-  return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT"
-}
-
-function JsonViewerFloatingButton({ onOpen }: { onOpen: () => void }) {
-  return (
-    <button
-      type="button"
-      className="EditorHintPill"
-      onClick={onOpen}
-      aria-label="Open JSON viewer"
-      style={{ bottom: "60px" }}
-    >
-      <FileJson size={16} />
-      عرض JSON
-    </button>
-  )
-}
-
-function JsonViewerDialog({
-  open,
-  onClose,
-  getSiteSnapshot,
-  editorMode = "desktop",
-}: {
-  open: boolean
-  onClose: () => void
-  getSiteSnapshot: () => SiteData
-  editorMode?: EditorMode
-}) {
-  // Only subscribe to editor data while the dialog is open — otherwise every
-  // keystroke in the canvas re-renders this (closed) dialog.
-  const puckData = usePuck((s) => (open ? s.appState.data : null))
-  const [copied, setCopied] = useState(false)
-
-  const siteSnapshot = useMemo(() => {
-    if (!open) return null
-    return normalizeSiteData(getSiteSnapshot())
-  }, [open, getSiteSnapshot, puckData])
-
-  const jsonString = useMemo(
-    () => (siteSnapshot ? JSON.stringify(siteSnapshot, null, 2) : ""),
-    [siteSnapshot]
-  )
-
-  useEffect(() => {
-    if (!open) {
-      setCopied(false)
-    }
-  }, [open])
-
-  const handleCopy = useCallback(async () => {
-    if (!jsonString || typeof navigator === "undefined") return
-
-    try {
-      await navigator.clipboard.writeText(jsonString)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 2000)
-    } catch {
-      const textarea = document.createElement("textarea")
-      textarea.value = jsonString
-      textarea.style.position = "fixed"
-      textarea.style.opacity = "0"
-      document.body.appendChild(textarea)
-      textarea.select()
-      document.execCommand("copy")
-      document.body.removeChild(textarea)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 2000)
-    }
-  }, [jsonString])
-
-  if (!open || !siteSnapshot) return null
-
-  return (
-    <div
-      className="EditorShortcutOverlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Site JSON data"
-      data-puck-no-shortcuts="true"
-    >
-      <button
-        type="button"
-        className="EditorShortcutOverlayBackdrop"
-        onClick={onClose}
-        aria-label="Close JSON viewer"
-      />
-
-      <div className="EditorShortcutDialog EditorJsonDialog" data-puck-no-shortcuts="true">
-        <div className="EditorShortcutDialogHeader">
-          <div>
-            <p className="EditorShortcutEyebrow">
-              {editorMode === "mobile" ? "Mobile site data" : "Site data"}
-            </p>
-            <h2 className="EditorShortcutTitle">
-              {editorMode === "mobile" ? "JSON (الجوال)" : "JSON"}
-            </h2>
-          </div>
-
-          <div className="EditorJsonDialog-actions">
-            <button
-              type="button"
-              className="EditorJsonDialog-copyBtn"
-              onClick={() => void handleCopy()}
-              aria-label="Copy JSON to clipboard"
-            >
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-              {copied ? "تم النسخ" : "نسخ JSON"}
-            </button>
-
-            <button
-              type="button"
-              className="EditorShortcutClose"
-              onClick={onClose}
-              aria-label="Close JSON viewer"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        </div>
-
-        <SiteJsonViewer site={siteSnapshot} />
-      </div>
-    </div>
-  )
 }
 
 function MobileSyncFloatingButton({ onOpen }: { onOpen: () => void }) {
@@ -470,95 +319,39 @@ function MobileSyncDialogContent({
 
 /**
  * Floating helpers rendered inside the Puck tree (needs Puck context for the
- * JSON viewer). Owns the hint-pill + shortcut/JSON dialog state and the
- * related keyboard shortcuts. This state used to live in `Client`, where each
- * toggle recreated the `overrides` object and re-initialized the whole editor
+ * mobile-sync dialog). Owns that dialog's open state so toggling it never
+ * recreates the `overrides` object and re-initializes the whole editor
  * store (docs/editor-study-and-enhancement-plan.md §2.3).
  */
 function EditorFloatingTools({
-  getSiteSnapshot,
-  modKeyLabel,
   editorMode = "desktop",
   editPath = "/",
   canWrite = false,
   onSiteMutated,
 }: {
-  getSiteSnapshot: () => SiteData
-  modKeyLabel: string
   editorMode?: EditorMode
   editPath?: string
   canWrite?: boolean
   onSiteMutated?: () => void
 }) {
-  const [isShortcutDialogOpen, setShortcutDialogOpen] = useState(false)
-  const [isJsonDialogOpen, setJsonDialogOpen] = useState(false)
   const [isMobileSyncDialogOpen, setMobileSyncDialogOpen] = useState(false)
-  const [showHintPill, setShowHintPill] = useState(false)
 
   useEffect(() => {
-    const isDismissed =
-      window.localStorage.getItem(EDITOR_HINT_DISMISSED_KEY) === "1"
-
-    setShowHintPill(!isDismissed)
-
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setShortcutDialogOpen(false)
-        setJsonDialogOpen(false)
         setMobileSyncDialogOpen(false)
-        return
       }
-
-      if (isTypingTarget(event.target)) return
-
-      const isQuestionShortcut =
-        event.key === "?" || (event.key === "/" && event.shiftKey)
-
-      if (!isQuestionShortcut) return
-
-      event.preventDefault()
-      setShortcutDialogOpen((previous) => !previous)
     }
 
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [])
 
-  const dismissHintPill = useCallback(() => {
-    setShowHintPill(false)
-
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(EDITOR_HINT_DISMISSED_KEY, "1")
-    }
-  }, [])
-
   return (
     <>
-      {showHintPill && !isShortcutDialogOpen ? (
-        <button
-          type="button"
-          className="EditorHintPill"
-          onClick={() => setShortcutDialogOpen(true)}
-          aria-label="Open Puck editor shortcuts and tips"
-        >
-          <CircleHelp size={16} />
-          مساعدة سريعة
-          <span className="EditorHintPill-key">?</span>
-        </button>
-      ) : null}
-
-      <JsonViewerFloatingButton onOpen={() => setJsonDialogOpen(true)} />
-
       {canWrite ? (
         <MobileSyncFloatingButton onOpen={() => setMobileSyncDialogOpen(true)} />
       ) : null}
-
-      <JsonViewerDialog
-        open={isJsonDialogOpen}
-        onClose={() => setJsonDialogOpen(false)}
-        getSiteSnapshot={getSiteSnapshot}
-        editorMode={editorMode}
-      />
 
       <MobileSyncDialog
         open={isMobileSyncDialogOpen}
@@ -567,141 +360,6 @@ function EditorFloatingTools({
         editPath={editPath}
         onSiteMutated={onSiteMutated ?? (() => {})}
       />
-
-      {isShortcutDialogOpen ? (
-        <div
-          className="EditorShortcutOverlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Puck editor shortcuts"
-          data-puck-no-shortcuts="true"
-        >
-          <button
-            type="button"
-            className="EditorShortcutOverlayBackdrop"
-            onClick={() => setShortcutDialogOpen(false)}
-            aria-label="Close shortcuts panel"
-          />
-
-          <div className="EditorShortcutDialog" data-puck-no-shortcuts="true">
-            <div className="EditorShortcutDialogHeader">
-              <div>
-                <p className="EditorShortcutEyebrow">Editor guide</p>
-                <h2 className="EditorShortcutTitle">
-                  Build faster with shortcuts
-                </h2>
-              </div>
-
-              <button
-                type="button"
-                className="EditorShortcutClose"
-                onClick={() => setShortcutDialogOpen(false)}
-                aria-label="Close editor guide"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="EditorShortcutSections">
-              <section className="EditorShortcutSection">
-                <h3>
-                  <Keyboard size={16} />
-                  Core actions
-                </h3>
-                <ul>
-                  <li>
-                    <span>Add section</span>
-                    <kbd>A</kbd>
-                  </li>
-                  <li>
-                    <span>Insert Hero on an empty page</span>
-                    <span className="EditorShortcutKeys">
-                      <kbd>Shift</kbd>
-                      <kbd>A</kbd>
-                    </span>
-                  </li>
-                  <li>
-                    <span>Open this guide</span>
-                    <kbd>?</kbd>
-                  </li>
-                  <li>
-                    <span>Close dialogs</span>
-                    <kbd>Esc</kbd>
-                  </li>
-                </ul>
-              </section>
-
-              <section className="EditorShortcutSection">
-                <h3>
-                  <MousePointer2 size={16} />
-                  Canvas editing
-                </h3>
-                <ul>
-                  <li>
-                    <span>Duplicate selected block</span>
-                    <span className="EditorShortcutKeys">
-                      <kbd>{modKeyLabel}</kbd>
-                      <kbd>D</kbd>
-                    </span>
-                  </li>
-                  <li>
-                    <span>Copy or paste block</span>
-                    <span className="EditorShortcutKeys">
-                      <kbd>{modKeyLabel}</kbd>
-                      <kbd>C</kbd>
-                      <kbd>{modKeyLabel}</kbd>
-                      <kbd>V</kbd>
-                    </span>
-                  </li>
-                  <li>
-                    <span>Move block up or down</span>
-                    <span className="EditorShortcutKeys">
-                      <kbd>{modKeyLabel}</kbd>
-                      <kbd>↑</kbd>
-                      <kbd>{modKeyLabel}</kbd>
-                      <kbd>↓</kbd>
-                    </span>
-                  </li>
-                  <li>
-                    <span>Hide or show selected block</span>
-                    <kbd>H</kbd>
-                  </li>
-                  <li>
-                    <span>Delete selected block</span>
-                    <kbd>Del</kbd>
-                  </li>
-                </ul>
-              </section>
-            </div>
-
-            <p className="EditorShortcutFooter">
-              Tip: Right-click any block on the canvas to open the quick action
-              menu.
-            </p>
-
-            <div className="EditorShortcutActions">
-              <button
-                type="button"
-                className="EditorShortcutGhostButton"
-                onClick={() => {
-                  dismissHintPill()
-                  setShortcutDialogOpen(false)
-                }}
-              >
-                Hide floating tip
-              </button>
-
-              <button
-                type="button"
-                className="EditorShortcutPrimaryButton"
-                onClick={() => setShortcutDialogOpen(false)}
-              >
-                Continue editing
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </>
   )
 }
@@ -738,22 +396,10 @@ export function Client({
     ? EDITOR_METADATA_MOBILE
     : EDITOR_METADATA_DESKTOP
 
-  const router = useRouter()
   const queryClient = useQueryClient()
     const { hasRole } = useCurrentUser()
     const canWrite = hasRole(["OWNER", "MANAGER"])
   const designStudioHref = useMemo(() => "/design-studio", [])
-
-  const previewHref = useMemo(
-    () =>
-      withEditorMode(
-        themeSlug
-          ? buildStudioPreviewHrefFromSegment(designStudioHref, themeSlug)
-          : resolveStudioThemePreviewHref(designStudioHref),
-        editorMode
-      ),
-    [designStudioHref, themeSlug, editorMode]
-  )
 
   const editHref = useMemo(
     () =>
@@ -929,14 +575,6 @@ export function Client({
   )
   // ------------------------------------------------------------------------
 
-  // Lets handleOpenPreview read the latest data without depending on it —
-  // keeps the callback (and therefore `overrides`) referentially stable.
-  const latestDataRef = useRef(editorData)
-
-  useEffect(() => {
-    latestDataRef.current = editorData
-  }, [editorData])
-
   const getSiteSnapshot = useCallback(() => {
     const base = siteDataRef.current ?? readSiteData(editorMode)
     const puckData = exportDataRef.current
@@ -947,11 +585,6 @@ export function Client({
 
     return base
   }, [path, editorMode])
-
-  const modKeyLabel = useMemo(() => {
-    if (typeof navigator === "undefined") return "Ctrl"
-    return /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd" : "Ctrl"
-  }, [])
 
   useEffect(() => {
     if (!siteReady) return
@@ -971,48 +604,6 @@ export function Client({
     return () =>
       window.removeEventListener(PAGES_UPDATED_EVENT, refreshSiteSnapshot)
   }, [editorMode])
-
-  const handleOpenPreview = useCallback(async () => {
-    const puckData = exportDataRef.current ?? latestDataRef.current
-    if (puckData) {
-      savePageData(puckData as UserData)
-      siteDataRef.current = readSiteData(editorMode)
-      markPageSaved(puckData as UserData)
-    }
-
-    // Editing a named template (not the tenant's live draft) still uses the
-    // local-storage preview — /design-preview only ever renders the admin
-    // draft or a gallery template's own saved JSON, neither of which is
-    // "this template plus my unsaved local edits".
-    if (themeSlug) {
-      router.push(previewHref)
-      return
-    }
-
-    // Editing the tenant's live draft — push local edits to the backend
-    // first so /design-preview (GET /admin/design/draft) reflects what's on
-    // screen instead of a stale server copy.
-    if (canWrite) {
-      try {
-        await saveEditorDesignDraft(editorMode)
-        await queryClient.invalidateQueries({ queryKey: designStudioKeys.all })
-      } catch {
-        toast.error("تعذر حفظ التصميم على الخادم. ستظهر المعاينة بآخر نسخة محفوظة.")
-      }
-    }
-
-    router.push("/design-preview")
-  }, [
-    previewHref,
-    router,
-    savePageData,
-    markPageSaved,
-    editorMode,
-    isMobileEditor,
-    themeSlug,
-    canWrite,
-    queryClient,
-  ])
 
   // The header "حفظ" button: local write (unchanged) + the draft PUT that
   // makes the design survive this browser. `configJson.web` is always the
@@ -1095,8 +686,6 @@ export function Client({
           {/* Owns its own dialog/hint state so toggling it never recreates
               `overrides` (which would reset the whole Puck store). */}
           <EditorFloatingTools
-            getSiteSnapshot={getSiteSnapshot}
-            modKeyLabel={modKeyLabel}
             editorMode={editorMode}
             editPath={path}
             canWrite={canWrite}
@@ -1133,24 +722,11 @@ export function Client({
           <Button variant="outline" size="sm" asChild>
             <Link href={designStudioHref}>إغلاق المحرر</Link>
           </Button>
-          <Button variant="outline" size="sm" onClick={handleOpenPreview}>
-            <Eye size={16} />
-            معاينة
-          </Button>
           {canWrite ? children : null}
         </div>
       ),
     }),
-    [
-      canWrite,
-      designStudioHref,
-      getSiteSnapshot,
-      handleOpenPreview,
-      modKeyLabel,
-      editorMode,
-      path,
-      refreshSite,
-    ]
+    [canWrite, designStudioHref, editorMode, path, refreshSite]
   )
 
   const previewRootProps = useMemo(() => {
