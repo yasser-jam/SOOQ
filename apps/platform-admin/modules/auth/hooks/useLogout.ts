@@ -1,0 +1,33 @@
+"use client"
+
+import { useQueryClient } from "@tanstack/react-query"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+
+import cookiesConfig from "@/config/cookies-config"
+import { logoutSession } from "@/lib/auth/internal"
+import { removeCookie } from "@/lib/cookies"
+
+import { authKeys } from "../actions"
+
+export const useLogout = () => {
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const [isPending, setPending] = useState(false)
+
+  const logout = async () => {
+    setPending(true)
+    try {
+      await logoutSession().catch(() => undefined)
+    } finally {
+      removeCookie(cookiesConfig.accessToken)
+      removeCookie(cookiesConfig.userName)
+      queryClient.removeQueries({ queryKey: authKeys.currentUser })
+      queryClient.clear()
+      router.push("/login")
+      setPending(false)
+    }
+  }
+
+  return { logout, isPending }
+}
